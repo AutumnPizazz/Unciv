@@ -678,7 +678,7 @@ object UniqueTriggerActivation {
             }
 
             UniqueType.OneTimeSetStockpile -> {
-                val resourceName = unique.params[0]
+                val resourceName = unique.params[1]
                 val resource = ruleset.getGameResource(resourceName) ?: return null
                 if (resource is TileResource && !resource.isStockpiled) return null
 
