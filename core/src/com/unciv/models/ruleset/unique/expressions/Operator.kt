@@ -83,6 +83,7 @@ internal sealed interface Operator : Tokenizer.Token {
     ) : Function {
         Max("max", 2..Int.MAX_VALUE, "2 or more arguments", { args -> args.maxOrNull() ?: 0.0 }),
         Min("min", 2..Int.MAX_VALUE, "2 or more arguments", { args -> args.minOrNull() ?: 0.0 }),
+        Log("log", 2..2, "exactly 2 arguments: log(base, x)", { args -> ln(args[1]) / ln(args[0]) }),
         ;
         override fun toString() = symbol
     }

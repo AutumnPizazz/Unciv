@@ -408,7 +408,8 @@ enum class Countables(
             "Since on translation, the brackets are removed, the expression will be displayed as `(Melee units + 1) / Cities`",
             "Supported operations between 2 values are: "+ Operator.BinaryOperators.entries.joinToString { it.symbol },
             "Supported operations on 1 value are: " + Operator.UnaryOperators.entries.joinToString { "${it.symbol} (${it.description})" },
-            "Supported functions: " + Operator.Functions.entries.joinToString { "${it.symbol}()" },
+            "Supported functions:",
+            *Operator.Functions.entries.map { "  - `${it.symbol}()` - ${it.arityDescription}" }.toTypedArray(),
         )
     }
     ;
