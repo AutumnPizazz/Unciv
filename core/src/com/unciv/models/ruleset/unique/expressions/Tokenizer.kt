@@ -18,10 +18,12 @@ internal object Tokenizer {
      *  - [Operator]
      *  - [Node.Constant]
      *  - [Node.Countable]
+     *  - [Comma] - argument separator in function calls
      */
     internal sealed interface Token {
         @Pure fun canBeUnary() = this is Operator.Unary || this is Operator.UnaryOrBinary
         @Pure fun canBeBinary() = this is Operator.Binary || this is Operator.UnaryOrBinary
+        @Pure fun isFunction() = this is Operator.Function
         // Note: not naming this `getUnaryOperator` because of kotlin's habit to interpret that as property accessor. Messes up debugging a bit.
         @Pure
         fun fetchUnaryOperator() = when(this) {
@@ -35,6 +37,15 @@ internal object Tokenizer {
             is Operator.UnaryOrBinary -> binary
             else -> throw InternalError()
         }
+        @Pure
+        fun fetchFunction() = when(this) {
+            is Operator.Function -> this
+            else -> throw InternalError()
+        }
+    }
+
+    data object Comma : Token {
+        override fun toString() = ","
     }
 
     // Define our own "Char is part of literal constant" and "Char is part of identifier" functions - decouple from Java CharacterData
@@ -50,6 +61,9 @@ internal object Tokenizer {
         assert(text.isNotBlank())
         if (text.first().isNumberLiteral())
             return position to Node.NumericConstant(text.toDouble())
+        if (text == ",") return position to Comma
+        
+        // Check if this is a function (identifier followed by parentheses will be handled in parsing)
         val operator = Operator.of(text)
         if (operator != null) return position to operator
         
@@ -120,6 +134,8 @@ internal object Tokenizer {
                 braceNestingLevel++
             } else if (char == ']') {
                 throw UnmatchedBraces(pos)
+            } else if (char == ',') {
+                yield(pos to ",")
             } else {
                 yield(pos to char.toString())
             }

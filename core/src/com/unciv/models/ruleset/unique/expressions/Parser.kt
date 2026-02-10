@@ -22,7 +22,7 @@ import yairm210.purity.annotations.Readonly
  *  - Non-Alphanumeric tokens are always one character (ie needs work to support `<=` and similar operators).
  *  - Numeric constants do not support scientific notation.
  *  - Alphanumeric identifiers (can be matched with simple countables or function names) can _only_ contain letters and digits as defined by  defined by unicode properties, and '_'.
- *  - Functions with arity > 1 aren't supported. No parameter lists with comma - in fact, functions are just implemented as infix operators.
+ *  - Functions support comma-separated arguments, e.g., max(a, b, c).
  *  - Only prefix Unary operators, e.g. no standard factorial notation.
  */
 object Parser {
@@ -108,6 +108,30 @@ object Parser {
             return Node.UnaryOperation(operator, fetchOperand())
         }
 
+        private fun handleFunctionCall(function: Operator.Function): Node {
+            // Current token should be '(', next will be the first argument
+            expect(Parentheses.Opening)
+            next() // consume '('
+            
+            val arguments = mutableListOf<Node>()
+            
+            if (currentToken != Parentheses.Closing) {
+                // Parse first argument
+                arguments.add(expression())
+                
+                // Parse additional arguments separated by commas
+                while (currentToken == Tokenizer.Comma) {
+                    next() // consume ','
+                    arguments.add(expression())
+                }
+            }
+            
+            expect(Parentheses.Closing)
+            next() // consume ')'
+            
+            return Node.FunctionCall(function, arguments)
+        }
+
         /**
          * EXAMPLE 1 - 1+2*3
          * We first build the '1' node in the initial fetchOperand().
@@ -149,6 +173,17 @@ object Parser {
             if (currentToken == StartToken) next()
             if (currentToken.canBeUnary()) {
                 return handleUnary()
+            } else if (currentToken.isFunction()) {
+                // Check if this is a function call (identifier followed by '(')
+                val function = currentToken.fetchFunction()
+                next() // consume function name
+                if (currentToken == Parentheses.Opening) {
+                    // It's a function call
+                    return handleFunctionCall(function)
+                } else {
+                    // Not a function call, throw error
+                    throw MissingOperand(currentPosition)
+                }
             } else if (currentToken == Parentheses.Opening) {
                 next()
                 val node = expression()
