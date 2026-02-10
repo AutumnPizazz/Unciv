@@ -3,12 +3,15 @@ package com.unciv.ui.screens.cityscreen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.utils.Align
 import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.logic.automation.Automation
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.TutorialTrigger
 import com.unciv.models.UncivSound
@@ -17,6 +20,7 @@ import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.unique.LocalUniqueCache
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.stats.Stat
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.CityAmbiencePlayer
@@ -24,6 +28,7 @@ import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.ParticleEffectMapFireworks
 import com.unciv.ui.components.extensions.colorFromRGB
 import com.unciv.ui.components.extensions.disable
+import com.unciv.ui.components.extensions.isEnabled
 import com.unciv.ui.components.extensions.packIfNeeded
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.input.KeyCharAndCode
@@ -39,6 +44,7 @@ import com.unciv.ui.components.tilegroups.TileGroupMap
 import com.unciv.ui.components.tilegroups.TileSetStrings
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.popups.ConfirmPopup
+import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.popups.closeAllPopups
 import com.unciv.ui.screens.basescreen.BaseScreen
@@ -289,6 +295,9 @@ class CityScreen(
                 pickTileData != null && city.tiles.contains(tileGroup.tile.position) ->
                     getPickImprovementColor(tileGroup.tile).run {
                         tileGroup.layerMisc.addHexOutline(first.cpy().apply { this.a = second }) }
+                // Highlight selected tile
+                tileGroup.tile == selectedTile ->
+                    tileGroup.layerMisc.addHexOutline(Color.CYAN)
             }
 
             if (fireworks != null && tileGroup.tile.position == city.location)
@@ -452,6 +461,119 @@ class CityScreen(
         }.open()
     }
 
+    /** Opens a popup to exchange the currently selected tile with a neighboring city. */
+    internal fun askToExchangeTile() {
+        if (!canChangeState || selectedTile == null) return
+        val tile = selectedTile!!
+
+        if (tile.getCity() != city || !canExchangeTile(tile)) {
+            city.civ.addNotification(
+                "This tile cannot be exchanged".tr(),
+                city.location,
+                NotificationCategory.General
+            )
+            return
+        }
+
+        val adjacentCities = getAdjacentCitiesForExchange(tile)
+        showCitySelectionPopupForExchange(adjacentCities, tile)
+    }
+
+    /** Shows a popup to select which neighboring city to exchange the selected tile with */
+    private fun showCitySelectionPopupForExchange(adjacentCities: List<City>, tile: Tile) {
+        closeAllPopups()
+        val popup = Popup(this)
+
+        popup.add("Select city to receive tile from".tr()).padBottom(10f).row()
+
+        for (otherCity in adjacentCities) {
+            val button = TextButton(
+                otherCity.name.tr(),
+                BaseScreen.skin.get(TextButton.TextButtonStyle::class.java)
+            )
+            button.onClick { confirmTileExchange(otherCity, tile, null) }
+            popup.add(button).growX().pad(5f).row()
+        }
+
+        popup.addCloseButton()
+        popup.open()
+    }
+
+    /** Get a user-friendly display name for a tile */
+    private fun getTileDisplayName(tile: Tile): String {
+        val parts = mutableListOf(tile.baseTerrain.tr())
+        parts.addAll(tile.terrainFeatures.map { it.tr() })
+        
+        tile.tileResource?.let { resource ->
+            if (resource.resourceType == ResourceType.Strategic)
+                parts.add("{$tile.tileResourceAmount} {$tile.tileResource}")
+            else parts.add(resource.name.tr())
+        }
+        
+        tile.improvement?.let { parts.add(it.tr()) }
+        
+        return parts.joinToString(" ")
+    }
+
+    /** Gets the list of cities adjacent to this tile that are in the same civilization */
+    private fun getAdjacentCitiesForExchange(tile: Tile): List<City> {
+        return tile.neighbors.mapNotNull { neighbor ->
+            val neighborCity = neighbor.getCity()
+            if (neighborCity != null && neighborCity != city && neighborCity.civ == city.civ)
+                neighborCity
+            else null
+        }.distinct().toList()
+    }
+
+    /** Checks if a tile can be exchanged.
+     * A tile is exchangeable if:
+     * - It is owned by the current city
+     * - It is adjacent to at least one other city of the same civilization
+     * - It is not in the first ring (distance 1 from city center)
+     * - It is within the exchange range
+     */
+    private fun canExchangeTile(tile: Tile): Boolean {
+        if (tile.getCity() != city) return false
+        if (tile.isCityCenter()) return false
+        if (city.expansion.isFirstRingTile(tile)) return false
+        if (!city.expansion.isWithinExchangeRange(tile)) return false
+
+        return getAdjacentCitiesForExchange(tile).isNotEmpty()
+    }
+
+    /** Confirms the tile exchange with a confirmation popup */
+    private fun confirmTileExchange(otherCity: City, ourTile: Tile?, theirTile: Tile?) {
+        closeAllPopups()
+
+        val givePattern = "Give [tile] to [city]?".tr()
+        val receivePattern = "Receive [tile] from [city]?".tr()
+        
+        val exchangePrompt = if (ourTile != null) {
+            givePattern.replace("[tile]", getTileDisplayName(ourTile))
+                .replace("[city]", otherCity.name.tr())
+        } else {
+            receivePattern.replace("[tile]", getTileDisplayName(theirTile!!))
+                .replace("[city]", otherCity.name.tr())
+        }
+
+        ConfirmPopup(
+            this,
+            exchangePrompt,
+            "Exchange".tr(),
+            true,
+            restoreDefault = { update() }
+        ) {
+            SoundPlayer.play(UncivSound.Chimes)
+            if (ourTile != null) {
+                otherCity.expansion.takeOwnership(ourTile)
+            }
+            if (theirTile != null) {
+                city.expansion.takeOwnership(theirTile)
+            }
+            UncivGame.Current.replaceCurrentScreen(CityScreen(city))
+        }.open()
+    }
+
 
     private fun tileWorkedIconDoubleClick(tileGroup: CityTileGroup, city: City) {
         if (!canChangeState || city.isPuppet || tileGroup.tileState != CityTileState.WORKABLE) return
@@ -478,7 +600,8 @@ class CityScreen(
             this.pickTileData = null
             val improvement = pickTileData.improvement
             if (tileInfo.improvementFunctions.canBuildImprovement(improvement, city.state)
-                && !tileInfo.isMarkedForCreatesOneImprovement()) {
+                && !tileInfo.isMarkedForCreatesOneImprovement()
+                && tileInfo.getCity() == city) {  // Restrict to tiles owned by this city
                 
                 if (pickTileData.isBuying) {
                     BuyButtonFactory(this).askToBuyConstruction(pickTileData.building, pickTileData.buyStat, tileInfo)

@@ -62,6 +62,17 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
             innerTable.add(buyTileButton).padTop(5f).row()
         }
 
+        // Add exchange tile button if the tile is exchangeable
+        if (selectedTile.getCity() == city && canExchangeTile(selectedTile)) {
+            val exchangeTileButton = "Exchange tile".toTextButton()
+            exchangeTileButton.onActivation(binding = KeyboardBinding.ExchangeTile) {
+                exchangeTileButton.disable()
+                cityScreen.askToExchangeTile()
+            }
+            exchangeTileButton.isEnabled = cityScreen.canChangeState
+            innerTable.add(exchangeTileButton).padTop(5f).row()
+        }
+
         if (selectedTile.owningCity != null)
             innerTable.add("Owned by [${selectedTile.owningCity!!.name}]".toLabel()).row()
 
@@ -107,5 +118,25 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
             statsTable.add(value.roundToInt().toLabel()).padRight(5f)
         }
         return statsTable
+    }
+
+    /** Checks if a tile can be exchanged.
+     * A tile is exchangeable if:
+     * - It is owned by the current city
+     * - It is adjacent to at least one other city of the same civilization
+     * - It is not in the first ring (distance 1 from city center)
+     * - It is within the exchange range
+     */
+    private fun canExchangeTile(tile: Tile): Boolean {
+        if (tile.getCity() != city) return false
+        if (tile.isCityCenter()) return false
+        if (city.expansion.isFirstRingTile(tile)) return false
+        if (!city.expansion.isWithinExchangeRange(tile)) return false
+
+        // Check if adjacent to at least one other city of the same civilization
+        return tile.neighbors.any { neighbor ->
+            val neighborCity = neighbor.getCity()
+            neighborCity != null && neighborCity != city && neighborCity.civ == city.civ
+        }
     }
 }
