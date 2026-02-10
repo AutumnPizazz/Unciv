@@ -6,6 +6,7 @@ import com.unciv.logic.map.tile.Tile
 import com.unciv.logic.map.tile.TileDescription
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
+import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.ui.components.extensions.darken
 import com.unciv.ui.components.extensions.disable
 import com.unciv.ui.components.extensions.isEnabled
@@ -126,12 +127,14 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
      * - It is adjacent to at least one other city of the same civilization
      * - It is not in the first ring (distance 1 from city center)
      * - It is within the exchange range
+     * - The ruleset allows tile exchange (ModOptions.AllowTileExchange)
      */
     private fun canExchangeTile(tile: Tile): Boolean {
         if (tile.getCity() != city) return false
         if (tile.isCityCenter()) return false
         if (city.expansion.isFirstRingTile(tile)) return false
         if (!city.expansion.isWithinExchangeRange(tile)) return false
+        if (!city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileExchange)) return false
 
         // Check if adjacent to at least one other city of the same civilization
         return tile.neighbors.any { neighbor ->
