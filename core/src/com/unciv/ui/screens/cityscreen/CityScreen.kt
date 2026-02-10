@@ -22,7 +22,9 @@ import com.unciv.models.ruleset.unique.LocalUniqueCache
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.stats.Stat
+import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.tr
+import yairm210.purity.annotations.Readonly
 import com.unciv.ui.audio.CityAmbiencePlayer
 import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.ParticleEffectMapFireworks
@@ -461,119 +463,42 @@ class CityScreen(
         }.open()
     }
 
-    /** Opens a popup to exchange the currently selected tile with a neighboring city. */
-    internal fun askToExchangeTile() {
-        if (!canChangeState || selectedTile == null) return
-        val tile = selectedTile!!
-
-        if (tile.getCity() != city || !canExchangeTile(tile)) {
-            city.civ.addNotification(
-                "This tile cannot be exchanged".tr(),
-                city.location,
-                NotificationCategory.General
-            )
-            return
+    /** Claims the selected tile for this city. */
+        internal fun claimTile(tile: Tile) {
+            if (!canChangeState) return
+    
+            closeAllPopups()
+    
+            val tileDisplayName = getTileDisplayName(tile)
+            val prompt = "Claim [tileName] for [cityName]?".fillPlaceholders(tileDisplayName, city.name.tr())
+    
+            ConfirmPopup(
+                this,
+                prompt,
+                "Claim".tr(),
+                true,
+                restoreDefault = { update() }
+            ) {
+                SoundPlayer.play(UncivSound.Chimes)
+                city.expansion.takeOwnership(tile)
+                UncivGame.Current.replaceCurrentScreen(CityScreen(city))
+            }.open()
         }
-
-        val adjacentCities = getAdjacentCitiesForExchange(tile)
-        showCitySelectionPopupForExchange(adjacentCities, tile)
-    }
-
-    /** Shows a popup to select which neighboring city to exchange the selected tile with */
-    private fun showCitySelectionPopupForExchange(adjacentCities: List<City>, tile: Tile) {
-        closeAllPopups()
-        val popup = Popup(this)
-
-        popup.add("Select city to receive tile from".tr()).padBottom(10f).row()
-
-        for (otherCity in adjacentCities) {
-            val button = TextButton(
-                otherCity.name.tr(),
-                BaseScreen.skin.get(TextButton.TextButtonStyle::class.java)
-            )
-            button.onClick { confirmTileExchange(otherCity, tile, null) }
-            popup.add(button).growX().pad(5f).row()
-        }
-
-        popup.addCloseButton()
-        popup.open()
-    }
-
-    /** Get a user-friendly display name for a tile */
-    private fun getTileDisplayName(tile: Tile): String {
-        val parts = mutableListOf(tile.baseTerrain.tr())
+    
+        /** Get a user-friendly display name for a tile */
+        @Readonly
+        private fun getTileDisplayName(tile: Tile): String {        val parts = mutableListOf(tile.baseTerrain.tr())
         parts.addAll(tile.terrainFeatures.map { it.tr() })
-        
+
         tile.tileResource?.let { resource ->
             if (resource.resourceType == ResourceType.Strategic)
-                parts.add("{$tile.tileResourceAmount} {$tile.tileResource}")
+                parts.add("{$tile.tileResourceAmount} {$tile.tileResource.tr()}")
             else parts.add(resource.name.tr())
         }
-        
+
         tile.improvement?.let { parts.add(it.tr()) }
-        
+
         return parts.joinToString(" ")
-    }
-
-    /** Gets the list of cities adjacent to this tile that are in the same civilization */
-    private fun getAdjacentCitiesForExchange(tile: Tile): List<City> {
-        return tile.neighbors.mapNotNull { neighbor ->
-            val neighborCity = neighbor.getCity()
-            if (neighborCity != null && neighborCity != city && neighborCity.civ == city.civ)
-                neighborCity
-            else null
-        }.distinct().toList()
-    }
-
-    /** Checks if a tile can be exchanged.
-     * A tile is exchangeable if:
-     * - It is owned by the current city
-     * - It is adjacent to at least one other city of the same civilization
-     * - It is not in the first ring (distance 1 from city center)
-     * - It is within the exchange range
-     * - The ruleset allows tile exchange (ModOptions.AllowTileExchange)
-     */
-    private fun canExchangeTile(tile: Tile): Boolean {
-        if (tile.getCity() != city) return false
-        if (tile.isCityCenter()) return false
-        if (city.expansion.isFirstRingTile(tile)) return false
-        if (!city.expansion.isWithinExchangeRange(tile)) return false
-        if (!city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileExchange)) return false
-
-        return getAdjacentCitiesForExchange(tile).isNotEmpty()
-    }
-
-    /** Confirms the tile exchange with a confirmation popup */
-    private fun confirmTileExchange(otherCity: City, ourTile: Tile?, theirTile: Tile?) {
-        closeAllPopups()
-
-        val givePattern = "Give [tile] to [city]?".tr()
-        val receivePattern = "Receive [tile] from [city]?".tr()
-        
-        val exchangePrompt = if (ourTile != null) {
-            givePattern.replace("[tile]", getTileDisplayName(ourTile))
-                .replace("[city]", otherCity.name.tr())
-        } else {
-            receivePattern.replace("[tile]", getTileDisplayName(theirTile!!))
-                .replace("[city]", otherCity.name.tr())
-        }
-
-        ConfirmPopup(
-            this,
-            exchangePrompt,
-            "Exchange".tr(),
-            true,
-            restoreDefault = { update() }
-        ) {
-            SoundPlayer.play(UncivSound.Chimes)
-            if (ourTile != null) {
-                otherCity.expansion.takeOwnership(ourTile)
-            }
-            if (theirTile != null) {
-                city.expansion.takeOwnership(theirTile)
-            }
-            UncivGame.Current.replaceCurrentScreen(CityScreen(city))
-        }.open()
     }
 
 

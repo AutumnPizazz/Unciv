@@ -3256,7 +3256,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: ModOptions
 
-??? example  "Allow cities to exchange tiles"
+??? example  "Allow cities to claim tiles"
 	This unique does not support conditionals.
 
 	Applicable to: ModOptions

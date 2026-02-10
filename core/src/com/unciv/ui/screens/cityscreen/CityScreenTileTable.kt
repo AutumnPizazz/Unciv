@@ -7,6 +7,7 @@ import com.unciv.logic.map.tile.TileDescription
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
 import com.unciv.models.ruleset.unique.UniqueType
+import yairm210.purity.annotations.Readonly
 import com.unciv.ui.components.extensions.darken
 import com.unciv.ui.components.extensions.disable
 import com.unciv.ui.components.extensions.isEnabled
@@ -63,15 +64,15 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
             innerTable.add(buyTileButton).padTop(5f).row()
         }
 
-        // Add exchange tile button if the tile is exchangeable
-        if (selectedTile.getCity() == city && canExchangeTile(selectedTile)) {
-            val exchangeTileButton = "Exchange tile".toTextButton()
-            exchangeTileButton.onActivation(binding = KeyboardBinding.ExchangeTile) {
-                exchangeTileButton.disable()
-                cityScreen.askToExchangeTile()
+        // Add claim tile button if the tile is owned by another city of the same civilization
+        if (canClaimTile(selectedTile)) {
+            val claimTileButton = "Claim tile".toTextButton()
+            claimTileButton.onActivation(binding = KeyboardBinding.ExchangeTile) {
+                claimTileButton.disable()
+                cityScreen.claimTile(selectedTile)
             }
-            exchangeTileButton.isEnabled = cityScreen.canChangeState
-            innerTable.add(exchangeTileButton).padTop(5f).row()
+            claimTileButton.isEnabled = cityScreen.canChangeState
+            innerTable.add(claimTileButton).padTop(5f).row()
         }
 
         if (selectedTile.owningCity != null)
@@ -121,25 +122,29 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         return statsTable
     }
 
-    /** Checks if a tile can be exchanged.
-     * A tile is exchangeable if:
-     * - It is owned by the current city
-     * - It is adjacent to at least one other city of the same civilization
-     * - It is not in the first ring (distance 1 from city center)
-     * - It is within the exchange range
-     * - The ruleset allows tile exchange (ModOptions.AllowTileExchange)
+    /** Checks if a tile can be claimed by this city.
+     * A tile is claimable if:
+     * - It is owned by another city of the same civilization
+     * - It is adjacent to this city
+     * - It is not a city center
+     * - It is not in the first ring of either city (distance 1 from city center)
+     * - It is within the exchange range for both cities (both city work ranges)
+     * - The ruleset allows tile claiming (ModOptions.AllowTileExchange)
      */
-    private fun canExchangeTile(tile: Tile): Boolean {
-        if (tile.getCity() != city) return false
-        if (tile.isCityCenter()) return false
-        if (city.expansion.isFirstRingTile(tile)) return false
-        if (!city.expansion.isWithinExchangeRange(tile)) return false
-        if (!city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileExchange)) return false
-
-        // Check if adjacent to at least one other city of the same civilization
-        return tile.neighbors.any { neighbor ->
-            val neighborCity = neighbor.getCity()
-            neighborCity != null && neighborCity != city && neighborCity.civ == city.civ
+    @Readonly
+    private fun canClaimTile(tile: Tile): Boolean {
+        val owningCity = tile.getCity()
+        return when {
+            owningCity == null -> false
+            owningCity.civ != city.civ -> false
+            owningCity == city -> false
+            tile.isCityCenter() -> false
+            city.expansion.isFirstRingTile(tile) -> false
+            owningCity.expansion.isFirstRingTile(tile) -> false
+            !city.expansion.isWithinExchangeRange(tile) -> false
+            !owningCity.expansion.isWithinExchangeRange(tile) -> false
+            !city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileExchange) -> false
+            else -> tile.neighbors.any { it.getCity() == city }
         }
     }
 }
