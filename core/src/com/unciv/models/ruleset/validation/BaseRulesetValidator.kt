@@ -137,6 +137,15 @@ internal class BaseRulesetValidator(
             for (terrain in improvement.terrainsCanBeBuiltOn)
                 if (!ruleset.terrains.containsKey(terrain) && terrain != "Land" && terrain != "Water")
                     lines.add("${improvement.name} can be built on terrain $terrain which does not exist!", sourceObject = improvement)
+
+            // Check that each improvement has at most one FunctionsAsRoadForMovement unique
+            val roadTiers = improvement.getMatchingUniques(UniqueType.FunctionsAsRoadForMovement, GameContext.IgnoreConditionals)
+            if (roadTiers.count() > 1) {
+                lines.add(
+                    "${improvement.name} has multiple \"Functions for movement at tier\" uniques. Only one is allowed.",
+                    RulesetErrorSeverity.Error, improvement
+                )
+            }
         }
     }
 
