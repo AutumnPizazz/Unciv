@@ -146,6 +146,15 @@ internal class BaseRulesetValidator(
                     RulesetErrorSeverity.Error, improvement
                 )
             }
+
+            // Check that each improvement has at most one AllowStackableImprovements unique
+            val stackableUniques = improvement.getMatchingUniques(UniqueType.AllowStackableImprovements, GameContext.IgnoreConditionals)
+            if (stackableUniques.count() > 1) {
+                lines.add(
+                    "${improvement.name} has multiple \"Allow stacking with other improvements\" uniques. Only one is allowed.",
+                    RulesetErrorSeverity.Error, improvement
+                )
+            }
         }
     }
 

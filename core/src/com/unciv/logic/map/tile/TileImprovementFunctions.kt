@@ -82,6 +82,11 @@ class TileImprovementFunctions(val tile: Tile) {
             return clonedTile.improvementFunctions.canImprovementBeBuiltHere(improvement, resourceIsVisible, knownFeatureRemovals, gameContext)
         }
 
+        // Check if this is a stackable improvement
+        val isStackable = improvement.hasUnique(UniqueType.AllowStackableImprovements, gameContext)
+        val hasRegularImprovement = tile.improvement != null
+        val hasStackableImprovement = tile.stackableImprovement != null
+
         return when {
             improvement.name == tile.improvement && !isNormalizeCheck -> false
             tile.isCityCenter() -> isNormalizeCheck && improvement.name == Constants.cityCenter
@@ -103,6 +108,12 @@ class TileImprovementFunctions(val tile: Tile) {
 
             // Can't build if there is already an irremovable improvement here
             tile.improvement != null && tile.getTileImprovement()!!.hasUnique(UniqueType.Irremovable, gameContext) -> false
+
+            // Can't build if there's already a stackable improvement (only one allowed)
+            hasStackableImprovement && !isNormalizeCheck -> false
+
+            // Stackable improvement can be built on a tile with a regular improvement
+            isStackable && hasRegularImprovement && !hasStackableImprovement -> true
 
             // Can't build if this terrain is unbuildable, except when we are specifically allowed to
             tile.lastTerrain.unbuildable && !improvement.canBeBuiltOnThisUnbuildableTerrain(knownFeatureRemovals) -> false
@@ -160,6 +171,20 @@ class TileImprovementFunctions(val tile: Tile) {
 
         var improvementFieldHasChanged = false
         when {
+            improvementName == null -> {
+                // Remove all improvements
+                if (tile.improvement != null) {
+                    tile.improvement = null
+                    tile.improvementIsPillaged = false
+                    improvementFieldHasChanged = true
+                }
+                if (tile.stackableImprovement != null) {
+                    tile.stackableImprovement = null
+                    tile.stackableImprovementIsPillaged = false
+                    tile.stackableImprovementOwner = ""
+                    improvementFieldHasChanged = true
+                }
+            }
             improvementName?.startsWith(Constants.remove) == true -> {
                 activateRemovalImprovement(improvementName, civToActivateBroaderEffects)
             }
@@ -167,9 +192,11 @@ class TileImprovementFunctions(val tile: Tile) {
             improvementName == RoadStatus.Railroad.name -> tile.setRoadStatus(RoadStatus.Railroad, civToActivateBroaderEffects)
             improvementName == Constants.repair -> tile.setRepaired()
             else -> {
-                // Check if improvement has road movement tier unique marker
                 if (improvementObject != null) {
                     val gameContext = GameContext(civToActivateBroaderEffects, tile = tile)
+
+                    // Check if this is a stackable improvement
+                    val isStackable = improvementObject.hasUnique(UniqueType.AllowStackableImprovements, gameContext)
 
                     // Check for "Functions for movement at tier [amount]" unique
                     val roadStatusUniques = improvementObject.getMatchingUniques(UniqueType.FunctionsAsRoadForMovement, gameContext)
@@ -184,15 +211,24 @@ class TileImprovementFunctions(val tile: Tile) {
                             }
                         }
                     }
-                }
 
-                tile.improvementIsPillaged = false
-                tile.improvement = improvementName
-                improvementFieldHasChanged = true
-                if (improvementName != null && (improvementObject!!.hasUnique(UniqueType.Irremovable) || tile.isMarkedForCreatesOneImprovement(improvementName))) {
-                    // I'm not sure what would happen if we try to replace an irremovable improvement
-                    // Let's not cancel our "Districts" in progress unless when finishing it (don't mess it up with accidental worker movements etc.)
-                    removeCreatesOneImprovementMarker()
+                    // Stackable improvements go to stackableImprovement field if there's already a regular improvement
+                    if (isStackable && tile.improvement != null && tile.stackableImprovement == null) {
+                        tile.stackableImprovementIsPillaged = false
+                        tile.stackableImprovement = improvementName
+                        tile.stackableImprovementOwner = civToActivateBroaderEffects?.civID ?: ""
+                        improvementFieldHasChanged = true
+                    } else {
+                        // Regular improvement placement
+                        tile.improvementIsPillaged = false
+                        tile.improvement = improvementName
+                        improvementFieldHasChanged = true
+                        if (improvementName != null && (improvementObject.hasUnique(UniqueType.Irremovable) || tile.isMarkedForCreatesOneImprovement(improvementName))) {
+                            // I'm not sure what would happen if we try to replace an irremovable improvement
+                            // Let's not cancel our "Districts" in progress unless when finishing it (don't mess it up with accidental worker movements etc.)
+                            removeCreatesOneImprovementMarker()
+                        }
+                    }
                 }
             }
         }

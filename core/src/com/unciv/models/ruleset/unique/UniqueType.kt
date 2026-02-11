@@ -710,6 +710,12 @@ enum class UniqueType(
     ImprovementAllMaintenance("Costs [amount] [stat] per turn", UniqueTarget.Improvement), // Roads
     DamagesAdjacentEnemyUnits("Adjacent enemy units ending their turn take [amount] damage", UniqueTarget.Improvement),
 
+    /// Allows this improvement to stack with other improvements on the same tile
+    /// This enables modders to create improvements that can coexist (e.g., magical enhancements, landmarks)
+    /// Only improvements with this unique can be stacked together
+    /// Movement cost will use the lowest cost among all stacked improvements
+    AllowStackableImprovements("Allow stacking with other improvements", UniqueTarget.Improvement),
+
     GreatImprovement("Great Improvement", UniqueTarget.Improvement),
     IsAncientRuinsEquivalent("Provides a random bonus when entered", UniqueTarget.Improvement),
 

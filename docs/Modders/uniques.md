@@ -2945,6 +2945,9 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Improvement
 
+??? example  "Allow stacking with other improvements"
+	Applicable to: Improvement
+
 ??? example  "Great Improvement"
 	Applicable to: Improvement
 

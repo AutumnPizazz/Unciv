@@ -83,34 +83,76 @@ object MovementCost {
             if (areConnectedByRoad && areConnectedByRiver && !civ.tech.roadsConnectAcrossRivers) {
                 // River blocks road movement without appropriate tech
             } else {
-                // Calculate road tier with unique bonuses
                 val state = GameContext(civ, unit = unit, tile = to)
-                var baseTier = if (areConnectedByRailroad) 2 else 0  // Railroad is tier 2, Road is tier 0
+                val tiers = civ.gameInfo.ruleset.modOptions.constants.roadTiers
 
-                // Check if the improvement on the tile has a specific road tier
+                // Calculate movement cost for regular improvement with road tier
+                fun calculateMovementCostForImprovement(improvementTier: Int?): Float? {
+                    if (improvementTier == null) return null
+
+                    var baseTier = if (areConnectedByRailroad) 2 else 0
+                    baseTier = improvementTier
+
+                    // Sum all RoadSpeedTierBonus values (supports positive and negative)
+                    var tierAdjustment = civ.getMatchingUniques(UniqueType.RoadSpeedTierBonus, state)
+                        .sumOf { it.params[0].toIntOrNull() ?: 0 }
+
+                    // Backward compatibility: RoadMovementSpeed unique is equivalent to +1 tier
+                    if (civ.hasUnique(UniqueType.RoadMovementSpeed)) {
+                        tierAdjustment += 1
+                    }
+
+                    // Calculate final tier with overflow handling
+                    val finalTier = (baseTier + tierAdjustment).coerceIn(tiers.first().tier, tiers.last().tier)
+
+                    // Get movement cost for the calculated tier
+                    val selectedTier = tiers.firstOrNull { it.tier == finalTier } ?: tiers.last()
+                    return selectedTier.movementCost + extraCost
+                }
+
+                // Collect all movement costs from improvements
+                val movementCosts = mutableListOf<Float>()
+
+                // Get tier from regular improvement
                 val improvement = to.getTileImprovement()
                 if (improvement != null) {
                     val improvementTierUniques = improvement.getMatchingUniques(UniqueType.FunctionsAsRoadForMovement, state)
                     if (improvementTierUniques.any()) {
                         val improvementTier = improvementTierUniques.first().params[0].toIntOrNull()
-                        if (improvementTier != null) {
-                            baseTier = improvementTier
-                        }
+                        val cost = calculateMovementCostForImprovement(improvementTier)
+                        if (cost != null) movementCosts.add(cost)
                     }
                 }
+
+                // Get tier from stackable improvement
+                val stackableImprovement = to.getUnpillagedStackableImprovementObject()
+                if (stackableImprovement != null) {
+                    val stackableTierUniques = stackableImprovement.getMatchingUniques(UniqueType.FunctionsAsRoadForMovement, state)
+                    if (stackableTierUniques.any()) {
+                        val stackableTier = stackableTierUniques.first().params[0].toIntOrNull()
+                        val cost = calculateMovementCostForImprovement(stackableTier)
+                        if (cost != null) movementCosts.add(cost)
+                    }
+                }
+
+                // Return the minimum movement cost (best efficiency)
+                if (movementCosts.isNotEmpty()) {
+                    return movementCosts.minOrNull()!!
+                }
+
+                // Default calculation if no improvement provides road tier
+                var baseTier = if (areConnectedByRailroad) 2 else 0
 
                 // Sum all RoadSpeedTierBonus values (supports positive and negative)
                 var tierAdjustment = civ.getMatchingUniques(UniqueType.RoadSpeedTierBonus, state)
                     .sumOf { it.params[0].toIntOrNull() ?: 0 }
 
                 // Backward compatibility: RoadMovementSpeed unique is equivalent to +1 tier
-                // This ensures vanilla rulesets continue to work correctly
                 if (civ.hasUnique(UniqueType.RoadMovementSpeed)) {
                     tierAdjustment += 1
                 }
 
                 // Calculate final tier with overflow handling
-                val tiers = civ.gameInfo.ruleset.modOptions.constants.roadTiers
                 val finalTier = (baseTier + tierAdjustment).coerceIn(tiers.first().tier, tiers.last().tier)
 
                 // Get movement cost for the calculated tier

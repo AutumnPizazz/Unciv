@@ -75,11 +75,16 @@ class Tile : IsPartOfGameInfoSerialization {
         }
     }
     internal val improvementQueue = ArrayList<ImprovementQueueEntry>(1)
-
-    var roadStatus = RoadStatus.None
-
-    var roadIsPillaged = false
-    private var roadOwner: String = "" // either who last built the road or last owner of tile
+    
+        var roadStatus = RoadStatus.None
+        var roadIsPillaged = false
+        private var roadOwner: String = "" // either who last built the road or last owner of tile
+    
+        /// Secondary improvement that can stack with the main improvement (like roads do)
+        /// Used for improvements with AllowStackableImprovements unique
+        var stackableImprovement: String? = null
+        var stackableImprovementIsPillaged = false
+        @Transient var stackableImprovementOwner: String = ""
 
     @Transient private var roadOwnerObject: Civilization? = null
 
@@ -231,6 +236,9 @@ class Tile : IsPartOfGameInfoSerialization {
         toReturn.roadStatus = roadStatus
         toReturn.roadIsPillaged = roadIsPillaged
         toReturn.roadOwner = roadOwner
+        toReturn.stackableImprovement = stackableImprovement
+        toReturn.stackableImprovementIsPillaged = stackableImprovementIsPillaged
+        toReturn.stackableImprovementOwner = stackableImprovementOwner
         toReturn.hasBottomLeftRiver = hasBottomLeftRiver
         toReturn.hasBottomRightRiver = hasBottomRightRiver
         toReturn.hasBottomRiver = hasBottomRiver
@@ -342,6 +350,14 @@ class Tile : IsPartOfGameInfoSerialization {
         return if (getUnpillagedRoad() == RoadStatus.None) null
         else ruleset.tileImprovements[getUnpillagedRoad().name]
     }
+
+    @Readonly fun getUnpillagedStackableImprovement(): String? = if (stackableImprovementIsPillaged) null else stackableImprovement
+
+    @Readonly
+    fun getStackableImprovement(): TileImprovement? = if (stackableImprovement == null) null else ruleset.tileImprovements[stackableImprovement!!]
+
+    @Readonly
+    fun getUnpillagedStackableImprovementObject(): TileImprovement? = if (getUnpillagedStackableImprovement() == null) null else ruleset.tileImprovements[stackableImprovement!!]
 
     /**
      *  Improvement to display, accounting for knowledge about a Tile possibly getting stale when a human player is no longer actively watching it.
@@ -1175,6 +1191,7 @@ class Tile : IsPartOfGameInfoSerialization {
         if (naturalWonder != null) lineList += naturalWonder!!
         if (roadStatus !== RoadStatus.None && !isCityCenter()) lineList += roadStatus.name
         if (improvement != null) lineList += improvement!!
+        if (stackableImprovement != null) lineList += stackableImprovement!!
         if (civilianUnit != null) lineList += civilianUnit!!.name + " - " + civilianUnit!!.civ.civID
         if (militaryUnit != null) lineList += militaryUnit!!.name + " - " + militaryUnit!!.civ.civID
         if (this::baseTerrainObject.isInitialized && isImpassible()) lineList += Constants.impassable

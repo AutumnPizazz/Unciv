@@ -58,6 +58,11 @@ object TileDescription {
             val pillageText = if (tile.improvementIsPillaged) " (Pillaged!)" else ""
             lineList += FormattedLine("[$shownImprovement]$pillageText", link = "Improvement/$shownImprovement")
         }
+        val shownStackableImprovement = tile.getUnpillagedStackableImprovement()
+        if (shownStackableImprovement != null && shownStackableImprovement != shownImprovement) {
+            val pillageText = if (tile.stackableImprovementIsPillaged) " (Pillaged!)" else ""
+            lineList += FormattedLine("[$shownStackableImprovement]$pillageText", link = "Improvement/$shownStackableImprovement")
+        }
 
         if (tile.improvementInProgress != null && isViewableToPlayer) {
             // Negative turnsToImprovement is used for UniqueType.CreatesOneImprovement
