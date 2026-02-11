@@ -268,3 +268,4 @@ class MovementCostTest {
         assertEquals(0.1f, movementCost, 0.001f)
     }
 }
+
