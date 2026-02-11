@@ -167,6 +167,25 @@ class TileImprovementFunctions(val tile: Tile) {
             improvementName == RoadStatus.Railroad.name -> tile.setRoadStatus(RoadStatus.Railroad, civToActivateBroaderEffects)
             improvementName == Constants.repair -> tile.setRepaired()
             else -> {
+                // Check if improvement has road movement tier unique marker
+                if (improvementObject != null) {
+                    val gameContext = GameContext(civToActivateBroaderEffects, tile = tile)
+
+                    // Check for "Functions for movement at tier [amount]" unique
+                    val roadStatusUniques = improvementObject.getMatchingUniques(UniqueType.FunctionsAsRoadForMovement, gameContext)
+                    for (unique in roadStatusUniques) {
+                        val tier = unique.params[0].toIntOrNull()
+                        if (tier != null) {
+                            // tier 2 = Railroad, tier 0 or 1 = Road
+                            if (tier >= 2) {
+                                tile.setRoadStatus(RoadStatus.Railroad, civToActivateBroaderEffects)
+                            } else {
+                                tile.setRoadStatus(RoadStatus.Road, civToActivateBroaderEffects)
+                            }
+                        }
+                    }
+                }
+
                 tile.improvementIsPillaged = false
                 tile.improvement = improvementName
                 improvementFieldHasChanged = true

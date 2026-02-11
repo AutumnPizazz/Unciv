@@ -238,6 +238,7 @@ and city distance in another. In case of conflicts, there is no guarantee which 
 | baseTurnsUntilRevolt                     | Int    | 4                             | [^Q]  |
 | cityStateElectionTurns                   | Int    | 15                            | [^R]  |
 | maxImprovementTechErasForward            | Int    | None                          | [^S]  |
+| roadTiers                                 | Array  | [See below](#roadtiers)       |       |
 | goldGiftMultiplier                       | Float  | 1                             | [^T]  |
 | goldGiftTradeMultiplier                  | Float  | 0.8                           | [^U]  |
 | goldGiftDegradationMultiplier            | Float  | 1.0                           | [^V]  |
@@ -284,6 +285,50 @@ Legend:
 - [^U]: The multiplier of the gold value of a regular trade to be stored as gifts. Set to 0 to disable gold gifting in two-sided trades.
 - [^U]: Modifies how quickly the GaveUsGifts dimplomacy modifier runs out. A higher value makes it run out quicker. Normally the gifts reduced by ~2.5% per turn depending on the diplomatic relations with the default value.
 - [^W]: Number of air units that can be stationed in a city, not including carried/transported air units.
+
+#### roadTiers
+
+Defines the speed tiers for road movement. Higher tier means faster movement (lower movement cost). This system replaces the old separate road and railroad systems with a unified tier-based approach.
+
+Each tier has:
+| Attribute    | Type  | Notes |
+|--------------|-------|-------|
+| tier         | Int   | Tier level (0-based) |
+| movementCost | Float | Movement cost for this tier |
+
+Default tiers (Vanilla-style):
+| Tier | Movement Cost | Description |
+|------|---------------|-------------|
+| 0    | 0.5           | Basic road |
+| 1    | 0.333         | Improved road (unlocked by `Improves movement speed on roads` or `Road speed tier [+1]`) |
+| 2    | 0.1           | Railroad |
+
+**Interaction with uniques:**
+- The `Improves movement speed on roads` unique (legacy) is equivalent to adding +1 to the road tier
+- The `Road speed tier [amount]` unique (recommended) adjusts tier by any positive or negative value
+- Multiple `Road speed tier` uniques stack additively
+- If the tier goes below the minimum or above the maximum, it is clamped to the nearest valid tier
+
+**Examples:**
+- `"Road speed tier [+1]"` on tier 0 road → tier 1 (0.333 movement)
+- `"Road speed tier [+2]"` on tier 0 road → tier 2 (0.1 movement, railroad speed)
+- `"Road speed tier [-1]"` on tier 1 road → tier 0 (0.5 movement)
+
+**For modders:**
+You can define custom tiers in your ModOptions.json:
+
+```json
+{
+  "constants": {
+    "roadTiers": [
+      {"tier": 0, "movementCost": 0.5},
+      {"tier": 1, "movementCost": 0.333},
+      {"tier": 2, "movementCost": 0.1},
+      {"tier": 3, "movementCost": 0.05}
+    ]
+  }
+}
+```
 
 #### UnitUpgradeCost
 

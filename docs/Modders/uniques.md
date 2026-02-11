@@ -677,6 +677,11 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 ??? example  "Improves movement speed on roads"
 	Applicable to: Global
 
+??? example  "Road speed tier [amount]"
+	Example: "Road speed tier [3]"
+
+	Applicable to: Global
+
 ??? example  "Roads connect tiles across rivers"
 	Applicable to: Global
 
@@ -2805,6 +2810,11 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Example: "[+1 Gold, +2 Production]"
 
 	Applicable to: Global, Terrain, Improvement
+
+??? example  "Functions for movement at tier [amount]"
+	Example: "Functions for movement at tier [3]"
+
+	Applicable to: Improvement
 
 ??? example  "Consumes [amount] [resource]"
 	Example: "Consumes [3] [Iron]"

@@ -66,20 +66,58 @@ object MovementCost {
             civ.isAtWarWith(toOwner)
         ) getEnemyMovementPenalty(toOwner, unit) else 0f
 
-        if (from.getUnpillagedRoad() == RoadStatus.Railroad && to.getUnpillagedRoad() == RoadStatus.Railroad)
-            return RoadStatus.Railroad.movement + extraCost
+        val fromRoad = from.getUnpillagedRoad()
+        val toRoad = to.getUnpillagedRoad()
 
-        // Each of these two function calls `hasUnique(UniqueType.CityStateTerritoryAlwaysFriendly)`
-        // when entering territory of a city state
-        val areConnectedByRoad = from.hasConnection(civ) && to.hasConnection(civ)
+        // Check road/railroad movement with unified tier system
+        // Road = tier 0, Railroad = tier 2
+        val areConnectedByRailroad = fromRoad == RoadStatus.Railroad && toRoad == RoadStatus.Railroad
+        val areConnectedByRoad = !areConnectedByRailroad && fromRoad == RoadStatus.Road && toRoad == RoadStatus.Road
 
         // You might think "wait doesn't isAdjacentToRiver() call isConnectedByRiver() anyway, why have those checks?"
         // The answer is that the isAdjacentToRiver values are CACHED per tile, but the isConnectedByRiver are not - this is an efficiency optimization
         val areConnectedByRiver =
             from.isAdjacentToRiver() && to.isAdjacentToRiver() && from.isConnectedByRiver(to)
 
-        if (areConnectedByRoad && (!areConnectedByRiver || civ.tech.roadsConnectAcrossRivers))
-            return unit.civ.tech.movementSpeedOnRoads + extraCost
+        if (areConnectedByRoad || areConnectedByRailroad) {
+            if (areConnectedByRoad && areConnectedByRiver && !civ.tech.roadsConnectAcrossRivers) {
+                // River blocks road movement without appropriate tech
+            } else {
+                // Calculate road tier with unique bonuses
+                val state = GameContext(civ, unit = unit, tile = to)
+                var baseTier = if (areConnectedByRailroad) 2 else 0  // Railroad is tier 2, Road is tier 0
+
+                // Check if the improvement on the tile has a specific road tier
+                val improvement = to.getTileImprovement()
+                if (improvement != null) {
+                    val improvementTierUniques = improvement.getMatchingUniques(UniqueType.FunctionsAsRoadForMovement, state)
+                    if (improvementTierUniques.any()) {
+                        val improvementTier = improvementTierUniques.first().params[0].toIntOrNull()
+                        if (improvementTier != null) {
+                            baseTier = improvementTier
+                        }
+                    }
+                }
+
+                // Sum all RoadSpeedTierBonus values (supports positive and negative)
+                var tierAdjustment = civ.getMatchingUniques(UniqueType.RoadSpeedTierBonus, state)
+                    .sumOf { it.params[0].toIntOrNull() ?: 0 }
+
+                // Backward compatibility: RoadMovementSpeed unique is equivalent to +1 tier
+                // This ensures vanilla rulesets continue to work correctly
+                if (civ.hasUnique(UniqueType.RoadMovementSpeed)) {
+                    tierAdjustment += 1
+                }
+
+                // Calculate final tier with overflow handling
+                val tiers = civ.gameInfo.ruleset.modOptions.constants.roadTiers
+                val finalTier = (baseTier + tierAdjustment).coerceIn(tiers.first().tier, tiers.last().tier)
+
+                // Get movement cost for the calculated tier
+                val selectedTier = tiers.firstOrNull { it.tier == finalTier } ?: tiers.last()
+                return selectedTier.movementCost + extraCost
+            }
+        }
 
         if (unit.cache.ignoresTerrainCost) return 1f + extraCost
         if (areConnectedByRiver) return 100f  // Rivers take the entire turn to cross

@@ -148,7 +148,22 @@ enum class UniqueType(
 
     /// Improvements
     // Should be replaced with moddable improvements when roads become moddable
+    /// LEGACY: This unique is equivalent to "Road speed tier [+1]" and is kept for backward compatibility.
+    /// New mods should use [RoadSpeedTierBonus] instead for more flexibility.
+    /// This unique increases road movement from tier 0 (0.5 movement) to tier 1 (0.333 movement).
     RoadMovementSpeed("Improves movement speed on roads",UniqueTarget.Global),
+    /// Modern flexible unique for adjusting road speed tiers. Supports positive and negative values.
+    /// Examples:
+    ///   - "Road speed tier [+1]" increases tier by 1 (road 0.5→0.333, or railroad 0.1→next tier if exists)
+    ///   - "Road speed tier [-1]" decreases tier by 1
+    ///   - "Road speed tier [+2]" increases tier by 2 (road directly to railroad speed if 3 tiers exist)
+    /// RECOMMENDED: Use this instead of [RoadMovementSpeed] for new content.
+    RoadSpeedTierBonus("Road speed tier [amount]", UniqueTarget.Global),
+    /// Allows modders to mark any improvement as providing road movement at a specific tier
+    /// The [amount] parameter specifies the road tier (0=basic road, 1=improved road, 2=railroad)
+    /// This enables creating custom road-like improvements with different movement speeds
+    /// Example: "Functions for movement at tier [1]" provides tier 1 movement (1/3 cost)
+    FunctionsAsRoadForMovement("Functions for movement at tier [amount]", UniqueTarget.Improvement),
     RoadsConnectAcrossRivers("Roads connect tiles across rivers", UniqueTarget.Global),
     RoadMaintenance("[relativeAmount]% maintenance on road & railroads", UniqueTarget.Global,
         docDescription = MULTIPLICATIVE_BONUS_EXPLANATION),

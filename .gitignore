@@ -191,3 +191,6 @@ detekt/reports.html
 
 /buildSrc/.kotlin/errors/*
 /buildSrc/.kotlin/sessions/*
+
+# Agent analysis documents
+AGENTS.md

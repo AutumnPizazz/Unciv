@@ -135,6 +135,33 @@ class ModConstants {
     // UI: If set >= 0, ImprovementPicker will silently skip improvements whose tech requirement is more advanced than your current Era + this
     var maxImprovementTechErasForward = -1
 
+    /**
+     * Speed tiers for customizable road movement costs.
+     * Higher tier = faster movement (lower movement cost).
+     *
+     * Default tiers (Vanilla-style):
+     *   - Tier 0: Basic road (0.5 movement per tile)
+     *   - Tier 1: Improved road (0.333 movement per tile) - unlocked by [RoadMovementSpeed] unique or [RoadSpeedTierBonus [+1]]
+     *   - Tier 2: Railroad (0.1 movement per tile)
+     *
+     * Interaction with uniques:
+     *   - [RoadMovementSpeed] unique (legacy): Automatically adds +1 to tier
+     *   - [RoadSpeedTierBonus] unique (recommended): Adjusts tier by [amount], supports positive and negative values
+     *   - Multiple [RoadSpeedTierBonus] uniques stack additively
+     *
+     * Example: A civ with "Road speed tier [+1]" on tier 0 road will use tier 1 movement cost (0.333)
+     */
+    data class RoadSpeedTier(
+        val tier: Int,
+        val movementCost: Float
+    )
+
+    var roadTiers = listOf(
+        RoadSpeedTier(0, 0.5f),      // Basic road
+        RoadSpeedTier(1, 1/3f),      // Improved road
+        RoadSpeedTier(2, 0.1f)       // Railroad
+    )
+
     fun merge(other: ModConstants) {
         for (field in this::class.java.declaredFields) {
             if (field.modifiers and Modifier.STATIC != 0) continue
