@@ -108,22 +108,18 @@ object Parser {
             return Node.UnaryOperation(operator, fetchOperand())
         }
 
-        private fun handleFunctionCall(function: Operator.Function): Node {
-            // Current token should be '(', next will be the first argument
+        private fun handleFunction(function: Operator.Function): Node {
             expect(Parentheses.Opening)
             next() // consume '('
             
             val arguments = mutableListOf<Node>()
+            // Parse first argument
+            arguments.add(expression())
             
-            if (currentToken != Parentheses.Closing) {
-                // Parse first argument
+            // Parse additional arguments separated by commas
+            while (currentToken == Tokenizer.Comma) {
+                next() // consume ','
                 arguments.add(expression())
-                
-                // Parse additional arguments separated by commas
-                while (currentToken == Tokenizer.Comma) {
-                    next() // consume ','
-                    arguments.add(expression())
-                }
             }
             
             expect(Parentheses.Closing)
@@ -173,17 +169,10 @@ object Parser {
             if (currentToken == StartToken) next()
             if (currentToken.canBeUnary()) {
                 return handleUnary()
-            } else if (currentToken.isFunction()) {
-                // Check if this is a function call (identifier followed by '(')
-                val function = currentToken.fetchFunction()
+            } else if (currentToken is Operator.Function) {
+                val function = currentToken as Operator.Function
                 next() // consume function name
-                if (currentToken == Parentheses.Opening) {
-                    // It's a function call
-                    return handleFunctionCall(function)
-                } else {
-                    // Not a function call, throw error
-                    throw MissingOperand(currentPosition)
-                }
+                return handleFunction(function)
             } else if (currentToken == Parentheses.Opening) {
                 next()
                 val node = expression()

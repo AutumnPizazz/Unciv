@@ -438,8 +438,7 @@ Allowed values:
     - Supported operations between 2 values are: +, -, *, /, %, ^
     - Supported operations on 1 value are: - (negation), √ (square root), abs (absolute value - turns negative into positive), sqrt (square root), floor (round down), ceil (round up)
     - Supported functions:
-    -   - `max()` - 2 or more arguments
-    -   - `min()` - 2 or more arguments
-    -   - `log()` - exactly 2 arguments: log(base, x)
+    -   - `max()` - 2 to 2147483647 arguments
+    -   - `min()` - 2 to 2147483647 arguments
 
 [//]: # (Countables automatically generated END)

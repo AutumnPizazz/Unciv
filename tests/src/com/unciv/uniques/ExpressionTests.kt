@@ -34,8 +34,6 @@ class ExpressionTests {
             "max(0,1)" to 1.0,
             "min(0,1)" to 0.0,
             "max(5,3,7,2)" to 7.0,
-            "log(10,100)" to 2.0,
-            "log(2,8)" to 3.0,
         )
 
         var fails = 0

@@ -30,7 +30,6 @@ internal sealed interface Operator : Tokenizer.Token {
     interface Function : Operator {
         /** Number of arguments the function accepts - can be a range for variadic functions */
         val arityRange: IntRange
-        val arityDescription: String
         val implementation: (List<Double>) -> Double
     }
 
@@ -78,17 +77,10 @@ internal sealed interface Operator : Tokenizer.Token {
     enum class Functions(
         override val symbol: String,
         override val arityRange: IntRange,
-        override val arityDescription: String,
         override val implementation: (List<Double>) -> Double
     ) : Function {
-        Max("max", 2..Int.MAX_VALUE, "2 or more arguments", { args -> args.maxOrNull() ?: 0.0 }),
-        Min("min", 2..Int.MAX_VALUE, "2 or more arguments", { args -> args.minOrNull() ?: 0.0 }),
-        Log("log", 2..2, "exactly 2 arguments: log(base, x)", { args ->
-            val base = args[0]
-            val x = args[1]
-            if (base <= 0 || base == 1.0 || x <= 0) 0.0
-            else ln(x) / ln(base)
-        }),
+        Max("max", 2..Int.MAX_VALUE, { args -> args.maxOrNull() ?: 0.0 }),
+        Min("min", 2..Int.MAX_VALUE, { args -> args.minOrNull() ?: 0.0 }),
         ;
         override fun toString() = symbol
     }

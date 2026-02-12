@@ -409,7 +409,13 @@ enum class Countables(
             "Supported operations between 2 values are: "+ Operator.BinaryOperators.entries.joinToString { it.symbol },
             "Supported operations on 1 value are: " + Operator.UnaryOperators.entries.joinToString { "${it.symbol} (${it.description})" },
             "Supported functions:",
-            *Operator.Functions.entries.map { "  - `${it.symbol}()` - ${it.arityDescription}" }.toTypedArray(),
+            *Operator.Functions.entries.map { 
+                val arityText = if (it.arityRange.first == it.arityRange.last) 
+                    "${it.arityRange.first} argument${if (it.arityRange.first != 1) "s" else ""}"
+                else 
+                    "${it.arityRange.first} to ${it.arityRange.last} arguments"
+                "  - `${it.symbol}()` - $arityText"
+            }.toTypedArray(),
         )
     }
     ;

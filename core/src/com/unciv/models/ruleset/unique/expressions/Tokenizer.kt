@@ -23,7 +23,6 @@ internal object Tokenizer {
     internal sealed interface Token {
         @Pure fun canBeUnary() = this is Operator.Unary || this is Operator.UnaryOrBinary
         @Pure fun canBeBinary() = this is Operator.Binary || this is Operator.UnaryOrBinary
-        @Pure fun isFunction() = this is Operator.Function
         // Note: not naming this `getUnaryOperator` because of kotlin's habit to interpret that as property accessor. Messes up debugging a bit.
         @Pure
         fun fetchUnaryOperator() = when(this) {
@@ -35,11 +34,6 @@ internal object Tokenizer {
         fun fetchBinaryOperator() = when(this) {
             is Operator.Binary -> this
             is Operator.UnaryOrBinary -> binary
-            else -> throw InternalError()
-        }
-        @Pure
-        fun fetchFunction() = when(this) {
-            is Operator.Function -> this
             else -> throw InternalError()
         }
     }
