@@ -678,8 +678,7 @@ object UniqueTriggerActivation {
             }
 
             UniqueType.OneTimeSetStockpile -> {
-                val resourceName = unique.params[1]
-                val resource = ruleset.getGameResource(resourceName) ?: return null
+                val resource = ruleset.getGameResource(unique.params[0]) ?: return null
                 if (resource is TileResource && !resource.isStockpiled) return null
 
                 return {
@@ -701,10 +700,10 @@ object UniqueTriggerActivation {
                     
                     val notificationText = getNotificationText(
                         notification, triggerNotificationText,
-                        "[$resourceName] has been set to [$amountRequired]"
+                        "[${unique.params[0]}] has been set to [$amountRequired]"
                     )
                     if (notificationText != null)
-                        civInfo.addNotification(notificationText, NotificationCategory.General, resourceName)
+                        civInfo.addNotification(notificationText, NotificationCategory.General, unique.params[0])
                     true
                 }
             }

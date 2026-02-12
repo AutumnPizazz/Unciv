@@ -76,11 +76,7 @@ internal sealed interface Node {
 
         @Readonly
         override fun getErrors(ruleset: Ruleset): List<String> {
-            val argErrors = arguments.flatMap { it.getErrors(ruleset) }
-            if (arguments.size !in function.arityRange) {
-                return argErrors + "Unknown function: ${function.symbol}"
-            }
-            return argErrors
+            return arguments.flatMap { it.getErrors(ruleset) }
         }
 
         override fun toString() = "[FunctionCall: ${function.symbol}(${arguments.joinToString(", ")})]"

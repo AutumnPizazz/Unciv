@@ -128,8 +128,6 @@ internal object Tokenizer {
                 braceNestingLevel++
             } else if (char == ']') {
                 throw UnmatchedBraces(pos)
-            } else if (char == ',') {
-                yield(pos to ",")
             } else {
                 yield(pos to char.toString())
             }
