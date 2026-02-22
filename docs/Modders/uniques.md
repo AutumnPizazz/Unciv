@@ -128,8 +128,8 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Triggerable
 
-??? example  "Set [stockpile] to [amount]"
-	Example: "Set [Mana] to [3]"
+??? example  "Set [stockpile] to [countable]"
+	Example: "Set [Mana] to [1000]"
 
 	This unique's effect can be modified with &lt;(modified by game speed)&gt;
 
@@ -1814,6 +1814,8 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Example: "Creates a [Trading Post] improvement on a specific tile"
 
+	This unique does not support conditionals.
+
 	Applicable to: Building
 
 ??? example  "Can carry [amount] extra [mapUnitFilter] units"
@@ -2618,6 +2620,8 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Due to performance considerations, this unique is cached, thus conditionals that may change within a turn may not work.
 
+	This unique does not support conditionals.
+
 	Applicable to: Terrain
 
 ??? example  "Grants [promotion] ([comment]) to adjacent [mapUnitFilter] units for the rest of the game"
@@ -2905,8 +2909,8 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 ??? example  "Can only be built to improve a resource"
 	Applicable to: Improvement
 
-??? example  "Does not need removal of [tileFilter]"
-	Example: "Does not need removal of [Farm]"
+??? example  "Does not need removal of [terrainFeature]"
+	Example: "Does not need removal of [Hill]"
 
 	Applicable to: Improvement
 
