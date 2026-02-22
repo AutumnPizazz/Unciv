@@ -111,6 +111,7 @@ object Parser {
 
         private fun handleFunction(function: Operator.Function): Node {
             val functionPosition = currentPosition
+            next() // consume function name
             expect(Parentheses.Opening)
             next() // consume '('
 
@@ -183,9 +184,7 @@ object Parser {
             if (currentToken.canBeUnary()) {
                 return handleUnary()
             } else if (currentToken is Operator.Function) {
-                val function = currentToken as Operator.Function
-                next() // consume function name
-                return handleFunction(function)
+                return handleFunction(currentToken as Operator.Function)
             } else if (currentToken == Parentheses.Opening) {
                 next()
                 val node = expression()
