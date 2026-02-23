@@ -159,7 +159,7 @@ enum class KeyboardBinding(
     LowerPriority(Category.CityScreen, "Lower queue priority", Input.Keys.DOWN),
     BuyConstruction(Category.CityScreen, 'b'),
     BuyTile(Category.CityScreen, 't'),
-ExchangeTile(Category.CityScreen, 'e'),
+ClaimTile(Category.CityScreen, 'e'),
     BuildUnits(Category.CityScreen, "Buildable Units", 'u'),
     BuildBuildings(Category.CityScreen, "Buildable Buildings", 'l'),
     BuildWonders(Category.CityScreen, "Buildable Wonders", 'w'),

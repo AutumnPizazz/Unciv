@@ -67,7 +67,7 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         // Add claim tile button if the tile is owned by another city of the same civilization
         if (canClaimTile(selectedTile)) {
             val claimTileButton = "Claim tile".toTextButton()
-            claimTileButton.onActivation(binding = KeyboardBinding.ExchangeTile) {
+            claimTileButton.onActivation(binding = KeyboardBinding.ClaimTile) {
                 claimTileButton.disable()
                 cityScreen.claimTile(selectedTile)
             }
@@ -128,8 +128,8 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
      * - It is adjacent to this city
      * - It is not a city center
      * - It is not in the first ring of either city (distance 1 from city center)
-     * - It is within the exchange range for both cities (both city work ranges)
-     * - The ruleset allows tile claiming (ModOptions.AllowTileExchange)
+     * - It is within the claim range for both cities (both city work ranges)
+     * - The ruleset allows tile claiming (ModOptions.AllowTileClaim)
      */
     @Readonly
     private fun canClaimTile(tile: Tile): Boolean {
@@ -141,9 +141,9 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
             tile.isCityCenter() -> false
             city.expansion.isFirstRingTile(tile) -> false
             owningCity.expansion.isFirstRingTile(tile) -> false
-            !city.expansion.isWithinExchangeRange(tile) -> false
-            !owningCity.expansion.isWithinExchangeRange(tile) -> false
-            !city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileExchange) -> false
+            !city.expansion.isWithinClaimRange(tile) -> false
+            !owningCity.expansion.isWithinClaimRange(tile) -> false
+            !city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileClaim) -> false
             else -> tile.neighbors.any { it.getCity() == city }
         }
     }

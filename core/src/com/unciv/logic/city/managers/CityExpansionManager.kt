@@ -221,7 +221,7 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
 
     /**
      * Checks if the given tile is in the first ring (distance 1 from city center).
-     * Tiles in the first ring cannot be exchanged as they are claimed when a city is founded.
+     * Tiles in the first ring cannot be claimed as they are claimed when a city is founded.
      */
     @Readonly
     fun isFirstRingTile(tile: Tile): Boolean {
@@ -229,11 +229,11 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
     }
 
     /**
-     * Checks if the given tile is within the exchangeable distance range.
-     * Exchangeable tiles must be within the city's work range as defined by ModConstants.cityWorkRange.
+     * Checks if the given tile is within the claimable distance range.
+     * Claimable tiles must be within the city's work range as defined by ModConstants.cityWorkRange.
      */
     @Readonly
-    fun isWithinExchangeRange(tile: Tile): Boolean {
+    fun isWithinClaimRange(tile: Tile): Boolean {
         val maxDistance = city.civ.gameInfo.ruleset.modOptions.constants.cityWorkRange
         return tile.aerialDistanceTo(city.getCenterTile()) <= maxDistance
     }
