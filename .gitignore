@@ -192,3 +192,5 @@ detekt/reports.html
 /buildSrc/.kotlin/errors/*
 /buildSrc/.kotlin/sessions/*
 /.claude/
+release.jks
+IFLOW.md
