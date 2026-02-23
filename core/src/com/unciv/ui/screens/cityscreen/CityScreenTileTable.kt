@@ -129,6 +129,7 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
      * - It is not a city center
      * - It is not in the first ring of either city (distance 1 from city center)
      * - It is within the claim range for both cities (both city work ranges)
+     * - It does not have an improvement created by CreatesOneImprovement
      * - The ruleset allows tile claiming (ModOptions.AllowTileClaim)
      */
     @Readonly
@@ -143,6 +144,7 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
             owningCity.expansion.isFirstRingTile(tile) -> false
             !city.expansion.isWithinClaimRange(tile) -> false
             !owningCity.expansion.isWithinClaimRange(tile) -> false
+            tile.improvementCreatedByCreatesOneImprovement != null -> false
             !city.civ.gameInfo.ruleset.modOptions.hasUnique(UniqueType.AllowTileClaim) -> false
             else -> tile.neighbors.any { it.getCity() == city }
         }
