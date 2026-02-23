@@ -46,6 +46,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
     private var randomness = MapGenerationRandomness()
     private val terrainConditions = ruleset.terrains.values.asSequence()
+        .filter { !it.hasUnique(UniqueType.NoNaturalGeneration)}
         .flatMap { it.getGenerationConditions() }
         .toList()
         .sortedBy { it.isConstrained }
@@ -88,7 +89,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                     tile.getBaseTerrain().type == TerrainType.Land
                         && tile.getBaseTerrain().hasUnique(UniqueType.OccursInChains) == occursInChains
                 else
-                    terrain.occursOn.contains(tile.baseTerrain)
+                    terrain.occursOn.contains(tile.lastTerrain.name)
         }
         
         /** Checks if both [temperature] and [humidity] satisfy their ranges (>From, <=To)
@@ -100,10 +101,9 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         fun matches(tile: Tile, overrideTileTemp: Double) =
             tempFrom < overrideTileTemp && overrideTileTemp <= tempTo &&
                 humidFrom < (tile.humidity ?: 0.0) && (tile.humidity?:0.0) <= humidTo &&
-                matchesBaseTerrain(tile) &&
-                tile.hasVegetation == hasVegitation
+                matchesBaseTerrain(tile)
 
-        fun matchesIce() = terrain.type == TerrainType.TerrainFeature && terrain.impassable && terrain.occursOn.contains(Constants.ocean)
+        fun matchesIce() = terrain.type == TerrainType.TerrainFeature && terrain.impassable && terrain.occursOn.contains(Constants.ocean) && !rareFeature
 
         override fun toString(): String {
             return name
@@ -487,13 +487,12 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         val humidityShift = if (temperatureShift > 0) -temperatureShift / 2 else 0f
 
         // List is OK here as it's only sequentially scanned
-        val noTerrainUniques = baseTerrainPicker.none { it.isConstrained}
+        val landTerrains = baseTerrainPicker.filter { it.terrain.type == TerrainType.Land && !it.rareFeature }
+        val noTerrainUniques = landTerrains.none { it.isConstrained}
         val elevationTerrains = baseTerrainPicker.filter {  it.occursInChains }.mapTo(mutableSetOf()) { it.name }
-        if (elevationTerrains.isEmpty())
-            elevationTerrains.add(Constants.mountain)
 
         for (tile in tileMap.values.asSequence()) {
-            if (tile.isWater)
+            if (tile.isWater || tile.baseTerrain in elevationTerrains)
                 continue
 
             val humidityRandom = randomness.getPerlinNoise(tile, humiditySeed, scale = scale, nOctaves = 1)
@@ -535,7 +534,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                 continue
             }
 
-            val matchingTerrain = baseTerrainPicker.filter{ it.matches(tile) }.randomOrNull(randomness.RNG)
+            val matchingTerrain = landTerrains.filter{ it.matches(tile) }.randomOrNull(randomness.RNG)
 
             if (matchingTerrain != null) {
                 tile.baseTerrain = matchingTerrain.name
@@ -611,7 +610,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
      */
     private fun spawnVegetation(tileMap: TileMap) {
         val vegetationSeed = randomness.RNG.nextInt().toDouble()
-        val vegetationTerrains = terrainFeaturePicker.filter { it.hasVegitation }
+        val vegetationTerrains = terrainFeaturePicker.filter { it.hasVegitation && !it.rareFeature }
             .ifEmpty {terrainFeaturePicker.filter { Constants.vegetation.contains(it.name)}}
         val candidateTerrains = vegetationTerrains.flatMap{ it.terrain.occursOn }
         // Checking it.baseTerrain in candidateTerrains to make sure forest does not spawn on desert hill
@@ -621,12 +620,12 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             val vegetation = (randomness.getPerlinNoise(tile, vegetationSeed, scale = 3.0, nOctaves = 1) + 1.0) / 2.0
 
             if (vegetation <= tileMap.mapParameters.vegetationRichness) {
-                tile.hasVegetation = true
                 val possibleVegetation = vegetationTerrains.filter { it.matches(tile)
                     && NaturalWonderGenerator.fitsTerrainUniques(it.terrain, tile)
                 }
                 if (possibleVegetation.isEmpty()) continue
                 val randomVegetation = possibleVegetation.random(randomness.RNG)
+                tile.hasVegetation = true
                 tile.addTerrainFeature(randomVegetation.name)
             }
         }
@@ -689,8 +688,8 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     }
 
     private fun spawnFlatEarthIceWalls(tileMap: TileMap, iceTerrains: List<TerrainOccursRange>) {
-        val snowTerrains = listOf(baseTerrainPicker.first { it.terrain.type == TerrainType.Land && it.tempFrom <= -1 && it.humidTo >= 1 })
-        val mountainTerrains = baseTerrainPicker.filter { it.terrain.impassable && it.terrain.hasUnique(UniqueType.OccursInChains) }
+        val snowTerrains = listOf(baseTerrainPicker.first { it.terrain.type == TerrainType.Land && it.tempFrom <= -1 && it.humidTo >= 1 && !it.rareFeature })
+        val mountainTerrains = baseTerrainPicker.filter { it.terrain.impassable && it.occursInChains && !it.rareFeature }
         val allArcticTerrains = iceTerrains + snowTerrains + mountainTerrains
 
         // Skip the tile loop if nothing can be done in it
