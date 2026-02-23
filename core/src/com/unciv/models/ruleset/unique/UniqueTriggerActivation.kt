@@ -682,8 +682,11 @@ object UniqueTriggerActivation {
                 val resource = ruleset.getGameResource(resourceName) ?: return null
                 if (resource is TileResource && !resource.isStockpiled) return null
 
+                val gameContext = GameContext(civInfo, city)
+                val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
+
                 return {
-                    var amountRequired = unique.params[0].toInt()
+                    var amountRequired = countableResult
                     if (unique.isModifiedByGameSpeed()) {
                         amountRequired = if (resource is Stat) (amountRequired * civInfo.gameInfo.speed.statCostModifiers[resource]!!).roundToInt()
                         else (amountRequired * civInfo.gameInfo.speed.modifier).roundToInt()
@@ -698,7 +701,7 @@ object UniqueTriggerActivation {
                         val missingAmount = amountRequired - currentAmount
                         civInfo.addGameResource(resource, missingAmount)
                     }
-                    
+
                     val notificationText = getNotificationText(
                         notification, triggerNotificationText,
                         "[$resourceName] has been set to [$amountRequired]"
@@ -708,7 +711,6 @@ object UniqueTriggerActivation {
                     true
                 }
             }
-
             UniqueType.UnitsGainPromotion -> {
                 val filter = unique.params[0]
                 val promotionName = unique.params[1]
@@ -1116,8 +1118,8 @@ object UniqueTriggerActivation {
                     for (applicableCity in applicableCities) {
                         val buildingsToRemove = applicableCity.cityConstructions.getBuiltBuildings().filter {
                             it.matchesFilter(unique.params[0], applicableCity.state)
-                        }.toSet()
-                        applicableCity.cityConstructions.removeBuildings(buildingsToRemove)
+                        }
+                        for (building in buildingsToRemove) applicableCity.cityConstructions.removeBuilding(building)
                     }
                     if (notification != null)
                         civInfo.addNotification(

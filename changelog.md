@@ -1,3 +1,33 @@
+## 4.19.14
+
+Add star icon to resources on map that are currently provided
+
+Consistent XP cost for next N promotions vs single promotion
+
+AI denounce automation - By unciv-loof
+
+By AutumnPizazz:
+- Add game option to hide victory screen statistics 
+- Change 'Set [stockpile] to [amount]' to 'Set [stockpile] to [countable]' 
+
+MapGeneration supports multiple Mountains, Hills, Ice, Snow, Lakes, and Vegetation. - By Ambeco
+
+## 4.19.13
+
+Clear diplomatic modifiers and countdowns to resurrected civs
+
+Puppeted cities remove "marked for improvement by building" markers correctly
+
+Modding:
+- Specific uniques for gold purchase cost always override default cost
+- Global uniques can accept unit trigger conditions when placed on units
+
+By unciv-loof:
+- Border expansion logic 
+   - considers neighboring bonus resources at the edge of work range
+   - does not consider unexplored tiles  
+   - slightly prioritizes contested tiles 
+
 ## 4.19.12
 
 Policies from overridden policy branches no longer "stick around" to affect the UI
