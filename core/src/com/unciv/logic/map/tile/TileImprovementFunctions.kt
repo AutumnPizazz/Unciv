@@ -169,6 +169,10 @@ class TileImprovementFunctions(val tile: Tile) {
             else -> {
                 tile.improvementIsPillaged = false
                 tile.improvement = improvementName
+                // Track if this improvement was created by CreatesOneImprovement
+                if (improvementName != null && tile.isMarkedForCreatesOneImprovement(improvementName)) {
+                    tile.improvementCreatedByCreatesOneImprovement = improvementName
+                }
                 improvementFieldHasChanged = true
                 if (improvementName != null && (improvementObject!!.hasUnique(UniqueType.Irremovable) || tile.isMarkedForCreatesOneImprovement(improvementName))) {
                     // I'm not sure what would happen if we try to replace an irremovable improvement

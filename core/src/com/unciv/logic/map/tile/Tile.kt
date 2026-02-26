@@ -58,6 +58,8 @@ class Tile : IsPartOfGameInfoSerialization {
     var resourceAmount: Int = 0
 
     var improvement: String? = null
+    /** Tracks if this improvement was created by a building with UniqueType.CreatesOneImprovement */
+    var improvementCreatedByCreatesOneImprovement: String? = null
     var improvementIsPillaged = false
 
     internal class ImprovementQueueEntry(

@@ -3,12 +3,15 @@ package com.unciv.ui.screens.cityscreen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.utils.Align
 import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.logic.automation.Automation
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.TutorialTrigger
 import com.unciv.models.UncivSound
@@ -17,13 +20,17 @@ import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.unique.LocalUniqueCache
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.stats.Stat
+import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.tr
+import yairm210.purity.annotations.Readonly
 import com.unciv.ui.audio.CityAmbiencePlayer
 import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.ParticleEffectMapFireworks
 import com.unciv.ui.components.extensions.colorFromRGB
 import com.unciv.ui.components.extensions.disable
+import com.unciv.ui.components.extensions.isEnabled
 import com.unciv.ui.components.extensions.packIfNeeded
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.input.KeyCharAndCode
@@ -39,6 +46,7 @@ import com.unciv.ui.components.tilegroups.TileGroupMap
 import com.unciv.ui.components.tilegroups.TileSetStrings
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.popups.ConfirmPopup
+import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.popups.closeAllPopups
 import com.unciv.ui.screens.basescreen.BaseScreen
@@ -289,6 +297,9 @@ class CityScreen(
                 pickTileData != null && city.tiles.contains(tileGroup.tile.position) ->
                     getPickImprovementColor(tileGroup.tile).run {
                         tileGroup.layerMisc.addHexOutline(first.cpy().apply { this.a = second }) }
+                // Highlight selected tile
+                tileGroup.tile == selectedTile ->
+                    tileGroup.layerMisc.addHexOutline(Color.CYAN)
             }
 
             if (fireworks != null && tileGroup.tile.position == city.location)
@@ -452,6 +463,44 @@ class CityScreen(
         }.open()
     }
 
+    /** Claims the selected tile for this city. */
+        internal fun claimTile(tile: Tile) {
+            if (!canChangeState) return
+    
+            closeAllPopups()
+    
+            val tileDisplayName = getTileDisplayName(tile)
+            val prompt = "Claim [tileName] for [cityName]?".fillPlaceholders(tileDisplayName, city.name.tr())
+    
+            ConfirmPopup(
+                this,
+                prompt,
+                "Claim".tr(),
+                true,
+                restoreDefault = { update() }
+            ) {
+                SoundPlayer.play(UncivSound.Chimes)
+                city.expansion.takeOwnership(tile)
+                UncivGame.Current.replaceCurrentScreen(CityScreen(city))
+            }.open()
+        }
+    
+        /** Get a user-friendly display name for a tile */
+        @Readonly
+        private fun getTileDisplayName(tile: Tile): String {        val parts = mutableListOf(tile.baseTerrain.tr())
+        parts.addAll(tile.terrainFeatures.map { it.tr() })
+
+        tile.tileResource?.let { resource ->
+            if (resource.resourceType == ResourceType.Strategic)
+                parts.add("{$tile.tileResourceAmount} {$tile.tileResource.tr()}")
+            else parts.add(resource.name.tr())
+        }
+
+        tile.improvement?.let { parts.add(it.tr()) }
+
+        return parts.joinToString(" ")
+    }
+
 
     private fun tileWorkedIconDoubleClick(tileGroup: CityTileGroup, city: City) {
         if (!canChangeState || city.isPuppet || tileGroup.tileState != CityTileState.WORKABLE) return
@@ -478,7 +527,8 @@ class CityScreen(
             this.pickTileData = null
             val improvement = pickTileData.improvement
             if (tileInfo.improvementFunctions.canBuildImprovement(improvement, city.state)
-                && !tileInfo.isMarkedForCreatesOneImprovement()) {
+                && !tileInfo.isMarkedForCreatesOneImprovement()
+                && tileInfo.getCity() == city) {  // Restrict to tiles owned by this city
                 
                 if (pickTileData.isBuying) {
                     BuyButtonFactory(this).askToBuyConstruction(pickTileData.building, pickTileData.buyStat, tileInfo)
