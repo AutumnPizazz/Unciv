@@ -1,3 +1,20 @@
+## 4.19.15
+
+More explicit warning about large maps causing memory crashes 
+
+Catch base terrains with occursOn in ruleset validation
+
+Removing improvement-creating buildings where the no city tile has the improvement, no longer crashes
+
+Cities can attack revealed invisible units
+
+By Ambeco:
+- Adding alternate pathing algorithm 
+- Jungles again no longer spawn on hills 
+- MapGeneration ignores rareFeatures when placing normal tiles 
+
+Add max(), min() functions to countable expressions - By AutumnPizazz
+
 ## 4.19.14
 
 Add star icon to resources on map that are currently provided

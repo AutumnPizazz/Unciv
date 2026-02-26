@@ -29,7 +29,7 @@ android {
     }
     defaultConfig {
         namespace = BuildConfig.identifier
-        applicationId = BuildConfig.identifier
+        applicationId = BuildConfig.identifier + ".cn"
         minSdk = 21
         targetSdk = 35
         versionCode = BuildConfig.appCodeNumber

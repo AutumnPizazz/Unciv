@@ -1048,6 +1048,7 @@ enum class UniqueType(
         docDescription = "In this case, 'starting era' means the first defined Era in the entire ruleset."),
     AllowRazeCapital("Allow raze capital", UniqueTarget.ModOptions, flags = UniqueFlag.setOfNoConditionals),
     AllowRazeHolyCity("Allow raze holy city", UniqueTarget.ModOptions, flags = UniqueFlag.setOfNoConditionals),
+    AllowTileClaim("Allow cities to claim tiles", UniqueTarget.ModOptions, flags = UniqueFlag.setOfNoConditionals),
 
     SuppressWarnings("Suppress warning [validationWarning]", *UniqueTarget.CanIncludeSuppression, flags = UniqueFlag.setOfHiddenNoConditionals, docDescription = Suppression.uniqueDocDescription),
 

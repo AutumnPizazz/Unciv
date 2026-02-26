@@ -58,6 +58,8 @@ class Tile : IsPartOfGameInfoSerialization {
     var resourceAmount: Int = 0
 
     var improvement: String? = null
+    /** Tracks if this improvement was created by a building with UniqueType.CreatesOneImprovement */
+    var improvementCreatedByCreatesOneImprovement: String? = null
     var improvementIsPillaged = false
 
     internal class ImprovementQueueEntry(
@@ -732,7 +734,17 @@ class Tile : IsPartOfGameInfoSerialization {
             getUnpillagedRoad() == RoadStatus.Railroad
         else
             roadStatus == RoadStatus.Railroad
-
+    
+    @Readonly
+    fun getConnectionStatus(civInfo: Civilization): RoadStatus {
+        val roadType = getUnpillagedRoad()
+        if (roadType != RoadStatus.None)
+            return roadType
+        if (forestOrJungleAreRoads(civInfo))
+            return RoadStatus.Road
+        return RoadStatus.None
+    }
+    
     @Readonly
     private fun forestOrJungleAreRoads(civInfo: Civilization) =
             civInfo.nation.forestsAndJunglesAreRoads

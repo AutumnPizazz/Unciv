@@ -132,8 +132,11 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
         takeOwnership(city.getCenterTile())
 
         for (tile in city.getCenterTile().getTilesInDistance(1)
-                .filter { it.getCity() == null }) // can't take ownership of owned tiles (by other cities)
+                .filter { it.getCity() == null && it.improvementCreatedByCreatesOneImprovement == null }) {
+            // can't take ownership of owned tiles (by other cities)
+            // and can't take ownership of tiles with CreatesOneImprovement improvements
             takeOwnership(tile)
+        }
     }
 
     private fun addNewTileWithCulture(): Vector2? {
@@ -214,6 +217,25 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
                     NotificationCategory.Cities, NotificationIcon.Culture)
             }
         }
+    }
+
+    /**
+     * Checks if the given tile is in the first ring (distance 1 from city center).
+     * Tiles in the first ring cannot be claimed as they are claimed when a city is founded.
+     */
+    @Readonly
+    fun isFirstRingTile(tile: Tile): Boolean {
+        return tile.aerialDistanceTo(city.getCenterTile()) == 1
+    }
+
+    /**
+     * Checks if the given tile is within the claimable distance range.
+     * Claimable tiles must be within the city's work range as defined by ModConstants.cityWorkRange.
+     */
+    @Readonly
+    fun isWithinClaimRange(tile: Tile): Boolean {
+        val maxDistance = city.civ.gameInfo.ruleset.modOptions.constants.cityWorkRange
+        return tile.aerialDistanceTo(city.getCenterTile()) <= maxDistance
     }
 
     fun setTransients() {
