@@ -78,7 +78,7 @@ android {
     }
     androidResources {
         // Don't add local save files and fonts to release, obviously
-        ignoreAssetsPattern = "!SaveFiles:!fonts:!maps:!music:!mods"
+        ignoreAssetsPattern = "!SaveFiles:!fonts:!maps:!music"
     }
     buildFeatures {
         renderScript = true

@@ -2172,6 +2172,40 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Unit
 
+??? example  "Attacks also target [mapUnitFilter] units within [positiveAmount] tiles"
+	Performs an attack against every unit that matches the filter inside the radius including allied units or own units if not filtered out, dealing equal damage. Status effects and on-hit abilities apply to all affected units.
+
+	If both this and decreasing area attacks are present, only decreasing area attacks will be used.
+
+	Example: "Attacks also target [Wounded] units within [3] tiles"
+
+	Applicable to: Unit
+
+??? example  "Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance"
+	Performs an attack against every unit that matches the filter inside the radius with the damage decreasing with distance from the main target. Status effects and on-hit abilities apply.
+
+	If both this and equal area attacks are present, only this will be used, also affects counter damage and damage from own area attacks.
+
+	Damage formula: Damage = (1 - (distance / radius)) * baseDamage
+
+	Example: "Attacks also target [Wounded] units within [3] tiles, with damage decreasing by distance"
+
+	Applicable to: Unit
+
+??? example  "Takes [relativeAmount]% damage from own area attacks"
+	This unit takes damage from its own area attacks when it is in range, 100 = 100% damage.
+
+	Example: "Takes [+20]% damage from own area attacks"
+
+	Applicable to: Unit
+
+??? example  "Takes [relativeAmount]% counter damage from each unit hit by its area attacks"
+	Only works for melee units, 100 = 100% damage, negative values work but are taken as positive.
+
+	Example: "Takes [+20]% counter damage from each unit hit by its area attacks"
+
+	Applicable to: Unit
+
 ??? example  "No defensive terrain bonus"
 	Applicable to: Global, Unit
 
