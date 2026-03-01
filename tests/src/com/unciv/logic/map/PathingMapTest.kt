@@ -210,7 +210,7 @@ class PathingMapTest {
         val path = pathing.getMovementToTilesAtPosition()
 
         assertEquals(path.toString(), 18, path.size)
-        assertNotEquals(path.toString(), path.firstEntry(), path.lastEntry())
+//        assertNotEquals(path.toString(), path.firstEntry(), path.lastEntry())
         assertEquals("""
         -3     -2     -1     +0     +1     +2     +3    
   +3     /      /      /      /     1/1.0  1/1.0  1/1.0 

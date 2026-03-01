@@ -830,9 +830,12 @@ class DiplomacyManager() : IsPartOfGameInfoSerialization {
             }
         }
     }
+
+    @Readonly
+    private fun speedAdjustedFlagDuration(duration: Int): Int = (duration * civInfo.gameInfo.speed.modifier).roundToInt()
     
     fun agreeToDemand(demand: Demand){
-        otherCivDiplomacy().setFlag(demand.agreedToDemand, 100)
+        otherCivDiplomacy().setFlag(demand.agreedToDemand, speedAdjustedFlagDuration(100))
         addModifier(DiplomaticModifiers.UnacceptableDemands, -10f)
         val text = demand.agreedToDemandText.fillPlaceholders(civInfo.civName)
         otherCiv.addNotification(text, NotificationCategory.Diplomacy, NotificationIcon.Diplomacy, civInfo.civName)
@@ -840,7 +843,7 @@ class DiplomacyManager() : IsPartOfGameInfoSerialization {
     
     fun refuseDemand(demand: Demand) {
         addModifier(DiplomaticModifiers.UnacceptableDemands, -20f)
-        otherCivDiplomacy().setFlag(demand.willIgnoreViolation, 100)
+        otherCivDiplomacy().setFlag(demand.willIgnoreViolation, speedAdjustedFlagDuration(100))
         otherCivDiplomacy().addModifier(demand.refusedDiplomaticModifier, -15f)
         val text = demand.refusedDemandText.fillPlaceholders(civInfo.civName)
         otherCiv.addNotification(text, NotificationCategory.Diplomacy, NotificationIcon.Diplomacy, civInfo.civName)
