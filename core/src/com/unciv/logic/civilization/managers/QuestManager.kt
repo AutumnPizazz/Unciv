@@ -207,9 +207,6 @@ class QuestManager : IsPartOfGameInfoSerialization {
     // Readability helper - No asSequence(): call frequency * data size is small
     @Readonly private fun getQuests(predicate: (Quest) -> Boolean) = ruleset.quests.values.filter(predicate)
 
-    // by turn so the same civ doesn't give the same quests always, and by civID so on the same turn different civs give different quests
-    @Readonly private fun getRandom() = Random(civ.gameInfo.turns + civ.civID.hashCode())
-    
     private fun tryStartNewGlobalQuest() {
         if (globalQuestCountdown != 0)
             return
@@ -223,7 +220,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
         }
 
         if (assignableQuests.isNotEmpty()) {
-            val quest = assignableQuests.randomWeighted(getRandom()) { getQuestWeight(it.name) }
+            val quest = assignableQuests.randomWeighted { getQuestWeight(it.name) }
             val assignees = civ.gameInfo.getAliveMajorCivs().filter { !it.isAtWarWith(civ) && isQuestValid(quest, it) }
 
             assignNewQuest(quest, assignees)
@@ -244,7 +241,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
             val assignableQuests = getQuests { it.isIndividual() && isQuestValid(it, challenger) }
 
             if (assignableQuests.isNotEmpty()) {
-                val quest = assignableQuests.randomWeighted(getRandom()) { getQuestWeight(it.name) }
+                val quest = assignableQuests.randomWeighted{ getQuestWeight(it.name) }
                 val assignees = arrayListOf(challenger)
 
                 assignNewQuest(quest, assignees)
@@ -777,7 +774,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
         val encampments = civ.getCapital()!!.getCenterTile().getTilesInDistance(8)
                 .filter { it.improvement == Constants.barbarianEncampment }.toList()
 
-        return encampments.randomOrNull(getRandom())
+        return encampments.randomOrNull()
     }
 
     /**
@@ -800,7 +797,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
                     !ownedByMajorResources.contains(it)
         }.toList()
 
-        return notOwnedResources.randomOrNull(getRandom())
+        return notOwnedResources.randomOrNull()
     }
 
     @Readonly
@@ -820,7 +817,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
                     && civ.gameInfo.getCities().none { it.cityConstructions.isBuilt(building.name) || isMoreThanAQuarterDone(it, building.name) }
                 }
 
-        return wonders.randomOrNull(getRandom())
+        return wonders.randomOrNull()
     }
 
     /**
@@ -833,7 +830,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
         civ.gameInfo.tileMap.naturalWonders
             .subtract(challenger.naturalWonders)
             .subtract(civ.naturalWonders)
-            .randomOrNull(getRandom())
+            .randomOrNull()
 
     /**
      * Returns a Great Person [BaseUnit] that is not owned by both the [challenger] and the [civ]
@@ -855,7 +852,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
                 .filterNot { it in existingGreatPeople || it.isUnavailableBySettings(civ.gameInfo) }
                 .toList()
 
-        return greatPeople.randomOrNull(getRandom())
+        return greatPeople.randomOrNull()
     }
 
     /**
@@ -868,7 +865,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
             .filter { it.isAlive() && it.isMajorCiv() && !challenger.hasMetCivTerritory(it) }
             .toList()
 
-        return civilizationsToFind.randomOrNull(getRandom())
+        return civilizationsToFind.randomOrNull()
     }
 
     /**
@@ -885,7 +882,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
         val validTargets = civ.getKnownCivs().filter { it.isCityState && challenger.knows(it)
                 && civ.proximity[it.civID] == closestProximity }
 
-        return validTargets.toList().randomOrNull(getRandom())
+        return validTargets.toList().randomOrNull()
     }
 
     /** Returns a [Civilization] of the civ that most recently bullied [civ].
