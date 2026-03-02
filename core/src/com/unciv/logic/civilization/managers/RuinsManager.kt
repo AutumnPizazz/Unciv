@@ -8,7 +8,6 @@ import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import yairm210.purity.annotations.Readonly
-import kotlin.random.Random
 
 class RuinsManager(
     private val lastChosenRewards: ArrayList<String> = arrayListOf("", "")
@@ -43,7 +42,7 @@ class RuinsManager(
             .toMutableList()
         // The resulting List now gets shuffled, using a tile-based random to thwart save-scumming.
         // Note both Sequence.shuffled and Iterable.shuffled (with a 'd') always pull an extra copy of a MutableList internally, even if you feed them one.
-        candidates.shuffle(Random(triggeringUnit.getTile().position.toVector2().hashCode()))
+        candidates.shuffle()
         return candidates
     }
 
