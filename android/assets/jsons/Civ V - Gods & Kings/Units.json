@@ -1650,6 +1650,7 @@
 		"uniques": [
             "[+15]% Strength bonus for [Military] units within [2] tiles",
             "Can instantly construct a [Citadel] improvement <by consuming this unit>",
+            "Empire enters a [8]-turn Golden Age <by consuming this unit>",
 			"Can be earned through combat <for [Land] units>",
             "Is part of Great Person group [General]",
             "[This Unit] gets a name from the [General] group",
