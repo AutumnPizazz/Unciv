@@ -1,3 +1,158 @@
+## 4.20.6
+
+By SeventhM:
+- Allow enabling embassies in Global/Policy/Era uniques instead of just techs 
+- Fix redundant requirement for sending embassies 
+- Add countables for worked tiles/population 
+- Fix edge case where Great Prophet costs are wrong 
+
+Improve language handling and slightly ease use of first-run language picker - By SomeTroglodyte
+
+CPU performance improvements - By Ambeco
+
+## 4.20.5
+
+modding: Correctly ignore possible filtering uniques for ruleset-disabled uniques
+
+modding: Check for event loops that the AI can get stuck in
+
+By SomeTroglodyte:
+- Improve Civilopedia around Diplomacy concepts depending on Embassies
+- Fixed map editor crash 
+
+Trigger upon losing unit unique - By PLynx01
+
+Handle display cutout in all orientations and fix rotation - By Gatien-L
+
+## 4.20.4
+
+modding: Ignore ruleset-specific errors when unique is disabled in this ruleset
+
+By SomeTroglodyte:
+- Hide religion- or espionage-specific demands when disabled 
+- Fixed NPE when Espionage Screen is used to move a spy to an unknown civ's city 
+
+By unciv-loof:
+- Add missing table row for city resistance 
+
+By Ambeco:
+- Unciv can receive links directly to games or new friends
+- Prevent save-scumming for more types of randomness
+
+Added option to stop workers from removing vegetation - By Emandac
+
+## 4.20.3
+
+Custom maps are retained when starting a new game from an old one
+
+Spies "evacuate" correctly from destroyed cities
+
+Spectators can see the building list again
+
+By unciv-loof:
+- Confirmation popup before breaking promise not to spy 
+- ConstructImprovementInstantly now clears tile improvement queue 
+
+Fixed issue with units selection in city - By ValeraShimchuck
+
+By Ambeco:
+- AI: Minimize movement before attacking
+- PathingMap can now also BFS, taking moveCost into consideration 
+
+## 4.20.2
+
+By unciv-loof:
+- Add back option to disable rendering of unitset in display settings 
+- Do not forcibly reset mod selections after closing warning in new game screen 
+- Clicking Bully and Conquer CS quests centers map on target's capital 
+- Don't display empty message in 'declare war' popup 
+- AIs can denounce multiple civs 
+
+Allow beliefs gotten from triggers to use triggerables - by SeventhM
+
+Ocean Ice should spawn again - by Ambeco
+
+## 4.20.1
+
+Drastically reduced memory consumption
+
+Barbarian encampments removed when tile enters civ territory
+
+Peace/war declarations on a third civ not considered trade "gifts"
+
+Fixed rare crash in cities when purchasing
+
+Buildings with "Moves to new capital when capital changes" not destroyed on city capture
+
+Desktop executables: Max JVM RAM *actually* increased to 4GB  
+
+Notifications shown in UI in order
+
+By unciv-loof:
+- Denouncement popups with moddable messages and audio 
+- turn 0 Autosave 
+
+## 4.20.0
+
+By unciv-loof:
+- Fix embassy trade logic bug 
+- Popup after other civ responds to a demand 
+
+By SeventhM:
+- Add conditionals for current unit movement 
+- Fix unavailable unique being ignored in unexpected places 
+
+Theoretical improvements to workerAutomation performance - By Ambeco
+
+Fixed translation in multiplayer game preview description - By evanofficial (new contributor!)
+
+'Upon signing a peace treaty' unique - By PLynx01
+
+## 4.19.19
+
+Reset tileset settings when deleting the mod that contained the tileset
+
+AIs ignore demands/declarations of friendship from dead civs
+
+By Ambeco:
+- AStar pathing no longer treats rivers as multi-turn obstacles 
+- flat earth hexigonal no longer crashes 
+
+Bugfix: don't try to buy missionaries in cities with a civilian unit - By EmperorPinguin
+
+## 4.19.18
+
+Ignore free promotions for promotion path costs
+
+Allow gaining free promotions before gaining XP
+
+By Ambeco:
+- Mods can have multiple Ocean and Coast Terrains 
+- AStar moves through same tiles as Classic  
+
+Add showDemographics option - By ICanSeeForever
+
+Forced unit disbandment considers refundability and promotions - By unciv-loof
+DenounceWillingness personality trait - by unciv-loof
+
+AI: only get mad at spreading religion while they can found their own - By EmperorPinguin
+
+## 4.19.17
+
+Ruleset switching in new game screen no longer allows zero victory types
+
+Users cannot offer negative gold with "-50" buttons
+
+By unciv-loof:
+- Notification shows who is responsible for skipping or resigning a player 
+- Newly fetched mod entries respect current filter 
+- Declaation of War + Declaration of Friendship UI improvements
+
+By Ambeco:
+- Fixed alternate pathfinding bugs 
+- Unitactions and UnitTriggers have moddable priority
+- Eliminated most Hardcoded Terrains 
+
 ## 4.19.16
 
 Changed default max RAM from 1GB to 4GB, it's 2026, let people go crazy if they want

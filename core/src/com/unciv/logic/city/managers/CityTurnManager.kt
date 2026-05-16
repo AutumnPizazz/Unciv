@@ -1,5 +1,6 @@
 package com.unciv.logic.city.managers
 
+import com.unciv.logic.automation.Timers.Companion.timeThis
 import com.unciv.logic.city.City
 import com.unciv.logic.city.CityFlags
 import com.unciv.logic.city.CityFocus
@@ -13,12 +14,11 @@ import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.ui.screens.overviewscreen.EmpireOverviewCategories
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 class CityTurnManager(val city: City) {
 
 
-    fun startTurn() {
+    fun startTurn():Unit = timeThis("CityTurnManager.startTurn") {
         city.clearCaches()
         
         for (resource in city.getResourcesGeneratedByCity()) {
@@ -57,17 +57,18 @@ class CityTurnManager(val city: City) {
     }
     
     private fun setWltkResourceDemandCooldown(isNewCity: Boolean) {
+        val rng = city.state.stateBasedRandom("CityTurnManager.setWltkResourceDemandCooldown")
         // Demand a new resource in ~20 turns on Standard speed
-        var duration = 15 + Random.Default.nextInt(10)
+        var duration = 15 + rng.nextInt(10)
         if (isNewCity && city.isCapital())
             duration += 10
-        duration = (duration * city.civ.gameInfo.speed.modifier).roundToInt()
-        city.setFlag(CityFlags.ResourceDemand, duration)
+        city.setFlag(CityFlags.ResourceDemand, duration, true)
     }
 
     private fun tryWeLoveTheKing() {
         if (city.demandedResource == "") return
         if (city.getAvailableResourceAmount(city.demandedResource) > 0) {
+            // manually adjust with game speed because of the +1 at the end
             val duration = (20 * city.civ.gameInfo.speed.modifier).roundToInt() + 1 // +1 because it will be decremented by 1 in the same startTurn()
             city.setFlag(CityFlags.WeLoveTheKing, duration) 
             city.civ.addNotification(
@@ -108,6 +109,7 @@ class CityTurnManager(val city: City) {
 
 
     private fun demandNewResource() {
+        val rng = city.state.stateBasedRandom("CityTurnManager.demandNewResource")
         val candidates = city.getRuleset().tileResources.values.filter {
             it.resourceType == ResourceType.Luxury && // Must be luxury
                     !it.hasUnique(UniqueType.CityStateOnlyResource) && // Not a city-state only resource eg jewelry
@@ -118,11 +120,11 @@ class CityTurnManager(val city: City) {
         val missingResources = candidates.filter { !city.civ.hasResource(it) }
         
         if (missingResources.isEmpty()) { // hooray happpy day forever!
-            city.demandedResource = candidates.randomOrNull()?.name ?: ""
+            city.demandedResource = candidates.randomOrNull(rng)?.name ?: ""
             return // actually triggering "wtlk" is done in tryWeLoveTheKing(), *next turn*
         }
 
-        val chosenResource = missingResources.randomOrNull()
+        val chosenResource = missingResources.randomOrNull(rng)
         
         city.demandedResource = chosenResource?.name ?: "" // mods may have no resources as candidates even
         setWltkResourceDemandCooldown(false)
@@ -134,7 +136,7 @@ class CityTurnManager(val city: City) {
     }
 
 
-    fun endTurn() {
+    fun endTurn():Unit = timeThis("CityTurnManager.endTurn") {
         for (unique in city.getTriggeredUniques(UniqueType.TriggerUponTurnEnd, includeCivUniques = false).toList()) {
             UniqueTriggerActivation.triggerUnique(unique, city)
         }

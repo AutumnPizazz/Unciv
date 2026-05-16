@@ -18,7 +18,6 @@ import com.unciv.models.UncivSound
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.tile.TileImprovement
-import com.unciv.models.ruleset.unique.LocalUniqueCache
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.stats.Stat
@@ -73,7 +72,7 @@ class CityScreen(
 
     private val selectedCiv: Civilization = GUI.getWorldScreen().selectedCiv
 
-    internal val isSpying = selectedCiv.gameInfo.isEspionageEnabled() && selectedCiv != city.civ
+    internal val isSpying = selectedCiv.gameInfo.isEspionageEnabled() && selectedCiv != city.civ && !selectedCiv.isSpectator()
 
     /**
      * This is the regular civ city list if we are not spying, if we are spying then it is every foreign city that our spies are in
@@ -252,16 +251,14 @@ class CityScreen(
     }
 
     private fun updateTileGroups() {
-        val cityUniqueCache = LocalUniqueCache()
         fun isExistingImprovementValuable(tile: Tile): Boolean {
-            if (tile.improvement == null) return false
+            val improvement = tile.tileImprovement ?: return false
             val civInfo = city.civ
 
             val statDiffForNewImprovement = tile.stats.getStatDiffForImprovement(
-                tile.getTileImprovement()!!,
+                improvement,
                 civInfo,
                 city,
-                cityUniqueCache
             )
 
             // If stat diff for new improvement is negative/zero utility, current improvement is valuable
@@ -382,7 +379,10 @@ class CityScreen(
 
         for (tileGroup in cityTileGroups) {
             tileGroup.onClick { tileGroupOnClick(tileGroup, city) }
-            tileGroup.layerMisc.onClick { tileWorkedIconOnClick(tileGroup, city) }
+            tileGroup.layerMisc.onClick {
+                tileWorkedIconOnClick(tileGroup, city)
+                tileGroupOnClick(tileGroup, city)
+            }
             tileGroup.layerMisc.onDoubleClick { tileWorkedIconDoubleClick(tileGroup, city) }
             tileGroups.add(tileGroup)
         }

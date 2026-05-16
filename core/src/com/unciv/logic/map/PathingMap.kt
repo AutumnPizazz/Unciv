@@ -1,5 +1,6 @@
 package com.unciv.logic.map
 
+import com.unciv.logic.automation.Timers.Companion.timeThis
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.diplomacy.RelationshipLevel
 import com.unciv.logic.map.FixedPointMovement.Companion.FPM_ONE
@@ -8,22 +9,17 @@ import com.unciv.logic.map.FixedPointMovement.Companion.FPM_ZERO
 import com.unciv.logic.map.FixedPointMovement.Companion.fpmFromMovement
 import com.unciv.logic.map.MapPathing.roadPreferredMovementCost
 import com.unciv.logic.map.RouteNode.Companion.MAX_MOVE_THIS_TURN
-import com.unciv.logic.map.RouteNode.Companion.MAX_TURNS
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.mapunit.movement.MovementCost
 import com.unciv.logic.map.mapunit.movement.PathsToTilesWithinTurn
 import com.unciv.logic.map.mapunit.movement.UnitMovement.ParentTileAndTotalMovement
 import com.unciv.logic.map.tile.Tile
 import com.unciv.utils.Log
-import com.unciv.utils.LongPriorityQueue
 import com.unciv.utils.forEachSetBit
 import org.jetbrains.annotations.VisibleForTesting
 import yairm210.purity.annotations.Cache
 import yairm210.purity.annotations.InternalState
 import yairm210.purity.annotations.Readonly
-import java.util.BitSet
-import java.util.Formatter
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -69,14 +65,15 @@ class PathingMap(
     private val debugId: Any,
     private val debugMapType: String,
     private val getCurrentCacheKey: () -> PathingMapCacheKey,
-    private val moveThroughPredicate: MoveThroughPredicate,
+    private val passThroughPredicate: TilePredicate,
+    private val moveToPredicate: TilePredicate,
     private val endTurnDamage: EndTurnDamageLookup,
     private val cost: TileMovementCost,
     private val tileRoadCost: TileRoadCost,
     private val relationshipLevel: (Tile) -> RelationshipLevel,
 ) {
     @Cache
-    private val cacheRef: AtomicReference<PathingMapCache?> = AtomicReference<PathingMapCache?>(null)
+    private val cacheRef = AtomicReference<PathingMapCache?>(null)
 
     /**
      * This is the only method that is NOT thread-safe.
@@ -134,7 +131,7 @@ class PathingMap(
      */
     @Readonly
     @Suppress("purity")
-    fun getShortestPath(destination: Tile, maxTurns: Int = MAX_VALID_TURNS): List<Tile>? {
+    fun getShortestPath(destination: Tile, maxTurns: Int = MAX_VALID_TURNS): List<Tile>? =timeThis("TileStatFunctions.getShortestPath") {
         val cache = fetchCache()
         if (destination.position == cache.key.startingPoint) {
             if (VERBOSE_PATHFINDING_LOGS == cache.key.startingPoint || VERBOSE_PATHFINDING_LOGS == ALWAYS_LOG)
@@ -147,11 +144,11 @@ class PathingMap(
             
         }
         // if we don't already know the shortest path, and might yet find it, search
-        var targetNode = RouteNode(cache.routeNodes[destination.zeroBasedIndex])
+        val targetNode = RouteNode(cache.routeNodes[destination.zeroBasedIndex])
         if (!targetNode.initialized  && !cache.nodesNeedingNeighbors.isEmpty) {
             if (VERBOSE_PATHFINDING_LOGS == cache.key.startingPoint || VERBOSE_PATHFINDING_LOGS == ALWAYS_LOG)
                 Log.debug("#getShortestPath(${destination.position}) calculcating for $debugMapType $debugId")
-            stepUntilDestination(cache, destination, maxTurns)
+            aStarStepUntilDestination(cache, destination, maxTurns)
         }
         val bestTarget =  RouteNode(cache.routeNodes[destination.zeroBasedIndex])
         // if the target is not reachable within maxTurns, return nothing
@@ -175,7 +172,7 @@ class PathingMap(
             val parentTile = currentNode.parentTile(tileMap)
             val parentNode = RouteNode(cache.routeNodes[parentTile.zeroBasedIndex])
             if (parentTile.position == cache.key.startingPoint) break
-            if (parentNode.turns < turns && parentNode.endTurnWithoutMoreDamage) {
+            if (parentNode.turns < turns && parentNode.endTurnWithoutMoreDamage && parentNode.canMoveTo) {
                 result.add(parentTile)
                 turns = parentNode.turns
             }
@@ -201,28 +198,76 @@ class PathingMap(
             return tilesSameTurn
         } 
         // if we've already calculated the results, return that
-        // otherwise, if there's uncalculated nodes, step until maxTurns is reached
+        // otherwise, find all tiles we can reach this turn, plus 1 tile extra, to make sure we
+        // include enemies we would otherwise reach this turn.
         if (!cache.nodesNeedingNeighbors.isEmpty) {
             if (VERBOSE_PATHFINDING_LOGS == cache.key.startingPoint || VERBOSE_PATHFINDING_LOGS == ALWAYS_LOG)
                 Log.debug("#getMovementToTilesAtPosition calculcating for $debugMapType $debugId")
-            stepUntilDestination(cache, null, 1)
+            bfsStepUntilDestination(cache, { _,node -> node.turns>0 && node.canMoveTo }, 1)
         }
         getTilesSameTurn(cache)
         return tilesSameTurn
     }
 
+    /**
+     * finds the closest tile that match a predicate.
+     * 
+     * If there are multiple matches with the same movement cost, then this uses 
+     * tile-owner-relationship as a tiebreaker, followed by zeroBasedIndex (roughly, distance from
+     * center of map).
+     *
+     * The results of the method, and the per-tile-predicate-results are NOT cached, and so this has
+     * to check all tiles starting from the origin every call, even if the tiles' nodes have already
+     * been cached from prior pathfinding. However, this uses/generates the same cached nodes as the
+     * other pathfinding (movement cost, relationship level, shortest route, damage numbers, etc),
+     * and so if the nodes were already cached, then this is fast, and if the nodes were not already
+     * cached, then this makes subsequent pathfinding fast.
+     *
+     * IMPORTANT NOTE: This does NOT consider obstacles (hills/mountains) in the attack range.
+     * Callers have to check for obstacles along the path themselves.
+     **/
+    fun bfsUntilMatchingTile(timeLimitTurns: Int = MAX_VALID_TURNS, endSearchPredicate: EndSearchPredicate): Tile?
+        = bfsStepUntilDestination(fetchCache(), endSearchPredicate, timeLimitTurns)
+
+    /**
+     * finds all tiles in attack range that match a predicate.
+     *
+     * This does not cache the results of the predicate matching, and so has to check all tiles
+     * starting from the origin, even if the tiles' nodes have already been cached from prior
+     * pathfinding. However, this uses/generates the same cached nodes as the other pathfinding
+     * (movement cost, relationship level, shortest route, damage numbers, etc), so if any other 
+     * pathing also occurs before or after, then these checks are effectively free.
+     * 
+     * If you do not care about movement cost, then the BFS class is probably faster.
+     *
+     * IMPORTANT NOTE: This does NOT consider sight obstacles (hills/mountains) in the attack range.
+     *
+     * IMPORTANT NOTE: The results of this method are not cached.  The *nodes* are cached , but the list of tiles
+     **/
+    fun bfsAllMatchingTiles(timeLimitTurns: Int, tilePredicate: EndSearchPredicate): List<Tile> {
+        val results = ArrayList<Tile>()
+        val searchPredicate = EndSearchPredicate { tile:Tile, node: RouteNode ->
+            if (tilePredicate(tile, node)) results.add(tile)
+            false
+        }
+        bfsStepUntilDestination(fetchCache(), searchPredicate, timeLimitTurns)
+        return results
+    }
+    fun bfsAllMatchingTilesThisTurn(tilePredicate: EndSearchPredicate) = bfsAllMatchingTiles(0, tilePredicate)
+
     private fun getTilesSameTurn(cache: PathingMapCache) {
         val tilesSameTurn = cache.tilesSameTurn
         // accumulate all the results
         synchronized(tilesSameTurn) {
-            if (tilesSameTurn.isNotEmpty()) {
+            if (tilesSameTurn.isNotEmpty()) { // if we've already calculated the results, return that
                 if (VERBOSE_PATHFINDING_LOGS == cache.key.startingPoint || VERBOSE_PATHFINDING_LOGS == ALWAYS_LOG)
                     Log.debug("#getMovementToTilesAtPosition returning cached tilesSameTurn[len=${tilesSameTurn.size}] which was calculated by another thread for $debugMapType $debugId")
                 return
-            } // if we've already calculated the results, return that
+            }
+            // otherwise, add the tiles in turn 0, (or would be if unoccupied, and we can swap/attack in)
             cache.addedNeighborNodes.forEachSetBit {
                 val node = RouteNode(cache.routeNodes[it])
-                if (node.initialized && node.turns == 0) {
+                if (node.initialized && (node.turns == 0 || !node.canMoveTo)) {
                     val tile = node.tile(tileMap)
                     tilesSameTurn[tile] =
                         ParentTileAndTotalMovement(
@@ -232,7 +277,7 @@ class PathingMap(
             }
             cache.nodesNeedingNeighbors.forEachSetBit {
                 val node = RouteNode(cache.routeNodes[it])
-                if (node.initialized && node.turns == 0) {
+                if (node.initialized && (node.turns == 0 || !node.canMoveTo)) {
                     val tile = node.tile(tileMap)
                     tilesSameTurn[tile] =
                         ParentTileAndTotalMovement(tile, node.parentTile(tileMap), node.moveUsedThisTurn.toFloat())
@@ -250,18 +295,20 @@ class PathingMap(
     }
 
     /**
-     * Use a AStarPathfinder instance to calculate the route, with thread-safe way
+     * Use AStar algorithm to calculate the route to the destination, in thread-safe way
      **/
-    private fun stepUntilDestination(cache: PathingMapCache, destination: Tile?, timeLimitTurns: Int) {
+    private fun aStarStepUntilDestination(cache: PathingMapCache, destination: Tile?, timeLimitTurns: Int) {
         val finder = AStarPathfinder(
             debugId,
             debugMapType,
             destination,
-            moveThroughPredicate,
+            passThroughPredicate,
+            moveToPredicate,
             endTurnDamage,
             cost,
             tileRoadCost,
             relationshipLevel,
+            {_,_ -> false},
             cache.forkForPathfinding(),
             timeLimitTurns.coerceAtMost(MAX_VALID_TURNS),
             tileMap,
@@ -271,6 +318,35 @@ class PathingMap(
         // now merge the pathfinder's tilesChecked and tilesToCheck back into the shared PathingData
         // again using a synchronized block not just for thread-safety, but also to ensure atomicity
         cache.mergePathfindingFork(finder.cache)
+    }
+
+    /**
+     * Use Breadth-First Search algorithm to find a target tile, in a thread safe way
+     **/
+    // @IgnorableReturnValue
+    private fun bfsStepUntilDestination(cache: PathingMapCache, endSearchPredicate: EndSearchPredicate, timeLimitTurns: Int): Tile? {
+        val finder = AStarPathfinder(
+            debugId,
+            debugMapType,
+            null,
+            passThroughPredicate,
+            moveToPredicate,
+            endTurnDamage,
+            cost,
+            tileRoadCost,
+            relationshipLevel,
+            endSearchPredicate,
+            cache.forkForPathfinding(),
+            timeLimitTurns.coerceAtMost(MAX_VALID_TURNS),
+            tileMap,
+        )
+        val result = finder.stepUntilDestination()
+        
+        // now merge the pathfinder's tilesChecked and tilesToCheck back into the shared PathingData
+        // again using a synchronized block not just for thread-safety, but also to ensure atomicity
+        cache.mergePathfindingFork(finder.cache)
+        
+        return result
     }
     
     override fun toString(): String {
@@ -285,7 +361,7 @@ class PathingMap(
         
         // Functional interfaces used here to prevent Kotlin from Boxing the return values
         @FunctionalInterface
-        fun interface MoveThroughPredicate {
+        fun interface TilePredicate {
             @Readonly
             operator fun invoke(it: Tile): Boolean
         }
@@ -304,6 +380,11 @@ class PathingMap(
             @Readonly
             operator fun invoke(it: Tile): FixedPointMovement
         }
+        @FunctionalInterface
+        fun interface EndSearchPredicate {
+            @Readonly
+            operator fun invoke(tile: Tile, node: RouteNode): Boolean
+        }
 
         @Suppress("unused")
         internal val ALWAYS_LOG: HexCoord = HexCoord(0xFFFF,0xFFFE)
@@ -321,13 +402,13 @@ class PathingMap(
                 else "createUnitPathingMap"
             // These two precalculated because for some reason they're rediculously slow
             val selfFullMove = unit.getMaxMovement()
-            val otherUntilFullMove = if (includeEscortUnit) unit.getOtherEscortUnit()?.getMaxMovement() ?: MAX_TURNS else MAX_TURNS
+            val otherUntilFullMove = if (includeEscortUnit) unit.getOtherEscortUnit()?.getMaxMovement() ?: MAX_VALID_TURNS else MAX_VALID_TURNS
             val getCurrentCacheKey = {
                 val escort = if (includeEscortUnit && unit.isEscorting()) unit.getOtherEscortUnit() else null
                 PathingMapCacheKey(
                     unit.currentTile.position, 
                     fpmFromMovement(unit.currentMovement).coerceAtMost(escort?.currentMovement?.toFixedPointMove() ?: MAX_MOVE_THIS_TURN),
-                    selfFullMove.coerceAtMost(if (escort != null) otherUntilFullMove else MAX_VALID_TURNS),
+                    fpmFromMovement(selfFullMove.coerceAtMost(if (escort != null) otherUntilFullMove else MAX_VALID_TURNS)),
                     )
             }
             return PathingMap(
@@ -335,7 +416,8 @@ class PathingMap(
                 unit,
                 name,
                 getCurrentCacheKey,
-                { unit.movement.canPassThrough(it)  },
+                { unit.movement.cannotPassThroughReason(it, includeEscortUnit) == null },
+                { unit.movement.canMoveTo(it, assumeCanPassThrough = true, allowSwap = false, includeOtherEscortUnit = includeEscortUnit) },
                 { unit.getDamageFromTerrain(it) },
                 { from, to -> fpmFromMovement(MovementCost.getMovementCostBetweenAdjacentTilesEscort(unit, from, to, considerZoneOfControl, includeEscortUnit)) },
                 { fpmFromMovement(it.getConnectionStatus(unit.civ).movement) },
@@ -349,8 +431,9 @@ class PathingMap(
                 civ.gameInfo.tileMap,
                 civ,
                 "createLandAttackPathingMap",
-                { civPathingCacheKey(startingPoint.position)},
+                { civPathExistCacheKey(startingPoint.position)},
                 { isLandTileCanAttackThrough(civ, it, targetCiv) },
+                { true },
                 { 0 },
                 { from, to -> fpmFromMovement(roadPreferredMovementCost(civ, from, to)) },
                 { fpmFromMovement(it.getConnectionStatus(civ).movement) },
@@ -364,8 +447,9 @@ class PathingMap(
                 civ.gameInfo.tileMap,
                 civ,
                 "createAmphibiousAttackPathingMap",
-                { civPathingCacheKey(startingPoint.position)},
+                { civPathExistCacheKey(startingPoint.position)},
                 { isTileCanAttackThrough(civ, it, targetCiv) },
+                { true },
                 { 0 },
                 { from, to -> fpmFromMovement(roadPreferredMovementCost(civ, from, to)) },
                 { fpmFromMovement(it.getConnectionStatus(civ).movement) },
@@ -375,12 +459,17 @@ class PathingMap(
 
         @Readonly
         fun createRoadPathingMap(civ: Civilization, startingPoint: Tile): PathingMap {
+            // Use a max movement speed equal to improved (non-rail) road speed, to ensure that the
+            // path "ends its turn" on every non-rail tile along the route. Right now, the costs
+            // are weird, so this is a full movement of 0.5.  If we used the correct move costs
+            // here, then this would be 1/3f.
             return PathingMap(
                 civ.gameInfo.tileMap,
                 civ,
                 "createRoadPathingMap",
-                { civPathingCacheKey(startingPoint.position)},
+                { PathingMapCacheKey(startingPoint.position,  FPM_POINT_FIVE, FPM_POINT_FIVE) },
                 {MapPathing.isValidRoadPathTile(civ, it) },
+                { true },
                 { 0 },
                 { _, to -> if ((to.hasRoadConnection(civ, false) || to.hasRailroadConnection(false))) FPM_POINT_FIVE else FPM_ONE },
                 { FPM_ONE },
@@ -389,7 +478,7 @@ class PathingMap(
         }
         
         @Readonly
-        private fun civPathingCacheKey(startingPoint: HexCoord) = PathingMapCacheKey(startingPoint, MAX_MOVE_THIS_TURN, MAX_VALID_TURNS)
+        private fun civPathExistCacheKey(startingPoint: HexCoord) = PathingMapCacheKey(startingPoint, MAX_MOVE_THIS_TURN, MAX_MOVE_THIS_TURN)
 
         @Readonly
         private fun isTileCanAttackThrough(civInfo: Civilization, tile: Tile, targetCiv: Civilization): Boolean {

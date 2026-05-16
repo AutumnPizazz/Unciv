@@ -72,6 +72,7 @@ import java.util.Locale
  *   use 14 to represent "no parent tile" (such as for the root node). Since the values are always
  *   even, we do not store the last bit, so this only takes 3 bits. This is never zero, which 
  *   guarantees that an initialized RouteNode is never zero.
+ * - canMoveTo: True if the unit can end turn on the tile, or it's multiple turns away.
  * - padding: In a RouteNode, the other remaining 12 bits of underestimatedTotal just hold zeroes, 
  *   for now.
  * - damagingTiles: How many tiles that cause end-turn damage have been crossed to reach this tile.
@@ -96,6 +97,7 @@ value class RouteNode(val bits: Long=0L) {
         moveThisTurn: FixedPointMovement,
         turns: Int,
         parentTile: Tile,
+        moveTo: Boolean,
         damagingTiles: Int,
     ):
         this(
@@ -105,6 +107,7 @@ value class RouteNode(val bits: Long=0L) {
                 toMoveThisTurnBits(moveThisTurn) or
                 toTurnsBits(turns) or
                 toParentClockDirBits(tile, parentTile) or
+                toMoveToBits(moveTo) or
                 toDamagingTilesBits(damagingTiles)
         ) {
         require(tile.zeroBasedIndex < tile.tileMap.tileList.size) { "tileList ${tile.zeroBasedIndex} exceeds max ${tile.tileMap.tileList.size}" }
@@ -149,6 +152,8 @@ value class RouteNode(val bits: Long=0L) {
         if (idx == NO_PARENT_TILE_VALUE) return tile(tileMap)
         return tileMap.getClockPositionNeighborTile(tile(tileMap), idx)!!
     }
+    
+    val canMoveTo: Boolean get() { require(initialized); return (bits and MOVE_TO_HI_MASK) == MOVE_TO_HI_MASK}
 
     val damagingTiles: Int get() { require(initialized); return ((bits shr DAMAGE_TILES_OFFSET) and DAMAGE_TILES_LO_MASK).toInt() }
 
@@ -203,7 +208,13 @@ value class RouteNode(val bits: Long=0L) {
         private const val PARENT_TILE_LO_MASK = (0x1L shl PARENT_TILE_BIT_COUNT) - 1L
         private const val NO_PARENT_TILE_BITS = 7L
         private const val NO_PARENT_TILE_VALUE = 14
-        // [RouteNode] bits 50-60 (11b) are padding bits, only used by PrioritizedNode's underestimatedTotal field
+        // [RouteNode] bit 50 (1b = 2values) tracks if we can we can "move to" a tile.
+        // Aka either we can path through it, or it contains an enemy.
+        private const val MOVE_TO_OFFSET = PARENT_TILE_OFFSET + PARENT_TILE_BIT_COUNT
+        private const val MOVE_TO_BIT_COUNT = 1
+        private const val MOVE_TO_LO_MASK = (0x1L shl MOVE_TO_BIT_COUNT) - 1L
+        private const val MOVE_TO_HI_MASK = MOVE_TO_LO_MASK shl MOVE_TO_OFFSET
+        // [RouteNode] bits 52-60 (10b) are padding bits, only used by PrioritizedNode's underestimatedTotal field
         // bits 61-62 (2b = 4turns) are the number of turns ended in damaging tiles.
         private const val DAMAGE_TILES_OFFSET = UNDERESTIMATED_TOTAL_OFFSET + UNDERESTIMATED_TOTAL_BIT_COUNT
         private const val DAMAGE_TILES_BIT_COUNT = 2
@@ -214,6 +225,9 @@ value class RouteNode(val bits: Long=0L) {
         @Readonly
         private fun toParentClockDirBits(tile: Tile, parentTile: Tile): Long
             = (if (tile == parentTile) NO_PARENT_TILE_BITS else tile.tileMap.getNeighborTileClockPosition(tile, parentTile)/2L) shl PARENT_TILE_OFFSET
+        @Pure
+        private fun toMoveToBits(canMoveTo: Boolean): Long
+            = if (canMoveTo) MOVE_TO_HI_MASK else 0L
         @Pure
         private fun toMoveThisTurnBits(moveThisTurn: FixedPointMovement): Long
             = moveThisTurn.bits.toLong() shl MOVE_THIS_TURN_OFFSET
@@ -234,13 +248,14 @@ value class RouteNode(val bits: Long=0L) {
             = (MAX_RELATIONSHIP_LEVEL - relationshipLevel.ordinal).toLong() shl RELATIONSHIP_LEVEL_OFFSET
 
         @Pure
-        fun noPathingNode(tile: Tile) = RouteNode(
+        fun noPathingNode(tile: Tile, turn: Int) = RouteNode(
             tile,
             RelationshipLevel.Unforgivable,
             MAX_MOVE_THIS_TURN,
             MAX_MOVE_THIS_TURN,
-            MAX_TURNS,
+            turn,
             tile,
+            false,
             MAX_DAMAGING_TILES,
         )
         @Pure
@@ -250,8 +265,8 @@ value class RouteNode(val bits: Long=0L) {
             FPM_ZERO,
             moveThisTurn,
             0,
-
             tile,
+            true,
             0,
         )
     }
@@ -260,9 +275,19 @@ value class RouteNode(val bits: Long=0L) {
 @JvmInline
 value class FixedPointMovement private constructor(val bits: Int) {
     @Pure operator fun plus(other: FixedPointMovement) = FixedPointMovement(bits + other.bits)
+    @Pure operator fun plus(value: Int) = FixedPointMovement(bits + value * MOVE_SPEED_BASE)
+    @Pure operator fun plus(value: Float) = FixedPointMovement(bits + fpmFromMovement(value).bits)
     @Pure operator fun minus(other: FixedPointMovement) = FixedPointMovement(bits - other.bits)
-    @Pure operator fun plus(other: Float) = FixedPointMovement(bits + (other * MOVE_SPEED_BASE).toInt())
-    @Pure operator fun minus(other: Float) = FixedPointMovement(bits - (other * MOVE_SPEED_BASE).toInt())
+    @Pure operator fun minus(value: Int) = FixedPointMovement(bits - value * MOVE_SPEED_BASE)
+    @Pure operator fun minus(value: Float) = FixedPointMovement(bits - fpmFromMovement(value).bits)
+    @Pure operator fun times(multiplier: Int) = FixedPointMovement(bits * multiplier)
+    @Pure operator fun times(multiplier: Float) = fpmFromMovement(bits * multiplier)
+    // #times(FixedPointMovement) is currently unused, but implemented here because I'm afraid
+    // someone will implement it later, and forget the division.
+    @Pure operator fun times(other: FixedPointMovement) = FixedPointMovement((bits.toLong() * other.bits / MOVE_SPEED_BASE).toInt())
+    @Pure operator fun div(other: FixedPointMovement) = FixedPointMovement((bits.toLong() * other.bits * MOVE_SPEED_BASE).toInt())
+    @Pure operator fun div(multiplier: Int) = FixedPointMovement(bits / multiplier)
+    @Pure operator fun div(multiplier: Float) = fpmFromMovement(bits / multiplier)
     @Pure operator fun compareTo(other: FixedPointMovement) = bits.compareTo(other.bits)
     @Pure operator fun compareTo(other: Int) = bits.compareTo((other * MOVE_SPEED_BASE))
 
@@ -294,7 +319,7 @@ value class FixedPointMovement private constructor(val bits: Int) {
 data class PathingMapCacheKey(
     val startingPoint: HexCoord,
     val moveRemaining: FixedPointMovement,
-    val fullMove: Int,
+    val fullMove: FixedPointMovement,
 )
 
 @InternalState
