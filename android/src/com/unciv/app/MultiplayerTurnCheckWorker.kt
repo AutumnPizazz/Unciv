@@ -30,6 +30,7 @@ import com.unciv.logic.GameInfo
 import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
+import com.unciv.app.cn.R
 import com.unciv.models.metadata.GameSettings.GameSettingsMultiplayer
 import java.io.FileNotFoundException
 import java.io.PrintWriter

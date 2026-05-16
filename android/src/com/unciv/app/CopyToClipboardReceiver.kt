@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import com.unciv.app.cn.R
 import com.badlogic.gdx.backends.android.AndroidApplication
 
 /**
