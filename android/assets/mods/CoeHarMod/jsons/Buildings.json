@@ -1534,7 +1534,6 @@
         "cost": 50,
         "hurryCostModifier": -33,
         "uniques": [
-            "Can be built [-1] times in each city",
             "Never destroyed when the city is captured",
             "Unsellable"
         ]
