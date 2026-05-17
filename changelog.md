@@ -1,3 +1,11 @@
+## 4.20.7
+
+Rendering improvements for large maps
+
+Bugfix for military presence check - By unciv-loof
+
+"cannot build xx buildings" unique - By chenxing61
+
 ## 4.20.6
 
 By SeventhM:
