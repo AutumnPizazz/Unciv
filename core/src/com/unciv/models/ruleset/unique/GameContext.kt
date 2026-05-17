@@ -1,5 +1,6 @@
 package com.unciv.models.ruleset.unique
 
+import com.unciv.UncivGame
 import com.unciv.logic.GameInfo
 import com.unciv.logic.battle.CityCombatant
 import com.unciv.logic.battle.CombatAction
@@ -87,8 +88,11 @@ data class GameContext(
     }
     
     @Readonly
-    fun stateBasedRandom(caller: String, seed: Int=31) =
-        Random(hashOf(caller.hashCode(), seed, this.hashCode()))
+    fun stateBasedRandom(caller: String, seed: Int=31): Random {
+        if (UncivGame.Current?.settings?.allowRandomVariance == true)
+            return Random
+        return Random(hashOf(caller.hashCode(), seed, this.hashCode()))
+    }
         
     @Readonly
     fun getResourceAmount(resourceName: String): Int {

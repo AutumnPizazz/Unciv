@@ -1,5 +1,6 @@
 package com.unciv.logic.battle
 
+import com.unciv.UncivGame
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Counter
 import com.unciv.models.ruleset.GlobalUniques
@@ -285,9 +286,14 @@ object BattleDamage {
     }
     
     @Readonly
-    fun getRandomness(combatant: ICombatant): Float = 
-        Random(combatant.getCivInfo().gameInfo.turns
-                * combatant.getTile().position.toVector2().hashCode().toLong()).nextFloat()
+    fun getRandomness(combatant: ICombatant): Float {
+        val random = if (UncivGame.Current?.settings?.allowRandomVariance == true)
+            Random
+        else
+            Random(combatant.getCivInfo().gameInfo.turns
+                * combatant.getTile().position.toVector2().hashCode().toLong())
+        return random.nextFloat()
+    }
 
     @Readonly
     fun calculateDamageToAttacker(

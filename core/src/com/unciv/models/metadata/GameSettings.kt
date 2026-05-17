@@ -71,6 +71,7 @@ class GameSettings {
     var unitSet: String? = Constants.defaultUnitset
     var skin: String = Constants.defaultSkin
     var showTutorials: Boolean = true
+    var allowRandomVariance: Boolean = false
     var autoAssignCityProduction: Boolean = false
 
     /** This set of construction names has two effects:

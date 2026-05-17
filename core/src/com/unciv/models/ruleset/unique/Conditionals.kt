@@ -17,11 +17,15 @@ object Conditionals {
 
     @Readonly @Suppress("purity") // hashcode... requires a think
     private fun getStateBasedRandom(state: GameContext, unique: Unique?): Float {
-        
-        val seed = hashOf(state.gameInfo?.turns?.hashCode() ?: 0,
-            unique?.hashCode() ?: 0,
-            state.hashCode())
-        return Random(seed).nextFloat()
+        val random = if (UncivGame.Current?.settings?.allowRandomVariance == true)
+            Random
+        else {
+            val seed = hashOf(state.gameInfo?.turns?.hashCode() ?: 0,
+                unique?.hashCode() ?: 0,
+                state.hashCode())
+            Random(seed)
+        }
+        return random.nextFloat()
     }
 
     @Readonly

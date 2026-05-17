@@ -220,7 +220,8 @@ class QuestManager : IsPartOfGameInfoSerialization {
         }
 
         if (assignableQuests.isNotEmpty()) {
-            val quest = assignableQuests.randomWeighted(Random) { getQuestWeight(it.name) }
+            val quest = assignableQuests.randomWeighted(
+                civ.state.stateBasedRandom("QuestManager.tryStartNewGlobalQuest")) { getQuestWeight(it.name) }
             val assignees = civ.gameInfo.getAliveMajorCivs().filter { !it.isAtWarWith(civ) && isQuestValid(quest, it) }
 
             assignNewQuest(quest, assignees)
@@ -241,7 +242,8 @@ class QuestManager : IsPartOfGameInfoSerialization {
             val assignableQuests = getQuests { it.isIndividual() && isQuestValid(it, challenger) }
 
             if (assignableQuests.isNotEmpty()) {
-                val quest = assignableQuests.randomWeighted(Random) { getQuestWeight(it.name) }
+                val quest = assignableQuests.randomWeighted(
+                    civ.state.stateBasedRandom("QuestManager.tryStartNewIndividualQuests")) { getQuestWeight(it.name) }
                 val assignees = arrayListOf(challenger)
 
                 assignNewQuest(quest, assignees)
