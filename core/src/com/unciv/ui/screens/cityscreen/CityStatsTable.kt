@@ -236,7 +236,7 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         val specialistBuildings = mutableListOf<Building>()
         val otherBuildings = mutableListOf<Building>()
 
-        for (building in city.cityConstructions.getBuiltBuildings()) {
+        for (building in city.cityConstructions.getBuiltBuildings().distinct()) {
             if (building.hasUnique(UniqueType.HiddenFromCityScreen, city.state))
                 continue
             when {
@@ -295,7 +295,7 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         val count = city.cityConstructions.getBuildingCount(building.name)
         val displayName = when {
             isFree -> "{${building.name}} ({Free})"
-            count > 1 -> "${building.name} x$count"
+            count > 1 -> "${building.name.tr()} x$count"
             else -> building.name
         }
 
