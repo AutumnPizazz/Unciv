@@ -277,8 +277,18 @@ class Building : RulesetStatsObject(), INonPerpetualConstruction {
         val civ = city.civ
         val stateForConditionals = city.state
 
-        if (cityConstructions.isBuilt(name))
-            yield(RejectionReasonType.AlreadyBuilt.toInstance())
+        if (cityConstructions.isBuilt(name) && !isAnyWonder()) {
+            val multiUnique = getMatchingUniques(
+                UniqueType.MultipleConstruction, stateForConditionals
+            ).firstOrNull()
+            if (multiUnique != null) {
+                val maxAmount = multiUnique.params[0].toInt()
+                if (maxAmount != -1 && cityConstructions.getBuildingCount(name) >= maxAmount)
+                    yield(RejectionReasonType.AlreadyBuilt.toInstance())
+            } else {
+                yield(RejectionReasonType.AlreadyBuilt.toInstance())
+            }
+        }
 
         if (isUnavailableBySettings(civ.gameInfo)) {
             // Repeat the starting era test isHiddenBySettings already did to change the RejectionReasonType

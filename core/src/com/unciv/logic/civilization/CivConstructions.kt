@@ -143,8 +143,16 @@ class CivConstructions : IsPartOfGameInfoSerialization {
     fun addFreeBuildings(building: Building, amount: Int) {
         val equivalentBuilding = civInfo.getEquivalentBuilding(building)
         for (city in civInfo.cities.take(amount)) {
-            if (freeSpecificBuildingsProvided.contains(equivalentBuilding.name, city.id)
-                || city.cityConstructions.containsBuildingOrEquivalent(building.name)) continue
+            if (freeSpecificBuildingsProvided.contains(equivalentBuilding.name, city.id)) continue
+            if (city.cityConstructions.containsBuildingOrEquivalent(building.name)) {
+                val multiUnique = equivalentBuilding.getMatchingUniques(
+                    UniqueType.MultipleConstruction, city.state
+                ).firstOrNull()
+                if (multiUnique == null) continue
+                val maxAmount = multiUnique.params[0].toInt()
+                val currentCount = city.cityConstructions.getBuildingCount(equivalentBuilding.name)
+                if (maxAmount != -1 && currentCount >= maxAmount) continue
+            }
 
             freeSpecificBuildingsProvided.addToMapOfSets(equivalentBuilding.name, city.id)
             addFreeBuilding(city.id, equivalentBuilding.name)
@@ -169,7 +177,15 @@ class CivConstructions : IsPartOfGameInfoSerialization {
                 val freeBuilding = city.civ.getEquivalentBuilding(unique.params[0])
                 city.cityConstructions.freeBuildingsProvidedFromThisCity.addToMapOfSets(city.id, freeBuilding.name)
 
-                if (city.cityConstructions.containsBuildingOrEquivalent(freeBuilding.name)) continue
+                if (city.cityConstructions.containsBuildingOrEquivalent(freeBuilding.name)) {
+                    val multiUnique = freeBuilding.getMatchingUniques(
+                        UniqueType.MultipleConstruction, city.state
+                    ).firstOrNull()
+                    if (multiUnique == null) continue
+                    val maxAmount = multiUnique.params[0].toInt()
+                    val currentCount = city.cityConstructions.getBuildingCount(freeBuilding.name)
+                    if (maxAmount != -1 && currentCount >= maxAmount) continue
+                }
                 city.cityConstructions.completeConstruction(freeBuilding)
             }
 

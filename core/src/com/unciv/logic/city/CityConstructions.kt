@@ -79,6 +79,10 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     //region Serialized Fields
 
     var builtBuildings = HashSet<String>()
+
+    /** Maps building name to the number of times it has been constructed in this city.
+     *  For buildings without [UniqueType.MultipleConstruction], the count is always 1. */
+    var buildingCounts = HashMap<String, Int>()
     val inProgressConstructions = HashMap<String, Int>()
     var currentConstructionIsUserSet = false
     var constructionQueue = ArrayList<String>(queueMaxSize)
@@ -95,6 +99,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     fun clone(): CityConstructions {
         val toReturn = CityConstructions()
         toReturn.builtBuildings.addAll(builtBuildings)
+        toReturn.buildingCounts.putAll(buildingCounts)
         toReturn.inProgressConstructions.putAll(inProgressConstructions)
         toReturn.currentConstructionIsUserSet = currentConstructionIsUserSet
         toReturn.constructionQueue.addAll(constructionQueue)
@@ -209,6 +214,9 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     @Readonly fun getCurrentConstruction(): IConstruction = getConstruction( currentConstructionName())
 
     @Readonly fun isBuilt(buildingName: String): Boolean = builtBuildings.contains(buildingName)
+
+    @Readonly
+    fun getBuildingCount(buildingName: String): Int = buildingCounts[buildingName] ?: 0
 
     // Note: There was a isEnqueued here functionally identical to isBeingConstructedOrEnqueued,
     // which was calling both isEnqueued and isBeingConstructed - BUT:  currentConstructionName() is just a
@@ -338,10 +346,19 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     //region state changing functions
 
     fun setTransients() {
-        builtBuildingObjects = ArrayList(builtBuildings.map {
-            city.getRuleset().buildings[it]
-                    ?: throw java.lang.Exception("Building $it is not found!")
-        })
+        // Backward compatibility: migrate old saves without buildingCounts
+        if (buildingCounts.isEmpty()) {
+            for (name in builtBuildings)
+                buildingCounts[name] = 1
+        }
+        builtBuildings = HashSet(buildingCounts.keys)
+
+        builtBuildingObjects = ArrayList()
+        for ((buildingName, count) in buildingCounts) {
+            val building = city.getRuleset().buildings[buildingName]
+                ?: throw java.lang.Exception("Building $buildingName is not found!")
+            repeat(count) { builtBuildingObjects.add(building) }
+        }
         updateUniques(true)
     }
 
@@ -602,6 +619,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         }
         builtBuildingObjects = builtBuildingObjects.withItem(building)
         builtBuildings.add(buildingName)
+        buildingCounts[buildingName] = (buildingCounts[buildingName] ?: 0) + 1
 
         updateUniques()
 
@@ -659,9 +677,16 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     }
 
     fun removeBuilding(building: Building) {
-        builtBuildingObjects = builtBuildingObjects.withoutItem(building)
-        builtBuildings.remove(building.name)
-        
+        builtBuildingObjects = builtBuildingObjects.withoutItem(building) // removes first occurrence only
+
+        val count = buildingCounts[building.name] ?: 1
+        if (count <= 1) {
+            buildingCounts.remove(building.name)
+            builtBuildings.remove(building.name)
+        } else {
+            buildingCounts[building.name] = count - 1
+        }
+
         if (building.hasCreateOneImprovementUnique()){
             val improvement = building.getImprovementToCreate(city.getRuleset(), city.civ)!!
             val tileWithImprovementToRemove = city.getTiles().firstOrNull { it.tileImprovement == improvement }
@@ -840,10 +865,22 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     }
 
     @Readonly
-    fun canAddToQueue(construction: IConstruction) =
-        !isQueueFull() &&
-        construction.isBuildable(this) &&
-        !(construction is Building && isBeingConstructedOrEnqueued(construction.name))
+    fun canAddToQueue(construction: IConstruction): Boolean {
+        if (isQueueFull()) return false
+        if (!construction.isBuildable(this)) return false
+        if (construction is Building && isBeingConstructedOrEnqueued(construction.name)) {
+            val multiUnique = construction.getMatchingUniques(
+                UniqueType.MultipleConstruction, city.state
+            ).firstOrNull() ?: return false
+            val maxAmount = multiUnique.params[0].toInt()
+            if (maxAmount == -1) return true
+            val builtCount = getBuildingCount(construction.name)
+            val queuedCount = constructionQueue.count { it == construction.name }
+            if (builtCount + queuedCount >= maxAmount) return false
+            return true
+        }
+        return true
+    }
 
     private fun isLastConstructionPerpetual() = constructionQueue.isNotEmpty() &&
         PerpetualConstruction.isNamePerpetual(constructionQueue.last())

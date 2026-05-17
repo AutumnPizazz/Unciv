@@ -378,10 +378,17 @@ enum class UniqueType(
 
     CreatesOneImprovement("Creates a [improvementName] improvement on a specific tile", UniqueTarget.Building,
         docDescription = "When choosing to construct this building, the player must select a tile where the improvement can be built." +
-                " Upon building completion, the tile will gain this improvement." + 
+                " Upon building completion, the tile will gain this improvement." +
                 " Limited to one per building.",
         flags = UniqueFlag.setOfNoConditionals
         ),
+
+    HiddenFromCityScreen("Hidden from city screen", UniqueTarget.Building,
+        flags = UniqueFlag.setOfHiddenToUsers,
+        docDescription = "This building is hidden from the city details screen after construction. All stats continue to apply normally."),
+
+    MultipleConstruction("Can be built [amount] times in each city", UniqueTarget.Building,
+        docDescription = "Allows this building to be constructed multiple times in the same city. Using -1 allows unlimited times."),
     //endregion
 
     ///////////////////////////////////////// region 04 UNIT UNIQUES /////////////////////////////////////////

@@ -237,6 +237,8 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         val otherBuildings = mutableListOf<Building>()
 
         for (building in city.cityConstructions.getBuiltBuildings()) {
+            if (building.hasUnique(UniqueType.HiddenFromCityScreen, city.state))
+                continue
             when {
                 building.isAnyWonder() -> wonders.add(building)
                 !building.newSpecialists().isEmpty() -> specialistBuildings.add(building)
@@ -290,7 +292,12 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
 
         val icon = ImageGetter.getConstructionPortrait(building.name, 50f)
         val isFree = cityScreen.hasFreeBuilding(building)
-        val displayName = if (isFree) "{${building.name}} ({Free})" else building.name
+        val count = city.cityConstructions.getBuildingCount(building.name)
+        val displayName = when {
+            isFree -> "{${building.name}} ({Free})"
+            count > 1 -> "${building.name} x$count"
+            else -> building.name
+        }
 
         info.add(displayName.toLabel(fontSize = Constants.defaultFontSize, hideIcons = true)).padBottom(5f).right().row()
 
