@@ -170,6 +170,7 @@ class Ruleset {
     /** Raw JsonValue arrays for JSON files that contain "_mergeAction", keyed by filename.
      *  Populated during [load] and consumed during [add] for conditional resolution. */
     val rawJsonArrays = HashMap<String, JsonValue>()
+
     //endregion
 
     fun clone(): Ruleset {
@@ -223,10 +224,6 @@ class Ruleset {
                     val deserialized = deserializeResolvedList<T>(resolvedList, arrayClass)
                     processObjects(targetMap, deserialized, this)
                 }
-                // If resolvedList is empty (e.g. all objects filtered by conditions),
-                // fall through: nothing to add but also nothing lost — sourceMap objects
-                // that passed load() are intentionally not re-added (they were control
-                // blocks or conditionally-skipped).
             } else {
                 targetMap.putAll(sourceMap)
             }
@@ -715,18 +712,22 @@ class Ruleset {
                 if (field.modifiers and Modifier.STATIC != 0) continue
                 if (field.name in processed) continue
                 processed.add(field.name)
+
+                // Never touch merge metadata, identity fields, or lazy delegates
                 if (field.name == "_mergeAction" || field.name == "name" || field.name == "originRuleset") continue
+                if (field.name.endsWith("\$delegate")) continue
+
                 field.isAccessible = true
-
                 val sourceValue = field.get(source) ?: continue
-
-                if (field.name == "uniqueObjects" || field.name == "uniqueMap") continue
 
                 if (sourceValue is Collection<*>) {
                     if (sourceValue.isEmpty()) continue
-                    val targetValue = field.get(this)
                     @Suppress("UNCHECKED_CAST")
-                    (targetValue as? MutableCollection<Any?>)?.addAll(sourceValue)
+                    val targetCollection = field.get(this) as? MutableCollection<Any?> ?: continue
+                    // Deduplicate: don't add elements already present in the target
+                    val newElements = sourceValue.filter { it !in targetCollection }
+                    if (newElements.isEmpty()) continue
+                    targetCollection.addAll(newElements)
                 } else {
                     if (sourceValue.isDefaultForField()) continue
                     field.set(this, sourceValue)
@@ -748,9 +749,8 @@ class Ruleset {
                 if (field.name in processed) continue
                 processed.add(field.name)
                 if (field.name == "_mergeAction" || field.name == "name" || field.name == "originRuleset") continue
+                if (field.name.endsWith("\$delegate")) continue
                 field.isAccessible = true
-
-                if (field.name == "uniqueObjects" || field.name == "uniqueMap") continue
 
                 val sourceValue = field.get(source) ?: continue
 
