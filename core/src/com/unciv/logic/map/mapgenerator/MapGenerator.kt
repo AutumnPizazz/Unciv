@@ -140,6 +140,14 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         if (mapParameters.seed == 0L)
             mapParameters.seed = System.currentTimeMillis()
 
+        // Symmetry constraints: hexagonal shape only, odd radius required for center tile
+        if (mapParameters.symmetryMode != SymmetryMode.none) {
+            if (mapParameters.shape != MapShape.hexagonal)
+                mapParameters.shape = MapShape.hexagonal
+            if (mapParameters.mapSize.radius % 2 == 0)
+                mapParameters.mapSize = MapSize(mapParameters.mapSize.radius + 1)
+        }
+
         randomness.seedRNG(mapParameters.seed)
 
         val map: TileMap = if (mapParameters.shape == MapShape.rectangular)
@@ -169,6 +177,12 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         runAndMeasure("raiseMountainsAndHills") {
             MapElevationGenerator(map, ruleset, terrainConditions, randomness).raiseMountainsAndHills()
         }
+        // Phase 1: Enforce base terrain symmetry BEFORE lakes/coasts/vegetation/ice.
+        // Coast transitions are then generated on symmetric terrain → naturally symmetric.
+        runAndMeasure("applyTerrainSymmetry") {
+            applyTerrainSymmetry(map)
+        }
+
         runAndMeasure("spawnLakesAndCoasts") {
             spawnLakesAndCoasts(map)
         }
@@ -181,13 +195,27 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         runAndMeasure("spawnIce") {
             spawnIce(map)
         }
+
+        // Phase 1b: Vegetation/ice use perlin noise which can be asymmetric for
+        // 3-fold and 6-fold. Re-symmetrize terrain features only (not base terrain).
+        runAndMeasure("applyFeatureSymmetry") {
+            applyFeatureSymmetry(map)
+        }
+
         runAndMeasure("assignContinents") {
             map.assignContinents(TileMap.AssignContinentsMode.Assign)
         }
+
         runAndMeasure("RiverGenerator") {
             RiverGenerator(map, randomness, ruleset).spawnRivers()
         }
         convertTerrains(map.values)
+
+        // Phase 2: Comprehensive symmetry after rivers and terrain conversions,
+        // BEFORE region assignment so start position normalization works on symmetric terrain.
+        runAndMeasure("applySymmetry") {
+            applySymmetry(map)
+        }
 
         // Region based map generation - not used when generating maps in map editor
         val civilizations = gameInfo?.civilizations
@@ -214,9 +242,22 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             // Fallback spread resources function - used when generating maps in map editor
             runAndMeasure("spreadResources") { spreadResources(map) }
         }
+
         runAndMeasure("spreadAncientRuins") { spreadAncientRuins(map) }
-        
-        mirror(map)
+
+        // Move non-canonical starts to canonical positions so each civ's start
+        // is on a "master" tile whose symmetric partners have identical terrain
+        if (map.mapParameters.symmetryMode != SymmetryMode.none)
+            distributeStartingLocations(map)
+
+        // Phase 3: Final comprehensive symmetry enforcement after all generation steps.
+        // Called twice to ensure any tiles missed in the first pass are caught.
+        if (map.mapParameters.symmetryMode != SymmetryMode.none) {
+            applySymmetry(map)
+            applySymmetry(map)
+        } else {
+            mirror(map)
+        }
 
         // Map generation may generate incompatible terrain/feature combinations
         for (tile in map.values)
@@ -229,6 +270,63 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     private fun flipTopBottom(vector: HexCoord): HexCoord = HexCoord.of(-vector.y, -vector.x)
     private fun flipLeftRight(vector: Vector2): Vector2 = Vector2(vector.y, vector.x)
     private fun flipLeftRight(vector: HexCoord): HexCoord = HexCoord.of(vector.y, vector.x)
+
+    // region Symmetry rotation functions
+    /** Rotate axial hex coordinate 60° clockwise around origin.
+     *  Derived from cubic rotation (a,b,c) -> (-c,-a,-b). */
+    private fun rotate60(coord: HexCoord): HexCoord =
+        HexCoord.of(coord.x - coord.y, coord.x)
+
+    /** Rotate axial hex coordinate 120° clockwise around origin. */
+    private fun rotate120(coord: HexCoord): HexCoord =
+        HexCoord.of(-coord.y, coord.x - coord.y)
+
+    /** Rotate axial hex coordinate 180° around origin. */
+    private fun rotate180(coord: HexCoord): HexCoord =
+        HexCoord.of(-coord.x, -coord.y)
+
+    /** Return all symmetric partners (excluding self) for [coord] under [mode]. */
+    private fun symmetryPartners(coord: HexCoord, mode: String): List<HexCoord> = when (mode) {
+        SymmetryMode.twoFold -> listOf(rotate180(coord))
+        SymmetryMode.threeFold -> {
+            val r120 = rotate120(coord)
+            listOf(r120, rotate120(r120))
+        }
+        SymmetryMode.sixFold -> {
+            val r1 = rotate60(coord)
+            val r2 = rotate60(r1)
+            val r3 = rotate60(r2)
+            val r4 = rotate60(r3)
+            val r5 = rotate60(r4)
+            listOf(r1, r2, r3, r4, r5)
+        }
+        else -> emptyList()
+    }
+
+    /** True if [coord] is the lexicographically smallest among its symmetry group,
+     *  i.e. it belongs to the basic sector (wedge). */
+    private fun isCanonicalCoord(coord: HexCoord, mode: String): Boolean {
+        val partners = symmetryPartners(coord, mode)
+        return partners.all { coord.x < it.x || (coord.x == it.x && coord.y <= it.y) }
+    }
+
+    /** Compute rotation steps (in units of 60°) from canonical [from] to [to]. */
+    private fun rotationSteps(from: HexCoord, to: HexCoord, mode: String): Int = when (mode) {
+        SymmetryMode.twoFold -> 3
+        SymmetryMode.threeFold -> if (rotate120(from) == to) 2 else 4
+        SymmetryMode.sixFold -> {
+            var cur = from
+            for (s in 1..5) { cur = rotate60(cur); if (cur == to) return s }
+            0
+        }
+        else -> 0
+    }
+
+    /** Rotate a clock-position direction by [steps] × 60°.
+     *  Clock positions: 2=TR, 4=BR, 6=B, 8=BL, 10=TL, 12=T. */
+    private fun rotateDirection(clockPos: Int, steps: Int): Int =
+        ((clockPos - 2 + steps * 2) % 12 + 12) % 12 + 2
+    // endregion
 
     private fun mirror(map: TileMap) {
         fun getMirrorTile(tile: Tile, mirroringType: String): Tile? {
@@ -270,6 +368,180 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         }
     }
 
+    private fun buildCanonicalMapping(map: TileMap, mode: String): Map<Tile, Pair<Tile, Int>> {
+        val result = LinkedHashMap<Tile, Pair<Tile, Int>>()  // deterministic iteration order
+        for (tile in map.values) {
+            val coord = tile.position
+            if (isCanonicalCoord(coord, mode)) continue
+
+            val partners = symmetryPartners(coord, mode)
+            val allCoords = listOf(coord) + partners
+            val bestCoord = allCoords.minWith(compareBy({ it.x }, { it.y }))
+            if (bestCoord == coord) continue
+
+            val canonicalTile = map.getIfTileExistsOrNull(bestCoord.x, bestCoord.y) ?: continue
+            val steps = rotationSteps(bestCoord, coord, mode)
+            result[tile] = canonicalTile to steps
+        }
+        return result
+    }
+
+    /** Phase 1: Enforce terrain/feature symmetry BEFORE rivers are generated.
+     *  Called after assignContinents, before RiverGenerator. */
+    private fun applyTerrainSymmetry(map: TileMap) {
+        val mode = map.mapParameters.symmetryMode
+        if (mode == SymmetryMode.none) return
+
+        // Clear all river flags — rivers will be regenerated and then symmetrized
+        for (tile in map.values) {
+            tile.hasBottomRightRiver = false
+            tile.hasBottomRiver = false
+            tile.hasBottomLeftRiver = false
+        }
+
+        val mapping = buildCanonicalMapping(map, mode)
+        for ((target, pair) in mapping) {
+            val (source, _) = pair
+            // Copy terrain using the same pattern as the existing mirror() function
+            target.setBaseTerrain(source.getBaseTerrain())
+            target.setTerrainFeatures(source.terrainFeatures)
+            target.temperature = source.temperature
+            target.humidity = source.humidity
+            target.setTerrainTransients()
+            // Ensure resulting combination is valid per ruleset
+            TileNormalizer.normalizeToRuleset(target, target.ruleset)
+        }
+    }
+
+    /** Comprehensive symmetry enforcement, called at the end of map generation.
+     *  Copies all terrain, features, resources, natural wonders, and rivers
+     *  from canonical tiles to their symmetric counterparts, with proper
+     *  rotation of river edge directions.  Mirrors the approach of [mirror]. */
+    private fun applySymmetry(map: TileMap) {
+        val mode = map.mapParameters.symmetryMode
+        if (mode == SymmetryMode.none) return
+
+        val mapping = buildCanonicalMapping(map, mode)
+
+        for ((target, pair) in mapping) {
+            val (source, steps) = pair
+
+            target.setBaseTerrain(source.getBaseTerrain())
+            target.setTerrainFeatures(source.terrainFeatures)
+            target.naturalWonder = source.naturalWonder
+            target.tileResource = source.tileResource
+            target.setImprovementBasic(source.tileImprovement)
+            target.temperature = source.temperature
+            target.humidity = source.humidity
+
+            // River edges: clear target first, then copy with rotation
+            target.hasBottomRightRiver = false
+            target.hasBottomRiver = false
+            target.hasBottomLeftRiver = false
+
+            for (neighbor in source.neighbors) {
+                val clockPos = map.getNeighborTileClockPosition(source, neighbor)
+                if (clockPos == -1) continue
+                val rotatedClockPos = rotateDirection(clockPos, steps)
+                val rotatedNeighbor =
+                    map.getClockPositionNeighborTile(target, rotatedClockPos) ?: continue
+                if (source.isConnectedByRiver(neighbor))
+                    target.setConnectedByRiver(rotatedNeighbor, true)
+            }
+
+            target.setTerrainTransients()
+            TileNormalizer.normalizeToRuleset(target, target.ruleset)
+        }
+    }
+
+    /** Phase 1b: Re-symmetrize terrain features after vegetation/ice generation.
+     *  Perlin noise may not be fully symmetric for 3-fold and 6-fold rotations.
+     *  Copies only terrainFeatures from canonical to non-canonical tiles —
+     *  baseTerrain (including coasts) is already symmetric from Phase 1. */
+    private fun applyFeatureSymmetry(map: TileMap) {
+        val mode = map.mapParameters.symmetryMode
+        if (mode == SymmetryMode.none) return
+
+        val mapping = buildCanonicalMapping(map, mode)
+        for ((target, pair) in mapping) {
+            val (source, _) = pair
+            target.setTerrainFeatures(source.terrainFeatures)
+            target.setTerrainTransients()
+        }
+    }
+
+    /** After region assignment: reassign starting locations so civilizations
+     *  are placed at symmetric positions across petals. Within each symmetry
+     *  family (one canonical position), fills all F petals, then assigns the
+     *  original nations across them. Surplus canonical groups are discarded. */
+    private fun distributeStartingLocations(map: TileMap) {
+        val mode = map.mapParameters.symmetryMode
+        if (mode == SymmetryMode.none || map.startingLocations.isEmpty()) return
+
+        val foldCount = when (mode) {
+            SymmetryMode.twoFold -> 2
+            SymmetryMode.threeFold -> 3
+            SymmetryMode.sixFold -> 6
+            else -> return
+        }
+
+        // Group starts by canonical coordinate, keep the best (first) start per petal
+        val groups = LinkedHashMap<HexCoord, MutableMap<Int, TileMap.StartingLocation>>()
+        for (loc in map.startingLocations) {
+            val partners = symmetryPartners(loc.position, mode)
+            val allCoords = listOf(loc.position) + partners
+            val canonical = allCoords.minWith(compareBy({ it.x }, { it.y }))
+            val step = rotationSteps(canonical, loc.position, mode)
+            groups.getOrPut(canonical) { mutableMapOf() }
+                .putIfAbsent(step, loc)
+        }
+
+        // Collect all nations from the original starts, preserving order
+        val allNations = map.startingLocations.map { it.nation }
+
+        // Pick canonical groups to fill. Each group provides exactly foldCount positions.
+        // We need enough groups so that total positions >= number of nations.
+        val sortedCanonicals = groups.keys.toList()  // preserve order (first-assigned = best)
+        val result = mutableListOf<TileMap.StartingLocation>()
+        var nationIdx = 0
+
+        for (canonical in sortedCanonicals) {
+            if (nationIdx >= allNations.size) break
+            val petalStarts = groups[canonical]!!
+
+            for (step in 0 until foldCount) {
+                if (nationIdx >= allNations.size) break
+                // step 0 = canonical, step s > 0 = s * (6/foldCount) × 60°
+                // 2-fold: 0° → 180°.  3-fold: 0° → 120° → 240°.  6-fold: 0° → 60° → 120°...
+                val rotateTimes = step * (6 / foldCount)
+                val pos = if (rotateTimes == 0) canonical
+                    else (1..rotateTimes).fold(canonical) { c, _ -> rotate60(c) }
+                if (!map.contains(pos.x, pos.y)) continue
+                val tile = map.getIfTileExistsOrNull(pos.x, pos.y) ?: continue
+                if (!tile.isLand || tile.isImpassible()) continue
+
+                result.add(TileMap.StartingLocation(
+                    position = pos,
+                    nation = allNations[nationIdx],
+                    usage = map.startingLocations.firstOrNull { it.nation == allNations[nationIdx] }?.usage
+                        ?: TileMap.StartingLocation.Usage.Player
+                ))
+                nationIdx++
+            }
+        }
+
+        // If we didn't fill all nations (unlikely), keep remaining as-is
+        if (nationIdx < allNations.size) {
+            for (loc in map.startingLocations) {
+                if (result.none { it.nation == loc.nation })
+                    result.add(loc)
+            }
+        }
+
+        map.startingLocations.clear()
+        map.startingLocations.addAll(result)
+    }
+
     fun generateSingleStep(map: TileMap, step: MapGeneratorSteps) {
         if (map.mapParameters.seed == 0L)
             map.mapParameters.seed = System.currentTimeMillis()
@@ -296,6 +568,11 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                 }
                 MapGeneratorSteps.Resources -> spreadResources(map)
                 MapGeneratorSteps.AncientRuins -> spreadAncientRuins(map)
+                MapGeneratorSteps.Symmetry -> {
+                    applyTerrainSymmetry(map)
+                    applyFeatureSymmetry(map)
+                    applySymmetry(map)
+                }
             }
         }
     }

@@ -101,6 +101,7 @@ class MapParametersTable(
         addWorldSizeTable()
         addResourceSelectBox()
         addWrappedCheckBoxes()
+        addSymmetryModeSelectBox()
         addAdvancedSettings()
         generateExampleMap()
     }
@@ -115,18 +116,23 @@ class MapParametersTable(
         val rng = GameContext().stateBasedRandom("MapParametersTable.addMapShapeSelectBox", System.currentTimeMillis().toInt())
 
         if (mapGeneratedMainType == MapGeneratedMainType.randomGenerated) {
-            mapShapesOptionsValues = mapShapes.toHashSet()
+            // When symmetry is active, filter to hexagonal only
+            val availableShapes = if (isSymmetryActive) listOf(MapShape.hexagonal) else mapShapes
+            mapShapesOptionsValues = availableShapes.toHashSet()
             val optionsTable = MultiCheckboxTable("{Enabled Map Shapes}", "NewGameMapShapes", mapShapesOptionsValues) {
                 if (mapShapesOptionsValues.isEmpty()) {
-                    mapParameters.shape = mapShapes.random(rng)
+                    mapParameters.shape = availableShapes.random(rng)
                 } else {
                     mapParameters.shape = mapShapesOptionsValues.random(rng)
                 }
             }
             add(optionsTable).colspan(2).grow().row()
         } else {
+            // When symmetry is active, only hexagonal shape is supported
+            val availableShapes = if (isSymmetryActive)
+                listOf(MapShape.hexagonal) else mapShapes
             val mapShapeSelectBox =
-                    TranslatedSelectBox(mapShapes, mapParameters.shape)
+                    TranslatedSelectBox(availableShapes, mapParameters.shape)
             mapShapeSelectBox.onChange {
                 mapParameters.shape = mapShapeSelectBox.selected.value
                 updateWorldSizeTable()
@@ -205,6 +211,9 @@ class MapParametersTable(
                 } else {
                     mapParameters.mapSize = MapSize(mapSizesOptionsValues.random(rng))
                 }
+                // Symmetry requires odd radius
+                if (isSymmetryActive && mapParameters.mapSize.radius % 2 == 0)
+                    mapParameters.mapSize = MapSize(mapParameters.mapSize.radius + 1)
             }
             add(optionsTable).colspan(2).grow().row()
         } else {
@@ -227,7 +236,13 @@ class MapParametersTable(
         val defaultRadius = mapParameters.mapSize.radius
         customMapSizeRadius = UncivTextField.Integer("Radius", defaultRadius)
         customMapSizeRadius.onChange {
-            mapParameters.mapSize = MapSize(customMapSizeRadius.intValue ?: 0)
+            var radius = customMapSizeRadius.intValue ?: 0
+            // Symmetry requires an odd radius
+            if (isSymmetryActive && radius % 2 == 0 && radius > 0) {
+                radius++
+                customMapSizeRadius.value = radius.toLong()
+            }
+            mapParameters.mapSize = MapSize(radius)
             updateHexagonalWarnings()
         }
         hexWarningLabel = "".toLabel(Color.RED).apply { wrap = true }
@@ -284,8 +299,12 @@ class MapParametersTable(
             customWorldSizeTable.add(hexagonalSizeTable).grow().row()
         else if (mapParameters.shape == MapShape.rectangular && worldSizeSelectBox.selected.value == MapSize.custom)
             customWorldSizeTable.add(rectangularSizeTable).grow().row()
-        else
+        else {
             mapParameters.mapSize = MapSize(worldSizeSelectBox.selected.value)
+            // Symmetry requires an odd radius for a center tile
+            if (isSymmetryActive && mapParameters.mapSize.radius % 2 == 0)
+                mapParameters.mapSize = MapSize(mapParameters.mapSize.radius + 1)
+        }
 
         sizeChangedCallback?.invoke()
     }
@@ -383,6 +402,43 @@ class MapParametersTable(
             add(worldWrapWarning.toLabel(fontSize = 14).apply { wrap=true }).colspan(2).fillX().row()
         }
     }
+
+    private fun addSymmetryModeSelectBox() {
+        val modes = SymmetryMode.allValues
+        val symmetrySelectBox = TranslatedSelectBox(modes, mapParameters.symmetryMode)
+        symmetrySelectBox.onChange {
+            val wasActive = isSymmetryActive
+            mapParameters.symmetryMode = symmetrySelectBox.selected.value
+            enforceSymmetryConstraints()
+            // Rebuild UI when crossing the None boundary — shape/size options change
+            if (wasActive != isSymmetryActive)
+                update()
+            else
+                generateExampleMap()
+        }
+        add("{Symmetry}:".toLabel()).left()
+        add(symmetrySelectBox).fillX().row()
+    }
+
+    /** When symmetry is active, force hexagonal shape and odd radius. */
+    private fun enforceSymmetryConstraints() {
+        if (mapParameters.symmetryMode == SymmetryMode.none) return
+
+        // Force hexagonal shape — rectangular maps don't have proper rotational symmetry
+        if (mapParameters.shape != MapShape.hexagonal) {
+            mapParameters.shape = MapShape.hexagonal
+            updateWorldSizeTable()
+        }
+
+        // Force odd radius so the map has a center tile
+        if (mapParameters.mapSize.radius % 2 == 0) {
+            mapParameters.mapSize = MapSize(mapParameters.mapSize.radius + 1)
+        }
+    }
+
+    /** Check if symmetry is currently active (non-None). */
+    private val isSymmetryActive get() =
+        mapParameters.symmetryMode != SymmetryMode.none
 
     private fun addAdvancedSettings() {
         val expander = ExpanderTab("Advanced Settings", startsOutOpened = false, defaultPad = 0f) {

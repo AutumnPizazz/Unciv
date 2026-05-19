@@ -47,4 +47,5 @@ enum class MapGeneratorSteps(
     Rivers("Let the rivers flow"),
     Resources("Spread Resources", MapGeneratorStepsHelpers.applyResources),
     AncientRuins("Create ancient ruins"),
+    Symmetry("Apply rotational symmetry"),
 }

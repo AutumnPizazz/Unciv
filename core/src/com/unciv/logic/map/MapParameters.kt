@@ -52,6 +52,15 @@ object MirroringType {
     const val leftright = "Bottom-Top"
 }
 
+object SymmetryMode {
+    const val none = "None"
+    const val twoFold = "2-fold (180°)"
+    const val threeFold = "3-fold (120°)"
+    const val sixFold = "6-fold (60°)"
+
+    val allValues = listOf(none, twoFold, threeFold, sixFold)
+}
+
 class MapParameters : IsPartOfGameInfoSerialization {
     var name = ""
     var type = MapType.pangaea
@@ -60,6 +69,7 @@ class MapParameters : IsPartOfGameInfoSerialization {
     var mapSize = MapSize.Medium
     var mapResources = MapResourceSetting.default.label
     var mirroring: String = MirroringType.none
+    var symmetryMode: String = SymmetryMode.none
     var noRuins = false
     var noNaturalWonders = false
     // DO NOT CHANGE DEFAULTS since that changes all existing games to new default!
@@ -101,6 +111,7 @@ class MapParameters : IsPartOfGameInfoSerialization {
         toReturn.legendaryStart = legendaryStart
         toReturn.mods = LinkedHashSet(mods)
         toReturn.baseRuleset = baseRuleset
+        toReturn.symmetryMode = symmetryMode
         toReturn.seed = seed
         toReturn.tilesPerBiomeArea = tilesPerBiomeArea
         toReturn.maxCoastExtension = maxCoastExtension

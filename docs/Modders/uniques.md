@@ -1833,6 +1833,20 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Building
 
+??? example  "Hidden from city screen"
+	This building is hidden from the city details screen after construction. All stats continue to apply normally.
+
+	This unique is automatically hidden from users.
+
+	Applicable to: Building
+
+??? example  "Can be built [amount] times in each city"
+	Allows this building to be constructed multiple times in the same city. Using -1 allows unlimited times.
+
+	Example: "Can be built [3] times in each city"
+
+	Applicable to: Building
+
 ??? example  "Can carry [amount] extra [mapUnitFilter] units"
 	For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.
 
