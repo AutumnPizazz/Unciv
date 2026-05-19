@@ -430,6 +430,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             target.setTerrainFeatures(source.terrainFeatures)
             target.naturalWonder = source.naturalWonder
             target.tileResource = source.tileResource
+            target.resourceAmount = source.resourceAmount
             target.setImprovementBasic(source.tileImprovement)
             target.temperature = source.temperature
             target.humidity = source.humidity

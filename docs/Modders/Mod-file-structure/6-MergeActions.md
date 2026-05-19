@@ -48,7 +48,7 @@ If the target object doesn't exist, the operation is silently skipped.
 | Field type | Behaviour | Example |
 |------------|-----------|---------|
 | Scalar (String, Int, Float, Boolean) | Overwrites if the new value is non-default | `"strength": 10` overwrites, unwritten fields keep original values |
-| Collection (uniques, promotions, etc.) | Appends to the end | `"[+1 Happiness]"` is added to existing uniques |
+| Collection (uniques, promotions, etc.) | Appends to the end (duplicates are skipped) | `"[+1 Happiness]"` is added to existing uniques if not already present |
 | Nested objects | Shallow-replaces the entire field | The whole sub-object is replaced |
 
 ```json
@@ -316,3 +316,4 @@ A balance mod's `Units.json` demonstrating several features together:
     }
 ]
 ```
+
