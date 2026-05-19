@@ -197,6 +197,9 @@ The values normally set automatically from github metadata are:
 To clarify: When your Mod is distributed via github, including these in the Mod repo has no effect.
 However, when a Mod is distributed _without_ a github repository, these values can and _should_ be set by the author in the distributed `ModOptions.json`.
 
+!!! note
+    As an alternative to the `*ToRemove` lists, you can use [Merge Actions](6-MergeActions.md) with `"action": "REMOVE"` directly in the corresponding JSON file (e.g. `{ "name": "Scout", "_mergeAction": { "action": "REMOVE" } }` in `Units.json`). This keeps the removal declaration alongside the data it relates to, and also supports conditions (`"if"`). Both methods are supported and can be used together.
+
 ### ModConstants
 
 Stored in ModOptions.constants, this is a collection of constants used internally in Unciv.
@@ -322,7 +325,7 @@ It has the following structure:
 | uniques     | List of Strings | empty           | List of [unique abilities](../uniques.md) that apply globally                               |
 | unitUniques | List of Strings | empty           | List of [unique abilities](../uniques.md) that applies to each unit                         |
 
-When extension rulesets define GlobalUniques, all uniques are merged. At the moment there is no way to change/remove uniques set by a base mod.
+When extension rulesets define GlobalUniques, all uniques are merged. To change or remove uniques (or any other fields) set by another mod or base ruleset, use [Merge Actions](6-MergeActions.md) — e.g., `TRY_INJECT` for field-level modifications or `REMOVE_FIELD` to delete specific uniques.
 
 ## Tutorials.json
 

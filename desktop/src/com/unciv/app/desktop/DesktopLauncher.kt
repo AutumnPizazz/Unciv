@@ -139,6 +139,7 @@ internal object DesktopLauncher {
         if (!isRunFromJAR) {
             UniqueDocsWriter().write()
             UiElementDocsWriter().write()
+            MergeActionDocsWriter().write()
         }
 
 
