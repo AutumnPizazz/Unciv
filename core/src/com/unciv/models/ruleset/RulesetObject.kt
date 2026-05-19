@@ -9,6 +9,7 @@ import com.unciv.ui.screens.civilopediascreen.ICivilopediaText
 
 interface IRulesetObject: IHasUniques, ICivilopediaText {
     var originRuleset: String
+    var _mergeAction: MergeAction?
 }
 
 abstract class RulesetObject: IRulesetObject {
@@ -22,6 +23,8 @@ abstract class RulesetObject: IRulesetObject {
 
     override var civilopediaText = listOf<FormattedLine>()
     override fun toString() = name
+
+    override var _mergeAction: MergeAction? = null
 }
 
 // Same, but inherits from NamedStats - I couldn't find a way to unify the declarations but this is fine
@@ -34,4 +37,6 @@ abstract class RulesetStatsObject: NamedStats(), IRulesetObject {
     override val uniqueMap: UniqueMap by lazy(::uniqueMapProvider)
 
     override var civilopediaText = listOf<FormattedLine>()
+
+    override var _mergeAction: MergeAction? = null
 }
