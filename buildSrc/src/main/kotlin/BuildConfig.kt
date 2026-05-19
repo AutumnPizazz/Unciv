@@ -4,6 +4,6 @@ package com.unciv.build
 object BuildConfig {
     const val appName = "Unciv"
     const val appCodeNumber = 1219
-    const val appVersion = "4.20.7.3"
+    const val appVersion = "4.20.7.4"
     const val identifier = "com.unciv.app"
 }
