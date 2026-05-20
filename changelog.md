@@ -1,3 +1,13 @@
+## 4.20.8
+
+Seamless world wrap generation for procedural maps - By Romelium
+
+By SomeTroglodyte:
+- Improve "Battle Table" on small screens 
+- CPU performance improvements 
+
+RAM performance improvements - By Ambeco
+
 ## 4.20.7
 
 Rendering improvements for large maps
