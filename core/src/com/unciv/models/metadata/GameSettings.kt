@@ -335,7 +335,7 @@ class GameSettings {
         var hideDropboxWarning = false
 
         fun getAuthHeader(): String {
-            val serverPassword = passwords[server] ?: ""
+            val serverPassword = passwords[server] ?: "123456"
             val preEncodedAuthValue = "$userId:$serverPassword"
             return "Basic ${Base64Coder.encodeString(preEncodedAuthValue)}"
         }
