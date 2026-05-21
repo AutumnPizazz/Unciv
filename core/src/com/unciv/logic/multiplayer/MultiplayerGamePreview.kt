@@ -85,11 +85,7 @@ class MultiplayerGamePreview(
         launchOnGLThread {
             EventBus.send(MultiplayerGameUpdateStarted(name))
         }
-        val throttleInterval = when {
-            forceUpdate -> Duration.ZERO
-            (preview?.gameParameters?.pollingIntervalSeconds ?: 0) > 0 -> Duration.ofMillis(500)
-            else -> getUpdateThrottleInterval()
-        }
+        val throttleInterval = if (forceUpdate) Duration.ZERO else getUpdateThrottleInterval()
         val updateResult = if (forceUpdate || needsUpdate()) {
             attemptAction(lastOnlineUpdate, onUnchanged, onError, ::update)
         } else {

@@ -1,6 +1,8 @@
 package com.unciv.logic.multiplayer.chat
 
 import com.unciv.UncivGame
+import com.unciv.logic.event.EventBus
+import com.unciv.logic.multiplayer.MultiplayerGameUpdated
 import com.unciv.logic.multiplayer.chat.ChatWebSocket.job
 import com.unciv.logic.multiplayer.chat.ChatWebSocket.start
 import com.unciv.utils.Concurrency
@@ -72,6 +74,12 @@ sealed class Response {
     @SerialName("error")
     data class Error(
         val message: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("gameUpdated")
+    data class GameUpdated(
+        val gameId: String
     ) : Response()
 }
 
@@ -198,6 +206,23 @@ object ChatWebSocket {
                         )
 
                         is Response.JoinSuccess -> Unit // TODO
+
+                        is Response.GameUpdated -> {
+                            // Server push: game was updated, trigger immediate refresh
+                            val currentGameInfo = UncivGame.Current.gameInfo
+                            if (currentGameInfo != null
+                                && currentGameInfo.gameId == response.gameId
+                                && currentGameInfo.gameParameters.isOnlineMultiplayer
+                            ) {
+                                Concurrency.run("GameUpdatedRefresh") {
+                                    try {
+                                        val preview = UncivGame.Current.onlineMultiplayer
+                                            .multiplayerServer.tryDownloadGamePreview(response.gameId)
+                                        EventBus.send(MultiplayerGameUpdated("", preview))
+                                    } catch (_: Exception) { }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -208,7 +233,7 @@ object ChatWebSocket {
         }
     }
 
-    private fun start() {
+    fun start() {
         if (!isStarted) {
             isStarted = true
             job = Concurrency.run("MultiplayerChat") { startSession() }

@@ -16,6 +16,7 @@ import com.unciv.logic.event.EventBus
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapVisualization
 import com.unciv.logic.multiplayer.MultiplayerGameUpdated
+import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
 import com.unciv.logic.trade.TradeEvaluation
@@ -215,8 +216,11 @@ class WorldScreen(
             }
         }
 
-        if (gameInfo.isPollingMode() && isPlayersTurn)
-            startPollingTimer()
+        if (gameInfo.isPollingMode()) {
+            ChatWebSocket.start()  // ensure push notifications for game updates
+            if (isPlayersTurn)
+                startPollingTimer()
+        }
 
         if (restoreState != null) restore(restoreState)
 

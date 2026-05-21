@@ -87,6 +87,12 @@ sealed class Response {
     data class Error(
         val message: String
     ) : Response()
+
+    @Serializable
+    @SerialName("gameUpdated")
+    data class GameUpdated(
+        val gameId: String
+    ) : Response()
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -310,6 +316,12 @@ private class UncivServerRunner : CliktCommand() {
                             }
                         }
                         call.respond(HttpStatusCode.OK)
+
+                        // Notify WebSocket subscribers that this game was updated
+                        val gameId = fileName.removeSuffix("_Preview")
+                        gameId.toUuidOrNull()?.let { gid ->
+                            wsSessionManager.publish(gid, Response.GameUpdated(gid.toString()))
+                        }
                     }
                     get("/files/{fileName}") {
                         val fileName = call.parameters["fileName"] ?: return@get call.respond(

@@ -70,11 +70,7 @@ class Multiplayer {
                 val currentGame = getCurrentGame()
                 val preview = currentGame?.preview
                 if (currentGame != null && (usesCustomServer() || preview == null || !preview.isUsersTurn())) {
-                    val refreshDelay = if (preview != null && preview.gameParameters.pollingIntervalSeconds > 0)
-                        Duration.ofMillis(500)  // Polling mode: check every 500ms for low latency
-                    else
-                        multiplayerSettings.currentGameRefreshDelay
-                    throttle(lastCurGameRefresh, refreshDelay, {}, {}) { currentGame.requestUpdate() }
+                    throttle(lastCurGameRefresh, multiplayerSettings.currentGameRefreshDelay, {}, {}) { currentGame.requestUpdate() }
                 }
 
                 val doNotUpdate = if (currentGame == null) listOf() else listOf(currentGame)
