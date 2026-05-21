@@ -142,6 +142,9 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** List of unit names that have been taken in this game from UnitNameGroups.json. */
     var unitNamesTaken = ArrayList<String>()
 
+    /** Used by polling multiplayer: civIDs of players who have clicked "done" for the current game turn. */
+    var playersFinishedThisTurn = HashSet<String>()
+
     //endregion
     //region Fields - Transient
 
@@ -202,6 +205,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         toReturn.historyStartTurn = historyStartTurn
         toReturn.lastUnitId = lastUnitId
         toReturn.unitNamesTaken.addAll(unitNamesTaken)
+        toReturn.playersFinishedThisTurn.addAll(playersFinishedThisTurn)
 
         return toReturn
     }
@@ -474,7 +478,49 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         // This would belong at the end of TurnManager.startTurn, but needs to come after notifyOfCloseEnemyUnits
         player.notificationCountAtStartTurn = player.notifications.size
     }
-    
+
+    /** Advance the game turn in polling multiplayer mode.
+     *  Ends all human turns, processes AI turns, starts all human turns, and resets the "finished" set. */
+    fun nextTurnPolling(progressBar: NextTurnProgress? = null) {
+        // Update force resign timers for all human players before ending their turns
+        for (civ in civilizations) {
+            if (civ.isHuman() && civ.isAlive())
+                updateMinutesBeforeForceResign(civ, true)
+        }
+
+        // End all human players' turns
+        for (civ in civilizations) {
+            if (civ.isHuman() && civ.isAlive())
+                TurnManager(civ).endTurn(progressBar)
+        }
+
+        // Process AI / defeated / spectator players
+        var playerIndex = 0
+        while (playerIndex < civilizations.size) {
+            val civ = civilizations[playerIndex]
+            if (civ.isAI() || civ.isDefeated() || civ.isSpectator()) {
+                TurnManager(civ).startTurn(progressBar)
+                TurnManager(civ).automateTurn()
+                TurnManager(civ).endTurn(progressBar)
+            }
+            playerIndex++
+        }
+
+        turns++
+        playersFinishedThisTurn.clear()
+
+        // Start all human players' turns
+        for (civ in civilizations) {
+            if (civ.isHuman() && civ.isAlive())
+                TurnManager(civ).startTurn(progressBar)
+        }
+
+        val firstHuman = civilizations.first { it.isHuman() && it.isAlive() }
+        currentTurnStartTime = System.currentTimeMillis()
+        currentPlayer = firstHuman.civID
+        currentPlayerCiv = firstHuman
+    }
+
     private fun updateMinutesBeforeForceResign(player: Civilization, shouldGainTime: Boolean) {
             // Update remaining time before the player who's turn is ending can be forced to resign
             val turnStart: Instant  = Instant.ofEpochMilli(currentTurnStartTime)
@@ -854,6 +900,24 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
 
     //endregion
 
+    /** Returns true if this game uses the polling multiplayer mode. */
+    fun isPollingMode() = gameParameters.isOnlineMultiplayer && gameParameters.pollingIntervalSeconds > 0
+
+    /** Returns true if all alive human players have finished this polling turn. */
+    @Readonly fun allHumansFinishedPollingTurn() =
+        civilizations.none { it.isHuman() && it.isAlive() && it.civID !in playersFinishedThisTurn }
+
+    /** Returns the next alive human player who hasn't finished this polling turn, or null. */
+    @Readonly fun findNextActiveHumanInPolling(): Civilization? {
+        val currentIndex = civilizations.indexOf(currentPlayerCiv)
+        for (i in 1..civilizations.size) {
+            val candidate = civilizations[(currentIndex + i) % civilizations.size]
+            if (candidate.isHuman() && candidate.isAlive() && candidate.civID !in playersFinishedThisTurn)
+                return candidate
+        }
+        return null
+    }
+
     @Readonly fun asPreview() = GameInfoPreview(this)
 
 }
@@ -886,7 +950,7 @@ class GameInfoPreview() {
     }
 
     @Readonly fun getCivilization(civID: String) = civilizations.first { it.civID == civID }
-    @Readonly fun getCurrentPlayerCiv() = getCivilization(currentPlayer)
+    @Readonly fun getCurrentPlayerCiv() = civilizations.firstOrNull { it.civID == currentPlayer }
     @Readonly fun getPlayerCiv(playerId: String) = civilizations.firstOrNull { it.playerId == playerId }
     
     companion object {

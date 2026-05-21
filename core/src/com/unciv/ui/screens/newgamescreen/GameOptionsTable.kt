@@ -61,6 +61,15 @@ class GameOptionsTable(
      */
     internal val modCheckboxes = getModCheckboxes(isPortrait = isPortrait)
 
+    private val pollingIntervalOptions = linkedMapOf(
+        "Off" to 0,
+        "5 seconds" to 5,
+        "10 seconds" to 10,
+        "15 seconds" to 15,
+        "20 seconds" to 20,
+        "30 seconds" to 30
+    )
+
     // Remember this so we can unselect it when the pool dialog returns an empty pool
     private var randomNationsPoolCheckbox: CheckBox? = null
     // Allow resetting base ruleset from outside
@@ -115,6 +124,7 @@ class GameOptionsTable(
             selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0)
             selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
             selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)
+            selectBoxTable.addPollingIntervalSelectBox()
         }
         add(checkboxTable).center().row()
         add(selectBoxTable).center().row()
@@ -457,6 +467,19 @@ class GameOptionsTable(
         add(selector.hourBox)
         add(selector.minuteBox).row()
     }
+    private fun Table.addPollingIntervalSelectBox() {
+        add("Polling interval:".toLabel(hideIcons = true)).right()
+        val currentValue = pollingIntervalOptions.entries.firstOrNull { it.value == gameParameters.pollingIntervalSeconds }
+            ?: pollingIntervalOptions.entries.first()
+        val selectBox = TranslatedSelectBox(pollingIntervalOptions.keys.toList(), pollingIntervalOptions.keys.first())
+        selectBox.setSelected(currentValue.key)
+        selectBox.onChange {
+            gameParameters.pollingIntervalSeconds = pollingIntervalOptions[selectBox.selected.value] ?: 0
+        }
+        selectBox.isDisabled = locked
+        add(selectBox).fillX().row()
+    }
+
     private class DurationSelector(
         private val gameParameters: GameParameters,
         private val param: KMutableProperty1<GameParameters, Int>,

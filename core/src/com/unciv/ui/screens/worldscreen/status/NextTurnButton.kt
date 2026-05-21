@@ -58,7 +58,10 @@ class NextTurnButton(
     }
 
     internal fun updateButton(nextTurnAction: NextTurnAction) {
-        label.setText(nextTurnAction.getText(worldScreen).tr())
+        var text = nextTurnAction.getText(worldScreen).tr()
+        if (nextTurnAction == NextTurnAction.FinishAction)
+            text += " (${worldScreen.pollingSecondsRemaining}s)"
+        label.setText(text)
         label.color = nextTurnAction.color
         if (nextTurnAction.icon != null && ImageGetter.imageExists(nextTurnAction.icon!!))
             iconCell.setActor(ImageGetter.getImage(nextTurnAction.icon).apply { 

@@ -47,8 +47,9 @@ object MultiplayerHelpers {
         descriptionText.appendLine("Last refresh: [${Duration.between(lastUpdate, Instant.now()).formatShort()}] ago".tr())
         val preview = multiplayerGamePreview.preview
         if (preview?.currentPlayer != null) {
-            val currentTurnStartTime = Instant.ofEpochMilli(preview.currentTurnStartTime)
             val currentPlayer = preview.getCurrentPlayerCiv()
+            if (currentPlayer == null) return descriptionText.toString()
+            val currentTurnStartTime = Instant.ofEpochMilli(preview.currentTurnStartTime)
             val playerDescriptor = if (currentPlayer.playerId == UncivGame.Current.settings.multiplayer.getUserId()) {
                 "You"
             } else {

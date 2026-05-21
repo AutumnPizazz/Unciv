@@ -73,6 +73,8 @@ import com.unciv.utils.withGLContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import yairm210.purity.annotations.Readonly
 import java.util.Timer
 import kotlin.concurrent.timer
@@ -133,6 +135,11 @@ class WorldScreen(
     private var tutorialTaskTableHash = 0
 
     private var nextTurnUpdateJob: Job? = null
+
+    /** Countdown timer for polling multiplayer mode. */
+    private var pollingTimerJob: Job? = null
+    /** Seconds remaining in the current polling window. Updated by the timer coroutine. */
+    var pollingSecondsRemaining: Int = 0
 
     private val events = EventBus.EventReceiver()
 
@@ -208,6 +215,9 @@ class WorldScreen(
             }
         }
 
+        if (gameInfo.isPollingMode() && isPlayersTurn)
+            startPollingTimer()
+
         if (restoreState != null) restore(restoreState)
 
         // don't run update() directly, because the UncivGame.worldScreen should be set so that the city buttons and tile groups
@@ -217,6 +227,7 @@ class WorldScreen(
 
     override fun dispose() {
         resizeDeferTimer?.cancel()
+        stopPollingTimer()
         events.stopReceiving()
         statusButtons.dispose()
         super.dispose()
@@ -666,6 +677,121 @@ class WorldScreen(
 
             startNewScreenJob(gameInfoClone, autoPlay)
         }
+    }
+
+    /** Start the countdown timer for the current player's polling window. */
+    private fun startPollingTimer() {
+        stopPollingTimer()
+        pollingSecondsRemaining = gameInfo.gameParameters.pollingIntervalSeconds
+        pollingTimerJob = Concurrency.run("PollingTimer") {
+            while (isActive && pollingSecondsRemaining > 0) {
+                delay(1000)
+                pollingSecondsRemaining--
+                shouldUpdate = true
+            }
+            if (isActive && isPlayersTurn) {
+                launchOnGLThread {
+                    passPollingTurn()
+                }
+            }
+        }
+    }
+
+    /** Cancel the polling countdown timer. */
+    private fun stopPollingTimer() {
+        pollingTimerJob?.cancel()
+        pollingTimerJob = null
+        pollingSecondsRemaining = 0
+    }
+
+    /** Called when the player clicks "I'm done".
+     *  Marks the current player as done and either passes to the next player or advances the turn. */
+    fun finishPollingTurn() {
+        if (!isPlayersTurn || isNextTurnUpdateRunning()) return
+        isPlayersTurn = false
+        shouldUpdate = true
+        stopPollingTimer()
+        val progressBar = NextTurnProgress(nextTurnButton)
+        progressBar.start(this)
+
+        nextTurnUpdateJob = Concurrency.runOnNonDaemonThreadPool("PollingPass") {
+            val originalGameInfo = gameInfo
+            val gameInfoClone = originalGameInfo.clone()
+            gameInfoClone.setTransients()
+
+            progressBar.increment()
+
+            // Mark current player as done for this turn
+            gameInfoClone.playersFinishedThisTurn.add(viewingCiv.civID)
+
+            if (gameInfoClone.allHumansFinishedPollingTurn()) {
+                gameInfoClone.nextTurnPolling(progressBar)
+                if (gameInfoClone.civilizations.count { it.isAlive() && it.playerType == PlayerType.Human } == 1)
+                    gameInfoClone.isUpToDate = true
+            } else {
+                val nextHuman = gameInfoClone.findNextActiveHumanInPolling()
+                if (nextHuman != null) {
+                    gameInfoClone.currentPlayer = nextHuman.civID
+                    gameInfoClone.currentPlayerCiv = nextHuman
+                    gameInfoClone.currentTurnStartTime = System.currentTimeMillis()
+                }
+            }
+
+            uploadPollingResult(originalGameInfo, gameInfoClone, progressBar)
+        }
+    }
+
+    /** Called when the countdown timer expires.
+     *  Passes the save to the next active player WITHOUT marking the current player as done. */
+    private fun passPollingTurn() {
+        if (!isPlayersTurn || isNextTurnUpdateRunning()) return
+        isPlayersTurn = false
+        shouldUpdate = true
+        stopPollingTimer()
+        val progressBar = NextTurnProgress(nextTurnButton)
+        progressBar.start(this)
+
+        nextTurnUpdateJob = Concurrency.runOnNonDaemonThreadPool("PollingPass") {
+            val originalGameInfo = gameInfo
+            val gameInfoClone = originalGameInfo.clone()
+            gameInfoClone.setTransients()
+
+            progressBar.increment()
+
+            // NOT marking as done — find someone else to pass to
+            val nextHuman = gameInfoClone.findNextActiveHumanInPolling()
+            if (nextHuman != null) {
+                gameInfoClone.currentPlayer = nextHuman.civID
+                gameInfoClone.currentPlayerCiv = nextHuman
+                gameInfoClone.currentTurnStartTime = System.currentTimeMillis()
+            }
+            // If null (only this player is left), we stay on the current player —
+            // startNewScreenJob will restart the timer
+
+            uploadPollingResult(originalGameInfo, gameInfoClone, progressBar)
+        }
+    }
+
+    private suspend fun uploadPollingResult(
+        originalGameInfo: GameInfo,
+        gameInfoClone: GameInfo,
+        progressBar: NextTurnProgress
+    ) {
+        if (originalGameInfo.gameParameters.isOnlineMultiplayer) {
+            try {
+                game.onlineMultiplayer.updateGame(gameInfoClone)
+            } catch (ex: Exception) {
+                this@WorldScreen.isPlayersTurn = true
+                this@WorldScreen.shouldUpdate = true
+                return
+            }
+        }
+
+        if (game.gameInfo != originalGameInfo)
+            return
+
+        progressBar.increment()
+        startNewScreenJob(gameInfoClone, autoPlay)
     }
 
     fun switchToNextUnit(resetDue: Boolean = true) {

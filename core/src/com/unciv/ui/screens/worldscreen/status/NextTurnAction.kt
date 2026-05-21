@@ -131,6 +131,12 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
         override fun action(worldScreen: WorldScreen) =
             moveAutomatedUnits(worldScreen)
     },
+    FinishAction("I'm done", Color.WHITE) {
+        override fun isChoice(worldScreen: WorldScreen) =
+            worldScreen.gameInfo.isPollingMode() && worldScreen.isPlayersTurn
+        override fun action(worldScreen: WorldScreen) =
+            worldScreen.finishPollingTurn()
+    },
     NextTurn("Next turn", Color.WHITE) {
         override fun isChoice(worldScreen: WorldScreen) =
             true  // When none of the others is active..

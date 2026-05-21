@@ -50,6 +50,9 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
     /** Time a player recover on their timer before they can be forced to resign. Time isn't added if the player get their turn skipped*/
     var minutesRecoveredPerTurn = 60 * 24
 
+    /** Polling interval in seconds for simultaneous-style multiplayer. 0 = disabled (classic sequential turns). */
+    var pollingIntervalSeconds = 0
+
     var baseRuleset: String = BaseRuleset.Civ_V_GnK.fullName
     var mods = LinkedHashSet<String>()
 
@@ -87,6 +90,7 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
         parameters.isOnlineMultiplayer = isOnlineMultiplayer
         parameters.multiplayerServerUrl = multiplayerServerUrl
         parameters.anyoneCanSpectate = anyoneCanSpectate
+        parameters.pollingIntervalSeconds = pollingIntervalSeconds
         parameters.baseRuleset = baseRuleset
         parameters.mods = LinkedHashSet(mods)
         parameters.maxTurns = maxTurns

@@ -70,7 +70,11 @@ class Multiplayer {
                 val currentGame = getCurrentGame()
                 val preview = currentGame?.preview
                 if (currentGame != null && (usesCustomServer() || preview == null || !preview.isUsersTurn())) {
-                    throttle(lastCurGameRefresh, multiplayerSettings.currentGameRefreshDelay, {}, {}) { currentGame.requestUpdate() }
+                    val refreshDelay = if (preview != null && preview.gameParameters.pollingIntervalSeconds > 0)
+                        Duration.ofMillis(500)  // Polling mode: check every 500ms for low latency
+                    else
+                        multiplayerSettings.currentGameRefreshDelay
+                    throttle(lastCurGameRefresh, refreshDelay, {}, {}) { currentGame.requestUpdate() }
                 }
 
                 val doNotUpdate = if (currentGame == null) listOf() else listOf(currentGame)
@@ -368,5 +372,5 @@ suspend fun <T> attemptAction(
 }
 
 
-fun GameInfoPreview.isUsersTurn() = getCivilization(currentPlayer).playerId == UncivGame.Current.settings.multiplayer.getUserId()
+fun GameInfoPreview.isUsersTurn() = civilizations.firstOrNull { it.civID == currentPlayer }?.playerId == UncivGame.Current.settings.multiplayer.getUserId()
 fun GameInfo.isUsersTurn() = currentPlayer.isNotEmpty() && getCivilization(currentPlayer).playerId == UncivGame.Current.settings.multiplayer.getUserId()
