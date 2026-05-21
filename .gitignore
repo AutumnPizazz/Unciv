@@ -192,4 +192,4 @@ detekt/reports.html
 /buildSrc/.kotlin/sessions/*
 /.claude/
 release.jks
-IFLOW.md
+/scripts
