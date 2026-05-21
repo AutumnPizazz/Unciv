@@ -1,5 +1,6 @@
 package com.unciv.ui.screens.worldscreen.topbar
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Label
@@ -22,6 +23,7 @@ import com.unciv.ui.screens.victoryscreen.VictoryScreen
 
 internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTableWrapper() {
     private val turnsLabel = "Turns: 0/400".toLabel()
+    private val pollingLabel = "".toLabel()
     private data class ResourceActors(val resource: TileResource, val label: Label, val icon: Group)
     private val resourceActors = ArrayList<ResourceActors>(12)
     private val resourcesWrapper = Table()
@@ -70,6 +72,7 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
         }
 
         add(turnsLabel)
+        add(pollingLabel)
 
         // in case the icons are configured higher than a label, we add a dummy - height will be measured once before it's updated
         if (resourceActors.isNotEmpty()) {
@@ -85,6 +88,22 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
             civInfo.gameInfo.getYear(), civInfo.isLongCountDisplay()
         )
         turnsLabel.setText(Fonts.turn + "\u2004" + civInfo.gameInfo.turns.tr() + "\u2004|\u2004" + yearText) // U+2004: Three-Per-Em Space
+
+        // Show polling countdown with color when in polling mode and it's the player's turn
+        if (civInfo.gameInfo.isPollingMode() && worldScreen.isPlayersTurn) {
+            val remaining = worldScreen.pollingSecondsRemaining
+            val total = civInfo.gameInfo.gameParameters.pollingIntervalSeconds
+            val ratio = remaining.toFloat() / total
+            pollingLabel.color = when {
+                ratio > 0.5f -> Color.GREEN
+                ratio > 0.25f -> Color.GOLD
+                else -> Color.CORAL
+            }
+            pollingLabel.setText("  |  ${remaining}s")
+            pollingLabel.isVisible = true
+        } else {
+            pollingLabel.isVisible = false
+        }
 
         resourcesWrapper.clearChildren()
         val civResources = civInfo.getCivResourcesByName()

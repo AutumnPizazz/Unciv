@@ -64,7 +64,7 @@ class NextTurnButton(
         label.setText(text)
         label.color = nextTurnAction.color
         if (nextTurnAction.icon != null && ImageGetter.imageExists(nextTurnAction.icon!!))
-            iconCell.setActor(ImageGetter.getImage(nextTurnAction.icon).apply { 
+            iconCell.setActor(ImageGetter.getImage(nextTurnAction.icon).apply {
                 setSize(30f)
                 color = nextTurnAction.color
             })
@@ -75,7 +75,7 @@ class NextTurnButton(
             unitsDueLabel.setText(it.tr())
             unitsDueCell.setActor(unitsDueLabel)
         } ?: unitsDueCell.clearActor()
-        
+
         pack()
     }
 
