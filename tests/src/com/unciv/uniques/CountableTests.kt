@@ -523,4 +523,198 @@ class CountableTests {
         resourceAmount = Countables.getCountableAmount(localResource.name, city.state)
         assertEquals("City state should see city resources", resourceAmount, 2)
     }
+
+    //region Coverage for new Countables (B path)
+
+    @Test
+    @CoversCountable(Countables.CityPopulation, Countables.TotalPopulation)
+    fun testPopulationCountables() {
+        setupModdedGame()
+        val context = GameContext(civ, city)
+        assertEquals("City pop should be 1", 1,
+            Countables.getCountableAmount("City Population", context))
+        assertEquals("Total pop should be 1 initially", 1,
+            Countables.getCountableAmount("Total Population", context))
+
+        city.population.addPopulation(3)
+        civ.updateStatsForNextTurn()
+        assertEquals("City pop should be 4 after growth", 4,
+            Countables.getCountableAmount("City Population", context))
+        assertEquals("Total pop reflects city pop", 4,
+            Countables.getCountableAmount("Total Population", context))
+
+        val city2 = game.addCity(civ, game.tileMap[-2, 0], initialPopulation = 3)
+        assertEquals("Total pop should sum both cities", 7,
+            Countables.getCountableAmount("Total Population", GameContext(civ)))
+    }
+
+    @Test
+    @CoversCountable(Countables.UnitHealth, Countables.UnitExperience, Countables.UnitLevel)
+    fun testUnitCountables() {
+        setupModdedGame()
+        val unit = game.createBaseUnit()
+        val placed = civ.units.placeUnitNearTile(city.location, unit)!!
+
+        assertEquals("Unit health should be 100", 100,
+            Countables.getCountableAmount("Unit Health", GameContext(placed)))
+        assertEquals("Unit XP should be 0 initially", 0,
+            Countables.getCountableAmount("Unit Experience", GameContext(placed)))
+        assertEquals("Unit level should be 1 initially", 1,
+            Countables.getCountableAmount("Unit Level", GameContext(placed)))
+
+        placed.promotions.XP = 50
+        assertEquals("Unit XP should be 50", 50,
+            Countables.getCountableAmount("Unit Experience", GameContext(placed)))
+
+        placed.takeDamage(30)
+        assertEquals("Unit health should be 70 after damage", 70,
+            Countables.getCountableAmount("Unit Health", GameContext(placed)))
+    }
+
+    @Test
+    @CoversCountable(Countables.GoldenAgePoints, Countables.GoldenAgeTurns)
+    fun testGoldenAgeCountables() {
+        setupModdedGame()
+        val context = GameContext(civ)
+
+        civ.goldenAges.storedHappiness = 150
+        assertEquals("Golden Age Points should match storedHappiness", 150,
+            Countables.getCountableAmount("Golden Age Points", context))
+        assertEquals("Golden Age Turns should be 0 when no GA active", 0,
+            Countables.getCountableAmount("Golden Age Turns", context))
+
+        civ.goldenAges.enterGoldenAge(8)
+        assertEquals("Golden Age Turns should be 8 after entering", 8,
+            Countables.getCountableAmount("Golden Age Turns", context))
+    }
+
+    @Test
+    @CoversCountable(Countables.TechCount)
+    fun testTechCountCountable() {
+        setupModdedGame()
+        val context = GameContext(civ)
+
+        val initial = civ.tech.techsResearched.size
+        assertEquals("Tech count should match researched techs", initial,
+            Countables.getCountableAmount("Researched Technologies", context))
+    }
+
+    @Test
+    @CoversCountable(Countables.PolicyCount)
+    fun testPolicyCountCountable() {
+        setupModdedGame()
+        val context = GameContext(civ)
+
+        val initial = civ.policies.getAdoptedPolicies().count()
+        assertEquals("Policy count should match adopted policies", initial,
+            Countables.getCountableAmount("Adopted Policies", context))
+    }
+
+    @Test
+    @CoversCountable(Countables.CityStrength)
+    fun testCityStrengthCountable() {
+        setupModdedGame()
+        val context = GameContext(civ, city)
+
+        val strength = city.getStrength().toInt()
+        assertEquals("City Strength countable should match getStrength()", strength,
+            Countables.getCountableAmount("City Strength", context))
+    }
+    //endregion
+
+    //region Coverage for expression-based amount resolution (A path)
+
+    @Test
+    @CoversCountable(Countables.Expression)
+    fun testNestedExpressionAsAmountInOneTimeGainStat() {
+        setupModdedGame()
+        val goldBefore = civ.gold
+        // [[City Population] * 50] — nested brackets, expression as amount parameter
+        UniqueTriggerActivation.triggerUnique(
+            Unique("Gain [[City Population] * 50] [Gold]"), civ, city
+        )
+        // City pop = 1 → 1*50 = 50 gold
+        assertEquals("pop=1, gain=50", goldBefore + 50, civ.gold)
+    }
+
+    @Test
+    fun testNestedExpressionAsAmountWithGrowth() {
+        setupModdedGame()
+        city.population.addPopulation(3) // pop = 4
+        val goldBefore = civ.gold
+        UniqueTriggerActivation.triggerUnique(
+            Unique("Gain [[City Population] * 50] [Gold]"), civ, city
+        )
+        assertEquals("pop=4, gain=200", goldBefore + 200, civ.gold)
+    }
+
+    @Test
+    fun testNestedExpressionInGainPopulation() {
+        setupModdedGame()
+        city.population.addPopulation(1) // pop = 2
+        val initialPop = city.population.population
+        // [1 + [City Population]] — nested: 1 + pop = 3
+        UniqueTriggerActivation.triggerUnique(
+            Unique("[1 + [City Population]] population [in this city]"), civ, city
+        )
+        assertEquals("gain 1+pop=3", initialPop + 3, city.population.population)
+    }
+
+    @Test
+    fun testNestedExpressionInGoldenAgeTurns() {
+        setupModdedGame()
+        city.population.addPopulation(4) // pop = 5
+        val turnsBefore = civ.goldenAges.turnsLeftForCurrentGoldenAge
+        UniqueTriggerActivation.triggerUnique(
+            Unique("Empire enters a [[City Population] * 2]-turn Golden Age"), civ, city
+        )
+        assertEquals("gain 10 turns", turnsBefore + 10, civ.goldenAges.turnsLeftForCurrentGoldenAge)
+    }
+
+    @Test
+    fun testSimpleCountableAsAmountInOneTimeGainStat() {
+        setupModdedGame()
+        val goldBefore = civ.gold
+        // Simple countable (no expression) in amount slot
+        UniqueTriggerActivation.triggerUnique(
+            Unique("Gain [City Population] [Gold]"), civ, city
+        )
+        assertEquals("pop=1, gain=1", goldBefore + 1, civ.gold)
+    }
+
+    @Test
+    fun testCountableExpressionMatching() {
+        setupModdedGame()
+        val ruleset = game.ruleset
+
+        // Verify expression countables are recognized
+        assert(Countables.getMatching("Cities", ruleset) != null)
+        assert(Countables.getMatching("[Cities] * 2", ruleset) != null)
+        assert(Countables.getMatching("[Unit Health] / 2 + 10", ruleset) != null)
+        assert(Countables.getMatching("floor([Cities] / 2) * 5", ruleset) != null)
+    }
+
+    @Test
+    fun testCountableExpressionEval() {
+        setupModdedGame()
+        val context = GameContext(civ, city)
+
+        // Simple
+        assertEquals("Cities should be 1", 1,
+            Countables.getCountableAmount("Cities", context))
+
+        // Expression
+        assertEquals("[Cities] * 10 should be 10", 10,
+            Countables.getCountableAmount("[Cities] * 10", context))
+
+        // With function
+        assertEquals("max([Cities], 5) should be 5", 5,
+            Countables.getCountableAmount("max([Cities], 5)", context))
+
+        // Arithmetic with city population
+        city.population.addPopulation(1) // pop = 2
+        assertEquals("[City Population] * 3 should be 6", 6,
+            Countables.getCountableAmount("[City Population] * 3", context))
+    }
+    //endregion
 }
