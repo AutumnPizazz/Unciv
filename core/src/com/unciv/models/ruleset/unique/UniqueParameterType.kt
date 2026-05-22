@@ -47,29 +47,34 @@ enum class UniqueParameterType(
 ) {
     //endregion
 
-    Number("amount", "3", "This indicates a whole number, possibly with a + or - sign, such as `2`, `+13`, or `-3`") {
+    Number("amount", "3", "This indicates a whole number, possibly with a + or - sign, such as `2`, `+13`, or `-3`. Also accepts Countable expressions.") {
         override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
-            parameterText.getInvariantSeverityUnless { toIntOrNull() != null }
+            if (parameterText.toIntOrNull() != null) null
+            else Countables.getErrorSeverity(parameterText, ruleset)
     },
 
-    PositiveNumber("positiveAmount", "3", "This indicates a positive whole number, larger than zero, a '+' sign is optional") {
+    PositiveNumber("positiveAmount", "3", "This indicates a positive whole number, larger than zero, a '+' sign is optional. Also accepts Countable expressions.") {
         override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
-            parameterText.getInvariantSeverityUnless { toIntOrNull()?.let { it > 0 } == true }
-    },
-    
-    NonNegativeNumber("nonNegativeAmount", "3", "This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional") {
-        override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
-            parameterText.getInvariantSeverityUnless { toIntOrNull()?.let { it >= 0 } == true }
+            if (parameterText.toIntOrNull()?.let { it > 0 } == true) null
+            else Countables.getErrorSeverity(parameterText, ruleset)
     },
 
-    Fraction("fraction", docExample = "0.5", "Indicates a fractional number, which can be negative") {
+    NonNegativeNumber("nonNegativeAmount", "3", "This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional. Also accepts Countable expressions.") {
         override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
-            parameterText.getInvariantSeverityUnless { toFloatOrNull() != null }
+            if (parameterText.toIntOrNull()?.let { it >= 0 } == true) null
+            else Countables.getErrorSeverity(parameterText, ruleset)
     },
 
-    RelativeNumber("relativeAmount", "+20", "This indicates a number, usually with a + or - sign, such as `+25` (this kind of parameter is often followed by '%' which is nevertheless not part of the value)") {
+    Fraction("fraction", docExample = "0.5", "Indicates a fractional number, which can be negative. Also accepts Countable expressions.") {
         override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
-            parameterText.getInvariantSeverityUnless { toIntOrNull() != null }
+            if (parameterText.toFloatOrNull() != null) null
+            else Countables.getErrorSeverity(parameterText, ruleset)
+    },
+
+    RelativeNumber("relativeAmount", "+20", "This indicates a number, usually with a + or - sign, such as `+25` (this kind of parameter is often followed by '%' which is nevertheless not part of the value). Also accepts Countable expressions.") {
+        override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
+            if (parameterText.toIntOrNull() != null) null
+            else Countables.getErrorSeverity(parameterText, ruleset)
     },
 
     Countable("countable", "1000", "This indicates a number or a numeric variable." +

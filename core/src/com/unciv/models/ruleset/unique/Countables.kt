@@ -63,6 +63,46 @@ enum class Countables(
         override fun eval(parameterText: String, gameContext: GameContext) =
             gameContext.civInfo?.units?.getCivUnitsSize()
     },
+    CityPopulation("City Population", shortDocumentation = "The population of the relevant City") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.city?.population?.population
+    },
+    TotalPopulation("Total Population", shortDocumentation = "The total population of the relevant Civilization") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.civInfo?.cities?.sumOf { it.population.population }
+    },
+    UnitHealth("Unit Health", shortDocumentation = "The current health of the relevant Unit (0-100)") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.relevantUnit?.health
+    },
+    UnitExperience("Unit Experience", shortDocumentation = "The accumulated experience of the relevant Unit") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.relevantUnit?.promotions?.XP
+    },
+    UnitLevel("Unit Level", shortDocumentation = "The level of the relevant Unit (number of promotions + 1)") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.relevantUnit?.promotions?.numberOfPromotions?.plus(1)
+    },
+    GoldenAgePoints("Golden Age Points", shortDocumentation = "The stored happiness points towards the next Golden Age") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.civInfo?.goldenAges?.storedHappiness
+    },
+    GoldenAgeTurns("Golden Age Turns", shortDocumentation = "The remaining turns of the current Golden Age") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.civInfo?.goldenAges?.turnsLeftForCurrentGoldenAge
+    },
+    TechCount("Researched Technologies", shortDocumentation = "The number of technologies researched by the relevant Civilization") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.civInfo?.tech?.techsResearched?.size
+    },
+    PolicyCount("Adopted Policies", shortDocumentation = "The number of policies adopted by the relevant Civilization") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.civInfo?.policies?.adoptedPolicies?.size
+    },
+    CityStrength("City Strength", shortDocumentation = "The combat strength of the relevant City") {
+        override fun eval(parameterText: String, gameContext: GameContext) =
+            gameContext.city?.getStrength()?.toInt()
+    },
 
     Stats {
         override val documentationHeader = "Stat name (${niceJoinList(Stat.names())})"

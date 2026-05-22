@@ -19,6 +19,7 @@ import com.unciv.models.UncivSound
 import com.unciv.models.UpgradeUnitAction
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.Event
+import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.tile.TerrainType
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.stats.Stat
@@ -70,6 +71,28 @@ object UniqueTriggerActivation {
         val function = getTriggerFunction(unique, civInfo, city, unit, tile, notification, triggerNotificationText) ?: return false
         return function.invoke()
     }
+
+    /** Resolve a parameter as an Int amount.
+     *  Tries plain number parsing first, then falls back to Countable expression evaluation.
+     *  Returns null only when the parameter can't be resolved. */
+    @Readonly
+    private fun resolveAmount(param: String, civInfo: Civilization, city: City? = null): Int? {
+        return param.toIntOrNull()
+            ?: Countables.getCountableAmount(param, GameContext(civInfo, city))
+    }
+
+    /** Resolve a parameter as a Float amount (for fractional params).
+     *  Tries plain float parsing first, then falls back to Countable (rounded to Int). */
+    @Readonly
+    private fun resolveFloatAmount(param: String, civInfo: Civilization, city: City? = null): Float? {
+        return param.toFloatOrNull()
+            ?: Countables.getCountableAmount(param, GameContext(civInfo, city))?.toFloat()
+    }
+
+    /** Check if a parameter is a valid amount (plain number or valid Countable expression) */
+    @Readonly
+    private fun isValidAmount(param: String, ruleset: Ruleset): Boolean =
+        param.toIntOrNull() != null || Countables.getMatching(param, ruleset) != null
 
     /** @return The action to be performed if possible, else null
      * This is so the unit actions can be displayed as "disabled" if they won't actually do anything
@@ -209,9 +232,9 @@ object UniqueTriggerActivation {
                     return null
 
                 val limit = civUnit.getMatchingUniques(UniqueType.MaxNumberBuildable)
-                    .map { it.params[0].toInt() }.minOrNull()
+                    .map { resolveAmount(it.params[0], civInfo, city) ?: 0 }.minOrNull()
                 val unitCount = civInfo.units.getCivUnits().count { it.name == civUnit.name }
-                val amountFromTriggerable = unique.params[0].toInt()
+                val amountFromTriggerable = resolveAmount(unique.params[0], civInfo, city) ?: return null
                 val actualAmount = when {
                     limit == null -> amountFromTriggerable
                     amountFromTriggerable + unitCount > limit -> limit - unitCount
@@ -296,9 +319,9 @@ object UniqueTriggerActivation {
                 if (civUnit.isCityFounder() && civInfo.isOneCityChallenger())
                     return null
                 val limit = civUnit.getMatchingUniques(UniqueType.MaxNumberBuildable)
-                    .map { it.params[0].toInt() }.minOrNull()
+                    .map { resolveAmount(it.params[0], civInfo, city) ?: 0 }.minOrNull()
                 val unitCount = civInfo.units.getCivUnits().count { it.name == civUnit.name }
-                val amountFromTriggerable = unique.params[0].toInt()
+                val amountFromTriggerable = resolveAmount(unique.params[0], civInfo, city) ?: return null
                 val actualAmount = when {
                     limit == null -> amountFromTriggerable
                     amountFromTriggerable + unitCount > limit -> limit - unitCount
@@ -395,7 +418,7 @@ object UniqueTriggerActivation {
             }
             UniqueType.OneTimeAmountFreePolicies -> {
                 if (civInfo.isSpectator()) return null
-                val newFreePolicies = unique.params[0].toInt()
+                val newFreePolicies = resolveAmount(unique.params[0], civInfo, city) ?: return null
 
                 return {
                     civInfo.policies.freePolicies += newFreePolicies
@@ -484,7 +507,8 @@ object UniqueTriggerActivation {
 
             UniqueType.OneTimeEnterGoldenAge, UniqueType.OneTimeEnterGoldenAgeTurns -> {
                 return {
-                    if (unique.type == UniqueType.OneTimeEnterGoldenAgeTurns) civInfo.goldenAges.enterGoldenAge(unique.params[0].toInt())
+                    if (unique.type == UniqueType.OneTimeEnterGoldenAgeTurns)
+                        civInfo.goldenAges.enterGoldenAge(resolveAmount(unique.params[0], civInfo, city) ?: 10)
                     else civInfo.goldenAges.enterGoldenAge()
 
                     val notificationText = getNotificationText(
@@ -517,7 +541,7 @@ object UniqueTriggerActivation {
                 if (applicableCities.none()) return null
                 return {
                     for (applicableCity in applicableCities) {
-                        applicableCity.population.addPopulation(unique.params[0].toInt())
+                        applicableCity.population.addPopulation(resolveAmount(unique.params[0], civInfo, city) ?: 0)
                     }
                     if (notification != null)
                         civInfo.addNotification(
@@ -533,7 +557,7 @@ object UniqueTriggerActivation {
                 if (civInfo.cities.isEmpty()) return null
                 return {
                     val randomCity = civInfo.cities.random(tileBasedRandom)
-                    randomCity.population.addPopulation(unique.params[0].toInt())
+                    randomCity.population.addPopulation(resolveAmount(unique.params[0], civInfo, city) ?: 0)
                     if (notification != null) {
                         val notificationText =
                             if (notification.hasPlaceholderParameters())
@@ -562,7 +586,7 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeAmountFreeTechs -> {
                 if (civInfo.isSpectator()) return null
                 return {
-                    civInfo.tech.freeTechs += unique.params[0].toInt()
+                    civInfo.tech.freeTechs += resolveAmount(unique.params[0], civInfo, city) ?: 0
                     if (notification != null)
                         civInfo.addNotification(notification, NotificationCategory.General, NotificationIcon.Science)
                     true
@@ -622,7 +646,7 @@ object UniqueTriggerActivation {
                 if (!resource.isStockpiled) return null
 
                 return {
-                    val amount = unique.params[0].toInt()
+                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
                     if (city != null) city.gainStockpiledResource(resource, amount)
                     else civInfo.gainStockpiledResource(resource, amount)
 
@@ -642,7 +666,7 @@ object UniqueTriggerActivation {
                 if (!resource.isStockpiled) return null
 
                 return {
-                    val amount = unique.params[0].toInt()
+                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
                     if (city != null) city.gainStockpiledResource(resource, -amount)
                     else civInfo.gainStockpiledResource(resource, -amount)
 
@@ -662,7 +686,7 @@ object UniqueTriggerActivation {
                 if (resource is TileResource && !resource.isStockpiled) return null
 
                 return {
-                    var amount = unique.params[0].toInt()
+                    var amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
                     if (unique.isModifiedByGameSpeed()) {
                         amount = if (resource is Stat) (amount * civInfo.gameInfo.speed.statCostModifiers[resource]!!).roundToInt()
                         else (amount * civInfo.gameInfo.speed.modifier).roundToInt()
@@ -775,11 +799,11 @@ object UniqueTriggerActivation {
                 val stat = Stat.safeValueOf(unique.params[1]) ?: return null
 
                 if (stat !in Stat.statsWithCivWideField
-                    || unique.params[0].toIntOrNull() == null
+                    || !isValidAmount(unique.params[0], civInfo.gameInfo.ruleset)
                 ) return null
 
                 return {
-                    var statAmount = unique.params[0].toInt()
+                    var statAmount = resolveAmount(unique.params[0], civInfo, city) ?: 0
                     if (unique.isModifiedByGameSpeed()) statAmount = (statAmount * civInfo.gameInfo.speed.statCostModifiers[stat]!!).roundToInt()
 
                     val stats = Stats().add(stat, statAmount.toFloat())
@@ -803,12 +827,14 @@ object UniqueTriggerActivation {
                 val stat = Stat.safeValueOf(unique.params[2]) ?: return null
 
                 if (stat !in Stat.statsWithCivWideField
-                    || unique.params[0].toIntOrNull() == null
-                    || unique.params[1].toIntOrNull() == null
+                    || !isValidAmount(unique.params[0], civInfo.gameInfo.ruleset)
+                    || !isValidAmount(unique.params[1], civInfo.gameInfo.ruleset)
                 ) return null
 
 
-                val randomValue = tileBasedRandom.nextInt(unique.params[0].toInt(), unique.params[1].toInt())
+                val amountLow = resolveAmount(unique.params[0], civInfo, city) ?: return null
+                val amountHigh = resolveAmount(unique.params[1], civInfo, city) ?: return null
+                val randomValue = tileBasedRandom.nextInt(amountLow, amountHigh)
                 val finalStatAmount = if (unique.isModifiedByGameSpeed()) (randomValue * civInfo.gameInfo.speed.statCostModifiers[stat]!!).roundToInt()
                                             else randomValue
 
@@ -1069,7 +1095,7 @@ object UniqueTriggerActivation {
                 if (applicableCities.none { it.expansion.chooseNewTileToOwn() != null }) return null
 
                 return {
-                    val positiveAmount = unique.params[0].toInt()
+                    val positiveAmount = resolveAmount(unique.params[0], civInfo, city) ?: 0
                     for (applicableCity in applicableCities) {
                         for (i in 1..positiveAmount) {
                             val tileToOwn = applicableCity.expansion.chooseNewTileToOwn() ?: break
@@ -1100,14 +1126,16 @@ object UniqueTriggerActivation {
             UniqueType.FreeStatBuildings -> {
                 val stat = Stat.safeValueOf(unique.params[0]) ?: return null
                 return {
-                    civInfo.civConstructions.addFreeStatBuildings(stat, unique.params[1].toInt())
+                    civInfo.civConstructions.addFreeStatBuildings(stat,
+                        resolveAmount(unique.params[1], civInfo, city) ?: 0)
                     true
                 }
             }
             UniqueType.FreeSpecificBuildings ->{
                 val building = ruleset.buildings[unique.params[0]] ?: return null
                 return {
-                    civInfo.civConstructions.addFreeBuildings(building, unique.params[1].toInt())
+                    civInfo.civConstructions.addFreeBuildings(building,
+                        resolveAmount(unique.params[1], civInfo, city) ?: 0)
                     true
                 }
             }
