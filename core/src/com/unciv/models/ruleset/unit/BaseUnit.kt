@@ -66,8 +66,13 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
     var attackSound: String? = null
 
 
-    @Transient
-    val costFunctions = BaseUnitCost(this)
+    // @Transient helpers that depend on serialized fields (e.g. cost) MUST use by lazy + @delegate:Transient.
+    // Reason: Gdx Json may instantiate objects via Unsafe, bypassing the Kotlin constructor. With plain
+    // `@Transient val x = Helper(this)`, 'this.cost' would be 0 (JVM default) at construction time,
+    // and Helper would capture that stale value. `by lazy` defers Helper creation to first access,
+    // at which point Gdx Json has already set the serialized fields to their correct values.
+    @delegate:Transient
+    val costFunctions by lazy { BaseUnitCost(this) }
 
     lateinit var ruleset: Ruleset
         private set

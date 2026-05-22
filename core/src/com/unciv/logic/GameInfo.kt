@@ -63,6 +63,11 @@ import java.util.*
  * - If the class also implements Json.Serializable, then the rules below do not apply, that implementation is entirely responsible.
  * - Exclude all fields that do not need to be saved with [`@Transient`][Transient].
  * - Take care with `by lazy` fields - those must **never** be serialized. Use `@delegate:Transient` to exclude them.
+ * - **@Transient helpers that read serialized fields must use `by lazy` + `@delegate:Transient`, not
+ *   `@Transient val = Helper(this)`.** Reason: Gdx Json can bypass the Kotlin constructor (Unsafe allocation),
+ *   so serialized fields are at JVM defaults (int=0, Object=null) when the constructor would normally run.
+ *   `by lazy` defers initialization to first access, after Gdx Json has set all serialized fields.
+ *   See BaseUnit.costFunctions for an example and explanation.
  * - Properties without backing field (val foo get() = without referencing `field` or `val bar by ::foo`) are always fine - they're never serialized.
  * - Types of serialized fields must be primitives, enums, other classes marked `IsPartOfGameInfoSerialization`, or collections of those.
  * - All types involved in a field's type should be **non-abstract**: No interfaces. The `List`, see below.
@@ -760,7 +765,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         }
         
         ruleset = RulesetCache.getComplexRuleset(gameParameters)
-        
+
         // any mod the saved game lists that is currently not installed causes null pointer
         // exceptions in this routine unless it contained no new objects or was very simple.
         // Player's fault, so better complain early:
