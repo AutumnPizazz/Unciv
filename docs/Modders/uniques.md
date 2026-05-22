@@ -4265,7 +4265,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 
 
-*[amount]: This indicates a whole number, possibly with a + or - sign, such as `2`, `+13`, or `-3`.
+*[amount]: This indicates a whole number, possibly with a + or - sign, such as `2`, `+13`, or `-3`. Also accepts Countable expressions.
 *[baseTerrain]: The name of any terrain that is a base terrain according to the json file.
 *[belief]: The name of any belief.
 *[beliefType]: 'Pantheon', 'Follower', 'Founder' or 'Enhancer'
@@ -4279,19 +4279,19 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 *[eraFilter]: The name of an era, `any era`, `Starting Era`, `pre-[era]`, `post-[era]`.
 *[event]: The name of any event.
 *[foundingOrEnhancing]: `founding` or `enhancing`.
-*[fraction]: Indicates a fractional number, which can be negative.
+*[fraction]: Indicates a fractional number, which can be negative. Also accepts Countable expressions.
 *[improvementName]: The name of any improvement excluding 'Cancel improvement order'
 *[leaderTitle]: Provides a leader title that includes the leader's name in parameters.
 *[modFilter]: A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.
 Note that this must use the Mod name as Unciv displays it, not the Repository name.
 There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused.
-*[nonNegativeAmount]: This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional.
+*[nonNegativeAmount]: This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional. Also accepts Countable expressions.
 *[pediaLink]: A Civilopedia link in the form category/entry.
 *[policy]: The name of any policy.
 *[policyFilter]: The name of any policy, a filtering Unique, any branch (matching only the branch itself), a branch name with " Completed" appended (matches if the branch is completed), or a policy branch as `[branchName] branch` (matching all policies in that branch).
-*[positiveAmount]: This indicates a positive whole number, larger than zero, a '+' sign is optional.
+*[positiveAmount]: This indicates a positive whole number, larger than zero, a '+' sign is optional. Also accepts Countable expressions.
 *[promotion]: The name of any promotion.
-*[relativeAmount]: This indicates a number, usually with a + or - sign, such as `+25` (this kind of parameter is often followed by '%' which is nevertheless not part of the value).
+*[relativeAmount]: This indicates a number, usually with a + or - sign, such as `+25` (this kind of parameter is often followed by '%' which is nevertheless not part of the value). Also accepts Countable expressions.
 *[resource]: The name of any resource.
 *[resourceFilter]: A resource name, type, 'all', or a Stat listed in the resource's improvementStats.
 *[specialist]: The name of any specialist.

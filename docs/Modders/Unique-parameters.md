@@ -379,6 +379,26 @@ Allowed values:
     - Example: `Only available <when number of [Cities] is more than [0]>`
 -   `Units` - The number of units the relevant Civilization owns
     - Example: `Only available <when number of [Units] is more than [0]>`
+-   `City Population` - The population of the relevant City
+    - Example: `Only available <when number of [City Population] is more than [0]>`
+-   `Total Population` - The total population of the relevant Civilization
+    - Example: `Only available <when number of [Total Population] is more than [0]>`
+-   `Unit Health` - The current health of the relevant Unit (0-100)
+    - Example: `Only available <when number of [Unit Health] is more than [0]>`
+-   `Unit Experience` - The accumulated experience of the relevant Unit
+    - Example: `Only available <when number of [Unit Experience] is more than [0]>`
+-   `Unit Level` - The level of the relevant Unit (number of promotions + 1)
+    - Example: `Only available <when number of [Unit Level] is more than [0]>`
+-   `Golden Age Points` - The stored happiness points towards the next Golden Age
+    - Example: `Only available <when number of [Golden Age Points] is more than [0]>`
+-   `Golden Age Turns` - The remaining turns of the current Golden Age
+    - Example: `Only available <when number of [Golden Age Turns] is more than [0]>`
+-   `Researched Technologies` - The number of technologies researched by the relevant Civilization
+    - Example: `Only available <when number of [Researched Technologies] is more than [0]>`
+-   `Adopted Policies` - The number of policies adopted by the relevant Civilization
+    - Example: `Only available <when number of [Adopted Policies] is more than [0]>`
+-   `City Strength` - The combat strength of the relevant City
+    - Example: `Only available <when number of [City Strength] is more than [0]>`
 -   Stat name (`Production`, `Food`, `Gold`, `Science`, `Culture`, `Happiness` or `Faith`)
     - Example: `Only available <when number of [Science] is more than [0]>`
     - Gets the stat *reserve*, not the amount per turn (can be city stats or civilization stats, depending on where the unique is used)
