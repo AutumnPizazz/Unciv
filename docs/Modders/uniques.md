@@ -240,6 +240,11 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Triggerable
 
+??? example  "Trigger the function [luaFunction] with [comment]"
+	Example: "Trigger the function [myMod:myFunction] with [comment]"
+
+	Applicable to: Triggerable
+
 ??? example  "Mark tutorial [comment] complete"
 	Example: "Mark tutorial [comment] complete"
 
@@ -4282,6 +4287,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 *[fraction]: Indicates a fractional number, which can be negative. Also accepts Countable expressions.
 *[improvementName]: The name of any improvement excluding 'Cancel improvement order'
 *[leaderTitle]: Provides a leader title that includes the leader's name in parameters.
+*[luaFunction]: A Lua function reference in the form [modName:]functionName.
 *[modFilter]: A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.
 Note that this must use the Mod name as Unciv displays it, not the Repository name.
 There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused.

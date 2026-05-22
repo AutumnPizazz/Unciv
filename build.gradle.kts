@@ -194,6 +194,7 @@ project(":core") {
         "implementation"(rootProject.libs.kotlin.reflect)
 
         "implementation"(rootProject.libs.purity.annotations)
+        "implementation"(rootProject.libs.luaj.jse)
 
         "api"(rootProject.libs.bundles.ktor.client)
     }

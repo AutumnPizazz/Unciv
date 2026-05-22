@@ -672,6 +672,13 @@ enum class UniqueParameterType(
         override fun getTranslationWriterStringsForOutput() = scanExistingValues(this)
     },
 
+    /** A Lua function reference in the form [modName:]functionName */
+    LuaFunction("luaFunction", "myMod:myFunction", "A Lua function reference in the form [modName:]functionName") {
+        override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) =
+            if (com.unciv.logic.scripting.LuaScriptManager.isValidFunctionRef(parameterText)) null
+            else UniqueType.UniqueParameterErrorSeverity.RulesetSpecific
+    },
+
     /** Used in [GetLeaderTitle], and validates a [leaderName] is provided. */
     LeaderTitle("leaderTitle", "Sovereign [leaderName] the Great", "Provides a leader title that includes the leader's name in parameters.", "Leader Title") {
         override fun isKnownValue(parameterText: String, ruleset: Ruleset) = parameterText.hasPlaceholderParameters()

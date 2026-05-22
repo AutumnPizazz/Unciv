@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.JsonWriter
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.json.fromJsonFile
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.json.json
 import com.unciv.logic.BackwardCompatibility.updateDeprecations
 import java.lang.reflect.Modifier
@@ -1088,6 +1089,12 @@ class Ruleset {
                     }
 
             updateResourceTransients()
+        }
+
+        // Load Lua scripts — folderHandle is jsons/, pass parent (mod folder) so loadScripts can find scripts/
+        val modFolder = folderHandle.parent()
+        if (modFolder.child("scripts").exists()) {
+            LuaScriptManager.loadScripts(modFolder, name, this)
         }
     }
 

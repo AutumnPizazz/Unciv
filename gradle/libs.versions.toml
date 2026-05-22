@@ -14,6 +14,8 @@ ktor = "3.2.3"
 logback = "1.5.21"
 clikt = "5.0.3"
 
+luaj = "3.0.1"
+
 purity = "1.4.0"
 detekt = "1.23.8"
 
@@ -65,6 +67,7 @@ ktor-server-contentnegotiation = { group = "io.ktor", name = "ktor-server-conten
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
 
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+luaj-jse = { group = "org.luaj", name = "luaj-jse", version.ref = "luaj" }
 clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
 
 jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }

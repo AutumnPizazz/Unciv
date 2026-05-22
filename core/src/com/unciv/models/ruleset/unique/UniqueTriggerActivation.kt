@@ -3,6 +3,8 @@ package com.unciv.models.ruleset.unique
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.automation.civilization.NextTurnAutomation
+import com.unciv.logic.scripting.LuaAPI
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.*
 import com.unciv.logic.civilization.diplomacy.DiplomacyFlags
@@ -154,6 +156,20 @@ object UniqueTriggerActivation {
                 }
                 // if (event.presentation == Event.Presentation.Floating) return { //todo: Park them in a Queue in GameInfo???
                 throw NotImplementedError("Event ${event.name} has presentation type ${event.presentation} which is not implemented for use via TriggerEvent")
+            }
+
+            UniqueType.TriggerLuaFunction -> {
+                val luaRef = unique.params[0]
+                val rawParam = unique.params.getOrElse(1) { "" }
+                val (modName, functionName) = LuaScriptManager.parseLuaRef(luaRef, ruleset.name)
+                val luaFunc = LuaScriptManager.getFunction(modName, functionName) ?: return null
+                return {
+                    val resolvedParam = LuaScriptManager.resolveCountablesInString(rawParam, gameContext)
+                    val ctx = LuaAPI.buildContext(civInfo, city, unit, tile, resolvedParam, gameContext)
+                    var success = false
+                    LuaScriptManager.callFunction(luaFunc, ctx) { success = it }
+                    success
+                }
             }
 
             UniqueType.MarkTutorialComplete -> return {
