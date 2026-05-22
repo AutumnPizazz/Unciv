@@ -13,7 +13,6 @@ class MergeActionDocsWriter {
         val file = File(outputFileName)
         file.parentFile.mkdirs()
         file.writeText(buildDocumentation())
-        println("MergeAction docs written to ${file.canonicalPath}")
     }
 
     @Suppress("MaxLineLength")
