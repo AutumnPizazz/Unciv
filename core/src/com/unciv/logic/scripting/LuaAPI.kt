@@ -807,7 +807,11 @@ object LuaAPI {
         t.set("speed", LuaValue.valueOf(gameInfo.speed.name))
         t.set("difficulty", LuaValue.valueOf(gameInfo.difficulty))
         t.set("getCurrentPlayer", luaFunction {
-            LuaValue.valueOf(gameInfo.currentPlayerCiv.civName)
+            try {
+                LuaValue.valueOf(gameInfo.currentPlayerCiv.civName)
+            } catch (e: Exception) {
+                LuaValue.NIL
+            }
         })
 
         // Civ queries
