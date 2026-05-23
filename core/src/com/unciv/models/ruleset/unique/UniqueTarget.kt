@@ -62,7 +62,7 @@ enum class UniqueTarget(
     Tutorial,
     CityState(inheritsFrom = Global),
     ModOptions,
-    Event,
+    Event(inheritsFrom = Triggerable),
     EventChoice(inheritsFrom = UnitTriggerable),
 
     // Modifiers

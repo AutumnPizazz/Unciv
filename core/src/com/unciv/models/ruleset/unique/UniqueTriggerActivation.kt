@@ -144,10 +144,20 @@ object UniqueTriggerActivation {
                 val choices = event.getMatchingChoices(gameContext)
                     ?: return null
                 if (civInfo.isAI() || event.presentation == Event.Presentation.None) return {
+                    // Trigger Event's own triggerable uniques (e.g. TriggerLuaFunction)
+                    for (eventUnique in event.uniqueObjects) {
+                        if (eventUnique.isTriggerable && eventUnique.conditionalsApply(gameContext))
+                            triggerUnique(eventUnique, civInfo, city, unit, tile, notification, triggerNotificationText)
+                    }
                     val choice = choices.toList().randomWeighted(rng) { it.getWeightForAiDecision(gameContext) }
                     choice.triggerChoice(civInfo, unit)
                 }
                 if (event.presentation == Event.Presentation.Alert) return {
+                    // Trigger Event's own triggerable uniques (e.g. TriggerLuaFunction)
+                    for (eventUnique in event.uniqueObjects) {
+                        if (eventUnique.isTriggerable && eventUnique.conditionalsApply(gameContext))
+                            triggerUnique(eventUnique, civInfo, city, unit, tile, notification, triggerNotificationText)
+                    }
                     /** See [com.unciv.ui.screens.worldscreen.AlertPopup.addEvent] for the deserializing of this string to the context */
                     var eventText = event.name
                     if (unit != null) eventText += Constants.stringSplitCharacter + "unitId=" + unit.id

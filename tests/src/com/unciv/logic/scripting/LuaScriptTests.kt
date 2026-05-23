@@ -7,6 +7,8 @@ import com.unciv.logic.map.TileMap
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
+import com.unciv.models.ruleset.Event
+import com.unciv.models.ruleset.EventChoice
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
@@ -192,5 +194,73 @@ class LuaScriptTests {
         // Verify default retrieval works
         val missing = civ.gameInfo.modLuaStorage[modName]?.get("never_set")
         Assert.assertNull(missing)
+    }
+
+    @Test
+    fun triggerLuaOnEventObject() {
+        // Test that TriggerLuaFunction on Event object fires when event triggers
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        civ.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
+
+        // Create an Event with TriggerLuaFunction on the Event itself
+        val event = Event().apply {
+            name = "TestEvent"
+            uniques.add("Trigger the function [$modName:testStore] with [eventTest]")
+            // Need at least one choice for event to be valid
+            choices.add(EventChoice().apply {
+                text = "OK"
+                uniques.add("Comment [event choice executed]")
+            })
+        }
+        testGame.ruleset.events[event.name] = event
+
+        // Ensure modLuaStorage doesn't have the test key yet
+        Assert.assertNull(civ.gameInfo.modLuaStorage[modName]?.get("test_key"))
+
+        // Trigger the event via TriggerEvent unique
+        val triggerEventUnique = Unique("Triggers a [TestEvent] event")
+        val result = UniqueTriggerActivation.triggerUnique(
+            triggerEventUnique, civ, city, null, city.getCenterTile()
+        )
+
+        Assert.assertTrue("TriggerEvent should succeed", result)
+
+        // Verify the Event's Lua function fired and stored data
+        val stored = civ.gameInfo.modLuaStorage[modName]?.get("test_key")
+        Assert.assertEquals("Event-level TriggerLuaFunction should have fired", "hello_world", stored)
+    }
+
+    @Test
+    fun triggerLuaOnEventChoice() {
+        // Test that TriggerLuaFunction on EventChoice fires when choice is selected
+        // Use AI civ so choices are auto-triggered (Presentation.None workflow)
+        val civ = testGame.addCiv(isPlayer = false)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        civ.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
+
+        // Ensure storage is clean
+        civ.gameInfo.modLuaStorage[modName]?.remove("test_key")
+
+        val event = Event().apply {
+            name = "TestEvent2"
+            uniques.add("Comment [event with lua choice]")
+            choices.add(EventChoice().apply {
+                text = "Lua Choice"
+                uniques.add("Trigger the function [$modName:testStore] with [choiceTest]")
+            })
+        }
+        testGame.ruleset.events[event.name] = event
+
+        Assert.assertNull(civ.gameInfo.modLuaStorage[modName]?.get("test_key"))
+
+        val triggerEventUnique = Unique("Triggers a [TestEvent2] event")
+        val result = UniqueTriggerActivation.triggerUnique(
+            triggerEventUnique, civ, city, null, city.getCenterTile()
+        )
+
+        Assert.assertTrue("TriggerEvent via choice should succeed", result)
+        val stored = civ.gameInfo.modLuaStorage[modName]?.get("test_key")
+        Assert.assertEquals("EventChoice-level TriggerLuaFunction should have fired", "hello_world", stored)
     }
 }
