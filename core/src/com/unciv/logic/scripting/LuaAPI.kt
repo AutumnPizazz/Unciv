@@ -7,7 +7,9 @@ import com.unciv.logic.civilization.diplomacy.DiplomaticStatus
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
+import com.unciv.models.ruleset.unique.Conditionals
 import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
 import com.unciv.ui.screens.victoryscreen.RankingType
@@ -24,7 +26,8 @@ object LuaAPI {
         unit: MapUnit?,
         tile: Tile?,
         resolvedParam: String,
-        gameContext: GameContext
+        gameContext: GameContext,
+        modName: String = ""
     ): LuaValue {
         val ctx = LuaValue.tableOf()
         ctx.set("parameter", LuaValue.valueOf(resolvedParam))
@@ -43,6 +46,29 @@ object LuaAPI {
             val result = LuaScriptManager.resolveCountablesInString(expr, gameContext)
             LuaValue.valueOf(result)
         })
+        ctx.set("evaluateConditional", luaFunction { args ->
+            val conditionalText = args.arg(1).tojstring()
+            val conditional = Unique(conditionalText)
+            val applies = Conditionals.conditionalApplies(null, conditional, gameContext)
+            LuaValue.valueOf(applies)
+        })
+
+        if (modName.isNotEmpty()) {
+            val storage = civInfo.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
+            val store = LuaValue.tableOf()
+            store.set("get", luaFunction { args ->
+                val key = args.arg(1).tojstring()
+                val defaultValue = if (args.narg() > 1) args.arg(2).tojstring() else ""
+                LuaValue.valueOf(storage[key] ?: defaultValue)
+            })
+            store.set("set", luaFunction { args ->
+                val key = args.arg(1).tojstring()
+                val value = args.arg(2).tojstring()
+                storage[key] = value
+                LuaValue.NIL
+            })
+            ctx.set("store", store)
+        }
 
         return ctx
     }
@@ -485,6 +511,20 @@ object LuaAPI {
             LuaValue.NIL
         })
 
+        // Production queue
+        t.set("setProduction", luaFunction { args ->
+            city.cityConstructions.setCurrentConstruction(args.arg(1).tojstring())
+            LuaValue.NIL
+        })
+        t.set("addToQueue", luaFunction { args ->
+            city.cityConstructions.addToQueue(args.arg(1).tojstring())
+            LuaValue.NIL
+        })
+        t.set("clearQueue", luaFunction {
+            city.cityConstructions.removeAll()
+            LuaValue.NIL
+        })
+
         return t
     }
     // endregion
@@ -598,6 +638,28 @@ object LuaAPI {
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
             if (target != null) unit.movement.moveToTile(target)
             LuaValue.NIL
+        })
+
+        // Pathfinding
+        t.set("findPathTo", luaFunction { args ->
+            val x = args.arg(1).toint()
+            val y = args.arg(2).toint()
+            val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.NIL
+            val path = unit.movement.getShortestPath(target)
+            val arr = LuaTable()
+            for (i in path.indices) {
+                val pt = LuaValue.tableOf()
+                pt.set("x", LuaValue.valueOf(path[i].position.x))
+                pt.set("y", LuaValue.valueOf(path[i].position.y))
+                arr.set(LuaValue.valueOf(i + 1), pt)
+            }
+            arr
+        })
+        t.set("canReach", luaFunction { args ->
+            val x = args.arg(1).toint()
+            val y = args.arg(2).toint()
+            val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.FALSE
+            LuaValue.valueOf(unit.movement.canReach(target))
         })
 
         return t
@@ -786,6 +848,18 @@ object LuaAPI {
             val tile = gameInfo.tileMap[HexCoord(x, y)]
             if (tile != null) buildTileTable(tile, civInfo) else LuaValue.NIL
         })
+        t.set("findTiles", luaFunction { args ->
+            val criteria = args.arg(1).checktable()
+            val tiles = gameInfo.tileMap.values.asSequence()
+            val filtered = filterTilesByCriteria(tiles, criteria, civInfo)
+            val arr = LuaTable()
+            var idx = 1
+            for (tile in filtered) {
+                arr.set(LuaValue.valueOf(idx), buildTileTable(tile, civInfo))
+                idx++
+            }
+            arr
+        })
         t.set("getMapWidth", luaFunction {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.mapSize.width)
         })
@@ -871,6 +945,67 @@ object LuaAPI {
         })
 
         return t
+    }
+    // endregion
+
+    // region helpers
+    private fun filterTilesByCriteria(
+        tiles: Sequence<Tile>,
+        criteria: LuaValue,
+        civInfo: Civilization
+    ): Sequence<Tile> {
+        var result = tiles
+
+        val resourceName = (criteria.get("resource").takeIf { !it.isnil() })?.tojstring()
+        if (resourceName != null)
+            result = result.filter { it.tileResource?.name == resourceName }
+
+        val terrainName = (criteria.get("terrain").takeIf { !it.isnil() })?.tojstring()
+        if (terrainName != null)
+            result = result.filter { it.baseTerrain == terrainName }
+
+        val terrainFeature = (criteria.get("terrainFeature").takeIf { !it.isnil() })?.tojstring()
+        if (terrainFeature != null)
+            result = result.filter { it.terrainFeatures.contains(terrainFeature) }
+
+        val improvement = (criteria.get("improvement").takeIf { !it.isnil() })?.tojstring()
+        if (improvement != null)
+            result = result.filter { it.improvement == improvement }
+
+        val owned = criteria.get("owned")
+        if (!owned.isnil())
+            result = result.filter { owned.toboolean() == (it.getOwner() != null) }
+
+        val ownerName = (criteria.get("owner").takeIf { !it.isnil() })?.tojstring()
+        if (ownerName != null)
+            result = result.filter { it.getOwner()?.civName == ownerName }
+
+        val isCoast = criteria.get("isCoast")
+        if (!isCoast.isnil())
+            result = result.filter { isCoast.toboolean() == (it.baseTerrain == "Coast") }
+
+        val isLand = criteria.get("isLand")
+        if (!isLand.isnil())
+            result = result.filter { isLand.toboolean() == it.isLand }
+
+        val isWater = criteria.get("isWater")
+        if (!isWater.isnil())
+            result = result.filter { isWater.toboolean() == it.isWater }
+
+        val isHill = criteria.get("isHill")
+        if (!isHill.isnil())
+            result = result.filter { isHill.toboolean() == it.isHill() }
+
+        val maxDistance = criteria.get("maxDistance")
+        if (!maxDistance.isnil()) {
+            val centerX = criteria.get("centerX").toint()
+            val centerY = criteria.get("centerY").toint()
+            val origin = HexCoord(centerX, centerY)
+            val tilesInRange = civInfo.gameInfo.tileMap.getTilesInDistance(origin, maxDistance.toint()).toHashSet()
+            result = result.filter { it in tilesInRange }
+        }
+
+        return result
     }
     // endregion
 }

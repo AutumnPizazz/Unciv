@@ -162,10 +162,10 @@ object UniqueTriggerActivation {
                 val luaRef = unique.params[0]
                 val rawParam = unique.params.getOrElse(1) { "" }
                 val (modName, functionName) = LuaScriptManager.parseLuaRef(luaRef)
-                val luaFunc = LuaScriptManager.getFunction(modName, functionName) ?: return null
+                val (foundMod, luaFunc) = LuaScriptManager.getFunction(modName, functionName) ?: return null
                 return {
                     val resolvedParam = LuaScriptManager.resolveCountablesInString(rawParam, gameContext)
-                    val ctx = LuaAPI.buildContext(civInfo, city, unit, tile, resolvedParam, gameContext)
+                    val ctx = LuaAPI.buildContext(civInfo, city, unit, tile, resolvedParam, gameContext, foundMod)
                     var success = false
                     LuaScriptManager.callFunction(luaFunc, ctx) { success = it }
                     success

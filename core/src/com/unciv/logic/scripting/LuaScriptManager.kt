@@ -15,7 +15,11 @@ import org.luaj.vm2.lib.jse.JsePlatform
 
 fun luaFunction(block: (Varargs) -> LuaValue): LuaFunction {
     return object : LuaFunction() {
-        override fun onInvoke(args: Varargs): LuaValue = block(args)
+        override fun call(): LuaValue = block(LuaValue.NONE)
+        override fun call(arg: LuaValue): LuaValue = block(arg)
+        override fun call(arg1: LuaValue, arg2: LuaValue): LuaValue = block(LuaValue.varargsOf(arg1, arg2))
+        override fun call(arg1: LuaValue, arg2: LuaValue, arg3: LuaValue): LuaValue =
+            block(LuaValue.varargsOf(arg1, arg2, arg3))
     }
 }
 
@@ -34,9 +38,6 @@ object LuaScriptManager {
     fun clearMod(modName: String) {
         modGlobals.remove(modName)
     }
-
-    /** Max duration for a single Lua function call in milliseconds */
-    private const val LUA_CALL_TIMEOUT_MS = 10_000L
 
     fun getKnownFunctions(ruleset: Ruleset): Set<String> {
         val functions = HashSet<String>()
@@ -88,20 +89,20 @@ object LuaScriptManager {
         return loaded
     }
 
-    fun getFunction(modName: String, functionName: String): LuaFunction? {
+    fun getFunction(modName: String, functionName: String): Pair<String, LuaFunction>? {
         if (modName.isNotEmpty()) {
             val globals = modGlobals[modName]
             if (globals != null) {
                 val func = globals.get(functionName)
                 if (func != LuaValue.NIL && func is LuaFunction)
-                    return func
+                    return modName to func
             }
         }
         // Fallback: search all mod globals
-        for ((_, g) in modGlobals) {
+        for ((name, g) in modGlobals) {
             val func = g.get(functionName)
             if (func != LuaValue.NIL && func is LuaFunction)
-                return func
+                return name to func
         }
         Log.debug("Lua: function '$functionName' not found in any loaded mod")
         return null

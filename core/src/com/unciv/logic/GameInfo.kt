@@ -150,6 +150,9 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** Used by polling multiplayer: civIDs of players who have clicked "done" for the current game turn. */
     var playersFinishedThisTurn = HashSet<String>()
 
+    /** Persistent key-value storage for Lua mods. Outer key = mod name, inner key = storage key. */
+    var modLuaStorage = HashMap<String, HashMap<String, String>>()
+
     //endregion
     //region Fields - Transient
 

@@ -7,6 +7,7 @@ val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito)
+    testImplementation(libs.luaj.jse)
     mockitoAgent(libs.mockito) { isTransitive = false }
 }
 
