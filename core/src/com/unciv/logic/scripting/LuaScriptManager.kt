@@ -112,44 +112,15 @@ object LuaScriptManager {
         ctxTable: LuaValue,
         onSuccess: (Boolean) -> Unit
     ) {
-        val lock = Object()
-        var result: LuaValue? = null
-        var error: Exception? = null
-
-        val thread = Thread {
-            try {
-                result = func.call(ctxTable)
-            } catch (ex: LuaError) {
-                error = ex
-            } catch (ex: Exception) {
-                error = ex
-            }
-            synchronized(lock) { lock.notify() }
-        }
-        thread.isDaemon = true
-        thread.start()
-
-        synchronized(lock) {
-            try {
-                lock.wait(LUA_CALL_TIMEOUT_MS)
-            } catch (ex: InterruptedException) {
-                Thread.currentThread().interrupt()
-            }
-        }
-
-        if (thread.isAlive) {
-            Log.error("Lua execution timed out after ${LUA_CALL_TIMEOUT_MS}ms")
+        try {
+            val result = func.call(ctxTable)
+            val success = result.toboolean(1)
+            onSuccess(success)
+        } catch (ex: LuaError) {
+            Log.error("Lua runtime error: ${ex.message}")
             onSuccess(false)
-        } else if (error != null) {
-            val err = error!!
-            when (err) {
-                is LuaError -> Log.error("Lua runtime error: ${err.message}")
-                else -> Log.error("Unexpected Lua error: ${err.message}")
-            }
-            onSuccess(false)
-        } else if (result != null) {
-            onSuccess(result!!.toboolean(1))
-        } else {
+        } catch (ex: Exception) {
+            Log.error("Unexpected Lua error: ${ex.message}")
             onSuccess(false)
         }
     }
