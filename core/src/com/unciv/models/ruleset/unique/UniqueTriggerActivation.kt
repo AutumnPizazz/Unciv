@@ -161,7 +161,7 @@ object UniqueTriggerActivation {
             UniqueType.TriggerLuaFunction -> {
                 val luaRef = unique.params[0]
                 val rawParam = unique.params.getOrElse(1) { "" }
-                val (modName, functionName) = LuaScriptManager.parseLuaRef(luaRef, ruleset.name)
+                val (modName, functionName) = LuaScriptManager.parseLuaRef(luaRef)
                 val luaFunc = LuaScriptManager.getFunction(modName, functionName) ?: return null
                 return {
                     val resolvedParam = LuaScriptManager.resolveCountablesInString(rawParam, gameContext)

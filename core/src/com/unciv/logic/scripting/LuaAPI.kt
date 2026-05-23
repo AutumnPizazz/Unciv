@@ -394,7 +394,7 @@ object LuaAPI {
         ))
         t.set("isPuppet", LuaValue.valueOf(city.isPuppet))
         t.set("isBeingRazed", LuaValue.valueOf(city.isBeingRazed))
-        t.set("isConnectedToCapital", LuaValue.valueOf(true)) // Always true from Lua's perspective
+        t.set("isConnectedToCapital", LuaValue.valueOf(city.isConnectedToCapital()))
 
         t.set("population", LuaValue.valueOf(city.population.population))
         t.set("health", LuaValue.valueOf(city.health))
@@ -632,7 +632,7 @@ object LuaAPI {
             arr
         })
         t.set("isImpassable", luaFunction { LuaValue.valueOf(tile.isImpassible()) })
-        t.set("isRiver", luaFunction { LuaValue.valueOf(tile.isConnectedByRiver(tile)) })
+        t.set("isRiver", luaFunction { LuaValue.valueOf(tile.neighbors.any { tile.isConnectedByRiver(it) }) })
 
         t.set("hasResource", luaFunction { LuaValue.valueOf(tile.tileResource != null) })
         t.set("resourceName", LuaValue.valueOf(tile.tileResource?.name ?: ""))
@@ -704,7 +704,6 @@ object LuaAPI {
             tile.removeImprovement()
             LuaValue.NIL
         })
-        t.set("isPillaged", luaFunction { LuaValue.valueOf(tile.isPillaged()) })
         t.set("removeResource", luaFunction {
             tile.tileResource = null
             tile.resourceAmount = 0

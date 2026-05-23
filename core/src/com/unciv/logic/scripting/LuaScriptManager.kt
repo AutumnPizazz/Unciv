@@ -15,12 +15,7 @@ import org.luaj.vm2.lib.jse.JsePlatform
 
 fun luaFunction(block: (Varargs) -> LuaValue): LuaFunction {
     return object : LuaFunction() {
-        override fun call(): LuaValue = block(LuaValue.NONE)
-        override fun call(arg: LuaValue): LuaValue = block(LuaValue.varargsOf(arg, LuaValue.NONE))
-        override fun call(arg1: LuaValue, arg2: LuaValue): LuaValue =
-            block(LuaValue.varargsOf(arg1, LuaValue.varargsOf(arg2, LuaValue.NONE)))
-        override fun call(arg1: LuaValue, arg2: LuaValue, arg3: LuaValue): LuaValue =
-            block(LuaValue.varargsOf(arg1, LuaValue.varargsOf(arg2, LuaValue.varargsOf(arg3, LuaValue.NONE))))
+        override fun onInvoke(args: Varargs): LuaValue = block(args)
     }
 }
 
@@ -32,6 +27,17 @@ object LuaScriptManager {
     /** Globals per mod for sandbox isolation */
     private val modGlobals = HashMap<String, Globals>()
 
+    fun clear() {
+        modGlobals.clear()
+    }
+
+    fun clearMod(modName: String) {
+        modGlobals.remove(modName)
+    }
+
+    /** Max duration for a single Lua function call in milliseconds */
+    private const val LUA_CALL_TIMEOUT_MS = 10_000L
+
     fun getKnownFunctions(ruleset: Ruleset): Set<String> {
         val functions = HashSet<String>()
         for (modName in ruleset.mods) {
@@ -39,7 +45,7 @@ object LuaScriptManager {
             // Enumerate non-nil globals that are functions
             for (key in g.keys()) {
                 val v = g.get(key)
-                if (v is LuaFunction && v !is org.luaj.vm2.LuaClosure) continue
+                if (v !is org.luaj.vm2.LuaClosure) continue
                 functions.add(key.tojstring())
             }
         }
@@ -83,11 +89,13 @@ object LuaScriptManager {
     }
 
     fun getFunction(modName: String, functionName: String): LuaFunction? {
-        val globals = modGlobals[modName]
-        if (globals != null) {
-            val func = globals.get(functionName)
-            if (func != LuaValue.NIL && func is LuaFunction)
-                return func
+        if (modName.isNotEmpty()) {
+            val globals = modGlobals[modName]
+            if (globals != null) {
+                val func = globals.get(functionName)
+                if (func != LuaValue.NIL && func is LuaFunction)
+                    return func
+            }
         }
         // Fallback: search all mod globals
         for ((_, g) in modGlobals) {
@@ -104,15 +112,44 @@ object LuaScriptManager {
         ctxTable: LuaValue,
         onSuccess: (Boolean) -> Unit
     ) {
-        try {
-            val result = func.call(ctxTable)
-            val success = result.toboolean(1)
-            onSuccess(success)
-        } catch (ex: LuaError) {
-            Log.error("Lua runtime error: ${ex.message}")
+        val lock = Object()
+        var result: LuaValue? = null
+        var error: Exception? = null
+
+        val thread = Thread {
+            try {
+                result = func.call(ctxTable)
+            } catch (ex: LuaError) {
+                error = ex
+            } catch (ex: Exception) {
+                error = ex
+            }
+            synchronized(lock) { lock.notify() }
+        }
+        thread.isDaemon = true
+        thread.start()
+
+        synchronized(lock) {
+            try {
+                lock.wait(LUA_CALL_TIMEOUT_MS)
+            } catch (ex: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+        }
+
+        if (thread.isAlive) {
+            Log.error("Lua execution timed out after ${LUA_CALL_TIMEOUT_MS}ms")
             onSuccess(false)
-        } catch (ex: Exception) {
-            Log.error("Unexpected Lua error: ${ex.message}")
+        } else if (error != null) {
+            val err = error!!
+            when (err) {
+                is LuaError -> Log.error("Lua runtime error: ${err.message}")
+                else -> Log.error("Unexpected Lua error: ${err.message}")
+            }
+            onSuccess(false)
+        } else if (result != null) {
+            onSuccess(result!!.toboolean(1))
+        } else {
             onSuccess(false)
         }
     }
@@ -126,10 +163,10 @@ object LuaScriptManager {
         }
     }
 
-    fun parseLuaRef(luaRef: String, modName: String): Pair<String, String> {
+    fun parseLuaRef(luaRef: String): Pair<String, String> {
         val parts = luaRef.split(":", limit = 2)
         return if (parts.size == 2) parts[0] to parts[1]
-        else modName to parts[0]
+        else "" to parts[0]
     }
 
     @Readonly fun isValidFunctionRef(ref: String): Boolean = luaFunctionRefRegex.matches(ref)
@@ -144,7 +181,7 @@ object LuaScriptManager {
             "require", "collectgarbage", "module",
             "rawget", "rawset", "rawequal", "rawlen",
             "setmetatable", "getmetatable", "newproxy",
-            "debug"
+            "debug", "coroutine"
         )) {
             globals.set(dangerous, LuaValue.NIL)
         }

@@ -5,6 +5,7 @@ import com.badlogic.gdx.files.FileHandle
 import com.unciv.UncivGame
 import com.unciv.logic.UncivShowableException
 import com.unciv.logic.map.MapParameters
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.ruleset.validation.RulesetErrorList
@@ -26,6 +27,7 @@ object RulesetCache : HashMap<String, Ruleset>() {
     /** Returns error lines from loading the rulesets, so we can display the errors to users */
     fun loadRulesets(consoleMode: Boolean = false, noMods: Boolean = false): List<String> {
         val parallel = true // set to false to debug loading issues more easily
+        LuaScriptManager.clear()
         val startTimeMs = System.currentTimeMillis()
         val newRulesets = ConcurrentHashMap<String, Ruleset>()
         fun getBuiltinRulesetFileHandle(ruleset: BaseRuleset): FileHandle {
@@ -98,6 +100,7 @@ object RulesetCache : HashMap<String, Ruleset>() {
     fun reloadSingleRuleset(modName: String): List<String> {
         val modFolder = UncivGame.Current.files.getModsFolder().child(modName)
         if (!modFolder.exists() || !modFolder.isDirectory) return listOf("No such mod") // No translation template - shouldn't ever happen?
+        LuaScriptManager.clearMod(modName)
         val errorLines = ArrayList<String>()
         Concurrency.parallelize(listOf {
             val newRuleset = loadSingleRuleset(modFolder, errorLines)
