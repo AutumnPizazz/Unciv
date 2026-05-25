@@ -145,8 +145,6 @@ class WorldScreen(
     /** Seconds remaining in the current polling window. Updated by the timer coroutine. */
     var pollingSecondsRemaining: Int = 0
 
-    /** Periodic coroutine that queries other players' online status in polling mode. */
-    private var onlineStatusJob: Job? = null
     /** Map of civilization name -> last response timestamp (millis) for online status tracking. */
     val playerOnlineTimes = mutableMapOf<String, Long>()
     private val onlineTimeoutMs = 30_000L
@@ -222,6 +220,7 @@ class WorldScreen(
                 }
                 Concurrency.run("Load latest multiplayer state") {
                     loadLatestMultiplayerState()
+                    sendOnlineQuery()
                 }
             }
             events.receive(OnlineStatusUpdated::class, { it.gameId == gameId }) { update ->
@@ -234,7 +233,6 @@ class WorldScreen(
             ChatWebSocket.start()  // ensure push notifications for game updates
             if (isPlayersTurn)
                 startPollingTimer()
-            startOnlineStatusQuery()
 
             playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
         }
@@ -249,8 +247,6 @@ class WorldScreen(
     override fun dispose() {
         resizeDeferTimer?.cancel()
         stopPollingTimer()
-        onlineStatusJob?.cancel()
-        onlineStatusJob = null
         events.stopReceiving()
         statusButtons.dispose()
         super.dispose()
@@ -727,20 +723,14 @@ class WorldScreen(
         pollingSecondsRemaining = 0
     }
 
-    /** Start periodic online status queries to other players in polling mode. */
-    private fun startOnlineStatusQuery() {
-        onlineStatusJob?.cancel()
-        onlineStatusJob = Concurrency.run("OnlineStatusQuery") {
-            while (isActive) {
-                playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
-                ChatWebSocket.requestMessageSend(
-                    com.unciv.logic.multiplayer.chat.Message.OnlineQuery(
-                        gameInfo.gameId, viewingCiv.civName
-                    )
-                )
-                delay(15_000)
-            }
-        }
+    /** Send a one-shot online status query to all other players in this game. */
+    fun sendOnlineQuery() {
+        playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
+        ChatWebSocket.requestMessageSend(
+            com.unciv.logic.multiplayer.chat.Message.OnlineQuery(
+                gameInfo.gameId, viewingCiv.civName
+            )
+        )
     }
 
     /** Returns true if the given civName has responded to an online status query within [onlineTimeoutMs]. */
