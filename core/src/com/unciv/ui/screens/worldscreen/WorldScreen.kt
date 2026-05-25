@@ -16,6 +16,7 @@ import com.unciv.logic.event.EventBus
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapVisualization
 import com.unciv.logic.multiplayer.MultiplayerGameUpdated
+import com.unciv.logic.multiplayer.OnlineStatusUpdated
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
@@ -52,6 +53,7 @@ import com.unciv.ui.screens.victoryscreen.VictoryScreen
 import com.unciv.ui.screens.worldscreen.bottombar.BattleTable
 import com.unciv.ui.screens.worldscreen.bottombar.TileInfoTable
 import com.unciv.ui.screens.worldscreen.chat.ChatButton
+import com.unciv.ui.screens.worldscreen.chat.OnlineStatusButton
 import com.unciv.ui.screens.worldscreen.mainmenu.WorldScreenMusicPopup
 import com.unciv.ui.screens.worldscreen.minimap.MinimapHolder
 import com.unciv.ui.screens.worldscreen.status.AutoPlayStatusButton
@@ -119,6 +121,7 @@ class WorldScreen(
     internal val topBar = WorldScreenTopBar(this)
     internal val techPolicyAndDiplomacy = TechPolicyDiplomacyButtons(this)
     internal val chatButton = ChatButton(this)
+    internal val onlineStatusButton = OnlineStatusButton(this)
     private val unitActionsTable = UnitActionsTable(this)
     /** Bottom left widget holding information about a selected unit or city */
     internal val bottomUnitTable = UnitTable(this)
@@ -141,6 +144,10 @@ class WorldScreen(
     private var pollingTimerJob: Job? = null
     /** Seconds remaining in the current polling window. Updated by the timer coroutine. */
     var pollingSecondsRemaining: Int = 0
+
+    /** Map of civilization name -> last response timestamp (millis) for online status tracking. */
+    val playerOnlineTimes = mutableMapOf<String, Long>()
+    private val onlineTimeoutMs = 30_000L
 
     private val events = EventBus.EventReceiver()
 
@@ -170,6 +177,7 @@ class WorldScreen(
         stage.addActor(statusButtons)
         stage.addActor(techPolicyAndDiplomacy)
         stage.addActor(chatButton)
+        stage.addActor(onlineStatusButton)
 
         stage.addActor(zoomController)
         zoomController.isVisible = UncivGame.Current.settings.showZoomButtons
@@ -212,7 +220,12 @@ class WorldScreen(
                 }
                 Concurrency.run("Load latest multiplayer state") {
                     loadLatestMultiplayerState()
+                    sendOnlineQuery()
                 }
+            }
+            events.receive(OnlineStatusUpdated::class, { it.gameId == gameId }) { update ->
+                playerOnlineTimes[update.civName] = System.currentTimeMillis()
+                shouldUpdate = true
             }
         }
 
@@ -220,6 +233,8 @@ class WorldScreen(
             ChatWebSocket.start()  // ensure push notifications for game updates
             if (isPlayersTurn)
                 startPollingTimer()
+
+            playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
         }
 
         if (restoreState != null) restore(restoreState)
@@ -708,6 +723,22 @@ class WorldScreen(
         pollingSecondsRemaining = 0
     }
 
+    /** Send a one-shot online status query to all other players in this game. */
+    fun sendOnlineQuery() {
+        playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
+        ChatWebSocket.requestMessageSend(
+            com.unciv.logic.multiplayer.chat.Message.OnlineQuery(
+                gameInfo.gameId, viewingCiv.civName
+            )
+        )
+    }
+
+    /** Returns true if the given civName has responded to an online status query within [onlineTimeoutMs]. */
+    fun isPlayerOnline(civName: String): Boolean {
+        val lastSeen = playerOnlineTimes[civName] ?: return false
+        return (System.currentTimeMillis() - lastSeen) < onlineTimeoutMs
+    }
+
     /** Called when the player clicks "I'm done".
      *  Marks the current player as done and either passes to the next player or advances the turn. */
     fun finishPollingTurn() {
@@ -839,6 +870,7 @@ class WorldScreen(
 
         // Update chat button position to always be below techPolicyAndDiplomacy
         chatButton.updatePosition()
+        onlineStatusButton.updatePosition()
     }
 
     private fun updateAutoPlayStatusButton() {

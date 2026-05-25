@@ -49,3 +49,9 @@ class MultiplayerGameNameChanged(
     override val name: String,
     val newName: String
 ) : Event, HasMultiplayerGameName
+
+/** Fired when an online status response is received via WebSocket in polling multiplayer. */
+class OnlineStatusUpdated(
+    val gameId: String,
+    val civName: String
+) : Event

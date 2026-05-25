@@ -53,6 +53,18 @@ sealed class Message {
     data class Leave(
         val gameIds: List<String>
     ) : Message()
+
+    @Serializable
+    @SerialName("onlineQuery")
+    data class OnlineQuery(
+        val gameId: String, val civName: String
+    ) : Message()
+
+    @Serializable
+    @SerialName("onlineResponse")
+    data class OnlineResponse(
+        val gameId: String, val civName: String
+    ) : Message()
 }
 
 // used when receiving a message
@@ -80,6 +92,18 @@ sealed class Response {
     @SerialName("gameUpdated")
     data class GameUpdated(
         val gameId: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("onlineQuery")
+    data class OnlineQuery(
+        val gameId: String, val civName: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("onlineResponse")
+    data class OnlineResponse(
+        val gameId: String, val civName: String
     ) : Response()
 }
 
@@ -221,6 +245,28 @@ object ChatWebSocket {
                                         EventBus.send(MultiplayerGameUpdated("", preview))
                                     } catch (_: Exception) { }
                                 }
+                            }
+                        }
+
+                        is Response.OnlineQuery -> {
+                            val worldScreen = UncivGame.Current.worldScreen
+                            if (worldScreen != null
+                                && worldScreen.gameInfo.gameId == response.gameId
+                                && response.civName != worldScreen.viewingCiv.civName
+                            ) {
+                                requestMessageSend(
+                                    Message.OnlineResponse(response.gameId, worldScreen.viewingCiv.civName)
+                                )
+                            }
+                        }
+                        is Response.OnlineResponse -> {
+                            val worldScreen = UncivGame.Current.worldScreen
+                            if (worldScreen != null
+                                && worldScreen.gameInfo.gameId == response.gameId
+                            ) {
+                                EventBus.send(com.unciv.logic.multiplayer.OnlineStatusUpdated(
+                                    response.gameId, response.civName
+                                ))
                             }
                         }
                     }

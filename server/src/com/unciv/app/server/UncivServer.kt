@@ -65,6 +65,18 @@ sealed class Message {
     data class Leave(
         val gameIds: List<String>
     ) : Message()
+
+    @Serializable
+    @SerialName("onlineQuery")
+    data class OnlineQuery(
+        val gameId: String, val civName: String
+    ) : Message()
+
+    @Serializable
+    @SerialName("onlineResponse")
+    data class OnlineResponse(
+        val gameId: String, val civName: String
+    ) : Message()
 }
 
 // used when receiving a message
@@ -92,6 +104,18 @@ sealed class Response {
     @SerialName("gameUpdated")
     data class GameUpdated(
         val gameId: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("onlineQuery")
+    data class OnlineQuery(
+        val gameId: String, val civName: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("onlineResponse")
+    data class OnlineResponse(
+        val gameId: String, val civName: String
     ) : Response()
 }
 
@@ -437,6 +461,19 @@ private class UncivServerRunner : CliktCommand() {
                                     }
 
                                     is Message.Leave -> wsSessionManager.unsubscribe(this, message.gameIds)
+
+                                    is Message.OnlineQuery -> {
+                                        val gameId = message.gameId.toUuidOrNull()
+                                        if (gameId != null && wsSessionManager.isSubscribed(this, gameId)) {
+                                            wsSessionManager.publish(gameId, Response.OnlineQuery(message.gameId, message.civName))
+                                        }
+                                    }
+                                    is Message.OnlineResponse -> {
+                                        val gameId = message.gameId.toUuidOrNull()
+                                        if (gameId != null && wsSessionManager.isSubscribed(this, gameId)) {
+                                            wsSessionManager.publish(gameId, Response.OnlineResponse(message.gameId, message.civName))
+                                        }
+                                    }
                                 }
                                 yield()
                             }

@@ -157,6 +157,7 @@ android/assets/scenarios/
 # When running the desktop app locally using "gradlew desktop:run"
 lasterror.txt
 GameSettings.json
+/client/
 ModListCache.json
 fonts/
 maps/
