@@ -40,6 +40,9 @@ import kotlin.random.Random
 // Buildings, techs, policies, ancient ruins and promotions can have 'triggered' effects
 object UniqueTriggerActivation {
 
+    /** Tracks already-warned missing Lua function references to prevent log spam at runtime. */
+    private val warnedMissingFunctions = HashSet<String>()
+
     fun triggerUnique(
         unique: Unique,
         city: City,
@@ -172,7 +175,11 @@ object UniqueTriggerActivation {
                 val luaRef = unique.params[0]
                 val rawParam = unique.params.getOrElse(1) { "" }
                 val (modName, functionName) = LuaScriptManager.parseLuaRef(luaRef)
-                val (foundMod, luaFunc) = LuaScriptManager.getFunction(modName, functionName) ?: return null
+                val (foundMod, luaFunc) = LuaScriptManager.getFunction(modName, functionName) ?: run {
+                    if (warnedMissingFunctions.add(luaRef))
+                        com.unciv.utils.Log.error("TriggerLuaFunction: Lua function '$functionName' not found (mod: '$modName', ref: '$luaRef')")
+                    return null
+                }
                 return {
                     val resolvedParam = LuaScriptManager.resolveCountablesInString(rawParam, gameContext)
                     val ctx = LuaAPI.buildContext(civInfo, city, unit, tile, resolvedParam, gameContext, foundMod)

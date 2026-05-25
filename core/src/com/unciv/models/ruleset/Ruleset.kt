@@ -102,6 +102,10 @@ class Ruleset {
     /** The list of mods that made up this Ruleset, including the base ruleset. */
     val mods = LinkedHashSet<String>()
 
+    /** Lua script loading/validation errors collected during [load].
+     *  Cleared on [load], populated by [LuaScriptManager], consumed by [RulesetValidator]. */
+    val luaErrors = mutableListOf<com.unciv.logic.scripting.LuaScriptError>()
+
     //region Json fields
     val beliefs = LinkedHashMap<String, Belief>()
     val buildings = LinkedHashMap<String, Building>()
@@ -841,6 +845,7 @@ class Ruleset {
     }
 
     fun load(folderHandle: FileHandle) {
+        luaErrors.clear()
         fun RulesetFile.file() = folderHandle.child(filename)
 
         // Note: Most files are loaded using createHashmap, which sets originRuleset automatically.

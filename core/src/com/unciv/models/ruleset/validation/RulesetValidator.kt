@@ -8,6 +8,8 @@ import com.unciv.UncivGame
 import com.unciv.json.fromJsonFile
 import com.unciv.json.json
 import com.unciv.logic.map.tile.RoadStatus
+import com.unciv.logic.scripting.LuaScriptErrorSeverity
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IRulesetObject
@@ -117,6 +119,8 @@ open class RulesetValidator protected constructor(
         addDifficultyErrors(lines)
         addEventErrors(lines)
         addCityStateTypeErrors(lines)
+
+        addLuaErrors(lines)
 
         initTextureNamesCache(lines)
 
@@ -748,6 +752,57 @@ open class RulesetValidator protected constructor(
                     val nameText = (sourceObject as? INamed)?.name?.plus("'s ") ?: ""
                     val text = "(${sourceObject::class.java.simpleName}) ${nameText}civilopediaText line ${index + 1}: $error"
                     lines.add(text, RulesetErrorSeverity.WarningOptionsOnly, sourceObject as? IRulesetObject, null)
+                }
+            }
+        }
+    }
+
+    protected open fun addLuaErrors(lines: RulesetErrorList) {
+        for (luaError in ruleset.luaErrors) {
+            val severity = when (luaError.severity) {
+                LuaScriptErrorSeverity.ERROR -> RulesetErrorSeverity.Error
+                LuaScriptErrorSeverity.WARNING -> RulesetErrorSeverity.Warning
+                LuaScriptErrorSeverity.INFO -> RulesetErrorSeverity.OK
+            }
+            lines.add(luaError.message, severity, sourceObject = null)
+        }
+
+        // Scan TriggerLuaFunction references for missing functions.
+        // Combined ruleset: all mods are loaded, missing function is Error.
+        // Standalone mod: function might be in another mod or base ruleset, so Warning.
+        val missingFuncSeverity = if (reportRulesetSpecificErrors)
+            RulesetErrorSeverity.Error
+        else
+            RulesetErrorSeverity.Warning
+
+        val knownFunctions = LuaScriptManager.getKnownFunctions(ruleset)
+        for (obj in ruleset.allRulesetObjects()) {
+            for (unique in obj.uniqueObjects) {
+                if (unique.type != UniqueType.TriggerLuaFunction) continue
+                val luaRef = unique.params[0]
+                val (refModName, functionName) = LuaScriptManager.parseLuaRef(luaRef)
+
+                // Skip references from other *loaded* mods that leaked via processObjects mutating shared base objects.
+                // E.g., testMOD:hello on base Scout should only be validated when testMOD is in the ruleset.
+                // But unknownMod:func (mod not loaded at all) should still be reported as missing.
+                if (refModName.isNotEmpty() && refModName !in ruleset.mods
+                    && LuaScriptManager.isModLoaded(refModName)) continue
+
+                if (!LuaScriptManager.isValidFunctionRef(luaRef)) {
+                    lines.add(
+                        "\"$luaRef\" is not a valid Lua function reference (format: [modName:]functionName)",
+                        RulesetErrorSeverity.Error, obj, unique
+                    )
+                    continue
+                }
+
+                if (functionName !in knownFunctions) {
+                    val loadedList = if (knownFunctions.size <= 10) knownFunctions.joinToString(",")
+                        else knownFunctions.take(10).joinToString(",") + "...(${knownFunctions.size} total)"
+                    lines.add(
+                        "Lua function '$functionName' not found (ref: '$luaRef', by: ${obj.name}, origin: ${obj.originRuleset}, ruleset: '${ruleset.name}', mods: [${ruleset.mods.joinToString()}], known: [$loadedList])",
+                        missingFuncSeverity, obj, unique
+                    )
                 }
             }
         }

@@ -29,7 +29,7 @@ object LuaScriptManager {
     private val countableRegex = Regex("\\[[^]]+\\]")
 
     /** Globals per mod for sandbox isolation */
-    private val modGlobals = HashMap<String, Globals>()
+    private val modGlobals = java.util.concurrent.ConcurrentHashMap<String, Globals>()
 
     fun clear() {
         modGlobals.clear()
@@ -39,11 +39,14 @@ object LuaScriptManager {
         modGlobals.remove(modName)
     }
 
+    fun isModLoaded(modName: String) = modGlobals.containsKey(modName)
+
     fun getKnownFunctions(ruleset: Ruleset): Set<String> {
         val functions = HashSet<String>()
-        for (modName in ruleset.mods) {
-            val g = modGlobals[modName] ?: continue
-            // Enumerate non-nil globals that are functions
+        for ((modName, g) in modGlobals) {
+            // When mods is populated (combined ruleset), only consider functions from mods in the ruleset.
+            // When mods is empty (standalone mod loaded via loadSingleRuleset), consider all loaded functions.
+            if (ruleset.mods.isNotEmpty() && modName !in ruleset.mods) continue
             for (key in g.keys()) {
                 val v = g.get(key)
                 if (v !is org.luaj.vm2.LuaClosure) continue
@@ -76,9 +79,26 @@ object LuaScriptManager {
                 Log.debug("Lua: loaded script ${file.name()} for mod $modName")
             } catch (ex: LuaError) {
                 Log.error("Lua syntax error in ${file.name()}: ${ex.message}")
+                val lineNum = extractLineNumber(ex.message)
+                val msg = if (lineNum != null)
+                    "Lua script '${file.name()}' has a syntax error at line $lineNum: ${ex.message}"
+                else
+                    "Lua script '${file.name()}' has a syntax error: ${ex.message}"
+                ruleset.luaErrors.add(LuaScriptError(modName, file.name(), LuaScriptErrorSeverity.ERROR, msg, lineNum))
             } catch (ex: Exception) {
                 Log.error("Failed to load Lua script ${file.name()}: ${ex.message}")
+                ruleset.luaErrors.add(LuaScriptError(
+                    modName, file.name(), LuaScriptErrorSeverity.ERROR,
+                    "Failed to load Lua script '${file.name()}': ${ex.message}"
+                ))
             }
+        }
+
+        if (loaded.isNotEmpty()) {
+            ruleset.luaErrors.add(LuaScriptError(
+                modName, null, LuaScriptErrorSeverity.INFO,
+                "Loaded ${loaded.size} Lua script(s) for mod '$modName': ${loaded.joinToString(", ")}"
+            ))
         }
 
         Log.debug("Lua: loaded ${loaded.size} scripts for mod $modName: $loaded")
@@ -104,7 +124,7 @@ object LuaScriptManager {
             if (func != LuaValue.NIL && func is LuaFunction)
                 return name to func
         }
-        Log.debug("Lua: function '$functionName' not found in any loaded mod")
+        Log.error("Lua: function '$functionName' not found in any loaded mod (mod: '$modName')")
         return null
     }
 
@@ -118,10 +138,10 @@ object LuaScriptManager {
             val success = result.toboolean(1)
             onSuccess(success)
         } catch (ex: LuaError) {
-            Log.error("Lua runtime error: ${ex.message}")
+            Log.error("Lua runtime error: ${ex.message}", ex)
             onSuccess(false)
         } catch (ex: Exception) {
-            Log.error("Unexpected Lua error: ${ex.message}")
+            Log.error("Unexpected Lua error: ${ex.message}", ex)
             onSuccess(false)
         }
     }
@@ -142,6 +162,12 @@ object LuaScriptManager {
     }
 
     @Readonly fun isValidFunctionRef(ref: String): Boolean = luaFunctionRefRegex.matches(ref)
+
+    private fun extractLineNumber(message: String?): Int? {
+        if (message == null) return null
+        val regex = Regex(""":(\d+):""")
+        return regex.find(message)?.groupValues?.get(1)?.toIntOrNull()
+    }
 
     private fun createSandboxedGlobals(modName: String, ruleset: Ruleset): Globals {
         val globals = JsePlatform.standardGlobals()
