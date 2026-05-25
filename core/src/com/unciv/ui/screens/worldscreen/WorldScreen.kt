@@ -238,6 +238,7 @@ class WorldScreen(
 
             onlineStatusTable = Table()
             stage.addActor(onlineStatusTable)
+            playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
         }
 
         if (restoreState != null) restore(restoreState)
@@ -735,13 +736,13 @@ class WorldScreen(
         onlineStatusJob?.cancel()
         onlineStatusJob = Concurrency.run("OnlineStatusQuery") {
             while (isActive) {
-                delay(15_000)
-                if (!isActive) break
+                playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
                 ChatWebSocket.requestMessageSend(
                     com.unciv.logic.multiplayer.chat.Message.OnlineQuery(
                         gameInfo.gameId, viewingCiv.civName
                     )
                 )
+                delay(15_000)
             }
         }
     }
