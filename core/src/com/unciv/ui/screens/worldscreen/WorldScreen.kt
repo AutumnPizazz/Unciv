@@ -53,6 +53,7 @@ import com.unciv.ui.screens.victoryscreen.VictoryScreen
 import com.unciv.ui.screens.worldscreen.bottombar.BattleTable
 import com.unciv.ui.screens.worldscreen.bottombar.TileInfoTable
 import com.unciv.ui.screens.worldscreen.chat.ChatButton
+import com.unciv.ui.screens.worldscreen.chat.OnlineStatusButton
 import com.unciv.ui.screens.worldscreen.mainmenu.WorldScreenMusicPopup
 import com.unciv.ui.screens.worldscreen.minimap.MinimapHolder
 import com.unciv.ui.screens.worldscreen.status.AutoPlayStatusButton
@@ -120,6 +121,7 @@ class WorldScreen(
     internal val topBar = WorldScreenTopBar(this)
     internal val techPolicyAndDiplomacy = TechPolicyDiplomacyButtons(this)
     internal val chatButton = ChatButton(this)
+    internal val onlineStatusButton = OnlineStatusButton(this)
     private val unitActionsTable = UnitActionsTable(this)
     /** Bottom left widget holding information about a selected unit or city */
     internal val bottomUnitTable = UnitTable(this)
@@ -149,9 +151,6 @@ class WorldScreen(
     val playerOnlineTimes = mutableMapOf<String, Long>()
     private val onlineTimeoutMs = 30_000L
 
-    /** Shows online/offline status of all players in polling mode. */
-    private var onlineStatusTable: Table? = null
-
     private val events = EventBus.EventReceiver()
 
     private var uiEnabled = true
@@ -180,6 +179,7 @@ class WorldScreen(
         stage.addActor(statusButtons)
         stage.addActor(techPolicyAndDiplomacy)
         stage.addActor(chatButton)
+        stage.addActor(onlineStatusButton)
 
         stage.addActor(zoomController)
         zoomController.isVisible = UncivGame.Current.settings.showZoomButtons
@@ -236,8 +236,6 @@ class WorldScreen(
                 startPollingTimer()
             startOnlineStatusQuery()
 
-            onlineStatusTable = Table()
-            stage.addActor(onlineStatusTable)
             playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
         }
 
@@ -488,8 +486,6 @@ class WorldScreen(
         }
 
         updateGameplayButtons()
-
-        updateOnlineStatus()
 
         val coveredNotificationsTop = stage.height - statusButtons.y
         val coveredNotificationsBottom = (bottomTileInfoTable.height + bottomTileInfoTable.y)
@@ -753,43 +749,6 @@ class WorldScreen(
         return (System.currentTimeMillis() - lastSeen) < onlineTimeoutMs
     }
 
-    /** Update the online status indicator table for all human players. */
-    private fun updateOnlineStatus() {
-        val table = onlineStatusTable ?: return
-        table.clear()
-
-        val humans = gameInfo.civilizations.filter { it.isHuman() && it.isAlive() }
-        if (humans.isEmpty()) {
-            table.isVisible = false
-            return
-        }
-        table.isVisible = true
-
-        for (civ in humans) {
-            val isOnline = isPlayerOnline(civ.civName)
-            val color = when {
-                isOnline -> com.badlogic.gdx.graphics.Color.GREEN
-                playerOnlineTimes.containsKey(civ.civName) -> com.badlogic.gdx.graphics.Color.RED
-                else -> com.badlogic.gdx.graphics.Color.GRAY
-            }
-            val dot = com.badlogic.gdx.scenes.scene2d.ui.Label("●", BaseScreen.skin).apply {
-                this.color = color
-                setFontScale(0.8f)
-            }
-            table.add(dot).padRight(3f)
-            val nameLabel = com.badlogic.gdx.scenes.scene2d.ui.Label(civ.civName, BaseScreen.skin).apply {
-                this.color = com.badlogic.gdx.graphics.Color.WHITE
-                setFontScale(0.8f)
-            }
-            table.add(nameLabel).padRight(10f)
-        }
-        table.pack()
-        table.setPosition(
-            statusButtons.x - table.width - 15f,
-            statusButtons.y + (statusButtons.height - table.height) / 2f
-        )
-    }
-
     /** Called when the player clicks "I'm done".
      *  Marks the current player as done and either passes to the next player or advances the turn. */
     fun finishPollingTurn() {
@@ -921,6 +880,7 @@ class WorldScreen(
 
         // Update chat button position to always be below techPolicyAndDiplomacy
         chatButton.updatePosition()
+        onlineStatusButton.updatePosition()
     }
 
     private fun updateAutoPlayStatusButton() {
