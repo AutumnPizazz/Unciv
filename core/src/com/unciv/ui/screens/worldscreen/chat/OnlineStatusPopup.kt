@@ -4,7 +4,11 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
+import com.badlogic.gdx.utils.Timer
+import com.unciv.ui.components.extensions.disable
+import com.unciv.ui.components.extensions.enable
 import com.unciv.ui.components.extensions.toLabel
+import com.unciv.models.translations.tr
 import com.unciv.ui.components.input.onClick
 import com.unciv.ui.images.IconTextButton
 import com.unciv.ui.images.ImageGetter
@@ -16,6 +20,8 @@ class OnlineStatusPopup(
 ) : Popup(screen = worldScreen, scrollable = Scrollability.None) {
 
     private val playerTable = Table(skin)
+    private val refreshButton = IconTextButton("Refresh", ImageGetter.getImage("OtherIcons/Chat"), 18)
+    private var refreshCooldown = false
 
     init {
         // Header: title + close button
@@ -31,8 +37,20 @@ class OnlineStatusPopup(
         addSeparator()
 
         // Refresh button
-        val refreshButton = IconTextButton("Refresh", ImageGetter.getImage("OtherIcons/Chat"), 18)
-        refreshButton.onClick { refresh() }
+        refreshButton.onClick {
+            if (refreshCooldown) return@onClick
+            refreshCooldown = true
+            refreshButton.disable()
+            refreshButton.label.setText("Refreshing...".tr())
+            refresh()
+            Timer.schedule(object : Timer.Task() {
+                override fun run() {
+                    refreshCooldown = false
+                    refreshButton.label.setText("Refresh".tr())
+                    refreshButton.enable()
+                }
+            }, 1f)
+        }
         add(refreshButton).colspan(2).center().pad(10f).row()
 
         // Send initial query and populate
