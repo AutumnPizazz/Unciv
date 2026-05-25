@@ -802,6 +802,7 @@ class Ruleset {
         eras.clear()
         speeds.clear()
         globalUniques = GlobalUniques()
+        luaErrors.clear()
         mods.clear()
         nations.clear()
         policies.clear()

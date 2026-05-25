@@ -124,7 +124,7 @@ object LuaScriptManager {
             if (func != LuaValue.NIL && func is LuaFunction)
                 return name to func
         }
-        Log.error("Lua: function '$functionName' not found in any loaded mod (mod: '$modName')")
+        Log.debug("Lua: function '$functionName' not found in any loaded mod (mod: '$modName')")
         return null
     }
 

@@ -797,10 +797,8 @@ open class RulesetValidator protected constructor(
                 }
 
                 if (functionName !in knownFunctions) {
-                    val loadedList = if (knownFunctions.size <= 10) knownFunctions.joinToString(",")
-                        else knownFunctions.take(10).joinToString(",") + "...(${knownFunctions.size} total)"
                     lines.add(
-                        "Lua function '$functionName' not found (ref: '$luaRef', by: ${obj.name}, origin: ${obj.originRuleset}, ruleset: '${ruleset.name}', mods: [${ruleset.mods.joinToString()}], known: [$loadedList])",
+                        "Lua function '$functionName' not found in any loaded mod (referenced by '$luaRef' in ${obj.name})",
                         missingFuncSeverity, obj, unique
                     )
                 }

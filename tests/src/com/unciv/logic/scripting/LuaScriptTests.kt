@@ -347,7 +347,7 @@ class LuaScriptTests {
             it.text.contains("nonexistentFunc") && it.errorSeverityToReport == RulesetErrorSeverity.Error
         }
         Assert.assertTrue(
-            "Combined check should detect missing Lua function reference, got errors: ${errorList.filter { it.text.contains("Lua") }.map { it.text }}",
+            "Combined check should detect missing Lua function reference, got errors: ${errorList.filter { it.text.contains("nonexistentFunc") }.map { it.text }}",
             missingFuncErrors.isNotEmpty()
         )
     }
