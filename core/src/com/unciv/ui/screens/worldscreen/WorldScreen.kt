@@ -16,6 +16,7 @@ import com.unciv.logic.event.EventBus
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapVisualization
 import com.unciv.logic.multiplayer.MultiplayerGameUpdated
+import com.unciv.logic.multiplayer.OnlineStatusUpdated
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
@@ -142,6 +143,15 @@ class WorldScreen(
     /** Seconds remaining in the current polling window. Updated by the timer coroutine. */
     var pollingSecondsRemaining: Int = 0
 
+    /** Periodic coroutine that queries other players' online status in polling mode. */
+    private var onlineStatusJob: Job? = null
+    /** Map of civilization name -> last response timestamp (millis) for online status tracking. */
+    val playerOnlineTimes = mutableMapOf<String, Long>()
+    private val onlineTimeoutMs = 30_000L
+
+    /** Shows online/offline status of all players in polling mode. */
+    private var onlineStatusTable: Table? = null
+
     private val events = EventBus.EventReceiver()
 
     private var uiEnabled = true
@@ -214,12 +224,20 @@ class WorldScreen(
                     loadLatestMultiplayerState()
                 }
             }
+            events.receive(OnlineStatusUpdated::class, { it.gameId == gameId }) { update ->
+                playerOnlineTimes[update.civName] = System.currentTimeMillis()
+                shouldUpdate = true
+            }
         }
 
         if (gameInfo.isPollingMode()) {
             ChatWebSocket.start()  // ensure push notifications for game updates
             if (isPlayersTurn)
                 startPollingTimer()
+            startOnlineStatusQuery()
+
+            onlineStatusTable = Table()
+            stage.addActor(onlineStatusTable)
         }
 
         if (restoreState != null) restore(restoreState)
@@ -232,6 +250,8 @@ class WorldScreen(
     override fun dispose() {
         resizeDeferTimer?.cancel()
         stopPollingTimer()
+        onlineStatusJob?.cancel()
+        onlineStatusJob = null
         events.stopReceiving()
         statusButtons.dispose()
         super.dispose()
@@ -467,6 +487,8 @@ class WorldScreen(
         }
 
         updateGameplayButtons()
+
+        updateOnlineStatus()
 
         val coveredNotificationsTop = stage.height - statusButtons.y
         val coveredNotificationsBottom = (bottomTileInfoTable.height + bottomTileInfoTable.y)
@@ -706,6 +728,65 @@ class WorldScreen(
         pollingTimerJob?.cancel()
         pollingTimerJob = null
         pollingSecondsRemaining = 0
+    }
+
+    /** Start periodic online status queries to other players in polling mode. */
+    private fun startOnlineStatusQuery() {
+        onlineStatusJob?.cancel()
+        onlineStatusJob = Concurrency.run("OnlineStatusQuery") {
+            while (isActive) {
+                delay(15_000)
+                if (!isActive) break
+                ChatWebSocket.requestMessageSend(
+                    com.unciv.logic.multiplayer.chat.Message.OnlineQuery(
+                        gameInfo.gameId, viewingCiv.civName
+                    )
+                )
+            }
+        }
+    }
+
+    /** Returns true if the given civName has responded to an online status query within [onlineTimeoutMs]. */
+    fun isPlayerOnline(civName: String): Boolean {
+        val lastSeen = playerOnlineTimes[civName] ?: return false
+        return (System.currentTimeMillis() - lastSeen) < onlineTimeoutMs
+    }
+
+    /** Update the online status indicator table for all human players. */
+    private fun updateOnlineStatus() {
+        val table = onlineStatusTable ?: return
+        table.clear()
+
+        val humans = gameInfo.civilizations.filter { it.isHuman() && it.isAlive() }
+        if (humans.isEmpty()) {
+            table.isVisible = false
+            return
+        }
+        table.isVisible = true
+
+        for (civ in humans) {
+            val isOnline = isPlayerOnline(civ.civName)
+            val color = when {
+                isOnline -> com.badlogic.gdx.graphics.Color.GREEN
+                playerOnlineTimes.containsKey(civ.civName) -> com.badlogic.gdx.graphics.Color.RED
+                else -> com.badlogic.gdx.graphics.Color.GRAY
+            }
+            val dot = com.badlogic.gdx.scenes.scene2d.ui.Label("●", BaseScreen.skin).apply {
+                this.color = color
+                setFontScale(0.8f)
+            }
+            table.add(dot).padRight(3f)
+            val nameLabel = com.badlogic.gdx.scenes.scene2d.ui.Label(civ.civName, BaseScreen.skin).apply {
+                this.color = com.badlogic.gdx.graphics.Color.WHITE
+                setFontScale(0.8f)
+            }
+            table.add(nameLabel).padRight(10f)
+        }
+        table.pack()
+        table.setPosition(
+            statusButtons.x - table.width - 15f,
+            statusButtons.y + (statusButtons.height - table.height) / 2f
+        )
     }
 
     /** Called when the player clicks "I'm done".
