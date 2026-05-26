@@ -2,6 +2,9 @@ package com.unciv.logic.scripting
 
 import com.badlogic.gdx.files.FileHandle
 import yairm210.purity.annotations.Readonly
+import com.unciv.logic.civilization.AlertType
+import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.civilization.PopupAlert
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.unique.Countables
 import com.unciv.models.ruleset.unique.GameContext
@@ -31,17 +34,33 @@ object LuaScriptManager {
     /** Globals per mod for sandbox isolation */
     private val modGlobals = java.util.concurrent.ConcurrentHashMap<String, Globals>()
 
+    // Cache for getKnownFunctions, invalidated by clear/clearMod
+    private var cachedKnownFunctions: Set<String>? = null
+    private var cachedKnownFunctionsRuleset: Ruleset? = null
+
+    // Dedup set to prevent showing the same Lua error popup repeatedly in one session
+    private val shownLuaErrors = HashSet<String>()
+
     fun clear() {
         modGlobals.clear()
+        cachedKnownFunctions = null
+        cachedKnownFunctionsRuleset = null
+        shownLuaErrors.clear()
     }
 
     fun clearMod(modName: String) {
         modGlobals.remove(modName)
+        cachedKnownFunctions = null
+        cachedKnownFunctionsRuleset = null
+        shownLuaErrors.clear()
     }
 
     fun isModLoaded(modName: String) = modGlobals.containsKey(modName)
 
     fun getKnownFunctions(ruleset: Ruleset): Set<String> {
+        if (cachedKnownFunctions != null && cachedKnownFunctionsRuleset === ruleset)
+            return cachedKnownFunctions!!
+
         val functions = HashSet<String>()
         for ((modName, g) in modGlobals) {
             // When mods is populated (combined ruleset), only consider functions from mods in the ruleset.
@@ -53,6 +72,8 @@ object LuaScriptManager {
                 functions.add(key.tojstring())
             }
         }
+        cachedKnownFunctions = functions
+        cachedKnownFunctionsRuleset = ruleset
         return functions
     }
 
@@ -103,9 +124,6 @@ object LuaScriptManager {
 
         Log.debug("Lua: loaded ${loaded.size} scripts for mod $modName: $loaded")
 
-        // Phase 2: if init.lua was loaded, it auto-ran as part of chunk.call() above
-        // so its top-level code already executed
-
         return loaded
     }
 
@@ -131,6 +149,8 @@ object LuaScriptManager {
     fun callFunction(
         func: LuaFunction,
         ctxTable: LuaValue,
+        civInfo: Civilization? = null,
+        functionName: String = "",
         onSuccess: (Boolean) -> Unit
     ) {
         try {
@@ -139,11 +159,24 @@ object LuaScriptManager {
             onSuccess(success)
         } catch (ex: LuaError) {
             Log.error("Lua runtime error: ${ex.message}", ex)
+            reportLuaError(civInfo, functionName, ex.message ?: "Unknown Lua runtime error")
             onSuccess(false)
         } catch (ex: Exception) {
             Log.error("Unexpected Lua error: ${ex.message}", ex)
+            reportLuaError(civInfo, functionName, ex.message ?: "Unknown error")
             onSuccess(false)
         }
+    }
+
+    private fun reportLuaError(civInfo: Civilization?, functionName: String, message: String) {
+        if (civInfo == null || !civInfo.isHuman()) return
+        val errorKey = if (functionName.isNotEmpty()) functionName else message
+        if (!shownLuaErrors.add(errorKey)) return // Already shown this error in this session
+        val displayMessage = if (functionName.isNotEmpty())
+            "Function '$functionName' error:|$message"
+        else
+            message
+        civInfo.popupAlerts.add(PopupAlert(AlertType.LuaError, displayMessage))
     }
 
     fun resolveCountablesInString(raw: String, gameContext: GameContext): String {
@@ -183,6 +216,10 @@ object LuaScriptManager {
         )) {
             globals.set(dangerous, LuaValue.NIL)
         }
+
+        // Remove string.dump for sandbox safety (prevents bytecode exfiltration)
+        val stringLib = globals.get("string")
+        if (stringLib is org.luaj.vm2.LuaTable) stringLib.set("dump", LuaValue.NIL)
 
         // Redirect print to game log
         globals.set("print", luaFunction { args ->

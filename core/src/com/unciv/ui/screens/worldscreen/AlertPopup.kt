@@ -130,6 +130,7 @@ class AlertPopup(
             AlertType.RecapturedCivilian -> shouldOpen = addRecapturedCivilian()
             AlertType.GameHasBeenWon -> addGameHasBeenWon()
             AlertType.Event -> shouldOpen = addEvent()
+            AlertType.LuaError -> addLuaError()
         }
         if (shouldOpen) open()
         else viewingCiv.popupAlerts.remove(popupAlert)
@@ -651,6 +652,14 @@ class AlertPopup(
     }
 
     /** Returns if event was triggered correctly */
+    private fun addLuaError() {
+        addGoodSizedLabel("Lua Runtime Error", color = LIGHTER_RED_COLOR, size = 22)
+        addSeparator()
+        val message = popupAlert.value.replace("|", "\n")
+        addGoodSizedLabel(message)
+        addCloseButton()
+    }
+
     private fun addEvent(): Boolean {
         // The event string is in the format "eventName" + (Constants.stringSplitCharacter + "unitId=1234")?
         // We explicitly specify that this is a unitId, to enable us to add other context info in the future - for example city id

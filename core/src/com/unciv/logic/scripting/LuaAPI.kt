@@ -1,5 +1,7 @@
 package com.unciv.logic.scripting
 
+import com.unciv.logic.battle.Battle
+import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.NotificationCategory
@@ -19,6 +21,19 @@ import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 
 object LuaAPI {
+
+    private fun LuaValue.safeToInt(): Int {
+        val d = this.todouble()
+        if (d.isNaN() || d.isInfinite()) {
+            com.unciv.utils.Log.error("Lua: argument is NaN/Infinity, using 0")
+            return 0
+        }
+        if (d < Int.MIN_VALUE.toDouble() || d > Int.MAX_VALUE.toDouble()) {
+            com.unciv.utils.Log.error("Lua: argument $d overflows Int range, clamping")
+            return if (d < 0) Int.MIN_VALUE else Int.MAX_VALUE
+        }
+        return d.toInt()
+    }
 
     fun buildContext(
         civInfo: Civilization,
@@ -88,10 +103,7 @@ object LuaAPI {
         t.set("isBarbarian", LuaValue.valueOf(civ.isBarbarian))
         t.set("isSpectator", LuaValue.valueOf(civ.isSpectator()))
 
-        // Stats — properties
-        t.set("gold", LuaValue.valueOf(civ.gold))
-        t.set("happiness", LuaValue.valueOf(civ.getHappiness()))
-        // Stats — functions
+        // Stats
         t.set("getGold", luaFunction { LuaValue.valueOf(civ.gold) })
         t.set("getHappiness", luaFunction { LuaValue.valueOf(civ.getHappiness()) })
         t.set("getStat", luaFunction { args ->
@@ -117,9 +129,7 @@ object LuaAPI {
             LuaValue.valueOf(civ.getResourceAmount(args.arg(1).tojstring()) > 0)
         })
 
-        // Era — property
-        t.set("era", LuaValue.valueOf(civ.getEra().name))
-        // Era — functions
+        // Era
         t.set("getEra", luaFunction { LuaValue.valueOf(civ.getEra().name) })
         t.set("getEraNumber", luaFunction { LuaValue.valueOf(civ.getEra().eraNumber) })
 
@@ -271,7 +281,6 @@ object LuaAPI {
             val capital = civ.getCapital()
             if (capital != null) buildCityTable(capital) else LuaValue.NIL
         })
-        t.set("cityCount", LuaValue.valueOf(civ.cities.size))
         t.set("getCityCount", luaFunction { LuaValue.valueOf(civ.cities.size) })
 
         // Units
@@ -310,15 +319,25 @@ object LuaAPI {
         t.set("getLeaderTitle", luaFunction {
             LuaValue.valueOf(civ.leaderTitle.ifEmpty { null } ?: "")
         })
+        t.set("hasUnique", luaFunction { args ->
+            val text = args.arg(1).tojstring()
+            val ruleset = civ.gameInfo.ruleset
+            LuaValue.valueOf(
+                civ.nation.uniqueObjects.any { it.text == text }
+                || civ.policies.getAdoptedPolicies().any { ruleset.policies[it]?.uniqueObjects?.any { u -> u.text == text } == true }
+                || civ.tech.researchedTechnologies.any { it.uniqueObjects.any { u -> u.text == text } }
+                || civ.getEra().uniqueObjects.any { it.text == text }
+            )
+        })
 
         // Write operations
         t.set("addGold", luaFunction { args ->
-            civ.addGold(args.arg(1).toint())
+            civ.addGold(args.arg(1).safeToInt())
             LuaValue.NIL
         })
         t.set("addStat", luaFunction { args ->
             val stat = Stat.safeValueOf(args.arg(1).tojstring())
-            val amount = args.arg(2).toint()
+            val amount = args.arg(2).safeToInt()
             if (stat != null) civ.addStat(stat, amount)
             LuaValue.NIL
         })
@@ -329,20 +348,20 @@ object LuaAPI {
         })
         t.set("addResource", luaFunction { args ->
             val resource = civ.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
-            val amount = args.arg(2).toint()
+            val amount = args.arg(2).safeToInt()
             if (resource != null) civ.gainStockpiledResource(resource, amount)
             LuaValue.NIL
         })
         t.set("consumeResource", luaFunction { args ->
             val resource = civ.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
-            val amount = args.arg(2).toint()
+            val amount = args.arg(2).safeToInt()
             if (resource != null) civ.gainStockpiledResource(resource, -amount)
             LuaValue.NIL
         })
         t.set("triggerGoldenAge", luaFunction { args ->
             val arg1 = args.arg(1)
             if (arg1.isnil()) civ.goldenAges.enterGoldenAge()
-            else civ.goldenAges.enterGoldenAge(arg1.toint())
+            else civ.goldenAges.enterGoldenAge(arg1.safeToInt())
             LuaValue.NIL
         })
         t.set("grantFreeGreatPerson", luaFunction {
@@ -358,7 +377,7 @@ object LuaAPI {
             LuaValue.NIL
         })
         t.set("addNotificationAt", luaFunction { args ->
-            civ.addNotification(args.arg(1).tojstring(), HexCoord(args.arg(2).toint(), args.arg(3).toint()), NotificationCategory.General)
+            civ.addNotification(args.arg(1).tojstring(), HexCoord(args.arg(2).safeToInt(), args.arg(3).safeToInt()), NotificationCategory.General)
             LuaValue.NIL
         })
         t.set("addFreeTech", luaFunction {
@@ -385,8 +404,8 @@ object LuaAPI {
         })
         t.set("addUnitAtTile", luaFunction { args ->
             val unitName = args.arg(1).tojstring()
-            val x = args.arg(2).toint()
-            val y = args.arg(3).toint()
+            val x = args.arg(2).safeToInt()
+            val y = args.arg(3).safeToInt()
             val baseUnit = civ.gameInfo.ruleset.units[unitName]
                 ?: return@luaFunction LuaValue.FALSE
             val placedUnit = civ.units.placeUnitNearTile(HexCoord(x, y), civ.getEquivalentUnit(baseUnit))
@@ -464,6 +483,7 @@ object LuaAPI {
             pos.set("y", LuaValue.valueOf(city.location.y))
             pos
         })
+        t.set("getCenterTile", luaFunction { buildTileTable(city.getCenterTile(), city.civ) })
         t.set("getTiles", luaFunction {
             val arr = LuaTable()
             city.tiles.forEachIndexed { i, coord ->
@@ -492,10 +512,14 @@ object LuaAPI {
         t.set("isHolyCity", luaFunction {
             LuaValue.valueOf(city.isHolyCity())
         })
+        t.set("hasUnique", luaFunction { args ->
+            val text = args.arg(1).tojstring()
+            LuaValue.valueOf(city.cityConstructions.getBuiltBuildings().any { b -> b.uniqueObjects.any { it.text == text } })
+        })
 
         // Write
         t.set("addPopulation", luaFunction { args ->
-            city.population.addPopulation(args.arg(1).toint())
+            city.population.addPopulation(args.arg(1).safeToInt())
             LuaValue.NIL
         })
         t.set("addBuilding", luaFunction { args ->
@@ -543,6 +567,27 @@ object LuaAPI {
         t.set("isFortified", LuaValue.valueOf(unit.isFortified()))
         t.set("isAutomated", LuaValue.valueOf(unit.isAutomated()))
 
+        val baseTable = LuaValue.tableOf()
+        baseTable.set("name", LuaValue.valueOf(unit.baseUnit.name))
+        baseTable.set("cost", LuaValue.valueOf(unit.baseUnit.cost))
+        baseTable.set("movement", LuaValue.valueOf(unit.baseUnit.movement))
+        baseTable.set("strength", LuaValue.valueOf(unit.baseUnit.strength))
+        baseTable.set("rangedStrength", LuaValue.valueOf(unit.baseUnit.rangedStrength))
+        baseTable.set("range", LuaValue.valueOf(unit.baseUnit.range))
+        baseTable.set("unitType", LuaValue.valueOf(unit.baseUnit.unitType))
+        baseTable.set("requiredResource", LuaValue.valueOf(unit.baseUnit.requiredResource ?: ""))
+        baseTable.set("requiredTech", LuaValue.valueOf(unit.baseUnit.requiredTech ?: ""))
+        baseTable.set("obsoleteTech", LuaValue.valueOf(unit.baseUnit.obsoleteTech ?: ""))
+        baseTable.set("upgradesTo", LuaValue.valueOf(unit.baseUnit.upgradesTo ?: ""))
+        baseTable.set("replaces", LuaValue.valueOf(unit.baseUnit.replaces ?: ""))
+        baseTable.set("uniqueTo", LuaValue.valueOf(unit.baseUnit.uniqueTo ?: ""))
+        val basePromos = LuaTable()
+        unit.baseUnit.promotions.forEachIndexed { i, p ->
+            basePromos.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(p))
+        }
+        baseTable.set("promotions", basePromos)
+        t.set("base", baseTable)
+
         t.set("health", LuaValue.valueOf(unit.health))
         t.set("getRange", luaFunction { LuaValue.valueOf(unit.getRange()) })
         t.set("getMovement", luaFunction { LuaValue.valueOf(unit.getMaxMovement().toDouble()) })
@@ -553,6 +598,13 @@ object LuaAPI {
 
         t.set("hasPromotion", luaFunction { args ->
             LuaValue.valueOf(unit.promotions.promotions.contains(args.arg(1).tojstring()))
+        })
+        t.set("hasUnique", luaFunction { args ->
+            val text = args.arg(1).tojstring()
+            LuaValue.valueOf(unit.baseUnit.rulesetUniqueObjects.any { it.text == text }
+                || unit.promotions.promotions.any { promoName ->
+                    unit.civ.gameInfo.ruleset.unitPromotions[promoName]?.uniqueObjects?.any { it.text == text } == true
+                })
         })
         t.set("getPromotions", luaFunction {
             val arr = LuaTable()
@@ -580,8 +632,8 @@ object LuaAPI {
             pos
         })
         t.set("canMoveTo", luaFunction { args ->
-            val x = args.arg(1).toint()
-            val y = args.arg(2).toint()
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
             val tile = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
             LuaValue.valueOf(tile != null && unit.movement.canMoveTo(tile))
         })
@@ -594,15 +646,15 @@ object LuaAPI {
 
         // Write
         t.set("healBy", luaFunction { args ->
-            unit.healBy(args.arg(1).toint())
+            unit.healBy(args.arg(1).safeToInt())
             LuaValue.NIL
         })
         t.set("takeDamage", luaFunction { args ->
-            unit.takeDamage(args.arg(1).toint())
+            unit.takeDamage(args.arg(1).safeToInt())
             LuaValue.NIL
         })
         t.set("addXP", luaFunction { args ->
-            unit.promotions.XP += args.arg(1).toint()
+            unit.promotions.XP += args.arg(1).safeToInt()
             LuaValue.NIL
         })
         t.set("addPromotion", luaFunction { args ->
@@ -632,9 +684,23 @@ object LuaAPI {
             unit.destroy()
             LuaValue.NIL
         })
+        t.set("attackTile", luaFunction { args ->
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
+            val targetTile = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
+                ?: return@luaFunction LuaValue.FALSE
+            val defender = Battle.getMapCombatantOfTile(targetTile)
+                ?: return@luaFunction LuaValue.FALSE
+            val attacker = MapUnitCombatant(unit)
+            val result = Battle.attack(attacker, defender)
+            val resultTable = LuaValue.tableOf()
+            resultTable.set("attackerDamage", LuaValue.valueOf(result.attackerDealt))
+            resultTable.set("defenderDamage", LuaValue.valueOf(result.defenderDealt))
+            resultTable
+        })
         t.set("teleportTo", luaFunction { args ->
-            val x = args.arg(1).toint()
-            val y = args.arg(2).toint()
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
             if (target != null) unit.movement.moveToTile(target)
             LuaValue.NIL
@@ -642,8 +708,8 @@ object LuaAPI {
 
         // Pathfinding
         t.set("findPathTo", luaFunction { args ->
-            val x = args.arg(1).toint()
-            val y = args.arg(2).toint()
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.NIL
             val path = unit.movement.getShortestPath(target)
             val arr = LuaTable()
@@ -656,8 +722,8 @@ object LuaAPI {
             arr
         })
         t.set("canReach", luaFunction { args ->
-            val x = args.arg(1).toint()
-            val y = args.arg(2).toint()
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.FALSE
             LuaValue.valueOf(unit.movement.canReach(target))
         })
@@ -703,6 +769,16 @@ object LuaAPI {
         t.set("improvementName", LuaValue.valueOf(tile.improvement ?: ""))
         t.set("isPillaged", luaFunction { LuaValue.valueOf(tile.isPillaged()) })
 
+        t.set("getYield", luaFunction {
+            val result = LuaValue.tableOf()
+            val stats = tile.stats.getTileStats(civInfo)
+            for (stat in Stat.entries) {
+                val v = stats[stat]
+                if (v != 0f) result.set(stat.name, LuaValue.valueOf(v.toDouble()))
+            }
+            result
+        })
+
         t.set("isOwned", luaFunction { LuaValue.valueOf(tile.getOwner() != null) })
         t.set("getOwner", luaFunction { LuaValue.valueOf(tile.getOwner()?.civName ?: "") })
         t.set("isOwnedBy", luaFunction { args ->
@@ -732,12 +808,12 @@ object LuaAPI {
             arr
         })
         t.set("getNeighborAt", luaFunction { args ->
-            val dir = args.arg(1).toint()
+            val dir = args.arg(1).safeToInt()
             val neighbors = tile.neighbors.toList()
             if (dir in neighbors.indices) buildTileTable(neighbors[dir], civInfo) else LuaValue.NIL
         })
         t.set("getTilesInDistance", luaFunction { args ->
-            val radius = args.arg(1).toint()
+            val radius = args.arg(1).safeToInt()
             val arr = LuaTable()
             tile.getTilesInDistance(radius).forEachIndexed { i, t2 -> arr.set(LuaValue.valueOf(i + 1), buildTileTable(t2, civInfo)) }
             arr
@@ -773,7 +849,7 @@ object LuaAPI {
         })
         t.set("setResource", luaFunction { args ->
             val resource = civInfo.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
-            val amount = args.arg(2).toint()
+            val amount = args.arg(2).safeToInt()
             tile.tileResource = resource
             tile.resourceAmount = amount
             LuaValue.NIL
@@ -847,15 +923,17 @@ object LuaAPI {
         // Map
         val ruleset = gameInfo.ruleset
         t.set("getTile", luaFunction { args ->
-            val x = args.arg(1).toint()
-            val y = args.arg(2).toint()
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
             val tile = gameInfo.tileMap[HexCoord(x, y)]
             if (tile != null) buildTileTable(tile, civInfo) else LuaValue.NIL
         })
         t.set("findTiles", luaFunction { args ->
             val criteria = args.arg(1).checktable()
+            val maxResults = criteria.get("maxResults")
+            val limit = if (maxResults.isnil()) 500 else maxResults.safeToInt().coerceAtLeast(1)
             val tiles = gameInfo.tileMap.values.asSequence()
-            val filtered = filterTilesByCriteria(tiles, criteria, civInfo)
+            val filtered = filterTilesByCriteria(tiles, criteria, civInfo).take(limit)
             val arr = LuaTable()
             var idx = 1
             for (tile in filtered) {
@@ -874,9 +952,9 @@ object LuaAPI {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.worldWrap)
         })
         t.set("getTilesNear", luaFunction { args ->
-            val x = args.arg(1).toint()
-            val y = args.arg(2).toint()
-            val radius = args.arg(3).toint()
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
+            val radius = args.arg(3).safeToInt()
             val center = gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.NIL
             val arr = LuaTable()
             center.getTilesInDistance(radius).forEachIndexed { i, t2 -> arr.set(LuaValue.valueOf(i + 1), buildTileTable(t2, civInfo)) }
@@ -938,9 +1016,9 @@ object LuaAPI {
         })
         t.set("revealTilesAround", luaFunction { args ->
             val name = args.arg(1).tojstring()
-            val x = args.arg(2).toint()
-            val y = args.arg(3).toint()
-            val radius = args.arg(4).toint()
+            val x = args.arg(2).safeToInt()
+            val y = args.arg(3).safeToInt()
+            val radius = args.arg(4).safeToInt()
             val civ = gameInfo.civilizations.firstOrNull { it.civName == name }
                 ?: return@luaFunction LuaValue.NIL
             val center = gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.NIL
@@ -1002,10 +1080,10 @@ object LuaAPI {
 
         val maxDistance = criteria.get("maxDistance")
         if (!maxDistance.isnil()) {
-            val centerX = criteria.get("centerX").toint()
-            val centerY = criteria.get("centerY").toint()
+            val centerX = criteria.get("centerX").safeToInt()
+            val centerY = criteria.get("centerY").safeToInt()
             val origin = HexCoord(centerX, centerY)
-            val tilesInRange = civInfo.gameInfo.tileMap.getTilesInDistance(origin, maxDistance.toint()).toHashSet()
+            val tilesInRange = civInfo.gameInfo.tileMap.getTilesInDistance(origin, maxDistance.safeToInt()).toHashSet()
             result = result.filter { it in tilesInRange }
         }
 

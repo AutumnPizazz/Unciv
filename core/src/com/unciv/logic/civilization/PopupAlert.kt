@@ -18,13 +18,13 @@ enum class AlertType : IsPartOfGameInfoSerialization {
 
     DemandToStopSpreadingReligion,
     ReligionSpreadDespiteOurPromise,
-    
+
     DemandToStopSpyingOnUs,
     SpyingOnUsDespiteOurPromise,
-    
+
     DemandToNotAttackUs,
     AttackedUsDespitePromise,
-    
+
     AcceptingDemand,
     RejectingDemand,
 
@@ -38,7 +38,8 @@ enum class AlertType : IsPartOfGameInfoSerialization {
     RecapturedCivilian,
     GameHasBeenWon,
     Event,
-    
+    LuaError,
+
     Denounced
 }
 

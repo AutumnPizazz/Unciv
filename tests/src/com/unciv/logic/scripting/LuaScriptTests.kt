@@ -9,6 +9,8 @@ import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.Event
 import com.unciv.models.ruleset.EventChoice
+import com.unciv.models.ruleset.tech.TechColumn
+import com.unciv.models.ruleset.tech.Technology
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
@@ -479,6 +481,364 @@ class LuaScriptTests {
             "modB must NOT contain modA's errors: ${errorsB.filter { it.text.contains("myFunc") }.map { it.text }}",
             errorsB.any { it.text.contains("myFunc") || it.text.contains("modA") }
         )
+    }
+
+    //endregion
+
+    //region New feature tests (Phase 1-3)
+
+    // -- Phase 1.3: safeToInt overflow protection --
+
+    @Test
+    fun safeToIntClampsOverflow() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+
+        // Build context and call addGold with an absurdly large value
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val goldBefore = civ.gold
+        // Simulate Lua calling addGold with overflowing value via the API table
+        val addGoldFunc = ctx.get("civ").checktable().get("addGold")
+        (addGoldFunc as org.luaj.vm2.LuaFunction).call(org.luaj.vm2.LuaValue.valueOf(9e18))
+        // Should be clamped, not wrapped to negative
+        Assert.assertTrue("Gold should not decrease after clamped overflow add",
+            civ.gold >= goldBefore)
+    }
+
+    @Test
+    fun safeToIntPassesNormalValues() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val goldBefore = civ.gold
+        val addGoldFunc = ctx.get("civ").checktable().get("addGold")
+        (addGoldFunc as org.luaj.vm2.LuaFunction).call(org.luaj.vm2.LuaValue.valueOf(100))
+        Assert.assertEquals("Gold should increase by exactly 100", goldBefore + 100, civ.gold)
+    }
+
+    // -- Phase 1.4: string.dump removal --
+
+    @Test
+    fun stringDumpIsRemovedFromSandbox() {
+        // Load a Lua script that tries to access string.dump
+        val mod = loadLuaScriptToMod("testSandbox", "checkSandbox.lua",
+            """
+            function checkStringDump(ctx)
+                return string.dump == nil
+            end
+            """.trimIndent()
+        )
+        Assert.assertTrue("Script should load without error",
+            mod.luaErrors.none { it.severity == LuaScriptErrorSeverity.ERROR })
+
+        // Execute the function and verify it reports string.dump is nil
+        val func = LuaScriptManager.getFunction("testSandbox", "checkStringDump")
+        Assert.assertNotNull("checkStringDump function should be found", func)
+        val (_, luaFunc) = func!!
+
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), "testSandbox")
+        var result = false
+        LuaScriptManager.callFunction(luaFunc, ctx) { result = it }
+        Assert.assertTrue("string.dump should be nil in sandbox", result)
+    }
+
+    // -- Phase 1.2: API cleanup (removed properties) --
+
+    @Test
+    fun removedCivPropertiesReturnNil() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val civTable = ctx.get("civ").checktable()
+
+        Assert.assertTrue("civ.gold should be nil after cleanup", civTable.get("gold").isnil())
+        Assert.assertTrue("civ.happiness should be nil after cleanup", civTable.get("happiness").isnil())
+        Assert.assertTrue("civ.era should be nil after cleanup", civTable.get("era").isnil())
+        Assert.assertTrue("civ.cityCount should be nil after cleanup", civTable.get("cityCount").isnil())
+    }
+
+    @Test
+    fun getterFunctionsWorkAfterCleanup() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val civTable = ctx.get("civ").checktable()
+
+        val getGold = civTable.get("getGold")
+        Assert.assertFalse("getGold should exist", getGold.isnil())
+        val getHappiness = civTable.get("getHappiness")
+        Assert.assertFalse("getHappiness should exist", getHappiness.isnil())
+        val getEra = civTable.get("getEra")
+        Assert.assertFalse("getEra should exist", getEra.isnil())
+        val getCityCount = civTable.get("getCityCount")
+        Assert.assertFalse("getCityCount should exist", getCityCount.isnil())
+    }
+
+    // -- Phase 1.1: Lua runtime error popup --
+
+    @Test
+    fun luaRuntimeErrorCreatesPopupAlert() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        civ.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
+
+        // Create a Lua function that throws at runtime
+        val errorFunc = object : org.luaj.vm2.LuaFunction() {
+            override fun call(): org.luaj.vm2.LuaValue =
+                throw org.luaj.vm2.LuaError("Simulated runtime error for popup test")
+        }
+
+        val alertCountBefore = civ.popupAlerts.size
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        LuaScriptManager.callFunction(errorFunc, ctx, civ, "testErrorFunc") { /* ignore */ }
+
+        Assert.assertTrue("PopupAlert should be created for runtime error",
+            civ.popupAlerts.size > alertCountBefore)
+        val newAlert = civ.popupAlerts.last()
+        Assert.assertEquals("Alert type should be LuaError",
+            com.unciv.logic.civilization.AlertType.LuaError, newAlert.type)
+        Assert.assertTrue("Alert value should contain function name",
+            newAlert.value.contains("testErrorFunc"))
+    }
+
+    @Test
+    fun luaErrorDedupPreventsRepeatedPopups() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+
+        val errorFunc = object : org.luaj.vm2.LuaFunction() {
+            override fun call(): org.luaj.vm2.LuaValue =
+                throw org.luaj.vm2.LuaError("Simulated runtime error for dedup test")
+        }
+
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+
+        // First call — should create popup
+        LuaScriptManager.callFunction(errorFunc, ctx, civ, "dedupTestFunc") { /* ignore */ }
+        val alertCountAfterFirst = civ.popupAlerts.size
+        Assert.assertTrue("First error should create popup", alertCountAfterFirst > 0)
+
+        // Second call with same function name — should NOT create another popup
+        LuaScriptManager.callFunction(errorFunc, ctx, civ, "dedupTestFunc") { /* ignore */ }
+        Assert.assertEquals("Second call with same function should not create duplicate popup",
+            alertCountAfterFirst, civ.popupAlerts.size)
+    }
+
+    // -- Phase 2.1e: city.getCenterTile() --
+
+    @Test
+    fun cityGetCenterTileReturnsValidTile() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(2, 2)))
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val cityTable = ctx.get("city").checktable()
+
+        val getCenterTile = cityTable.get("getCenterTile")
+        Assert.assertFalse("getCenterTile should exist on city table", getCenterTile.isnil())
+
+        val tileTable = (getCenterTile as org.luaj.vm2.LuaFunction).call()
+        Assert.assertFalse("getCenterTile should return non-nil", tileTable.isnil())
+
+        val tile = tileTable.checktable()
+        Assert.assertEquals("Center tile x should match city location",
+            city.location.x, tile.get("getX").checkfunction().call().toint())
+        Assert.assertEquals("Center tile y should match city location",
+            city.location.y, tile.get("getY").checkfunction().call().toint())
+    }
+
+    // -- Phase 2.2: findTiles result limit --
+
+    @Test
+    fun findTilesRespectsMaxResults() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val gameTable = ctx.get("game").checktable()
+
+        val findTiles = gameTable.get("findTiles").checkfunction()
+        val criteria = org.luaj.vm2.LuaValue.tableOf()
+        criteria.set("isLand", org.luaj.vm2.LuaValue.TRUE)
+        criteria.set("maxResults", org.luaj.vm2.LuaValue.valueOf(2))
+
+        val result = findTiles.call(criteria)
+        Assert.assertFalse("findTiles should return non-nil", result.isnil())
+        val tiles = result.checktable()
+        // Table length in Lua is tricky; check that we don't have more than 2 entries
+        Assert.assertTrue("findTiles with maxResults=2 should return limited results",
+            tiles.get(3).isnil())
+        Assert.assertFalse("findTiles should return at least 1 result",
+            tiles.get(1).isnil())
+    }
+
+    @Test
+    fun findTilesHasDefaultMaxResultsCap() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val gameTable = ctx.get("game").checktable()
+
+        val findTiles = gameTable.get("findTiles").checkfunction()
+        // Query without maxResults — should cap at 500
+        val criteria = org.luaj.vm2.LuaValue.tableOf()
+        criteria.set("isLand", org.luaj.vm2.LuaValue.TRUE)
+
+        val result = findTiles.call(criteria)
+        Assert.assertFalse("findTiles should return non-nil", result.isnil())
+        // On a 5-radius map (61 tiles), all land tiles should be returned (well under 500)
+        val tiles = result.checktable()
+        Assert.assertFalse("findTiles should return at least some results",
+            tiles.get(1).isnil())
+    }
+
+    // -- Phase 2.1a: tile.getYield() --
+
+    @Test
+    fun tileGetYieldReturnsValidStats() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val tile = testGame.getTile(HexCoord(1, 1))
+        val ctx = LuaAPI.buildContext(civ, city, null, tile, "", GameContext(civ, city, null, tile), modName)
+        val tileTable = ctx.get("tile").checktable()
+
+        val getYield = tileTable.get("getYield")
+        Assert.assertFalse("getYield should exist on tile table", getYield.isnil())
+
+        val yieldResult = (getYield as org.luaj.vm2.LuaFunction).call()
+        Assert.assertFalse("getYield should return non-nil", yieldResult.isnil())
+
+        val yieldTable = yieldResult.checktable()
+        // Should have at least Food for any land tile
+        val food = yieldTable.get("Food")
+        Assert.assertFalse("Yield should contain Food", food.isnil())
+    }
+
+    // -- Phase 2.1b: unit.base sub-table --
+
+    @Test
+    fun unitBaseHasCorrectProperties() {
+        val civ = testGame.addCiv(isPlayer = true)
+        testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(HexCoord(0, 0)))
+        val ctx = LuaAPI.buildContext(civ, null, unit, unit.currentTile, "", GameContext(unit), modName)
+        val unitTable = ctx.get("unit").checktable()
+
+        val base = unitTable.get("base")
+        Assert.assertFalse("unit.base should exist", base.isnil())
+        val baseTable = base.checktable()
+
+        Assert.assertEquals("base.name should match unit name",
+            unit.baseUnit.name, baseTable.get("name").tojstring())
+        Assert.assertEquals("base.strength should match",
+            unit.baseUnit.strength, baseTable.get("strength").toint())
+        Assert.assertEquals("base.cost should match",
+            unit.baseUnit.cost, baseTable.get("cost").toint())
+        Assert.assertEquals("base.movement should match",
+            unit.baseUnit.movement, baseTable.get("movement").toint())
+        Assert.assertEquals("base.unitType should match",
+            unit.baseUnit.unitType, baseTable.get("unitType").tojstring())
+    }
+
+    // -- Phase 2.1d: hasUnique on civ/city/unit --
+
+    @Test
+    fun civHasUniqueWorks() {
+        val civ = testGame.addCiv("TestUniqueForCiv", isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+
+        // Grant a tech with a test unique to verify tech source is searched
+        val testTech = Technology().apply {
+            name = "TestUniqueTech"
+            uniques.add("TestUniqueFromTech")
+            column = TechColumn().apply { era = "Ancient era" }
+        }
+        testGame.ruleset.technologies[testTech.name] = testTech
+        civ.tech.addTechnology("TestUniqueTech")
+
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val civTable = ctx.get("civ").checktable()
+
+        val hasUnique = civTable.get("hasUnique")
+        Assert.assertFalse("hasUnique should exist on civ table", hasUnique.isnil())
+
+        // Nation unique
+        val hasNationUnique = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("TestUniqueForCiv"))
+        Assert.assertTrue("Civ should have nation unique", hasNationUnique.toboolean())
+
+        // Tech unique — verifies expanded search beyond just nation
+        val hasTechUnique = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("TestUniqueFromTech"))
+        Assert.assertTrue("Civ should have tech unique (expanded source)", hasTechUnique.toboolean())
+
+        // Negative check
+        val hasNonsense = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("NonexistentUniqueXYZ123"))
+        Assert.assertFalse("Civ should NOT have nonexistent unique",
+            hasNonsense.toboolean())
+    }
+
+    @Test
+    fun cityHasUniqueWorks() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+
+        // Build a building with a test unique
+        val testBuilding = com.unciv.models.ruleset.Building().apply {
+            name = "TestUniqueBuilding"
+            uniques.add("TestUniqueForCityCheck")
+        }
+        testGame.ruleset.buildings[testBuilding.name] = testBuilding
+        city.cityConstructions.completeConstruction(civ.getEquivalentBuilding(testBuilding.name))
+
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+        val cityTable = ctx.get("city").checktable()
+
+        val hasUnique = cityTable.get("hasUnique")
+        Assert.assertFalse("hasUnique should exist on city table", hasUnique.isnil())
+
+        val hasTestUnique = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("TestUniqueForCityCheck"))
+        Assert.assertTrue("City should have built building's unique",
+            hasTestUnique.toboolean())
+
+        val hasNonsense = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("NonexistentUniqueXYZ456"))
+        Assert.assertFalse("City should NOT have nonexistent unique",
+            hasNonsense.toboolean())
+    }
+
+    @Test
+    fun unitHasUniqueWorks() {
+        val civ = testGame.addCiv(isPlayer = true)
+        testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(HexCoord(0, 0)))
+
+        // Add a promotion with a test unique we can verify
+        val testPromo = com.unciv.models.ruleset.unit.Promotion().apply {
+            name = "TestHasUniquePromo"
+            uniques.add("TestUniqueForUnitCheck")
+        }
+        testGame.ruleset.unitPromotions[testPromo.name] = testPromo
+        unit.promotions.addPromotion("TestHasUniquePromo", true)
+
+        val ctx = LuaAPI.buildContext(civ, null, unit, unit.currentTile, "", GameContext(unit), modName)
+        val unitTable = ctx.get("unit").checktable()
+
+        val hasUnique = unitTable.get("hasUnique")
+        Assert.assertFalse("hasUnique should exist on unit table", hasUnique.isnil())
+
+        val hasTestUnique = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("TestUniqueForUnitCheck"))
+        Assert.assertTrue("Unit should have promotion's unique",
+            hasTestUnique.toboolean())
+
+        val hasNonsense = (hasUnique as org.luaj.vm2.LuaFunction)
+            .call(org.luaj.vm2.LuaValue.valueOf("NonexistentUniqueXYZ789"))
+        Assert.assertFalse("Unit should NOT have nonexistent unique",
+            hasNonsense.toboolean())
     }
 
     //endregion
