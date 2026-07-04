@@ -69,6 +69,7 @@ class GameSettings {
 
     var showZoomButtons = false
     var showUnitNotes = false
+    var showTileNotes = false
     var forbidPopupClickBehindToClose = false
     var useCirclesToIndicateMovableTiles = false
     /** Size of automatic display of UnitSet art in Civilopedia - 0 to disable */

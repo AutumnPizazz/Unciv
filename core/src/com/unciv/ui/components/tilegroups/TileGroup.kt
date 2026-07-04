@@ -2,7 +2,9 @@ package com.unciv.ui.components.tilegroups
 
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.Group
+import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.tile.Tile
 import com.unciv.ui.components.tilegroups.layers.*
 import com.unciv.utils.DebugUtils
@@ -19,11 +21,15 @@ open class TileGroup(
         1) Terrain
         2) Features: roads
         3) Borders
-        4) Misc: improvements, resources, yields, citizens, arrows, starting locations (editor)
-        5) Unit Arts
-        6) Overlay:
-        7) Unit Flags
-        8) City Button
+        4) Resource icons
+        5) Improvement icons
+        6) Tile groups (click detection)
+        7) Yield icons
+        8) Misc: yields, citizens, arrows, starting locations, tile notes
+        9) Unit Arts
+       10) Overlay
+       11) Unit Flags
+       12) City Button
     */
 
     /** Cache simple but frequent calculations.
@@ -35,6 +41,9 @@ open class TileGroup(
 
     var isForceVisible = DebugUtils.VISIBLE_MAP
     var isForMapEditorIcon = false
+
+    /** Cached tile note text for rendering by [TileGroupMap] */
+    var tileNoteText: String? = null
 
     @Suppress("LeakingThis") val layerTerrain = TileLayerTerrain(this, groupSize)
     @Suppress("LeakingThis") val layerFeatures = TileLayerFeatures(this, groupSize)
@@ -115,7 +124,17 @@ open class TileGroup(
 
         removeMissingModReferences()
 
+        // Tile notes (map pins): show note text on the tile when enabled
+        updateTileNoteLabel()
+
         for (layer in allLayers) layer.update(viewingCiv)
+    }
+
+    private fun updateTileNoteLabel() {
+        tileNoteText = null
+        if (!UncivGame.Current.settings.showTileNotes) return
+        val gameInfo = UncivGame.Current.gameInfo ?: return
+        tileNoteText = UnitNotesManager.getTileNote(gameInfo, tile.position.x, tile.position.y)
     }
 
     private fun removeMissingModReferences() {

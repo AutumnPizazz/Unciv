@@ -19,8 +19,11 @@ object UnitNotesManager {
     private var cachedGameId: String? = null
     private var cachedNotes: HashMap<String, String>? = null
 
-    /** Build a note key for a unit: "ownerCivName|unitId" */
+    /** Build a note key for a unit: "owner|unitId" */
     fun noteKey(unit: MapUnit): String = "${unit.owner}|${unit.id}"
+
+    /** Build a note key for a tile: "tile|x,y" */
+    fun tileNoteKey(x: Int, y: Int): String = "tile|$x,$y"
 
     /** Get the notes companion file for a save file name */
     fun getNotesFile(gameName: String): FileHandle? {
@@ -93,6 +96,30 @@ object UnitNotesManager {
     fun deleteNote(gameInfo: GameInfo, unit: MapUnit) {
         val notes = loadNotes(gameInfo)
         notes.remove(noteKey(unit))
+        saveNotes(gameInfo, notes)
+    }
+
+    /** Get the note for a specific tile */
+    fun getTileNote(gameInfo: GameInfo, x: Int, y: Int): String? {
+        val notes = loadNotes(gameInfo)
+        return notes[tileNoteKey(x, y)]
+    }
+
+    /** Set (add or update) the note for a specific tile */
+    fun setTileNote(gameInfo: GameInfo, x: Int, y: Int, note: String) {
+        val notes = loadNotes(gameInfo)
+        if (note.isBlank()) {
+            notes.remove(tileNoteKey(x, y))
+        } else {
+            notes[tileNoteKey(x, y)] = note
+        }
+        saveNotes(gameInfo, notes)
+    }
+
+    /** Delete the note for a specific tile */
+    fun deleteTileNote(gameInfo: GameInfo, x: Int, y: Int) {
+        val notes = loadNotes(gameInfo)
+        notes.remove(tileNoteKey(x, y))
         saveNotes(gameInfo, notes)
     }
 

@@ -170,8 +170,8 @@ class TileGroupMap<T: TileGroup>(
             improvementMapLayer,
             tileGroupLayer,       // TileGroups for click detection; kept below miscMapLayer so
                                   // miscMapLayer is hit-tested first (city-screen workedIcon clicks)
-            miscMapLayer,
             yieldMapLayer,
+            miscMapLayer,
             unitSpriteMapLayer,
             overlayMapLayer,
             unitFlagMapLayer,

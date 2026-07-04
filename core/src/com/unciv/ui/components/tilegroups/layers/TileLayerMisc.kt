@@ -276,6 +276,8 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
 
     private val startingLocationIcons = mutableListOf<Actor>()
 
+    private var tileNoteLabel: Actor? = null
+
     private fun clearArrows() {
         for (actorList in arrows.values)
             for (actor in actorList)
@@ -479,10 +481,26 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
     fun dimPopulation(dim: Boolean) { workedIcon?.color?.a = if (dim) 0.4f else 1f }
 
 
+    private fun updateTileNote() {
+        tileNoteLabel?.let { removeOwnedActor(it) }
+        tileNoteLabel = null
+        if (tileGroup !is WorldTileGroup) return
+        val noteText = tileGroup.tileNoteText ?: return
+        val label = noteText.toLabel(Color.WHITE, 12).apply {
+            touchable = Touchable.disabled
+            setOrigin(Align.center)
+            x = tileX + (tileGroup.width - width) / 2
+            y = tileY + 8f
+        }
+        addOwnedActor(label)
+        tileNoteLabel = label
+    }
+
     override fun doUpdate(viewingCiv: Civilization?) {
         if (tileGroup !is WorldTileGroup || DebugUtils.SHOW_TILE_COORDS)
             updateStartingLocationIcon(true)
         updateArrows()
+        updateTileNote()
     }
 
     override fun determineVisibility() {
@@ -491,11 +509,14 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
                 || arrows.isNotEmpty()
                 || startingLocationIcons.isNotEmpty()
                 || terrainOverlay != null
+                || tileNoteLabel != null
     }
 
     fun reset() {
         updateStartingLocationIcon(false)
         clearArrows()
+        tileNoteLabel?.let { removeOwnedActor(it) }
+        tileNoteLabel = null
     }
 
 }

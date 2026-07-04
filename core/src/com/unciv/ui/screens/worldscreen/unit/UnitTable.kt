@@ -27,6 +27,7 @@ import com.unciv.ui.images.padTopDescent
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.pickerscreens.UnitNotePopup
+import com.unciv.ui.screens.pickerscreens.TileNotePopup
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.ui.screens.worldscreen.unit.presenter.CityPresenter
 import com.unciv.ui.screens.worldscreen.unit.presenter.SpyPresenter
@@ -244,11 +245,19 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
             val visibleUnits = listOfNotNull(milUnit, civUnit)
                 .filter { selectedTile.isVisible(worldScreen.viewingCiv) }
             when (visibleUnits.size) {
-                0 -> {} // no visible unit, do nothing
-                1 -> UnitNotePopup(worldScreen, visibleUnits[0], worldScreen.gameInfo) {}
-                else -> showNoteUnitPicker(visibleUnits)
+                0 -> {} // no visible unit, fall through to tile note check
+                1 -> { UnitNotePopup(worldScreen, visibleUnits[0], worldScreen.gameInfo) {}; return }
+                else -> { showNoteUnitPicker(visibleUnits); return }
             }
-            return
+        }
+
+        // Tile notes (map pins): clicking a tile opens tile note editor
+        if (worldScreen.game.settings.showTileNotes) {
+            val tile = selectedTile
+            if (tile.isVisible(worldScreen.viewingCiv)) {
+                TileNotePopup(worldScreen, tile, worldScreen.gameInfo) {}
+                return
+            }
         }
 
         val nextUnit: MapUnit?
