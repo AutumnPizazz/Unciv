@@ -148,6 +148,7 @@ class GameSettings {
     //region 8: Advanced
     var maxAutosavesStored = 10
     var turnsBetweenAutosaves = 1
+    var allowRandomVariance = false
 
     var androidCutout = false
     var androidHideSystemUi = true

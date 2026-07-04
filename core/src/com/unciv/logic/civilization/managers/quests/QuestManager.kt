@@ -21,6 +21,7 @@ import com.unciv.utils.randomWeighted
 import yairm210.purity.annotations.Pure
 import yairm210.purity.annotations.Readonly
 import kotlin.collections.iterator
+import kotlin.random.Random
 
 @Suppress("ConvertArgumentToSet")  // Flags all assignedQuests.removeAll(List) - not worth it
 class QuestManager : IsPartOfGameInfoSerialization {
