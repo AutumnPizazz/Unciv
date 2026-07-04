@@ -131,10 +131,14 @@ class UncivFiles(
             else -> Sequence { files.external(saveFolder).list().iterator() }
         }
 
+        val allFiles = localFiles + externalFiles
+        // Filter out companion notes files (e.g., "MyGame_notes")
+        val filtered = allFiles.filter { !it.name().endsWith("_notes") }
+
         debug("Local files: %s, external files: %s",
             { localFiles.joinToString(prefix = "[", postfix = "]", transform = { it.file().absolutePath }) },
             { externalFiles.joinToString(prefix = "[", postfix = "]", transform = { it.file().absolutePath }) })
-        return localFiles + externalFiles
+        return filtered
     }
 
     /**
@@ -142,6 +146,7 @@ class UncivFiles(
      * @throws SecurityException when delete access was denied
      */
     fun deleteSave(gameName: String): Boolean {
+        UnitNotesManager.deleteNotesFile(gameName)
         return deleteSave(getSave(gameName))
     }
 
@@ -242,15 +247,20 @@ class UncivFiles(
     //endregion
     //region Loading
 
-    fun loadGameByName(gameName: String) =
-            loadGameFromFile(getSave(gameName))
+    fun loadGameByName(gameName: String): GameInfo {
+        val gameInfo = loadGameFromFile(getSave(gameName))
+        gameInfo.loadedSaveFileName = gameName
+        return gameInfo
+    }
 
     fun loadGameFromFile(gameFile: FileHandle): GameInfo {
         val gameData = gameFile.readString(Charsets.UTF_8.name())
         if (gameData.isNullOrBlank()) {
             throw emptyFile(gameFile)
         }
-        return gameInfoFromString(gameData)
+        val gameInfo = gameInfoFromString(gameData)
+        gameInfo.loadedSaveFileName = gameFile.name()
+        return gameInfo
     }
 
     fun loadGamePreviewFromFile(gameFile: FileHandle): GameInfoPreview {

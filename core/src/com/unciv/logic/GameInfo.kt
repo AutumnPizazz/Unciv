@@ -144,6 +144,10 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     @Volatile
     var customSaveLocation: String? = null
 
+    /** The save file name this game was loaded from, used to locate the companion notes file */
+    @Transient
+    var loadedSaveFileName: String? = null
+
     /** List of unit names that have been taken in this game from UnitNameGroups.json. */
     var unitNamesTaken = ArrayList<String>()
 

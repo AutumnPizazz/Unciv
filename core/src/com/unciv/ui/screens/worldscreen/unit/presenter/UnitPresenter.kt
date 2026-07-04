@@ -1,6 +1,7 @@
 package com.unciv.ui.screens.worldscreen.unit.presenter
 
 import com.badlogic.gdx.utils.Align
+import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.ruleset.unique.UniqueType
@@ -12,6 +13,7 @@ import com.unciv.ui.components.input.onClick
 import com.unciv.ui.components.widgets.UnitIconGroup
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.screens.pickerscreens.PromotionPickerScreen
+import com.unciv.ui.screens.pickerscreens.UnitNotePopup
 import com.unciv.ui.screens.pickerscreens.UnitRenamePopup
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.ui.screens.worldscreen.unit.UnitTable
@@ -31,6 +33,9 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
     // Whether the (first) selected unit is in road-connecting mode
     var selectedUnitIsConnectingRoad = false
 
+    /** Whether the currently selected unit is a foreign unit being viewed (not our own) */
+    private var viewingForeignUnit = false
+
     override val position: HexCoord?
         get() = selectedUnit?.currentTile?.position
 
@@ -40,22 +45,49 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
             selectedUnits.add(unit)
             unit.actionsOnDeselect()
         }
+        viewingForeignUnit = unit != null
+                && unit.civ != worldScreen.viewingCiv
+                && !worldScreen.viewingCiv.isSpectator()
         selectedUnitIsSwapping = false
         selectedUnitIsConnectingRoad = false
     }
 
     override fun update() {
         val unit = selectedUnit ?: return
-        // The unit that was selected, was captured. It exists but is no longer ours.
-        val captured =
-            unit.civ != worldScreen.viewingCiv && !worldScreen.viewingCiv.isSpectator()
-        // The unit that was there no longer exists
+
+        // The unit that was selected no longer exists on the map
         val disappeared = unit !in unit.getTile().getUnits()
-        if (captured || disappeared) {
+
+        if (disappeared) {
+            // If we were viewing a foreign unit, clean up its note
+            if (viewingForeignUnit) {
+                UnitNotesManager.deleteNote(worldScreen.gameInfo, unit)
+            }
             unitTable.selectUnit()
             worldScreen.shouldUpdate = true
             return
         }
+
+        // The unit changed ownership to another civ (captured from us)
+        val captured = unit.civ != worldScreen.viewingCiv && !worldScreen.viewingCiv.isSpectator()
+        if (captured && !viewingForeignUnit) {
+            // Our unit was captured - deselect
+            unitTable.selectUnit()
+            worldScreen.shouldUpdate = true
+            return
+        }
+
+        // If a foreign unit was captured BY us, transfer note to instanceName
+        if (!captured && viewingForeignUnit) {
+            val note = UnitNotesManager.getNote(worldScreen.gameInfo, unit)
+            if (note != null) {
+                unit.instanceName = note
+                UnitNotesManager.deleteNote(worldScreen.gameInfo, unit)
+            }
+            viewingForeignUnit = false
+        }
+
+        val isForeign = unit.civ != worldScreen.viewingCiv && !worldScreen.viewingCiv.isSpectator()
 
         // set texts - this is valid even when it's the same unit, because movement points and health change
         // single selected unit
@@ -63,16 +95,33 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
             separator.isVisible = true
             nameLabelText = buildNameLabelText(unit)
             unitNameLabel.clearListeners()
-            unitNameLabel.onClick {
-                if (!worldScreen.canChangeState) return@onClick
-                UnitRenamePopup(
-                    screen = worldScreen,
-                    unit = unit,
-                    actionOnClose = {
-                        unitNameLabel.setText(buildNameLabelText(unit))
-                        shouldUpdate = true
-                    }
-                )
+
+            if (isForeign) {
+                // Foreign unit: clicking name label opens note editor instead of rename
+                unitNameLabel.onClick {
+                    UnitNotePopup(
+                        screen = worldScreen,
+                        unit = unit,
+                        gameInfo = worldScreen.gameInfo,
+                        actionOnClose = {
+                            unitNameLabel.setText(buildNameLabelText(unit))
+                            shouldUpdate = true
+                        }
+                    )
+                }
+            } else {
+                // Own unit: clicking name label opens rename popup
+                unitNameLabel.onClick {
+                    if (!worldScreen.canChangeState) return@onClick
+                    UnitRenamePopup(
+                        screen = worldScreen,
+                        unit = unit,
+                        actionOnClose = {
+                            unitNameLabel.setText(buildNameLabelText(unit))
+                            shouldUpdate = true
+                        }
+                    )
+                }
             }
 
             descriptionTable.clear()
@@ -110,6 +159,30 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
             if (unit.baseUnit.religiousStrength > 0) {
                 descriptionTable.add(ImageGetter.getStatIcon("ReligiousStrength")).size(20f)
                 descriptionTable.add((unit.baseUnit.religiousStrength - unit.religiousStrengthLost).tr())
+            }
+
+            // Show note for foreign units
+            if (isForeign) {
+                descriptionTable.row()
+                val note = UnitNotesManager.getNote(worldScreen.gameInfo, unit)
+                if (note != null) {
+                    descriptionTable.add("\uD83D\uDCDD".toLabel()).padRight(5f)
+                    descriptionTable.add(note.toLabel()).padRight(10f)
+                } else {
+                    descriptionTable.add("Add Note".tr().toLabel().apply {
+                        onClick {
+                            UnitNotePopup(
+                                screen = worldScreen,
+                                unit = unit,
+                                gameInfo = worldScreen.gameInfo,
+                                actionOnClose = {
+                                    unitNameLabel.setText(buildNameLabelText(unit))
+                                    shouldUpdate = true
+                                }
+                            )
+                        }
+                    })
+                }
             }
 
             if (unit.promotions.promotions.size != promotionsTable.children.size) // The unit has been promoted! Reload promotions!
@@ -162,6 +235,8 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
     private fun buildNameLabelText(unit: MapUnit) : String {
         var nameLabelText = unit.displayName().tr(true)
         if (unit.health < 100) nameLabelText += " (${unit.health.tr()})"
+        val isForeign = unit.civ != worldScreen.viewingCiv && !worldScreen.viewingCiv.isSpectator()
+        if (isForeign) nameLabelText += " (${unit.civ.civName.tr()})"
         return nameLabelText
     }
 
