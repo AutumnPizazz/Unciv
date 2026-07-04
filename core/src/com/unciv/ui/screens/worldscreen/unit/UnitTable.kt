@@ -212,10 +212,8 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         if (selectedUnit != null && selectedUnit!!.isPreparingAirSweep()) return
 
         @Readonly
-        fun MapUnit.isEligible(): Boolean = this !in selectedUnits
-                && (this.civ == worldScreen.viewingCiv
-                    || worldScreen.viewingCiv.isSpectator()
-                    || selectedTile.isVisible(worldScreen.viewingCiv))
+        fun MapUnit.isEligible(): Boolean = (this.civ == worldScreen.viewingCiv
+                || worldScreen.viewingCiv.isSpectator()) && this !in selectedUnits
 
         // This is the Civ 5 Order of selection:
         // 1. City
@@ -257,6 +255,14 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
             forceSelectUnit != null -> selectUnit(forceSelectUnit)
             isCitySelected -> citySelected(selectedTile.getCity()!!)
             nextUnit != null -> selectUnit(nextUnit, Gdx.input.isShiftKeyPressed())
+            // No own unit or city - check for visible foreign units to show note popup
+            !isCitySelected && nextUnit == null -> {
+                val foreignUnit = selectedTile.militaryUnit?.takeIf { it.civ != worldScreen.viewingCiv && selectedTile.isVisible(worldScreen.viewingCiv) }
+                    ?: selectedTile.civilianUnit?.takeIf { it.civ != worldScreen.viewingCiv && selectedTile.isVisible(worldScreen.viewingCiv) }
+                if (foreignUnit != null) {
+                    ForeignUnitNotePopup(worldScreen, foreignUnit).open()
+                }
+            }
             // toggle selection if same unit is clicked again by player
             selectedTile == previouslySelectedUnit?.currentTile -> {
                 selectUnit()
