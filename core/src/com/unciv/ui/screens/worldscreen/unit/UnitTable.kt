@@ -6,20 +6,25 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.logic.city.City
+import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Spy
+import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.addRoundCloseButton
 import com.unciv.ui.components.extensions.addSeparator
 import com.unciv.ui.components.extensions.center
 import com.unciv.ui.components.extensions.darken
 import com.unciv.ui.components.extensions.isShiftKeyPressed
+import com.unciv.ui.components.extensions.surroundWithCircle
 import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.components.input.KeyboardBinding
 import com.unciv.ui.components.input.keyShortcuts
 import com.unciv.ui.components.input.onClick
+import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.images.padTopDescent
+import com.unciv.ui.popups.Popup
 import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.pickerscreens.UnitNotePopup
 import com.unciv.ui.screens.worldscreen.WorldScreen
@@ -236,11 +241,14 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
 
         // Note mode: clicking a unit opens note editor instead of selecting it
         if (worldScreen.game.settings.showUnitNotes) {
-            val noteUnit = milUnit ?: civUnit
-            if (noteUnit != null && selectedTile.isVisible(worldScreen.viewingCiv)) {
-                UnitNotePopup(worldScreen, noteUnit, worldScreen.gameInfo) {}
-                return
+            val visibleUnits = listOfNotNull(milUnit, civUnit)
+                .filter { selectedTile.isVisible(worldScreen.viewingCiv) }
+            when (visibleUnits.size) {
+                0 -> {} // no visible unit, do nothing
+                1 -> UnitNotePopup(worldScreen, visibleUnits[0], worldScreen.gameInfo) {}
+                else -> showNoteUnitPicker(visibleUnits)
             }
+            return
         }
 
         val nextUnit: MapUnit?
@@ -274,6 +282,28 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
 
         if (selectedUnit != previouslySelectedUnit || selectedUnits.size != previousNumberOfSelectedUnits)
             shouldUpdate = true
+    }
+
+    /** When in note mode and multiple units occupy a tile, show a popup to pick which unit to add notes to. */
+    private fun showNoteUnitPicker(units: List<MapUnit>) {
+        val popup = Popup(worldScreen)
+        popup.add("Note for".toLabel()).padBottom(10f).row()
+        
+        for (unit in units) {
+            val entry = Table()
+            val icon = ImageGetter.getUnitIcon(unit.baseUnit).surroundWithCircle(30f)
+            entry.add(icon).padRight(5f)
+            val note = UnitNotesManager.getNote(worldScreen.gameInfo, unit)
+            val noteSuffix = if (note != null) " (\uD83D\uDCDD)" else ""
+            entry.add((unit.displayName().tr() + noteSuffix).toLabel())
+            entry.pad(5f)
+            entry.onClick {
+                popup.remove()
+                UnitNotePopup(worldScreen, unit, worldScreen.gameInfo) {}
+            }
+            popup.add(entry).row()
+        }
+        popup.open()
     }
 
     interface Presenter {
