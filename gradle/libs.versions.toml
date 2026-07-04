@@ -16,7 +16,7 @@ clikt = "5.0.3"
 
 luaj = "3.0.1"
 
-purity = "1.4.0"
+purity = "1.6.0"
 detekt = "1.23.8"
 
 # tests

@@ -5,6 +5,7 @@ import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.tile.TerrainType
 import com.unciv.models.ruleset.unique.UniqueType
+import kotlin.math.E
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -56,6 +57,7 @@ class MapLandmassGenerator(
             MapType.perlin -> createPerlin()
             MapType.fractal -> createFractal()
             MapType.lakes -> createLakes()
+            MapType.boreal -> createBoreal()
             MapType.smallContinents -> createSmallContinents()
         }
 
@@ -138,6 +140,54 @@ class MapLandmassGenerator(
 
                 spawnLandOrWater(tile, elevation)
             }
+        }
+    }
+
+    /**
+     * A large region that is all tundra and well forested.
+     * 
+     * Implemented based on screenshot from Civ V: https://i.imgur.com/L63zfv6.jpeg
+     * 
+     * Notes:
+     * - The bottom ~80% is fairly homogenous, with a mix of snow, tundra, plains (when river converts tundra), and a few lakes/small oceans.
+     * - There is a band of ocean with ice at the very top.
+     * - There is more vegetation and mountains than default.
+     */
+    private fun createBoreal() {
+        // There are two layers of noise
+        // The fine noise layer affects lake formation and has no impact on overall elevation
+        // The broad layer impacts the coastline and can cause small oceans to spawn inland
+        val lakesSeed = randomness.RNG.nextInt().toDouble()
+        val broadNoiseSeed = randomness.RNG.nextInt().toDouble() // wavy coast in the north
+        
+        // Lake frequency is not affected by map size, important for rivers
+        val lakesScale = 5.0
+        // The broad noise layer scales sublinearly with map size (relatively less noisy on smaller maps)
+        val broadNoiseScale = 3.0 * sqrt(tileMap.mapParameters.mapSize.radius.toDouble())
+        
+        for (tile in tileMap.values) {
+            // In range -1.0 to +1.0
+            val latitude =
+                if (tileMap.mapParameters.shape == MapShape.flatEarth)
+                    // North is at the edges instead of at the top
+                    2 * MapGenerator.getTileRadius(tile, tileMap) - 1 
+                else
+                    tile.latitude.toDouble() / tileMap.maxLatitude
+            // Elevation declines faster and faster towards the north
+            val southElevation = 0.15
+            val northElevation = -0.4
+            val b = 4
+            var elevation = southElevation + (northElevation - southElevation) * E.pow(b * latitude - b)
+            
+            // The threshold ensures small lakes and rivers spawn irrespective of water level (map parameter)
+            val lakeThreshold = 0.43
+            val shouldSpawnLake = getRidgedPerlinNoise(tile, lakesSeed, scale=lakesScale) > lakeThreshold
+            if (shouldSpawnLake)
+                elevation -= 0.5
+            
+            val broadLayerImpact = 0.55
+            elevation += broadLayerImpact * randomness.getPerlinNoise(tile, broadNoiseSeed, scale=broadNoiseScale)
+            spawnLandOrWater(tile, elevation)
         }
     }
 
