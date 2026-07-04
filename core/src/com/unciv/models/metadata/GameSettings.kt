@@ -68,6 +68,7 @@ class GameSettings {
     var showLongPressIndicators = LongPressIndicatorSetting.Default
 
     var showZoomButtons = false
+    var showUnitNotes = false
     var forbidPopupClickBehindToClose = false
     var useCirclesToIndicateMovableTiles = false
     /** Size of automatic display of UnitSet art in Civilopedia - 0 to disable */

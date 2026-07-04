@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.toLabel
@@ -58,6 +59,16 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
             // Fade out flag for own out-of-moves units
             if (unit.civ == viewingCiv && !unit.hasMovement())
                 newIcon.color.a = 0.5f * UncivGame.Current.settings.unitIconOpacity
+
+            // Show note text below unit when toggle is enabled
+            if (UncivGame.Current.settings.showUnitNotes && tileGroup.tile.tileMap.hasGameInfo()) {
+                val note = UnitNotesManager.getNote(tileGroup.tile.tileMap.gameInfo, unit)
+                if (note != null) {
+                    val noteLabel = note.toLabel(fontSize = 10)
+                    noteLabel.setPosition(newIcon.width / 2 - noteLabel.width / 2, -16f)
+                    newIcon.addActor(noteLabel)
+                }
+            }
 
         }
 

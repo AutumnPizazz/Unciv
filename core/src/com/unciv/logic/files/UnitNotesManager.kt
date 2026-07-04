@@ -15,6 +15,10 @@ object UnitNotesManager {
 
     private const val NOTES_SUFFIX = "_notes"
 
+    /** In-memory cache of loaded notes, keyed by saveFileName */
+    private var cachedGameId: String? = null
+    private var cachedNotes: HashMap<String, String>? = null
+
     /** Build a note key for a unit: "ownerCivName|unitId" */
     fun noteKey(unit: MapUnit): String = "${unit.owner}|${unit.id}"
 
@@ -30,20 +34,37 @@ object UnitNotesManager {
         return getNotesFile(fileName)
     }
 
-    /** Load all notes for the current game */
+    /** Load all notes for the current game (with caching) */
     fun loadNotes(gameInfo: GameInfo): HashMap<String, String> {
-        val file = getNotesFile(gameInfo) ?: return HashMap()
-        if (!file.exists()) return HashMap()
+        val fileName = gameInfo.loadedSaveFileName
+        if (fileName == null) return HashMap()
+
+        // Return cached notes if the game hasn't changed
+        if (cachedGameId == fileName && cachedNotes != null)
+            return cachedNotes!!
+
+        val notesFile = getNotesFile(fileName) ?: return HashMap()
+        if (!notesFile.exists()) {
+            cachedGameId = fileName
+            cachedNotes = HashMap()
+            return cachedNotes!!
+        }
         return try {
-            json().fromJson(HashMap::class.java, file) as? HashMap<String, String> ?: HashMap()
+            val notes = json().fromJson(HashMap::class.java, notesFile) as? HashMap<String, String> ?: HashMap()
+            cachedGameId = fileName
+            cachedNotes = notes
+            notes
         } catch (ex: Exception) {
-            HashMap()
+            cachedGameId = fileName
+            cachedNotes = HashMap()
+            cachedNotes!!
         }
     }
 
     /** Save all notes for the current game */
     fun saveNotes(gameInfo: GameInfo, notes: HashMap<String, String>) {
         val file = getNotesFile(gameInfo) ?: return
+        cachedNotes = notes  // Update cache
         if (notes.isEmpty()) {
             if (file.exists()) file.delete()
             return

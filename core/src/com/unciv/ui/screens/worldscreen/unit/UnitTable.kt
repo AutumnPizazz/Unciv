@@ -21,6 +21,7 @@ import com.unciv.ui.components.input.keyShortcuts
 import com.unciv.ui.components.input.onClick
 import com.unciv.ui.images.padTopDescent
 import com.unciv.ui.screens.basescreen.BaseScreen
+import com.unciv.ui.screens.pickerscreens.UnitNotePopup
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.ui.screens.worldscreen.unit.presenter.CityPresenter
 import com.unciv.ui.screens.worldscreen.unit.presenter.SpyPresenter
@@ -233,6 +234,15 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         val milUnit = selectedTile.militaryUnit
         val curUnit = selectedUnit
 
+        // Note mode: clicking a unit opens note editor instead of selecting it
+        if (worldScreen.game.settings.showUnitNotes) {
+            val noteUnit = milUnit ?: civUnit
+            if (noteUnit != null && selectedTile.isVisible(worldScreen.viewingCiv)) {
+                UnitNotePopup(worldScreen, noteUnit, worldScreen.gameInfo) {}
+                return
+            }
+        }
+
         val nextUnit: MapUnit?
         val priorityUnit = when {
             milUnit != null && milUnit.isEligible() -> milUnit
@@ -255,14 +265,6 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
             forceSelectUnit != null -> selectUnit(forceSelectUnit)
             isCitySelected -> citySelected(selectedTile.getCity()!!)
             nextUnit != null -> selectUnit(nextUnit, Gdx.input.isShiftKeyPressed())
-            // No own unit or city - check for visible foreign units to show note popup
-            !isCitySelected && nextUnit == null -> {
-                val foreignUnit = selectedTile.militaryUnit?.takeIf { it.civ != worldScreen.viewingCiv && selectedTile.isVisible(worldScreen.viewingCiv) }
-                    ?: selectedTile.civilianUnit?.takeIf { it.civ != worldScreen.viewingCiv && selectedTile.isVisible(worldScreen.viewingCiv) }
-                if (foreignUnit != null) {
-                    ForeignUnitNotePopup(worldScreen, foreignUnit).open()
-                }
-            }
             // toggle selection if same unit is clicked again by player
             selectedTile == previouslySelectedUnit?.currentTile -> {
                 selectUnit()

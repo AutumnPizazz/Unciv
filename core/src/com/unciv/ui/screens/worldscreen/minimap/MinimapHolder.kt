@@ -59,12 +59,19 @@ class MinimapHolder(val mapHolder: WorldMapHolder) : Table() {
         getter = { UncivGame.Current.settings.showPixelImprovements },
         setter = { UncivGame.Current.settings.showPixelImprovements = it }
     )
+    /** Button, next to the minimap, to toggle unit notes display. */
+    val unitNotesImageButton = MapOverlayToggleButton(
+        "OtherIcons/Pencil",
+        getter = { UncivGame.Current.settings.showUnitNotes },
+        setter = { UncivGame.Current.settings.showUnitNotes = it }
+    )
     val buttons = listOf(
         movementsImageButton,
         yieldImageButton,
         populationImageButton,
         resourceImageButton,
-        improvementsImageButton
+        improvementsImageButton,
+        unitNotesImageButton
     )
 
     private fun rebuildIfSizeChanged(civInfo: Civilization) {
