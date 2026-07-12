@@ -13,10 +13,10 @@ sourceSets {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
+        jvmTarget = JvmTarget.JVM_21
     }
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_21
 }
