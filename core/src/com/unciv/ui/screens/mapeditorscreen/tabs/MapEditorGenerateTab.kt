@@ -68,7 +68,7 @@ class MapEditorGenerateTab(
         }
 
         val mapParameters = editorScreen.newMapParameters.clone()  // this clone is very important here
-        val message = mapParameters.mapSize.fixUndesiredSizes(mapParameters.worldWrap)
+        val message = mapParameters.mapSize.fixUndesiredSizes(mapParameters.worldWrap, mapParameters.shape)
         if (message != null) {
             Concurrency.runOnGLThread {
                 ToastPopup( message, editorScreen, 4000 )

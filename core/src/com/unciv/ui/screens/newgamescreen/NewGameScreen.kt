@@ -198,7 +198,7 @@ class NewGameScreen(
         } else {
             // Generated map - check for sensible dimensions and if exceeded correct them and notify user
             val mapSize = gameSetupInfo.mapParameters.mapSize
-            val message = mapSize.fixUndesiredSizes(gameSetupInfo.mapParameters.worldWrap)
+            val message = mapSize.fixUndesiredSizes(gameSetupInfo.mapParameters.worldWrap, gameSetupInfo.mapParameters.shape)
             if (message != null) {
                 with (mapOptionsTable.generatedMapOptionsTable) {
                     customMapSizeRadius.intValue = mapSize.radius

@@ -97,15 +97,17 @@ class MapSize private constructor(
 
     /** Check custom dimensions, fix if too extreme
      * @param worldWrap whether world wrap is on
+     * @param shape the map shape, used to apply shape-specific minimums correctly
      * @return null if size was acceptable, otherwise untranslated reason message
      */
-    fun fixUndesiredSizes(worldWrap: Boolean): String? {
+    fun fixUndesiredSizes(worldWrap: Boolean, shape: String = ""): String? {
         if (name != custom) return null  // predefined sizes are OK
-        // world-wrap mas must always have an even width, so round down silently
+        val isRectangular = shape == MapShape.rectangular
+        // world-wrap maps must always have an even width, so round down silently
         if (worldWrap && width % 2 != 0 ) width--
         // check for any bad condition and bail if none of them
         val message = when {
-            worldWrap && width < 32 ->    // otherwise horizontal scrolling will show edges, empirical
+            worldWrap && isRectangular && width < 32 ->    // otherwise horizontal scrolling will show edges, empirical
                 "World wrap requires a minimum width of 32 tiles"
             width < 3 || height < 3 || radius < 2 ->
                 "The provided map dimensions were too small"
@@ -116,11 +118,11 @@ class MapSize private constructor(
             else -> null
         } ?: return null
 
-        // fix the size - not knowing whether hexagonal or rectangular is used
+        // fix the size
         setNewRadius(when {
             radius < 2 -> 2
             radius > 500 -> 500
-            worldWrap && radius < 15 -> 15    // minimum for hexagonal but more than required for rectangular
+            worldWrap && radius < 3 -> 3    // minimum for hexagonal but more than required for rectangular
             else -> radius
         })
 
