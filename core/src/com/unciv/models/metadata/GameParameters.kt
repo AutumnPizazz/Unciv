@@ -53,6 +53,11 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
     /** Polling interval in seconds for simultaneous-style multiplayer. 0 = disabled (classic sequential turns). */
     var pollingIntervalSeconds = 0
 
+    /** If true, only clients with the same game version as the host can join this multiplayer game. */
+    var requireSameVersion = false
+    /** Version string of the host that created this game. Set automatically by GameStarter. */
+    var hostVersion: String? = null
+
     var baseRuleset: String = BaseRuleset.Civ_V_GnK.fullName
     var mods = LinkedHashSet<String>()
 

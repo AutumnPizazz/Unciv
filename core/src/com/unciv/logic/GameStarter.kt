@@ -66,6 +66,7 @@ class GameStarter private constructor(
             gameSetupInfo.gameParameters.baseRuleset = RulesetCache.getVanillaRuleset().name
 
         gameInfo.gameParameters = gameSetupInfo.gameParameters
+        gameInfo.gameParameters.hostVersion = UncivGame.VERSION.text
         ruleset = RulesetCache.getComplexRuleset(gameInfo.gameParameters)
         val mapGen = MapGenerator(ruleset)
 

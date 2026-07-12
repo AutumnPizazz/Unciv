@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.unciv.Constants
+import com.unciv.UncivGame
 import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.multiplayer.MultiplayerGamePreview
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
@@ -76,7 +77,18 @@ class MultiplayerScreen : PickerScreen() {
     private fun setupRightSideButton() {
         rightSideButton.setText("Join game".tr())
         rightSideButton.onClick {
-            val missingMods = selectedGame!!.preview!!.gameParameters.getModsAndBaseRuleset()
+            val preview = selectedGame!!.preview!!
+            if (preview.gameParameters.requireSameVersion) {
+                val hostVersion = preview.gameParameters.hostVersion
+                if (hostVersion != null && hostVersion != UncivGame.VERSION.text) {
+                    ToastPopup(
+                        "Cannot join: host requires same game version.\nHost: $hostVersion, Yours: ${UncivGame.VERSION.text}",
+                        this@MultiplayerScreen
+                    )
+                    return@onClick
+                }
+            }
+            val missingMods = preview.gameParameters.getModsAndBaseRuleset()
                 .filter { !RulesetCache.containsKey(it) }
             if (missingMods.isEmpty()) return@onClick MultiplayerHelpers.loadMultiplayerGame(this, selectedGame!!)
 

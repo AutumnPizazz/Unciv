@@ -121,6 +121,7 @@ class GameOptionsTable(
         checkboxTable.addIsOnlineMultiplayerCheckbox()
         if (gameParameters.isOnlineMultiplayer){
             checkboxTable.addAnyoneCanSpectateCheckbox()
+            checkboxTable.addRequireSameVersionCheckbox()
             selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0)
             selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
             selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)
@@ -210,6 +211,10 @@ class GameOptionsTable(
             {
                 gameParameters.anyoneCanSpectate = it
             }
+
+    private fun Table.addRequireSameVersionCheckbox() =
+            addCheckbox("Require same game version to join", gameParameters.requireSameVersion)
+            { gameParameters.requireSameVersion = it }
 
     private fun Table.addEnableEspionageCheckbox() =
         addCheckbox("Enable Espionage", gameParameters.espionageEnabled)
