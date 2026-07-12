@@ -228,8 +228,8 @@ class GameOptionsTable(
     private fun Table.addShowVictoryStatsCheckbox() =
         addCheckbox("Show victory stats", gameParameters.showVictoryStats)
         {
-            gameParameters.showVictoryStats = it
-            if (it) gameParameters.showDemographics = false
+            // gameParameters.showVictoryStats = it
+            gameParameters.showDemographics = false
             update()  // To show/hide showDemographics checkbox
         }
 
