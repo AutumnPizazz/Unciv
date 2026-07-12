@@ -595,6 +595,13 @@ class CityStats(val city: City) {
                 Stats(production = getProductionFromExcessiveFood(totalFood), food = -totalFood)
         }
 
+        // When constructing a Settler (or any unit/building with ConvertFoodToProductionWhenConstructed),
+        // the city cannot starve: Civ V rule — minimum food is 0
+        if (totalFood < 0 && currentConstruction is INonPerpetualConstruction
+            && currentConstruction.hasUnique(UniqueType.ConvertFoodToProductionWhenConstructed)) {
+            newFinalStatList["Excess food to production"] = Stats(food = -totalFood)
+        }
+
         val growthNullifyingUnique = city.getMatchingUniques(UniqueType.NullifiesGrowth).firstOrNull()
         if (growthNullifyingUnique != null) {
             // Does not nullify negative growth (starvation)
