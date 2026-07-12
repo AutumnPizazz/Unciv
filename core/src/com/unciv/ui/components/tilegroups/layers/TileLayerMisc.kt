@@ -3,8 +3,10 @@ package com.unciv.ui.components.tilegroups.layers
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
@@ -40,6 +42,34 @@ private class MapArrow(val targetTile: Tile, val arrowType: MapArrowType, val st
         is TintedMapArrow -> getArrowImage("Generic").apply { color = arrowType.color }
         else -> getArrowImage("Generic")
     }
+}
+
+/** 创建便签气泡：半透明深色底 + 白色文字，用于地图钉和单位钉显示 */
+internal fun createNoteBubble(text: String, fontSize: Int): Group {
+    val label = text.toLabel(Color.WHITE, fontSize)
+    label.setAlignment(Align.center)
+
+    // 半透明黑色背景（白点拉伸着色）
+    val bg = ImageGetter.getDot(Color(0f, 0f, 0f, 0.55f))
+
+    val container = Table().apply {
+        pad(3f, 5f, 3f, 5f)
+        add(label)
+        pack()
+    }
+
+    val group = Group().apply {
+        touchable = Touchable.disabled
+    }
+    bg.setSize(container.width + 4f, container.height + 2f)
+    group.addActor(bg)
+    group.addActor(container)
+    container.setPosition(
+        (bg.width - container.width) / 2,
+        (bg.height - container.height) / 2
+    )
+
+    return group
 }
 
 class TileLayerYield(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, size){
@@ -486,14 +516,13 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
         tileNoteLabel = null
         if (tileGroup !is WorldTileGroup) return
         val noteText = tileGroup.tileNoteText ?: return
-        val label = noteText.toLabel(Color.WHITE, 12).apply {
-            touchable = Touchable.disabled
-            setOrigin(Align.center)
-            x = tileX + (tileGroup.width - width) / 2
-            y = tileY + 8f
-        }
-        addOwnedActor(label)
-        tileNoteLabel = label
+        val bubble = createNoteBubble(noteText, 12)
+        bubble.setPosition(
+            tileX + (tileGroup.width - bubble.width) / 2,
+            tileY + tileGroup.height * 0.55f
+        )
+        addOwnedActor(bubble)
+        tileNoteLabel = bubble
     }
 
     override fun doUpdate(viewingCiv: Civilization?) {

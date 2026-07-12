@@ -1,5 +1,7 @@
 package com.unciv.ui.components.tilegroups.layers
 
+import com.badlogic.gdx.scenes.scene2d.Group
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.UncivGame
@@ -60,13 +62,16 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
             if (unit.civ == viewingCiv && !unit.hasMovement())
                 newIcon.color.a = 0.5f * UncivGame.Current.settings.unitIconOpacity
 
-            // Show note text below unit when toggle is enabled
+            // Show note bubble below unit when toggle is enabled
             if (UncivGame.Current.settings.showUnitNotes && tileGroup.tile.tileMap.hasGameInfo()) {
                 val note = UnitNotesManager.getNote(tileGroup.tile.tileMap.gameInfo, unit)
                 if (note != null) {
-                    val noteLabel = note.toLabel(fontSize = 10)
-                    noteLabel.setPosition(newIcon.width / 2 - noteLabel.width / 2, -16f)
-                    newIcon.addActor(noteLabel)
+                    val bubble = createNoteBubble(note, 10)
+                    bubble.setPosition(
+                        newIcon.width / 2 - bubble.width / 2,
+                        -bubble.height - 4f
+                    )
+                    newIcon.addActor(bubble)
                 }
             }
 
