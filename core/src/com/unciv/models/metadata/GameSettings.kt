@@ -386,7 +386,7 @@ class GameSettings {
         @Suppress("unused")  // @GGuenni knows what he intended with this field
         var userName: String = ""
 
-        private var server = Constants.uncivXyzServer
+        private var server = Constants.uncivDefaultServer
         fun getServer() = server
         fun setServer(value: String) {
             if (server != value) {
