@@ -9,7 +9,6 @@ import com.badlogic.gdx.utils.Align
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.PlayerType
-import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.metadata.Player
 import com.unciv.models.ruleset.Ruleset
@@ -149,9 +148,16 @@ class GameOptionsTable(
             if (gameParameters.enableRandomNationsPool) {
                 it.addNationsSelectTextButton()
             }
-            it.addShowVictoryStatsCheckbox()
-            if (!gameParameters.showVictoryStats) {
-                it.addShowDemographicsCheckbox()
+            it.addShowCivilizationStatsCheckbox()
+            if (gameParameters.showCivilizationStats == true) {
+                val statsTable = Table().apply {
+                    defaults().growX().left().padLeft(30f).padBottom(10f)
+                    addShowRankingsCheckbox()
+                    addShowChartsCheckbox()
+                    addShowDemographicsCheckbox()
+                    addCensorStatsCheckbox()
+                }
+                it.add(statsTable).left()
             }
         }
         add(expander).pad(10f).row()
@@ -230,10 +236,10 @@ class GameOptionsTable(
         }
     }
 
-    private fun Table.addShowVictoryStatsCheckbox() =
-        addCheckbox("Show victory stats", gameParameters.showVictoryStats)
+    private fun Table.addShowCivilizationStatsCheckbox() =
+        addCheckbox("Show Civilization Stats", gameParameters.showCivilizationStats == true)
         {
-            // gameParameters.showVictoryStats = it
+            gameParameters.showCivilizationStats = it
             gameParameters.showDemographics = false
             update()  // To show/hide showDemographics checkbox
         }
@@ -241,6 +247,18 @@ class GameOptionsTable(
     private fun Table.addShowDemographicsCheckbox() =
         addCheckbox("Show Demographics", gameParameters.showDemographics)
         { gameParameters.showDemographics = it }
+
+    private fun Table.addShowRankingsCheckbox() =
+        addCheckbox("Show Rankings", gameParameters.showRankings)
+        { gameParameters.showRankings = it }
+
+    private fun Table.addShowChartsCheckbox() =
+        addCheckbox("Show Charts", gameParameters.showCharts)
+        { gameParameters.showCharts = it }
+
+    private fun Table.addCensorStatsCheckbox() =
+        addCheckbox("Restrict to own civilization", gameParameters.hideOtherCivilizationStats)
+        { gameParameters.hideOtherCivilizationStats = it }
 
     private fun Table.addNationsSelectTextButton() {
         val button = "Select nations".toTextButton()

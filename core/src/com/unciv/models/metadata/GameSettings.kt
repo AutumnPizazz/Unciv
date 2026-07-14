@@ -88,7 +88,6 @@ class GameSettings {
     var continuousRendering = false
 
     //// Experimental
-    var useDemographics = false
     var unitMovementButtonAnimation = false
     var unitActionsTableAnimation = false
 

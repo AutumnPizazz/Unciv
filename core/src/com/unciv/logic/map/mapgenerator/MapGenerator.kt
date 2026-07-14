@@ -231,7 +231,8 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         // Region based map generation - not used when generating maps in map editor
         val civilizations = gameInfo?.civilizations
-        if (civilizations?.isNotEmpty() ?: false) {
+        val isMapEditor = civilizations?.isEmpty() ?: true
+        if (! isMapEditor) {
             map.gameInfo = gameInfo
             val regions = MapRegions(ruleset)
             runAndMeasure("generateRegions") {
@@ -256,7 +257,6 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         }
 
         runAndMeasure("spreadAncientRuins") { spreadAncientRuins(map) }
-
         // Move non-canonical starts to canonical positions so each civ's start
         // is on a "master" tile whose symmetric partners have identical terrain
         if (map.mapParameters.symmetryMode != SymmetryMode.none)
@@ -271,6 +271,9 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             mirror(map)
         }
 
+        if (isMapEditor)
+            mirror(map)
+        
         // Map generation may generate incompatible terrain/feature combinations
         for (tile in map.values)
             TileNormalizer.normalizeToRuleset(tile, ruleset)
@@ -278,9 +281,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         return map
     }
     
-    private fun flipTopBottom(vector: Vector2): Vector2 = Vector2(-vector.y, -vector.x)
     private fun flipTopBottom(vector: HexCoord): HexCoord = HexCoord.of(-vector.y, -vector.x)
-    private fun flipLeftRight(vector: Vector2): Vector2 = Vector2(vector.y, vector.x)
     private fun flipLeftRight(vector: HexCoord): HexCoord = HexCoord.of(vector.y, vector.x)
 
     // region Symmetry rotation functions
@@ -341,7 +342,9 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     // endregion
 
     private fun mirror(map: TileMap) {
-        fun getMirrorTile(tile: Tile, mirroringType: String): Tile? {
+        val mirroringType = map.mapParameters.mirroring
+        
+        fun getMirrorTile(tile: Tile): Tile? {
             val mirrorTileVector = when (mirroringType) {
                 MirroringType.topbottom -> if (tile.getRow() <= 0) return null else flipTopBottom(tile.position)
                 MirroringType.leftright -> if (tile.getColumn() <= 0) return null else flipLeftRight(tile.position)
@@ -358,8 +361,8 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             return map.getIfTileExistsOrNull(mirrorTileVector.x, mirrorTileVector.y)
         }
         
-        fun copyTile(tile: Tile, mirroringType: String) {
-            val mirrorTile = getMirrorTile(tile, mirroringType) ?: return
+        fun copyTile(tile: Tile) {
+            val mirrorTile = getMirrorTile(tile) ?: return
             
             tile.setBaseTerrain(mirrorTile.getBaseTerrain())
             tile.naturalWonder = mirrorTile.naturalWonder
@@ -369,7 +372,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             tile.setImprovementBasic(mirrorTile.tileImprovement)
             
             for (neighbor in tile.neighbors){
-                val neighborMirror = getMirrorTile(neighbor, mirroringType) ?: continue
+                val neighborMirror = getMirrorTile(neighbor) ?: continue
                 if (neighborMirror !in mirrorTile.neighbors) continue // we landed on the edge here
                 tile.setConnectedByRiver(neighbor, mirrorTile.isConnectedByRiver(neighborMirror))
             }
@@ -377,7 +380,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         if (map.mapParameters.mirroring == MirroringType.none) return
         for (tile in map.values) {
-            copyTile(tile, map.mapParameters.mirroring)
+            copyTile(tile)
         }
     }
 

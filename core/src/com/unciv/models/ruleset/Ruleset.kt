@@ -863,7 +863,7 @@ class Ruleset {
     @Readonly
     fun allNames(): Sequence<RulesetName> =
         RulesetFile.entries.asSequence().flatMap { it.getNames(this) }.filter { it.name.isNotEmpty() }
-    @Readonly fun allICivilopediaText(): Sequence<ICivilopediaText> = allRulesetObjects() + events.values.flatMap { it.choices }
+    @Readonly fun allICivilopediaText(): Sequence<ICivilopediaText> = allRulesetObjects()
 
     /** Check whether a JSON file contains "_mergeAction" and if so, store the parsed
      *  [JsonValue] tree for later conditional resolution during [add]. */

@@ -278,10 +278,10 @@ class QuestManager : IsPartOfGameInfoSerialization {
             && civ.cityStateFunctions.getNumThreateningBarbarians() >= 2) {
 
             civ.forEachKnownCiv {
-                if (it.isMajorCiv()
-                    && it.isAlive()
-                    && !it.isAtWarWith(civ)
-                    && it.getProximity(civ) <= Proximity.Far
+                if (!it.isMajorCiv()
+                    || !it.isAlive()
+                    || it.isAtWarWith(civ)
+                    || it.getProximity(civ) > Proximity.Far
                 ) return@forEachKnownCiv
                 it.addNotification(
                     "[${civ.civName}] is being invaded by Barbarians! Destroy Barbarians near their territory to earn Influence.",
@@ -559,7 +559,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
     fun wasAttackedBy(attacker: Civilization) {
         // Set target number units to kill
         val totalMilitaryUnits = attacker.units.getCivUnits().count { !it.isCivilian() }
-        val unitsToKill = (totalMilitaryUnits / 4).coerceAtMost(3)
+        val unitsToKill = (totalMilitaryUnits / 4).coerceAtLeast(3)
         unitsToKillForCiv[attacker.civID] = unitsToKill
 
         // Ask for assistance
