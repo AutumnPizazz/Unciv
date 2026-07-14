@@ -420,6 +420,8 @@ class CityScreen(
         if (tileGroup.tileState == CityTileState.WORKABLE) {
             if (!tile.providesYield() && city.population.getFreePopulation() > 0) {
                 city.workedTiles.add(tile.position)
+                if (city.autoLockTiles)
+                    city.lockedTiles.add(tile.position)
                 game.settings.addCompletedTutorialTask("Reassign worked tiles")
             } else {
                 city.workedTiles.remove(tile.position)

@@ -48,6 +48,7 @@ These shapes are used all over Unciv and can be replaced to make a lot of UI ele
 | CityScreen/CityConstructionTable/ | PickConstructionButtonSelected | null | |
 | CityScreen/CityConstructionTable/ | QueueEntry | null | |
 | CityScreen/CityConstructionTable/ | QueueEntrySelected | null | |
+| CityScreen/CityScreenTileTable/ | AutoLockCell | null | |
 | CityScreen/CityScreenTileTable/ | Background | null | |
 | CityScreen/CityScreenTileTable/ | InnerTable | null | |
 | CityScreen/CityStatsTable/ | Background | null | |

@@ -1,5 +1,6 @@
 package com.unciv.ui.screens.cityscreen
 
+import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
@@ -48,6 +49,26 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         }
         isVisible = true
         innerTable.clearChildren()
+
+        // Global auto-lock toggle - persistent state, always visible when any tile is selected
+        val colorSelected = BaseScreen.skin.getColor("selection")
+        val colorButton = BaseScreen.skin.getColor("color")
+        val autoLockLabel = "Auto-Lock".toLabel()
+        val autoLockCell = Table()
+        autoLockCell.add(autoLockLabel).pad(5f)
+        if (cityScreen.canChangeState) {
+            autoLockCell.touchable = Touchable.enabled
+            autoLockCell.onActivation {
+                city.autoLockTiles = !city.autoLockTiles
+                update(selectedTile)
+                cityScreen.update()
+            }
+        }
+        autoLockCell.background = BaseScreen.skinStrings.getUiBackground(
+            "CityScreen/CityScreenTileTable/AutoLockCell",
+            tintColor = if (city.autoLockTiles) colorSelected else colorButton
+        )
+        innerTable.add(autoLockCell).padBottom(5f).row()
 
         val stats = selectedTile.stats.getTileStats(city, city.civ)
         innerTable.pad(5f)

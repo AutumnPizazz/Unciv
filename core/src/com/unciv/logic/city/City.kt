@@ -137,6 +137,7 @@ class City : IsPartOfGameInfoSerialization, INamed {
 
 
     var avoidGrowth: Boolean = false
+    var autoLockTiles: Boolean = false
     @Transient var currentGPPBonus: Int = 0  // temporary variable saved for rankSpecialist()
 
     /** The very first found city is the _original_ capital,
