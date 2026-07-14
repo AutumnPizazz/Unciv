@@ -240,7 +240,7 @@ class GameOptionsTable(
         addCheckbox("Show Civilization Stats", gameParameters.showCivilizationStats == true)
         {
             gameParameters.showCivilizationStats = it
-            gameParameters.showDemographics = false
+            if (!it) gameParameters.showDemographics = false
             update()  // To show/hide showDemographics checkbox
         }
 

@@ -63,17 +63,10 @@ class VictoryScreen(
         },
         Demographics('D', allowAsSecret = true) {
             override fun getContent(parent: VictoryScreen) = VictoryScreenDemographics(parent.worldScreen)
-            override fun isHidden(playerCiv: Civilization): Boolean {
-                if (playerCiv.isSpectator()) return false
-                // Master logic: showCivilizationStats + showDemographics or has victoryData
-                if ((playerCiv.gameInfo.gameParameters.showCivilizationStats == true
-                        && playerCiv.gameInfo.gameParameters.showDemographics)
-                    || playerCiv.gameInfo.victoryData != null) return false
-                // UncivCN logic: showVictoryStats + showDemographics
-                if (playerCiv.gameInfo.gameParameters.showVictoryStats
-                    && playerCiv.gameInfo.gameParameters.showDemographics) return false
-                return true
-            }
+            override fun isHidden(playerCiv: Civilization) =
+                !playerCiv.isSpectator()
+                    && !(playerCiv.gameInfo.gameParameters.showCivilizationStats == true && playerCiv.gameInfo.gameParameters.showDemographics)
+                    && playerCiv.gameInfo.victoryData == null
         },
         Rankings('R', allowAsSecret = true) {
             override fun getContent(parent: VictoryScreen) = VictoryScreenCivRankings(parent.worldScreen)
@@ -129,7 +122,7 @@ class VictoryScreen(
         tabs.selectPage(pageNumber)
 
         //**************** Add export data button ****************
-        val shouldShowExportButton = playerCiv.gameInfo.gameParameters.showVictoryStats || playerCiv.isSpectator()
+        val shouldShowExportButton = playerCiv.gameInfo.gameParameters.showCivilizationStats == true || playerCiv.isSpectator()
         if (shouldShowExportButton) {
             val exportButton = "Export data".tr().toTextButton()
             exportButton.onClick {
