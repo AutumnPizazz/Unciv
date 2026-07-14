@@ -69,10 +69,9 @@ class VictoryScreen(
                 if ((playerCiv.gameInfo.gameParameters.showCivilizationStats == true
                         && playerCiv.gameInfo.gameParameters.showDemographics)
                     || playerCiv.gameInfo.victoryData != null) return false
-                // UncivCN logic: showVictoryStats + (showDemographics or useDemographics)
+                // UncivCN logic: showVictoryStats + showDemographics
                 if (playerCiv.gameInfo.gameParameters.showVictoryStats
-                    && (playerCiv.gameInfo.gameParameters.showDemographics
-                        || UncivGame.Current.settings.useDemographics)) return false
+                    && playerCiv.gameInfo.gameParameters.showDemographics) return false
                 return true
             }
         },
