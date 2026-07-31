@@ -77,8 +77,14 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
     androidResources {
-        // Don't add local save files and fonts to release, obviously
-        ignoreAssetsPattern = "!SaveFiles:!fonts:!maps:!music:!mods"
+        // Don't package local saves, optional asset folders, or unbundled mods
+        val excludedMods = file("assets/mods").listFiles()
+            .orEmpty()
+            .filter { it.isDirectory && it.name != "UCCC Mod" }
+            .sortedBy { it.name }
+            .map { "!${it.name}" }
+        ignoreAssetsPattern = (listOf("!.gitignore", "!SaveFiles", "!fonts", "!maps", "!music") + excludedMods)
+            .joinToString(":")
     }
     buildFeatures {
         renderScript = true
