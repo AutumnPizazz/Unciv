@@ -17,7 +17,8 @@ object Conditionals {
 
     @Readonly @Suppress("purity") // hashcode... requires a think
     private fun getStateBasedRandom(state: GameContext, unique: Unique?): Float {
-        val random = if (UncivGame.Current?.settings?.allowRandomVariance == true)
+        val isOnlineMultiplayer = state.gameInfo?.gameParameters?.isOnlineMultiplayer == true
+        val random = if (UncivGame.Current.settings.isRandomVarianceEnabled(isOnlineMultiplayer))
             Random
         else {
             val seed = hashOf(state.gameInfo?.turns?.hashCode() ?: 0,

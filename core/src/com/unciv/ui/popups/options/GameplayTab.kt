@@ -13,7 +13,10 @@ internal class GameplayTab(
         addCheckbox("Move units with a long tap", settings::longTapMove)
         addCheckbox("Order trade offers by amount", settings::orderTradeOffersByAmount)
         addCheckbox("Ask for confirmation when pressing next turn", settings::confirmNextTurn)
-        addCheckbox("Allow random variance on save reload", settings::allowRandomVariance)
+        addCheckbox(
+            "{Allow random variance on save reload}\n({Does not apply to online multiplayer})",
+            settings::allowRandomVariance
+        )
 
         addSlider("Notifications log max turns", settings.notificationsLogMaxTurns, 3, 15, 1) { value, _ ->
             settings.notificationsLogMaxTurns = value.toInt()

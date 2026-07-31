@@ -287,10 +287,13 @@ object BattleDamage {
     
     @Readonly
     fun getRandomness(combatant: ICombatant): Float {
-        val random = if (UncivGame.Current?.settings?.allowRandomVariance == true)
+        val gameInfo = combatant.getCivInfo().gameInfo
+        val allowRandomVariance = UncivGame.Current.settings
+            .isRandomVarianceEnabled(gameInfo.gameParameters.isOnlineMultiplayer)
+        val random = if (allowRandomVariance)
             Random
         else
-            Random(combatant.getCivInfo().gameInfo.turns
+            Random(gameInfo.turns
                 * combatant.getTile().position.toVector2().hashCode().toLong())
         return random.nextFloat()
     }

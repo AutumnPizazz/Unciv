@@ -151,6 +151,10 @@ class GameSettings {
     var turnsBetweenAutosaves = 1
     var allowRandomVariance = false
 
+    @Readonly
+    internal fun isRandomVarianceEnabled(isOnlineMultiplayer: Boolean) =
+        allowRandomVariance && !isOnlineMultiplayer
+
     var androidCutout = false
     var androidHideSystemUi = true
     var fontFamilyData: FontFamilyData = FontFamilyData.default
