@@ -2,7 +2,16 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+## v4.21.5.2 (build 1243)
+
+- Official docs site launched: a brand-new VitePress site (replacing mkdocs) with full-text Chinese search, one-click EN/CN switching, and one-click copy on unique listings
+  - The English section fully reuses upstream docs; the Chinese section is a complete translation mirror (Modders / Developers / Translating / Other and all other pages)
+  - New UncivCN section (about / features / changelog / differences / coding standards / polling multiplayer) and community section (guides / mods / code analysis / upstream changelog), all bilingual
+- Unique documentation now in Chinese: new `docDescriptionZh` mechanism — modders can read Chinese explanations of uniques on the docs site
+- Build & release pipeline adapted: local APK signing (zipalign + apksigner V3), artifacts named UncivCN; new signing regression CI
+
 ## v4.21.5.1 (build 1242) — current
+
 
 - Merged upstream 4.21.5 (AI gold/war logic fixes, CPU performance improvements, city-state start optimizations, etc.; see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))
 - Reverted the bundled UCCC mod — the game no longer bundles any mods

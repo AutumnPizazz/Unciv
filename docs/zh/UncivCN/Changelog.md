@@ -8,7 +8,16 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
+## v4.21.5.2（build 1243）
+
+- 官方文档站上线：全新 VitePress 文档站（替换 mkdocs），支持中文全文搜索、中英文一键切换、unique 列表一键复制
+  - 英文区完整复用上游文档；中文区为完整翻译镜像（Modders / Developers / Translating / Other 等全部页面）
+  - 新增 UncivCN 专区（分支介绍 / 新特性 / 更新日志 / 差异对照 / 代码规范 / 轮询联机）与社区内容区（原版攻略 / 模组专区 / 源码分析 / 上游更新日志），均提供中英双语
+- unique 说明文档中文化：新增 docDescriptionZh 机制，模组制作者可在文档站查看中文 unique 说明
+- 构建与发布流程适配：APK 签名本地化（zipalign + apksigner V3）、产物命名 UncivCN；新增签名回归 CI
+
 ## v4.21.5.1（build 1242）— 当前版本
+
 
 - 合并上游 4.21.5（AI 金币/战争逻辑修复、CPU 性能优化、城市邦开局优化等，详见上游 [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md)）
 - 撤销自带 UCCC 模组改动，游戏本体不再打包任何模组
