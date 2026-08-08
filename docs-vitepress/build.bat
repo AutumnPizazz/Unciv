@@ -1,12 +1,23 @@
-﻿@echo off
+@echo off
 rem ============================================================
 rem  UncivCN docs site: one-click build + local preview
 rem  Pipeline: Kotlin docs -> npm deps -> VitePress build -> preview
 rem  Usage: double-click this file, or run build.bat in a terminal
+rem  If a preview server is already running, this script just
+rem  reopens the browser and exits.
 rem ============================================================
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
+
+rem ---- Fast path: server already running? Just open browser ----
+curl -s -o nul --max-time 2 http://127.0.0.1:4173/Unciv/ 2>nul
+if not errorlevel 1 (
+    echo Preview server is already running at http://localhost:4173/Unciv/
+    start "" "http://localhost:4173/Unciv/"
+    endlocal
+    exit /b 0
+)
 
 echo.
 echo ============================================
@@ -55,9 +66,11 @@ echo ============================================
 echo   [4/4] Starting local preview server
 echo ============================================
 echo Preview URL: http://localhost:4173/Unciv/
-echo Browser will open automatically. Close the preview window to stop.
+echo Browser will open automatically.
+echo The server exits automatically after 5 minutes without visits,
+echo or you can close its window / press Ctrl+C anytime.
 echo.
-start "UncivDocsPreview" /min cmd /c "cd /d %~dp0 && call npm run docs:preview -- --port 4173 --strictPort"
+start "UncivCN Docs Preview (auto-exits when idle)" /min cmd /c "cd /d %~dp0 && python scripts\preview_server.py"
 ping -n 4 127.0.0.1 >nul
 start "" "http://localhost:4173/Unciv/"
 endlocal
