@@ -138,15 +138,41 @@ jobs:
             sleep 5
           done
 
-      # UncivCN 分支的安装包签名在本地完成（见 python_tool/UncivCN-release，
-      # 使用本地 release.jks），此处仅构建未签名 APK 供下载。
-      # 上游的 CI 签名（BUNDLE_SIGNING_KEY_*）与 Google Play 上传已移除。
+      # UncivCN 分支的签名工具链与本地发布脚本一致（python_tool/UncivCN-release）：
+      # zipalign 对齐 + apksigner V3 签名，密钥为本地 release.jks（上云为 secrets）。
+      - name: Restore release keystore from secrets
+        shell: bash
+        run: |
+          echo "${{ secrets.RELEASE_JKS_BASE64 }}" | base64 -d > release.jks
+          ls -la release.jks
 
-      - name: Upload APK (unsigned)
+      - name: Sign APK (zipalign + apksigner, same as local release toolchain)
+        shell: bash
+        run: |
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          ZIPALIGN="$BUILD_TOOLS/zipalign"
+          APKSIGNER="$BUILD_TOOLS/apksigner"
+          echo "使用 build-tools: $BUILD_TOOLS"
+          mkdir -p signed
+          "$ZIPALIGN" -p 4 android/build/outputs/apk/release/UncivCN-release-unsigned.apk signed/aligned.apk
+          printf '%s\n%s\n' "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" "${{ secrets.RELEASE_KEY_PASSWORD }}" > signed/password.txt
+          "$APKSIGNER" sign \
+            --ks release.jks \
+            --ks-key-alias "${{ secrets.RELEASE_KEY_ALIAS }}" \
+            --ks-pass "file:signed/password.txt" \
+            --key-pass "file:signed/password.txt" \
+            --v3-signing-enabled true \
+            --v1-signing-enabled false \
+            --v2-signing-enabled false \
+            --out "signed/UncivCN-${{ github.ref_name }}.Apk" \
+            signed/aligned.apk
+          ls -la signed/
+
+      - name: Upload APK (signed)
         uses: actions/upload-artifact@v4
         with:
           name: UncivCNAPK
-          path: android/build/outputs/apk/release/UncivCN-release-unsigned.apk
+          path: signed/UncivCN-${{ github.ref_name }}.Apk
 
 
   packr-build:
@@ -251,7 +277,7 @@ jobs:
           mv UncivLinuxFiles/linuxFilesForJar.zip deploy
           mv UncivCNDeploymentZips/UncivCN-Windows64.zip deploy
           mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy
-          mv UncivCNAPK/UncivCN-release-unsigned.apk deploy
+          mv UncivCNAPK/UncivCN-${{ github.ref_name }}.Apk deploy
           mv UncivServer/UncivServer.jar deploy
           [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy || true
 
