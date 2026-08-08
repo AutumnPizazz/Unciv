@@ -32,7 +32,7 @@ RUN chmod +x ./gradlew && ./gradlew desktop:classes && \
  ./gradlew desktop:dist && \
  ./gradlew desktop:zipLinuxFilesForJar && \
  ./gradlew desktop:packrLinux64 --stacktrace --info --daemon --scan && \
- cd /src/deploy && unzip Unciv-Linux64.zip
+ cd /src/deploy && unzip UncivCN-Linux64.zip
 
 FROM accetto/ubuntu-vnc-xfce-opengl-g3 AS run
 WORKDIR /home/headless/Desktop/

@@ -5,9 +5,9 @@
     <Package Language="1033"
              Manufacturer="Yair Morgenstern"
              Name="$(var.Name)"
-             Version="$(env.UNCIV_VERSION).0"
+             Version="$(env.UNCIV_VERSION)"
             UpgradeCode="74d42802-054a-4869-a703-658c361fe94c">
-             <!-- MSI versions require a 4-part, so we add a ".0" to the end of every version -->
+             <!-- MSI versions require a 4-part version; the workflow appends ".0" for 3-part upstream versions (e.g. 4.21.5 → 4.21.5.0), CN 4-part versions are passed through (e.g. 4.21.5.3) -->
         <Icon Id="icon.ico" SourceFile="extraImages/Icons/Unciv.ico"/>
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." Schedule="afterInstallInitialize" />
 

@@ -247,7 +247,13 @@ jobs:
       - name: Build WiX on Windows
         shell: bash
         run: |
-          UNCIV_VERSION=${{ github.ref_name }} wix build .github/workflows/unciv.wxs
+          UNCIV_VERSION=${{ github.ref_name }}
+          # WiX/MSI 需要恰好 4 段版本号：3 段上游版本补 .0（如 4.21.5 → 4.21.5.0），
+          # CN 4 段版本直接用（如 4.21.5.3），避免拼出非法的 5 段（4.21.5.3.0）
+          if [[ "$UNCIV_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            UNCIV_VERSION="$UNCIV_VERSION.0"
+          fi
+          UNCIV_VERSION=$UNCIV_VERSION wix build .github/workflows/unciv.wxs
 
 
       - name: Show folders
@@ -273,18 +279,18 @@ jobs:
       - name: consolidate deploy folder
         run: |
           mkdir deploy
-          mv UncivCNJar/UncivCN.jar deploy
-          mv UncivLinuxFiles/linuxFilesForJar.zip deploy
-          mv UncivCNDeploymentZips/UncivCN-Windows64.zip deploy
-          mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy
+          mv UncivCNJar/UncivCN.jar deploy/UncivCN-${{ github.ref_name }}.jar
+          mv UncivLinuxFiles/linuxFilesForJar.zip deploy/linuxFilesForJar-${{ github.ref_name }}.zip
+          mv UncivCNDeploymentZips/UncivCN-Windows64.zip deploy/UncivCN-Windows64-${{ github.ref_name }}.zip
+          mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy/UncivCN-Linux64-${{ github.ref_name }}.zip
           mv UncivCNAPK/UncivCN-${{ github.ref_name }}.Apk deploy
-          mv UncivServer/UncivServer.jar deploy
-          [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy || true
+          mv UncivServer/UncivServer.jar deploy/UncivServer-${{ github.ref_name }}.jar
+          [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy/UncivCN-${{ github.ref_name }}.msi || true
 
       - name: Check if this is a real release or a test version, for Github release
         id: check-version-tag
         run: |
-          if [[ ${{ github.ref_name }} =~ [0-9]\.[0-9]+\.[0-9]+(-patch[0-9]+)?$ ]]; then
+          if [[ ${{ github.ref_name }} =~ [0-9]\.[0-9]+\.[0-9]+(\.[0-9]+)?(-patch[0-9]+)?$ ]]; then
             echo "real_release=true" >> $GITHUB_OUTPUT
           fi
 
