@@ -1,8 +1,6 @@
 
 import com.google.common.io.Files
 import com.unciv.build.BuildConfig
-import org.gradle.api.file.FileTreeElement
-import org.gradle.api.specs.Spec
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -64,11 +62,7 @@ tasks.register<Jar>("dist") { // Compiles the jar file
             + configurations.compileClasspath.get().resolve()
         ).map { if (it.isDirectory) it else zipTree(it) }})
     from(files(assetsDir))
-    exclude("SaveFiles", "MultiplayerFiles", "GameSettings.json", "lasterror.txt")
-    exclude(Spec<FileTreeElement> { element ->
-        val segments = element.relativePath.segments
-        segments.size >= 2 && segments[0] == "mods" && segments[1] != "UCCC Mod"
-    })
+    exclude("mods", "SaveFiles", "MultiplayerFiles", "GameSettings.json", "lasterror.txt")
     // This is for the .dll and .so files to make the Discord RPC work on all desktops
     from(files(discordDir))
     archiveFileName.set("${BuildConfig.appName}.jar")
