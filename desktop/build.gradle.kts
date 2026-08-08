@@ -37,6 +37,14 @@ tasks.register<JavaExec>("run") {
     isIgnoreExitValue = true
 }
 
+// 轻量文档生成（不启动游戏）：本地与 CI 使用 `./gradlew desktop:generateDocs`
+tasks.register<JavaExec>("generateDocs") {
+    dependsOn(tasks.getByName("classes"))
+    mainClass.set("com.unciv.app.desktop.DocsGenerationMainKt")
+    classpath = sourceSets.main.get().runtimeClasspath
+    workingDir = assetsDir
+}
+
 tasks.register<JavaExec>("debug") {
     dependsOn(tasks.getByName("classes"))
     mainClass.set(mainClassName)

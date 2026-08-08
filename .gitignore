@@ -195,3 +195,10 @@ detekt/reports.html
 /.claude/
 release.jks
 /scripts
+
+# VitePress 文档站（docs-vitepress/）
+docs-vitepress/.vitepress/dist/
+docs-vitepress/.vitepress/cache/
+docs-vitepress/node_modules/
+!docs-vitepress/package.json
+!docs-vitepress/package-lock.json

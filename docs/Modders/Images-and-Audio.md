@@ -195,7 +195,7 @@ For example, [here](https://github.com/yairm210/Unciv-leader-portrait-mod-exampl
 
 The base game uses flat icons, surrounded with colored circles as backgrounds (e.g. for units to fit the civilization's flag colors), to denote entities such as: units, buildings, techs, resources, improvements, religions, promotions, uniques, unit actions and nations in the UI. A mod can supply "Portraits" - static images that will remain uncolored - by adding images to `/Images/<entityType>Portraits/` (e.g. `/Images/BuildingPortraits/`, `/Images/ResourcePortraits/`, etc), which will be used in all UI elements (except for unit icons in the world map). The file name must correspond exactly with the unit/building/tech/resource/etc name  defined in corresponding JSONs (e.g. Units.json, Buildings.json, TileResources.json, etc) or have the same name as the file they suppose to replace, or they will be ignored.
 
-If mod supplies '/Images/<entityType>Portraits/Background.png' images, they will be used as a background for corresponding portraits instead of default circle. Portraits and backgrounds work best if they are full RGB square, between 100x100 and 256x256 pixels, and include some transparent border within that area.
+If mod supplies '`/Images/<entityType>Portraits/Background.png`' images, they will be used as a background for corresponding portraits instead of default circle. Portraits and backgrounds work best if they are full RGB square, between 100x100 and 256x256 pixels, and include some transparent border within that area.
 
 For example, [here](https://github.com/vegeta1k95/Civ-5-Icons) is mod showing how to add custom portraits, which can complement the base game.
 
@@ -214,12 +214,12 @@ Available `<entityType>Portraits/` include:
 
 ### Adding icons for Unit Types
 
-The Unit Types as defined in [UnitTypes.json](Mod-file-structure/4-Unit-related-JSON-files.md#unittypesjson) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named 'Images/UnitTypeIcons/<UnitType>.png'.
+The Unit Types as defined in [UnitTypes.json](Mod-file-structure/4-Unit-related-JSON-files.md#unittypesjson) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named '`Images/UnitTypeIcons/<UnitType>.png`'.
 (while you're at it, you may override the default icon for the Unit Type _category header_ - it's 'UnitTypes.png' in the same folder, or the icons used for the movement domains - 'DomainLand', 'DomainWater', 'DomainAir')
 
 ### Adding icons for Beliefs
 
-The individual Beliefs - as opposed to Belief types, as defined in [Beliefs.json](Mod-file-structure/2-Civilization-related-JSON-files.md#beliefsjson) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named 'Images/ReligionIcons/<Belief>.png'.
+The individual Beliefs - as opposed to Belief types, as defined in [Beliefs.json](Mod-file-structure/2-Civilization-related-JSON-files.md#beliefsjson) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named '`Images/ReligionIcons/<Belief>.png`'.
 Civilopedia falls back to the icon for the Belief type - as you can see in the base game, but individual icons have precedence if they exist.
 
 ### Adding Victory illustrations
@@ -332,8 +332,8 @@ Here's a list of special dates (or date ranges) Unciv will recognize:
 
 ... When these are or what they mean - look it up, if in doubt in our sources (😈).
 
-An audiovisual Mod (which the user **must** then mark as permanent) can define textures named "EasterEggs/`name`<index>", where name must correspond exactly to one from the table above, and index starts at 1 counting up.
-Example: <mod>/Images/EasterEggs/Diwali1.png and so on.
+An audiovisual Mod (which the user **must** then mark as permanent) can define textures named "EasterEggs/`name``<index>`", where name must correspond exactly to one from the table above, and index starts at 1 counting up.
+Example: `<mod>/Images/EasterEggs/Diwali1.png` and so on.
 Then, Unciv will display them as "floating art" on the main menu screen, on the corresponding dates. They will from time to time appear from off-screen, slide through the window, and disappear out the other side, with varying angles and speeds.
 
 Notes:

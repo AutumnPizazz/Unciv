@@ -6,7 +6,7 @@ During this time, both the old and new uniques need to work, and after this time
 
 Here's how we go about it.
 
-- Rename the old unique to "<old-unique-name>Old", including uniques (shift+f6) 
+- Rename the old unique to `"<old-unique-name>Old"`, including uniques (shift+f6) 
 - Create the new unique directly above the old one, using the old name
 - Wherever the old unique is used **add in the new one** rather than replacing it.
 - Add a @Deprecated annotation to the old unique, with the replacement text - this allows modders to auto-replace the old unique with the new one

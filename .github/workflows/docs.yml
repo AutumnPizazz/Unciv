@@ -1,0 +1,59 @@
+name: Deploy docs (VitePress)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - UncivCN
+      - master
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "pages-docs"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # 完整历史：供未来「更新日志自动生成器」读取 git 历史（阶段 3）
+          fetch-depth: 0
+
+      # 1. Kotlin 文档生成：uniques.md / Unique能力列表.md / Unique-parameters.md /
+      #    Creating-a-UI-skin.md 表格 / 6-MergeActions.md（工作目录 = android/assets）
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew desktop:generateDocs --no-daemon
+
+      # 2. VitePress 构建（srcDir = 仓库 docs/）
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs-vitepress/package-lock.json
+      - run: npm ci
+        working-directory: docs-vitepress
+      - run: npm run docs:build
+        working-directory: docs-vitepress
+
+      # 3. 内部链接检查（坏链则中止，不部署）
+      - run: python docs-vitepress/scripts/check_docs_links.py .vitepress/dist
+        working-directory: docs-vitepress
+
+      # 4. 部署到 gh-pages 分支
+      #    仓库 Settings → Pages：Deploy from a branch → gh-pages → / (root)
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: docs-vitepress/.vitepress/dist

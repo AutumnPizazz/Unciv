@@ -139,6 +139,7 @@ object DesktopLauncher {
 
         if (!isRunFromJAR) {
             UniqueDocsWriter().write()
+            UniqueDocsWriter().writeChinese()
             UiElementDocsWriter().write()
             MergeActionDocsWriter().write()
         }

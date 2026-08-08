@@ -1,6 +1,10 @@
 # UncivCN 文档站建设计划（VitePress 方案）
 
-> **状态：计划已定，待下个会话实施（2026-08-08）**
+> **状态：阶段 1+2 已实施（2026-08-08），阶段 3 待后续**
+>
+> 已完成：VitePress 工程（docs-vitepress/）+ 英文区（上游 docs 原样）+ i18n 中英切换 + UncivCN 专区 +
+> 社区 41 页移植 + kt 生成器 VitePress 格式/中文输出 + CI 部署（.github/workflows/docs.yml）。
+> 待办（阶段 3）：更新日志自动生成器、搜索优化（pagefind）、Modders 文档逐步翻译。
 >
 > 目标：在游戏仓库内建 VitePress 文档站，复用上游 md 文档与 Kotlin 文档生成器遗产，
 > 提供中英文切换，并开辟 UncivCN 分支新改动专区。
@@ -149,10 +153,35 @@ on: push branches: [UncivCN] + workflow_dispatch
 
 ## 10. 待确认决策（实施前问用户）
 
-1. 部署位置：游戏仓库 Pages（`autumnpizazz.github.io/Unciv`）——需用户启用 Pages 并选 gh-pages 分支
-2. 阶段 1 先上线还是全部做完再上
-3. 社区仓库内容全部移植还是先移植开发者专区
-4. kt 生成器扩展范围（中文 uniques 输出、更新日志生成器）是否都做
+1. 部署位置：游戏仓库 Pages（`autumnpizazz.github.io/Unciv`）——需用户启用 Pages 并选 gh-pages 分支 ✅ 已确认
+2. 阶段 1 先上线还是全部做完再上 ✅ 已确认：阶段 1+2 一次实施
+3. 社区仓库内容全部移植还是先移植开发者专区 ✅ 已确认：脚本全量移植
+4. kt 生成器扩展范围（中文 uniques 输出、更新日志生成器）是否都做 ✅ 已确认：中文输出做，更新日志生成器留阶段 3
+
+## 10.1 实施记录（2026-08-08）
+
+已交付：
+
+- `docs-vitepress/`：VitePress 工程（vitepress ^1.5+，base `/Unciv/`，srcDir=../docs，i18n root/zh）
+  - 关键坑：locale key 必须用 `root` + 目录名（`/` 会被当正则永远匹配，导致 locale 失效）；
+    srcDir 在 docs-vitepress 之外时需 `vite.resolve.alias.vue` 指回本工程 node_modules
+- 英文区：上游 docs/ 原样复用（admonition 已转 `:::`，5 处裸 HTML 标签已包反引号）
+- 中文区 `docs/zh/`：社区 40 页全量移植（链接加 /zh 前缀、Badge 转文本）+ UncivCN 专区 4 页
+- kt 生成器：UniqueDocsWriter 输出 VitePress 容器格式 + 中文版 Unique能力列表.md（复用
+  Simplified_Chinese.properties 翻译 + 内置文档句翻译）；MergeActionDocsWriter 同步转换；
+  DesktopLauncher 与新增轻量入口 `DocsGenerationMain`（`./gradlew desktop:generateDocs`）
+- CI：`.github/workflows/docs.yml`（push UncivCN/master + workflow_dispatch → gradle 生成 →
+  npm ci/build → 链接检查 → gh-pages）
+- 工具脚本：`docs-vitepress/scripts/`（转换/移植/链接检查）
+
+遗留：
+
+- 用户需在仓库 Settings → Pages 选择 gh-pages 分支部署源（一次手动操作）
+- 英文独有页面（Credits、Developers/* 等）在中文区的语言切换会 404（VitePress 固有行为，
+  翻译完成后自然消失）
+- 社区版 Unique能力列表.md 的 tooltip（span title）结构未保留，由生成器版替代（信息等量，
+  无悬浮提示）
+- 阶段 3：更新日志自动生成、pagefind、Modders 文档逐步翻译
 
 ## 11. 相关参考
 
