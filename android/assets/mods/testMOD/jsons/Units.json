@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Scout",
+        "_mergeAction": { "action": "TRY_INJECT" },
+        "uniques":[
+            "Trigger the function [testMOD:hello] with [[Gold]+50]"
+        ]
+    }
+]

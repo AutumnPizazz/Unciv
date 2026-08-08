@@ -149,7 +149,12 @@ android/assets/ModListCache.json
 android/assets/lasterror.txt
 android/assets/fonts/
 android/assets/maps/
-android/assets/mods/
+android/assets/mods/*
+# 测试资产（LuaScriptTests / MergeActionTests 依赖，必须随仓库提交）
+!android/assets/mods/testMOD/
+!android/assets/mods/testMOD/**
+!android/assets/mods/testMapScript/
+!android/assets/mods/testMapScript/**
 android/assets/MultiplayerGames/
 android/assets/music/
 android/assets/SaveFiles/

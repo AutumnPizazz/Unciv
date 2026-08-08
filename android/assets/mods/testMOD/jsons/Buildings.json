@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Test Building",
+        "_mergeAction": { "action": "TRY_INJECT" },
+        "uniques": [
+            "[+1 Happiness]"
+        ]
+    }
+]
