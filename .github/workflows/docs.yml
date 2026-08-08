@@ -47,7 +47,7 @@ jobs:
         working-directory: docs-vitepress
 
       # 3. 内部链接检查（坏链则中止，不部署）
-      - run: python docs-vitepress/scripts/check_docs_links.py .vitepress/dist
+      - run: python scripts/check_docs_links.py .vitepress/dist
         working-directory: docs-vitepress
 
       # 4. 部署到 gh-pages 分支
