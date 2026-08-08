@@ -199,24 +199,54 @@ export default defineConfig({
           { text: '开发者', link: '/zh/Developers/Building-Locally' },
           { text: '翻译', link: '/zh/Translating/Translating' },
           { text: '其他', link: '/zh/Other/Multiplayer' },
-          { text: '原版专区', link: '/zh/原版专区/Unciv基础术语/' },
-          { text: '模组专区', link: '/zh/模组专区/CoeHarMod/' },
-          { text: '更新日志', link: '/zh/更新日志/' },
         ],
         sidebar: [
           {
-            text: 'UncivCN 专区',
+            text: 'UncivCN 专区（中文独有）',
             collapsed: false,
             items: [
               { text: '分支介绍', link: '/zh/UncivCN/' },
               { text: '新特性', link: '/zh/UncivCN/新特性' },
               { text: '更新日志', link: '/zh/UncivCN/更新日志' },
               { text: '与上游差异', link: '/zh/UncivCN/与上游差异' },
+              { text: '轮询联机', link: '/zh/UncivCN/轮询联机' },
+              { text: 'Unciv 原版更新日志', link: '/zh/UncivCN/Unciv原版更新日志' },
+              {
+                text: '源码分析',
+                items: [
+                  { text: '军事实力计算方式', link: '/zh/UncivCN/源码分析/军事实力计算方式/' },
+                  { text: '文明积分计算', link: '/zh/UncivCN/源码分析/文明积分计算/' },
+                ],
+              },
+              {
+                text: '原版专区',
+                items: [
+                  { text: 'Unciv 基础术语', link: '/zh/UncivCN/原版专区/Unciv基础术语/' },
+                  { text: '众神与国王入门指南', link: '/zh/UncivCN/原版专区/众神与国王入门指南/' },
+                  { text: '自主左二前应该做什么', link: '/zh/UncivCN/原版专区/自主左二前应该做什么/' },
+                  { text: 'Unciv 鳇脯菌校：全局篇', link: '/zh/UncivCN/原版专区/Unciv鳇脯菌校/' },
+                  { text: '联机教程', link: '/zh/UncivCN/原版专区/联机教程/' },
+                ],
+              },
+              {
+                text: '模组专区',
+                items: [
+                  {
+                    text: 'CoeHarMod',
+                    items: [
+                      { text: '模组介绍', link: '/zh/UncivCN/模组专区/CoeHarMod/' },
+                      { text: '更新日志', link: '/zh/UncivCN/模组专区/CoeHarMod/更新日志/' },
+                      { text: '更新计划', link: '/zh/UncivCN/模组专区/CoeHarMod/更新日志/更新计划' },
+                    ],
+                  },
+                  { text: 'Emperors and Deities', link: '/zh/UncivCN/模组专区/Emperors%20and%20Deities/' },
+                ],
+              },
             ],
           },
           {
             text: 'Modders（模组制作）',
-            collapsed: false,
+            collapsed: true,
             items: [
               { text: '模组简介', link: '/zh/Modders/Mods' },
               {
@@ -258,13 +288,6 @@ export default defineConfig({
               { text: 'UI 开发', link: '/zh/Developers/UI-development' },
               { text: 'Unique 替换流程', link: '/zh/Developers/Unique-replacement-process' },
               { text: 'Uniques', link: '/zh/Developers/Uniques' },
-              {
-                text: '源码分析（社区）',
-                items: [
-                  { text: '军事实力计算方式', link: '/zh/Developers/源码分析/军事实力计算方式/' },
-                  { text: '文明积分计算', link: '/zh/Developers/源码分析/文明积分计算/' },
-                ],
-              },
             ],
           },
           {
@@ -289,44 +312,13 @@ export default defineConfig({
             ],
           },
           {
-            text: '原版专区',
+            text: 'About（关于）',
             collapsed: true,
             items: [
-              { text: 'Unciv 基础术语', link: '/zh/原版专区/Unciv基础术语/' },
-              { text: '众神与国王入门指南', link: '/zh/原版专区/众神与国王入门指南/' },
-              { text: '自主左二前应该做什么', link: '/zh/原版专区/自主左二前应该做什么/' },
-              { text: 'Unciv 鳇脯菌校：全局篇', link: '/zh/原版专区/Unciv鳇脯菌校/' },
-              { text: '联机教程', link: '/zh/原版专区/联机教程/' },
-            ],
-          },
-          {
-            text: '模组专区',
-            collapsed: true,
-            items: [
-              {
-                text: 'CoeHarMod',
-                items: [
-                  { text: '模组介绍', link: '/zh/模组专区/CoeHarMod/' },
-                  { text: '更新日志', link: '/zh/模组专区/CoeHarMod/更新日志/' },
-                  { text: '更新计划', link: '/zh/模组专区/CoeHarMod/更新日志/更新计划' },
-                ],
-              },
-              { text: 'Emperors and Deities', link: '/zh/模组专区/Emperors%20and%20Deities/' },
-            ],
-          },
-          {
-            text: '更新日志',
-            collapsed: true,
-            items: [
-              { text: '总览', link: '/zh/更新日志/' },
-              { text: 'Unciv 原版', link: '/zh/更新日志/Unciv原版/' },
-              {
-                text: 'UncivCN',
-                items: [
-                  { text: '更新日志', link: '/zh/更新日志/UncivCN/' },
-                  { text: '轮询联机', link: '/zh/更新日志/UncivCN/轮询联机' },
-                ],
-              },
+              { text: '致谢', link: '/zh/Credits' },
+              { text: '预告片音频致谢', link: '/zh/Credits_trailer' },
+              { text: '指导原则', link: '/zh/Guiding-Principles' },
+              { text: '隐私政策', link: '/zh/Privacy-Policy' },
             ],
           },
         ],

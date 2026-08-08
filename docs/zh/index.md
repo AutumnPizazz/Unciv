@@ -14,30 +14,30 @@ hero:
       link: /zh/UncivCN/
     - theme: brand
       text: 开始探索
-      link: /zh/原版专区/Unciv基础术语/
+      link: /zh/UncivCN/原版专区/Unciv基础术语/
     - theme: alt
       text: 英文文档
       link: /Modders/Mods
 
 features:
   - title: UncivCN 专区
-    details: 分支介绍、新特性、更新日志与上游差异对照
+    details: 分支介绍、新特性、更新日志、源码分析与社区内容
     link: /zh/UncivCN/
   - title: 模组制作
     details: Mods、模组文件结构、Unique 系统、Lua 脚本等完整教程
     link: /zh/Modders/Mods
   - title: 开发者专区
-    details: 构建部署、项目结构、UI 开发与源码分析
+    details: 构建部署、项目结构、UI 开发等开发文档
     link: /zh/Developers/Building-Locally
   - title: 翻译本地化
     details: 翻译指南、翻译生成与模组翻译
     link: /zh/Translating/Translating
-  - title: 原版专区
+  - title: 原版攻略
     details: 无DLC与众神与国王环境下玩法思路讨论
-    link: /zh/原版专区/Unciv基础术语/
-  - title: 模组专区与更新日志
-    details: CoeHarMod 等优质模组，Unciv 原版与 UncivCN 更新记录
-    link: /zh/模组专区/CoeHarMod/
+    link: /zh/UncivCN/原版专区/Unciv基础术语/
+  - title: 模组与更新
+    details: CoeHarMod 等优质模组与版本更新记录
+    link: /zh/UncivCN/模组专区/CoeHarMod/
 
 ---
 
@@ -46,18 +46,18 @@ features:
 ::: tip 新玩家
 建议按以下顺序阅读：
 
-1. [Unciv 基础术语](/zh/原版专区/Unciv基础术语/) — 了解游戏基本概念
-2. [众神与国王入门指南](/zh/原版专区/众神与国王入门指南/) — 学习游戏玩法
-3. [自主左二前应该做什么](/zh/原版专区/自主左二前应该做什么/) — 掌握开荒技巧
-4. [Unciv鳇脯菌校：全局篇](/zh/原版专区/Unciv鳇脯菌校/) — 全局时段规划与PVP策略
-5. [联机教程](/zh/原版专区/联机教程/) — 联机对战指南
+1. [Unciv 基础术语](/zh/UncivCN/原版专区/Unciv基础术语/) — 了解游戏基本概念
+2. [众神与国王入门指南](/zh/UncivCN/原版专区/众神与国王入门指南/) — 学习游戏玩法
+3. [自主左二前应该做什么](/zh/UncivCN/原版专区/自主左二前应该做什么/) — 掌握开荒技巧
+4. [Unciv鳇脯菌校：全局篇](/zh/UncivCN/原版专区/Unciv鳇脯菌校/) — 全局时段规划与PVP策略
+5. [联机教程](/zh/UncivCN/原版专区/联机教程/) — 联机对战指南
 :::
 
 ## 模组与开发
 
 ::: info 模组玩家
-- [CoeHarMod（和合共生）](/zh/模组专区/CoeHarMod/) — 社区维护的大型规则集模组
-- [Emperors and Deities（帝王与神明）](/zh/模组专区/Emperors%20and%20Deities/) — 另一款优质模组
+- [CoeHarMod（和合共生）](/zh/UncivCN/模组专区/CoeHarMod/) — 社区维护的大型规则集模组
+- [Emperors and Deities（帝王与神明）](/zh/UncivCN/模组专区/Emperors%20and%20Deities/) — 另一款优质模组
 :::
 
 ::: info 模组开发者
@@ -74,7 +74,7 @@ UncivCN 继承自 Unciv，针对中文玩家深度定制：
 
 - [分支介绍](/zh/UncivCN/) — 与上游的关系与定位
 - [新特性](/zh/UncivCN/新特性) — Lua 模组、镜像/环形地图、单位钉等
-- [更新日志](/zh/UncivCN/更新日志) — 版本更新记录
+- [更新日志](/zh/UncivCN/更新日志) — 版本更新记录（含历史归档）
 - [与上游差异](/zh/UncivCN/与上游差异) — 功能对照表
 :::
 
@@ -91,5 +91,5 @@ UncivCN 继承自 Unciv，针对中文玩家深度定制：
 ## 关于本站
 
 本站为 **UncivCN** 的官方文档站：英文区完整复用上游 Unciv 文档，中文区为英文文档的
-翻译镜像（`docs/zh/` 与英文区结构一一对应），并补充社区攻略、模组专区与 UncivCN
-专区等独有内容。右上角可随时切换中英文，同一路径即为对应翻译。
+翻译镜像（`docs/zh/` 与英文区结构一一对应），所有中文独有内容统一收录在
+**UncivCN 专区**（`docs/zh/UncivCN/`）。右上角可随时切换中英文，同一路径即为对应翻译。

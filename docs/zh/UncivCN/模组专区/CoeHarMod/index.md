@@ -17,8 +17,8 @@ CoeHarMod（和合共生）是一个致力于优化和扩展 Unciv 游戏体验�
 ::: tip 模组资源
 
 - [GitHub 仓库](https://github.com/AutumnPizazz/CoeHarMod)
-- [更新日志](/zh/模组专区/CoeHarMod/更新日志/)
-- [更新计划](/zh/模组专区/CoeHarMod/更新日志/更新计划)
+- [更新日志](/zh/UncivCN/模组专区/CoeHarMod/更新日志/)
+- [更新计划](/zh/UncivCN/模组专区/CoeHarMod/更新日志/更新计划)
 
 :::
 
