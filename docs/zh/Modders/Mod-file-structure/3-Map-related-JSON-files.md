@@ -25,12 +25,12 @@ title: 地图相关 JSON 文件
 | impassable | Boolean | false | 没有单位可以进入，除非它具有特殊的独特能力 |
 | movementCost | Integer | 1 | 基础移动成本 |
 | defenceBonus | Float | 0 | 在此被攻击单位的战斗加成 |
-| RGB | [List of 3× Integer](其他JSON文件.md#rgb-颜色列表) | Gold | 'Default'地形集显示的 RGB 颜色 |
-| uniques | List of Strings | 空 | 此地形具有的[独特能力](../Unique能力列表.md)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](其他JSON文件.md#civilopedia-text) |
+| RGB | [List of 3× Integer](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#rgb-颜色列表) | Gold | 'Default'地形集显示的 RGB 颜色 |
+| uniques | List of Strings | 空 | 此地形具有的[独特能力](/zh/Modders/uniques)列表 |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
 
 [^A]: 某些名称具有特殊含义。`Grassland` 在某些情况下用作回退 - 例如，文明百科更喜欢在其上显示 TerrainFeature，除非 `occursOn` 不为空且不包含它。
-      `River` 被硬编码用于查找 [Stats](../Unique能力列表.md#global-uniques) 独特能力来确定实际河流提供的加成（记住，河流存在于边缘而不是地形上）。
+      `River` 被硬编码用于查找 [Stats](/zh/Modders/uniques#global-uniques) 独特能力来确定实际河流提供的加成（记住，河流存在于边缘而不是地形上）。
       River 应该始终是 TerrainFeature 并且具有与 vanilla 规则集中的那个相同的 uniques - 如果你更改它，请期待惊喜。
 [^B]: 基础规则集模组始终期望至少提供一个 Land 地形和至少一个 Water 地形。我们不支持仅 Land 或仅 Water 的模组，即使它们可能是可能的。
 [^C]: 如果设置，则在放置自然奇观后，基础地形更改为此，并且地形特征被清除。否则，地形特征减少为仅存在于 occursOn 中的那些。
@@ -54,9 +54,9 @@ title: 地图相关 JSON 文件
 | uniqueTo | String | none | 此改良设施唯一的国家的名称 |
 | [`<stats>`](#统计数据) | Integer | 0 | 地块的每回合加成收益 |
 | turnsToBuild | Integer | -1 | 工人建造此改良设施花费的回合数。如果为 -1，则改良设施不可建造 [^D]。如果为 0，则改良设施始终在一个回合内建造 |
-| uniques | List of Strings | 空 | 此改良设施具有的[独特能力](../Unique能力列表.md)列表 |
+| uniques | List of Strings | 空 | 此改良设施具有的[独特能力](/zh/Modders/uniques)列表 |
 | shortcutKey | String | none | 键盘绑定。目前，只允许单个字符（没有功能键或 Ctrl 组合） |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](其他JSON文件.md#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
 
 [^A]: 特殊改良设施：Road、Railroad、Remove \*、Cancel improvement order、City ruins、City center、Barbarian encampment - 这些名称具有硬编码的特殊含义。
 [^B]: 具有空 `terrainsCanBeBuiltOn` 列表和正 `turnsToBuild` 值的改良设施只能建造在具有 `improvedBy` 或包含相应改良设施的 `improvement` 的[资源](#tileresourcesjson)上。
@@ -81,12 +81,12 @@ title: 地图相关 JSON 文件
 | resourceType | Enum | Bonus | Bonus、Luxury 或 Strategic |
 | terrainsCanBeFoundOn | List of Strings | 空 | 可以找到此资源的地形。必须在 [Terrains.json](#terrainsjson) 中 |
 | [`<stats>`](#统计数据) | Integer | 0 | 地块的每回合加成收益 |
-| improvementStats | Object | none | 改良时的额外收益，请参阅[专业统计数据](地图相关JSON文件.md#专业统计数据) |
+| improvementStats | Object | none | 改良时的额外收益，请参阅[专业统计数据](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#专业统计数据) |
 | revealedBy | String | none | 查看、工作和改进此资源所需的技术名称 |
 | improvedBy | List of strings | 空 | 获得此资源所需的改良设施。必须在 [TileImprovements.json](#tileimprovementsjson) 中 |
 | improvement | String | none | 获得此资源所需的改良设施。必须在 [TileImprovements.json](#tileimprovementsjson) 中（由于 `improvedBy` 而冗余） |
-| unique | List of Strings | 空 | 此资源具有的[独特能力](../Unique能力列表.md)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](其他JSON文件.md#civilopedia-text) |
+| unique | List of Strings | 空 | 此资源具有的[独特能力](/zh/Modders/uniques)列表 |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
 
 ## Ruins.json
 
@@ -103,7 +103,7 @@ title: 地图相关 JSON 文件
 | name | String | 必需 | 遗迹的名称。从不向用户显示，但它们必须区分开 |
 | notification | String | 必需 | 选择此奖励时添加到用户的通知。如果省略，则显示空通知。某些通知可能具有参数，请参阅下表。 |
 | weight | Integer (≥0) | 1 | 下次选择此奖励的_相对_权重 [^E] |
-| uniques | List of Strings | 空 | 进入遗迹时将触发的[独特能力](../Unique能力列表.md)列表。如果添加了超过 1 个 unique，由于错误（可能已过时），通知将显示多次 |
+| uniques | List of Strings | 空 | 进入遗迹时将触发的[独特能力](/zh/Modders/uniques)列表。如果添加了超过 1 个 unique，由于错误（可能已过时），通知将显示多次 |
 | excludedDifficulties | List of Strings | 空 | 可能_不会_授予此奖励的所有难度列表 |
 
 [^E]: <span>选择奖励的确切算法如下：</span>
@@ -133,7 +133,7 @@ title: 地图相关 JSON 文件
 - `Only available <when religion is enabled>`
 - `Hidden after a great prophet has been earned`
 
-## [地形集特定 json](../自定义地形集.md)
+## [地形集特定 json](/zh/Modders/Creating-a-custom-tileset)
 
 [链接到原始 FantasyHex](https://github.com/yairm210/Unciv/blob/master/android/assets/jsons/TileSets/FantasyHex.json)
 
@@ -141,14 +141,14 @@ title: 地图相关 JSON 文件
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| [useColorAsBaseTerrain](../自定义地形集.md#usecolorasbaseterrain) | Boolean | false | |
-| [useSummaryImages](../自定义地形集.md#usesummaryimages) | Boolean | false | |
-| [unexploredTileColor](../自定义地形集.md#unexploredtilecolor) | Color | Dark Gray | `{"r":0.25,"g":0.25,"b":0.25,"a":1}` |
-| [fogOfWarColor](../自定义地形集.md#fogofwarcolor) | Color | Black | `{"r":0,"g":0,"b":0,"a":1}` |
-| [fallbackTileSet](../自定义地形集.md#fallbacktileset) | String | "FantasyHex" | null 以禁用 |
-| [tileScale](../自定义地形集.md#tilescale) | Float | 1.0 | 所有地块的比例。可用于增加或减少每个地块的大小 |
-| [tileScales](../自定义地形集.md#tilescales) | Object | empty | 被 "Minimal" 地形集使用，将其所有地块（基础地形除外）缩小。覆盖指定地形的 `tileScale` 值 |
-| [ruleVariants](../自定义地形集.md#rulevariants) | Object | empty | [请参阅此处](#分层图像) |
+| [useColorAsBaseTerrain](/zh/Modders/Creating-a-custom-tileset#usecolorasbaseterrain) | Boolean | false | |
+| [useSummaryImages](/zh/Modders/Creating-a-custom-tileset#usesummaryimages) | Boolean | false | |
+| [unexploredTileColor](/zh/Modders/Creating-a-custom-tileset#unexploredtilecolor) | Color | Dark Gray | `{"r":0.25,"g":0.25,"b":0.25,"a":1}` |
+| [fogOfWarColor](/zh/Modders/Creating-a-custom-tileset#fogofwarcolor) | Color | Black | `{"r":0,"g":0,"b":0,"a":1}` |
+| [fallbackTileSet](/zh/Modders/Creating-a-custom-tileset#fallbacktileset) | String | "FantasyHex" | null 以禁用 |
+| [tileScale](/zh/Modders/Creating-a-custom-tileset#tilescale) | Float | 1.0 | 所有地块的比例。可用于增加或减少每个地块的大小 |
+| [tileScales](/zh/Modders/Creating-a-custom-tileset#tilescales) | Object | empty | 被 "Minimal" 地形集使用，将其所有地块（基础地形除外）缩小。覆盖指定地形的 `tileScale` 值 |
+| [ruleVariants](/zh/Modders/Creating-a-custom-tileset#rulevariants) | Object | empty | [请参阅此处](#分层图像) |
 
 ### 分层图像
 

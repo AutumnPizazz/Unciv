@@ -4,17 +4,17 @@ title: 创建 UI 皮肤
 
 # 创建 UI 皮肤
 
-**在继续之前，你应该先阅读[模组](模组.md)页面**
+**在继续之前，你应该先阅读[模组](/zh/Modders/Mods)页面**
 
 要添加 UI 皮肤模组（是的，UI 皮肤只是另一种类型的模组），你所需要做的就是将你的图像添加到 `Images/Skins/MyCoolSkinExample` 下，并将模组启用为永久视觉模组。
 
 游戏将识别皮肤，并允许你在选项菜单中选择它。
 
-就像[地形集](自定义地形集.md)一样，UI 皮肤可用于改变 Unciv 的外观。请注意，UI 皮肤不支持自定义图标和字体，并且并非每个 UI 元素都可以自定义。
+就像[地形集](/zh/Modders/Creating-a-custom-tileset)一样，UI 皮肤可用于改变 Unciv 的外观。请注意，UI 皮肤不支持自定义图标和字体，并且并非每个 UI 元素都可以自定义。
 
 我们为每个皮肤图像使用所谓的 9.png（或 Ninepatch）文件，因为 UI 元素需要一种基于游戏窗口大小和分辨率进行调整的方法。Ninepatch 文件可以通过以特定方式在你的自定义图像周围添加黑色像素来手动创建，或者使用 [Android Studio 的 Draw 9-patch 工具](https://developer.android.com/studio/write/draw9patch)或 [romannurik 的这个工具](https://romannurik.github.io/AndroidAssetStudio/nine-patches.html)等。你也可以检查你喜欢的图像创建工具本身是否支持 nine patches 以更容易地生成它们。
 
-皮肤图像可以是灰度级的，稍后通过在 [skinConfig](创建UI皮肤.md#tint) 中修改 `tint` 在游戏中着色，或者直接在图像中着色。直接着色图像时，重要的是将 UI 元素的 tint 设置为白色。请注意，由于 libgdx 的技术限制，不支持可平铺的 ninepatches 和具有多个拉伸区域的 ninepatches。
+皮肤图像可以是灰度级的，稍后通过在 [skinConfig](/zh/Modders/Creating-a-UI-skin#tint) 中修改 `tint` 在游戏中着色，或者直接在图像中着色。直接着色图像时，重要的是将 UI 元素的 tint 设置为白色。请注意，由于 libgdx 的技术限制，不支持可平铺的 ninepatches 和具有多个拉伸区域的 ninepatches。
 
 有 6 种基本形状可以放置在 `Images/Skins/MyCoolSkinExample` 文件夹中：
  - checkbox
@@ -168,7 +168,7 @@ title: 创建 UI 皮肤
 
 ## SkinConfig
 
-skinConfig 类似于 [tilesetConfig](自定义地形集.md#地形集配置)，可用于定义 unciv 使用的不同颜色和形状。
+skinConfig 类似于 [tilesetConfig](/zh/Modders/Creating-a-custom-tileset#地形集配置)，可用于定义 unciv 使用的不同颜色和形状。
 
 要为你的皮肤创建配置，你只需要在 `jsons/Skins/` 下创建一个新的 .json 文件。只需创建一个 .txt 文件并将其重命名为 MyCoolSkinExample.json。如果你想更改它们，你只需要添加内容。否则将使用默认值。
 
@@ -228,7 +228,7 @@ skinConfig 类似于 [tilesetConfig](自定义地形集.md#地形集配置)，�
 
 一个将字符串映射到 SkinElement 的字典。默认值：空
 
-这些变体可用于为指定的 UI 元素定义不同的图像、tint 和/或 alpha。用于标识 UI 元素的字符串可以通过将名称附加到目录从上面的[表格](创建UI皮肤.md#可用的-ui-元素)中获取。
+这些变体可用于为指定的 UI 元素定义不同的图像、tint 和/或 alpha。用于标识 UI 元素的字符串可以通过将名称附加到目录从上面的[表格](/zh/Modders/Creating-a-UI-skin#可用的-ui-元素)中获取。
 ```
 | 目录             | 名称          |
 |-----------------------|---------------|

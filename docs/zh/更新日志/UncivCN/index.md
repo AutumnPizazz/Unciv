@@ -91,7 +91,7 @@ title: UncivCN 更新日志
 - 修复 众神与国王 精英教育 政策不送伟人的bug
 - Amount 参数兼容 Countables
 - 新增多个 Countables 参数类型
-- 模组支持[lua脚本](/zh/开发者专区/模组开发/Lua脚本.md)
+- 模组支持[lua脚本](/zh/Modders/Lua-Modding)
 - 修复 TRY_INJECT 单位时将造价覆盖为0的bug
 
 ---
@@ -116,7 +116,7 @@ title: UncivCN 更新日志
 
 **发布日期**：2026.5.19
 
-- 扩展模组 json 系统，详见 [文档](/zh/开发者专区/模组开发/UncivCN扩展JSON-MergeAction教程.md)
+- 扩展模组 json 系统，详见 [文档](/zh/Modders/Mod-file-structure/6-MergeActions)
 
 ---
 

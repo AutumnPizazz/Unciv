@@ -16,8 +16,8 @@ title: 模组总览
 
 模组主要有三种类型：
 
-- **扩展模组** - 这些向基础规则集添加新的文明/单位/建筑/资源 - 可以是默认规则集，也可以是基础规则集模组。这很容易做，可能是入门的好地方 - 例如，[创建新文明](创建新文明.md)
-- **基础规则集模组** - 这些完全替换现有的规则集 - 科技树、单位、政策、文明等 - 提供与基础游戏完全不同的体验。这些通常需要相当多的工作，但提供全新的体验，因此最受欢迎。[这里有一个最小示例](https://github.com/yairm210/Unciv-minimal-base-ruleset)可以作为构建模板（右上角的"Use this template"绿色按钮，"Create a new repository"）。关于要求，请参阅[基础规则集要求](模组文件结构/概述.md#基础规则集要求)
+- **扩展模组** - 这些向基础规则集添加新的文明/单位/建筑/资源 - 可以是默认规则集，也可以是基础规则集模组。这很容易做，可能是入门的好地方 - 例如，[创建新文明](/zh/Modders/Making-a-new-Civilization)
+- **基础规则集模组** - 这些完全替换现有的规则集 - 科技树、单位、政策、文明等 - 提供与基础游戏完全不同的体验。这些通常需要相当多的工作，但提供全新的体验，因此最受欢迎。[这里有一个最小示例](https://github.com/yairm210/Unciv-minimal-base-ruleset)可以作为构建模板（右上角的"Use this template"绿色按钮，"Create a new repository"）。关于要求，请参阅[基础规则集要求](/zh/Modders/Mod-file-structure/1-Overview#基础规则集要求)
 - **规则集无关模组** - 这些不包含任何与规则集相关的 JSON 文件，而是包含其他效果。视听模组（包括地形集、单位集和 UI 皮肤）和地图模组属于这一类别。
 
 **不推荐**在手机上创建和编辑模组 - 使用桌面设备要*容易得多*！
@@ -35,24 +35,24 @@ title: 模组总览
 
 模组通常有 2 个子文件夹：
 
-- `jsons` - 在这里你应该放置修改游戏对象数据的文件，文件顺序与[基础 JSON 文件](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons)相同。关于这些文件的更多信息可以在[这里](模组文件结构/概述.md)找到
+- `jsons` - 在这里你应该放置修改游戏对象数据的文件，文件顺序与[基础 JSON 文件](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons)相同。关于这些文件的更多信息可以在[这里](/zh/Modders/Mod-file-structure/1-Overview)找到
 - `Images` - 在这里你应该放置游戏图像，如[基础图像文件](https://github.com/yairm210/Unciv/tree/master/android/Images)中所示
 
 要从游戏中删除对象，你需要在 `/jsons` 子文件夹中创建一个 ModOptions 文件 - [这里有一个示例](https://github.com/yairm210/Unciv-mod-example/blob/master/Removing%20Things/jsons/ModOptions.json)。
 
 **基础规则集模组**是"从头开始"的模组 - 所有原始对象都被删除，只使用相关模组的对象。
 
-这是通过在你的 [modOptions 文件](模组文件结构/其他JSON文件.md#modoptionsjson)中添加 `"isBaseRuleset":true` 配置来完成的，[像这样](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json)。
+这是通过在你的 [modOptions 文件](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson)中添加 `"isBaseRuleset":true` 配置来完成的，[像这样](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json)。
 
 ## 视听组件
 
-除了更改规则 - 或者甚至不这样做 - 模组可以覆盖现有的图形或声音，或添加音乐曲目。有关详细信息，请参阅[视听模组](图像和音频资源.md)。
+除了更改规则 - 或者甚至不这样做 - 模组可以覆盖现有的图形或声音，或添加音乐曲目。有关详细信息，请参阅[视听模组](/zh/Modders/Images-and-Audio)。
 
-自定义地形集和单位集是这些的一个子组 - 请参阅[创建自定义地形集](自定义地形集.md) - UI 皮肤模组也是如此，请参阅[创建 UI 皮肤](创建UI皮肤.md)。
+自定义地形集和单位集是这些的一个子组 - 请参阅[创建自定义地形集](/zh/Modders/Creating-a-custom-tileset) - UI 皮肤模组也是如此，请参阅[创建 UI 皮肤](/zh/Modders/Creating-a-UI-skin)。
 
-此类模组是模组管理屏幕上可用的"永久视听模组"开关的候选者，请参阅[永久视听模组](图像和音频资源.md#永久视听模组)。
+此类模组是模组管理屏幕上可用的"永久视听模组"开关的候选者，请参阅[永久视听模组](/zh/Modders/Images-and-Audio#永久视听模组)。
 
-图像需要在使用之前"打包"，桌面版本可以为你完成。请务必阅读[纹理图集](图像和音频资源.md#图像和纹理图集)章节！
+图像需要在使用之前"打包"，桌面版本可以为你完成。请务必阅读[纹理图集](/zh/Modders/Images-and-Audio#图像和纹理图集)章节！
 
 ## 向模组添加地图
 
@@ -68,7 +68,7 @@ title: 模组总览
 
 就像 Unciv 本身一样，模组可以翻译为核心 Unciv 支持的任何或所有语言。
 
-有关详细信息，请参阅[翻译生成 - 针对模组制作者](../翻译本地化/翻译生成.md)。
+有关详细信息，请参阅[翻译生成 - 针对模组制作者](/zh/Translating/Translation-generation)。
 
 ## 发布你的模组
 
@@ -127,7 +127,7 @@ Images 和 jsons 文件夹需要位于仓库的根目录中 - [这里](https://g
 
 模组的主要用途是在开始新游戏或配置地图时添加它们。这意味着该特定游戏/地图将使用模组的规则集和图像。
 
-对于主要是视觉或音频的模组，有第二种用途 - 通过模组管理器，你可以将它们启用为**永久视听模组**。这意味着模组的图像和/或声音将在游戏中的任何地方替换原始媒体，并且包含的音乐将可用 - [见这里](图像和音频资源.md#提供其他音乐)。
+对于主要是视觉或音频的模组，有第二种用途 - 通过模组管理器，你可以将它们启用为**永久视听模组**。这意味着模组的图像和/或声音将在游戏中的任何地方替换原始媒体，并且包含的音乐将可用 - [见这里](/zh/Modders/Images-and-Audio#提供其他音乐)。
 
 ## 手动加载模组的模组位置
 
@@ -152,4 +152,4 @@ Images 和 jsons 文件夹需要位于仓库的根目录中 - [这里](https://g
 
 现在你应该尝试创建你的第一个模组！
 
-我们建议你从[添加新文明](创建新文明.md)作为模组开始，以掌握这个过程 :)
+我们建议你从[添加新文明](/zh/Modders/Making-a-new-Civilization)作为模组开始，以掌握这个过程 :)

@@ -19,7 +19,7 @@ class UniqueDocsWriter {
 
         /** Where the Chinese UniqueType file is to be overwritten,
          *  relative to the current (assets) directory. */
-        private const val uniqueTypesZhFileName = "../../docs/zh/开发者专区/模组开发/Unique能力列表.md"
+        private const val uniqueTypesZhFileName = "../../docs/zh/Modders/uniques.md"
 
         /** Where the Countables documentation is to inserted,
          *  relative to the current (assets) directory (not incluenced by `--data-dir=`). */
@@ -203,8 +203,8 @@ class UniqueDocsWriter {
             lines += "# Unique 能力列表"
             lines += ""
             lines += "> 本列表由游戏代码自动生成，随版本保持最新。"
-            lines += "> Uniques 概述可以在[这里](../代码贡献/Uniques%20机制.md)找到。"
-            lines += "> 简单的 Unique 参数通过悬浮提示说明，复杂的参数在 [Unique 参数类型](Unique参数详解.md) 中说明。"
+            lines += "> Uniques 概述可以在[这里](../Developers/Uniques.md)找到。"
+            lines += "> 简单的 Unique 参数通过悬浮提示说明，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。"
         }
         lines += ""
 
@@ -258,13 +258,23 @@ class UniqueDocsWriter {
             }
         }
 
-        // Abbreviations, for adding short unique parameter help - see https://squidfunk.github.io/mkdocs-material/reference/abbreviations/
+        // 参数说明表（mkdocs 缩写 `*[param]: desc` 语法 VitePress 不识别，改为标准表格）
         lines += ""
+        if (language == null) {
+            lines += "## Unique parameter types"
+            lines += ""
+            lines += "| Parameter | Description |"
+        } else {
+            lines += "## Unique 参数类型"
+            lines += ""
+            lines += "| 参数 | 说明 |"
+        }
+        lines += "|---|---|"
         // order irrelevant for rendered wiki, but could potentially reduce source control differences
         for (paramType in UniqueParameterType.entries.asSequence().sortedBy { it.parameterName }) {
             if (paramType.docDescription == null) continue
             val punctuation = if (paramType.docDescription!!.last().category == '.'.category) "" else "."
-            lines += "*[${paramType.parameterName}]: ${tr(paramType.docDescription!!)}$punctuation"
+            lines += "| `" + paramType.parameterName + "` | " + tr(paramType.docDescription!!) + punctuation + " |"
         }
 
         File(outputFileName).writeText(lines.joinToString("\n"))

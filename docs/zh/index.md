@@ -23,21 +23,21 @@ features:
   - title: UncivCN 专区
     details: 分支介绍、新特性、更新日志与上游差异对照
     link: /zh/UncivCN/
+  - title: 模组制作
+    details: Mods、模组文件结构、Unique 系统、Lua 脚本等完整教程
+    link: /zh/Modders/Mods
+  - title: 开发者专区
+    details: 构建部署、项目结构、UI 开发与源码分析
+    link: /zh/Developers/Building-Locally
+  - title: 翻译本地化
+    details: 翻译指南、翻译生成与模组翻译
+    link: /zh/Translating/Translating
   - title: 原版专区
     details: 无DLC与众神与国王环境下玩法思路讨论
     link: /zh/原版专区/Unciv基础术语/
-  - title: 模组专区
-    details: 分享优质模组——CoeHarMod、Emperors and Deities 等
+  - title: 模组专区与更新日志
+    details: CoeHarMod 等优质模组，Unciv 原版与 UncivCN 更新记录
     link: /zh/模组专区/CoeHarMod/
-  - title: 模组开发
-    details: 模组制作教程、Uniques 系统与 UncivCN MergeAction 指南
-    link: /zh/开发者专区/模组开发/模组
-  - title: 开发者专区
-    details: Unciv 项目开发文档、源码分析与翻译本地化
-    link: /zh/开发者专区/代码贡献/项目结构/
-  - title: 更新日志
-    details: Unciv 原版中文翻译与 UncivCN 版本更新记录
-    link: /zh/更新日志/
 
 ---
 
@@ -61,10 +61,10 @@ features:
 :::
 
 ::: info 模组开发者
-- [模组开发入门](/zh/开发者专区/模组开发/模组) — 从零开始制作模组
-- [Uniques 系统](/zh/开发者专区/模组开发/Unique能力列表) — 掌握核心机制
-- [UncivCN MergeAction 教程](/zh/开发者专区/模组开发/UncivCN扩展JSON-MergeAction教程) — JSON 字段级合并指南
-- [Lua 脚本](/zh/开发者专区/模组开发/Lua脚本) — 在模组中使用 Lua 编写复杂逻辑
+- [模组制作入门](/zh/Modders/Mods) — 从零开始制作模组
+- [Uniques 系统](/zh/Modders/uniques) — 掌握核心机制
+- [MergeAction 教程](/zh/Modders/Mod-file-structure/6-MergeActions) — JSON 字段级合并指南
+- [Lua 脚本](/zh/Modders/Lua-Modding) — 在模组中使用 Lua 编写复杂逻辑
 :::
 
 ## UncivCN 中国版
@@ -90,5 +90,6 @@ UncivCN 继承自 Unciv，针对中文玩家深度定制：
 
 ## 关于本站
 
-本站为 **UncivCN** 的官方文档站：英文区完整复用上游 Unciv 文档，中文区提供攻略、
-模组、开发文档与 UncivCN 分支新改动专区。右上角可随时切换中英文。
+本站为 **UncivCN** 的官方文档站：英文区完整复用上游 Unciv 文档，中文区为英文文档的
+翻译镜像（`docs/zh/` 与英文区结构一一对应），并补充社区攻略、模组专区与 UncivCN
+专区等独有内容。右上角可随时切换中英文，同一路径即为对应翻译。

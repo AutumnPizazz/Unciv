@@ -90,7 +90,7 @@ _或者_它在模组管理器中被标记为'Permanent audiovisual mod'（你必
 请注意，此功能在_所有_游戏中包括来自所选模组的图形或声音，甚至包括在安装模组之前开始的游戏。
 重复：在模组同时带来更改的规则和视听的情况下，'permanent'功能将只在所有游戏中包括媒体，要使用规则，你仍然需要为新游戏选择模组。
 
-请注意，模组作者可以（并且通常应该）使用 [ModOptions](模组文件结构/其他JSON文件.md#modoptionsjson) [Uniques](Unique能力列表.md#modoptions-uniques)控制复选框是否出现。
+请注意，模组作者可以（并且通常应该）使用 [ModOptions](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson) [Uniques](/zh/Modders/uniques#modoptions-uniques)控制复选框是否出现。
 
 ## 覆盖内置图形
 
@@ -106,7 +106,7 @@ _或者_它在模组管理器中被标记为'Permanent audiovisual mod'（你必
 
 - 图像文件的路径和名称需要符合规则：`Image[.AtlasName]/Type-specific/Objectname.png`（Type-specific 表示科技的"TechIcons"，文明的"NationIcons"等。请参阅原版游戏文件夹。Objectname 是 json 中定义的确切名称，在翻译之前。）
 - 所有路径部分都区分大小写。
-- 单位像素精灵和 [地形集](自定义地形集.md)遵循特殊规则。
+- 单位像素精灵和 [地形集](/zh/Modders/Creating-a-custom-tileset)遵循特殊规则。
 - 如果 `UnitIcons/&lt;UnitName&gt;.png` 不存在，我们将回退到 `UnitTypeIcons/&lt;UnitType&gt;.png` - 这允许为整个类型的单位设置单个图像，而无需摆弄每个单位
 - 晋升可以命名为"`[Unitname] ability`"。在这种情况下，如果 `UnitIcons/Unitname.png` 存在，当 `UnitPromotionIcons/Unitname ability.png` 缺失时，它将回退到该单位图标。
 - 晋升可以命名为"Something I"（或" II"或" III"）。后缀将被移除并绘制为小星星，只加载基本 `UnitPromotionIcons/Something.png`。
@@ -216,19 +216,19 @@ EmojiIcons 子文件夹中的纹理和一些其他纹理在特定代码点映射
 
 ### 为单位类型添加图标
 
-如 [UnitTypes.json](模组文件结构/单位相关JSON文件.md#unittypesjson) 中定义的单位类型在基础游戏中没有图标，但如果你提供名为'Images/UnitTypeIcons/&lt;UnitType&gt;.png'的图像，Civilopedia 可以装饰它们的条目。
+如 [UnitTypes.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unittypesjson) 中定义的单位类型在基础游戏中没有图标，但如果你提供名为'Images/UnitTypeIcons/&lt;UnitType&gt;.png'的图像，Civilopedia 可以装饰它们的条目。
 （当你这样做时，你可以覆盖单位类型_类别标题_的默认图标 - 它是同一文件夹中的'UnitTypes.png'，或者用于移动域的图标 - 'DomainLand'、'DomainWater'、'DomainAir'）
 
 ### 为信仰添加图标
 
-单独的信仰 - 与 [Beliefs.json](模组文件结构/文明相关JSON文件.md#beliefsjson) 中定义的信仰类型相反 - 在基础游戏中没有图标，但如果你提供名为'Images/ReligionIcons/&lt;Belief&gt;.png'的图像，Civilopedia 可以装饰它们的条目。
+单独的信仰 - 与 [Beliefs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefsjson) 中定义的信仰类型相反 - 在基础游戏中没有图标，但如果你提供名为'Images/ReligionIcons/&lt;Belief&gt;.png'的图像，Civilopedia 可以装饰它们的条目。
 Civilopedia 回退到信仰类型的图标 - 正如你在基础游戏中看到的那样，但如果存在单独的图标，它们具有优先权。
 
 ### 添加胜利插图
 
 你可以为每个胜利启用图片，说明它们的进度。这可能是一艘正在建造的宇宙飞船，显示你添加的部分，或者是完成政策分支时的文化进步。它们将显示在胜利屏幕的新选项卡上。
 
-为此，你需要创建多个图像。在以下内容中，`&lt;&gt;` 表示 [VictoryTypes.json](模组文件结构/其他JSON文件.md#victorytypesjson) 中出现的名称，未翻译，这些文件名（像 Unciv 中的任何其他文件名一样）区分大小写。所有文件都是可选的，除非如注明的 Background：
+为此，你需要创建多个图像。在以下内容中，`&lt;&gt;` 表示 [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypesjson) 中出现的名称，未翻译，这些文件名（像 Unciv 中的任何其他文件名一样）区分大小写。所有文件都是可选的，除非如注明的 Background：
 
 * `VictoryIllustrations/&lt;name&gt;/Background.png` - 这决定整体尺寸，其他不得超出其大小，理想情况下应该具有相同的大小。强制性的，如果此文件缺失，则不会显示此胜利类型的插图。
 * `VictoryIllustrations/&lt;name&gt;/Won.png` - 如果_你_（查看玩家）赢了这场胜利，则显示。
@@ -315,7 +315,7 @@ Civilopedia 回退到信仰类型的图标 - 正如你在基础游戏中看到�
 
 ## 提供领袖声音
 
-以文明名称和相应文本消息的[字段名称](模组文件结构/文明相关JSON文件.md#nationsjson)命名的声音文件，放置在模组的 `voices` 文件夹中，每当显示该消息时都会播放。文明名称和消息名称必须用点'.'连接，例如 `voices/Zulu.defeated.ogg`。
+以文明名称和相应文本消息的[字段名称](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nationsjson)命名的声音文件，放置在模组的 `voices` 文件夹中，每当显示该消息时都会播放。文明名称和消息名称必须用点'.'连接，例如 `voices/Zulu.defeated.ogg`。
 
 领袖声音音频剪辑将被流式传输，而不是缓存，所以它们可以很长 - 但是，如果需要播放另一个领袖声音或城市环境声音，它们将被切断而没有淡出
 还要注意，城邦领袖的声音仅适用于城邦实际可以使用的那些消息：`attacked`、`defeated` 和 `introduction`。

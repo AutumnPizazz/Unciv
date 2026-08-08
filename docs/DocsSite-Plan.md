@@ -183,6 +183,20 @@ on: push branches: [UncivCN] + workflow_dispatch
   无悬浮提示）
 - 阶段 3：更新日志自动生成、pagefind、Modders 文档逐步翻译
 
+## 10.2 中文区重构与全量翻译（2026-08-09）
+
+按用户要求，中文区抛弃社区仓库的目录结构，改为**英文文档的翻译镜像**：
+
+- 新结构：`docs/zh/{Modders, Developers, Translating, Other}/` 与英文一一对应（同名文件），
+  语言切换同一路径即对应翻译；社区独有内容保留在 `UncivCN/`、`原版专区/`、`模组专区/`、`更新日志/`
+- 19 个已有社区翻译迁入镜像位置（restructure_zh.py + fix_zh_links.py + fix_zh_anchors.py），
+  内部链接全部重写为 /zh/ 绝对路径，顺带修复社区原有死链
+- **全量补齐翻译**（16 个缺失文档）：Developers 6 个 + Other 6 个 + 顶层 4 个（Credits 由
+  translate_credits.py 生成：翻译标题/说明，保留名单）——中英 36 个文档现在一一对应
+- 生成器：中文 uniques 输出路径改为 `docs/zh/Modders/uniques.md`；mkdocs 缩写语法
+  `*[param]: desc` 改为标准参数表（VitePress 不识别缩写）
+- config.ts 中文导航重写为镜像结构；构建验证 0 死链、0 渲染残留（DocsSite-Plan 除外）
+
 ## 11. 相关参考
 
 - 联动设计文档（含版本定位算法、跨仓库教训）：`docs/CommunitySync-Design.md`

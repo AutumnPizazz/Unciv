@@ -7,8 +7,8 @@ title: Unique 能力列表
 # Unique 能力列表
 
 > 本列表由游戏代码自动生成，随版本保持最新。
-> Uniques 概述可以在[这里](../代码贡献/Uniques%20机制.md)找到。
-> 简单的 Unique 参数通过悬浮提示说明，复杂的参数在 [Unique 参数类型](Unique参数详解.md) 中说明。
+> Uniques 概述可以在[这里](../Developers/Uniques.md)找到。
+> 简单的 Unique 参数通过悬浮提示说明，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。
 
 ## 触发型词条
 ::: note
@@ -5297,48 +5297,52 @@ title: Unique 能力列表
 
 :::
 
-*[amount]: This indicates a whole number, possibly with a + or - sign, such as `2`, `+13`, or `-3`. Also accepts Countable expressions.
-*[baseTerrain]: The name of any terrain that is a base terrain according to the json file.
-*[belief]: The name of any belief.
-*[beliefType]: 'Pantheon', 'Follower', 'Founder' or 'Enhancer'
-*[buildingName]: The name of any building.
-*[civWideStat]: All the following stats have civ-wide fields: `Gold`, `Science`, `Culture`, `Faith`.
-*[combatantFilter]: This indicates a combatant, which can either be a unit or a city (when bombarding). Must either be `City` or a `mapUnitFilter`.
-*[costOrStrength]: `Cost` or `Strength`.
-*[countable]: This indicates a number or a numeric variable.They can be tested in the developer console with `civ checkcountable` - for example, `civ checkcountable "[Iron]+2"`.
-*[difficulty]: The name of any difficulty.
-*[era]: The name of any era.
-*[eraFilter]: The name of an era, `any era`, `Starting Era`, `pre-[era]`, `post-[era]`.
-*[event]: The name of any event.
-*[foundingOrEnhancing]: `founding` or `enhancing`.
-*[fraction]: Indicates a fractional number, which can be negative. Also accepts Countable expressions.
-*[improvementName]: The name of any improvement excluding 'Cancel improvement order'
-*[leaderTitle]: Provides a leader title that includes the leader's name in parameters.
-*[luaFunction]: A Lua function reference in the form [modName:]functionName.
-*[modFilter]: A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.
+## Unique 参数类型
+
+| 参数 | 说明 |
+|---|---|
+| `amount` | This indicates a whole number, possibly with a + or - sign, such as `2`, `+13`, or `-3`. Also accepts Countable expressions. |
+| `baseTerrain` | The name of any terrain that is a base terrain according to the json file. |
+| `belief` | The name of any belief. |
+| `beliefType` | 'Pantheon', 'Follower', 'Founder' or 'Enhancer' |
+| `buildingName` | The name of any building. |
+| `civWideStat` | All the following stats have civ-wide fields: `Gold`, `Science`, `Culture`, `Faith`. |
+| `combatantFilter` | This indicates a combatant, which can either be a unit or a city (when bombarding). Must either be `City` or a `mapUnitFilter`. |
+| `costOrStrength` | `Cost` or `Strength`. |
+| `countable` | This indicates a number or a numeric variable.They can be tested in the developer console with `civ checkcountable` - for example, `civ checkcountable "[Iron]+2"`. |
+| `difficulty` | The name of any difficulty. |
+| `era` | The name of any era. |
+| `eraFilter` | The name of an era, `any era`, `Starting Era`, `pre-[era]`, `post-[era]`. |
+| `event` | The name of any event. |
+| `foundingOrEnhancing` | `founding` or `enhancing`. |
+| `fraction` | Indicates a fractional number, which can be negative. Also accepts Countable expressions. |
+| `improvementName` | The name of any improvement excluding 'Cancel improvement order' |
+| `leaderTitle` | Provides a leader title that includes the leader's name in parameters. |
+| `luaFunction` | A Lua function reference in the form [modName:]functionName. |
+| `modFilter` | A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.
 Note that this must use the Mod name as Unciv displays it, not the Repository name.
-There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused.
-*[nonNegativeAmount]: This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional. Also accepts Countable expressions.
-*[pediaLink]: A Civilopedia link in the form category/entry.
-*[policy]: The name of any policy.
-*[policyFilter]: The name of any policy, a filtering Unique, any branch (matching only the branch itself), a branch name with " Completed" appended (matches if the branch is completed), or a policy branch as `[branchName] branch` (matching all policies in that branch).
-*[positiveAmount]: This indicates a positive whole number, larger than zero, a '+' sign is optional. Also accepts Countable expressions.
-*[promotion]: The name of any promotion.
-*[relativeAmount]: This indicates a number, usually with a + or - sign, such as `+25` (this kind of parameter is often followed by '%' which is nevertheless not part of the value). Also accepts Countable expressions.
-*[resource]: The name of any resource.
-*[resourceFilter]: A resource name, type, 'all', or a Stat listed in the resource's improvementStats.
-*[specialist]: The name of any specialist.
-*[speed]: The name of any speed.
-*[spyAction]: A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`.
-*[stat]: This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized!
-*[stats]: For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized!
-*[stockpile]: The name of any stockpiled resource.
-*[stockpiledResource]: The name of any stockpiled resource.
-*[tech]: The name of any tech.
-*[terrainFeature]: The name of any terrain that is a terrain feature according to the json file.
-*[tileFilter]: Anything that can be used either in an improvementFilter or in a terrainFilter can be used here, plus 'unimproved'
-*[unitNameGroup]: The name of a unit name group found in UnitNameGroups.json, or one of their unique tags.
-*[unitTriggerTarget]: `This Unit` or `Target Unit`.
-*[unitType]: Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type, or a multi-filter of these.
-*[validationWarning]: Suppresses one specific Ruleset validation warning. This can specify the full text verbatim including correct upper/lower case, or it can be a wildcard case-insensitive simple pattern starting and ending in an asterisk ('*'). If the suppression unique is used within an object or as modifier (not ModOptions), the wildcard symbols can be omitted, as selectivity is better due to the limited scope.
-*[victoryType]: The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names.
+There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused. |
+| `nonNegativeAmount` | This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional. Also accepts Countable expressions. |
+| `pediaLink` | A Civilopedia link in the form category/entry. |
+| `policy` | The name of any policy. |
+| `policyFilter` | The name of any policy, a filtering Unique, any branch (matching only the branch itself), a branch name with " Completed" appended (matches if the branch is completed), or a policy branch as `[branchName] branch` (matching all policies in that branch). |
+| `positiveAmount` | This indicates a positive whole number, larger than zero, a '+' sign is optional. Also accepts Countable expressions. |
+| `promotion` | The name of any promotion. |
+| `relativeAmount` | This indicates a number, usually with a + or - sign, such as `+25` (this kind of parameter is often followed by '%' which is nevertheless not part of the value). Also accepts Countable expressions. |
+| `resource` | The name of any resource. |
+| `resourceFilter` | A resource name, type, 'all', or a Stat listed in the resource's improvementStats. |
+| `specialist` | The name of any specialist. |
+| `speed` | The name of any speed. |
+| `spyAction` | A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`. |
+| `stat` | This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized! |
+| `stats` | For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized! |
+| `stockpile` | The name of any stockpiled resource. |
+| `stockpiledResource` | The name of any stockpiled resource. |
+| `tech` | The name of any tech. |
+| `terrainFeature` | The name of any terrain that is a terrain feature according to the json file. |
+| `tileFilter` | Anything that can be used either in an improvementFilter or in a terrainFilter can be used here, plus 'unimproved' |
+| `unitNameGroup` | The name of a unit name group found in UnitNameGroups.json, or one of their unique tags. |
+| `unitTriggerTarget` | `This Unit` or `Target Unit`. |
+| `unitType` | Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type, or a multi-filter of these. |
+| `validationWarning` | Suppresses one specific Ruleset validation warning. This can specify the full text verbatim including correct upper/lower case, or it can be a wildcard case-insensitive simple pattern starting and ending in an asterisk ('*'). If the suppression unique is used within an object or as modifier (not ModOptions), the wildcard symbols can be omitted, as selectivity is better due to the limited scope. |
+| `victoryType` | The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names. |

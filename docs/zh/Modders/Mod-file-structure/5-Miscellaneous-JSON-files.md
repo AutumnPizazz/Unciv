@@ -28,7 +28,7 @@ title: 其他 JSON 文件
 | unhappinessModifier | Float | 1 | |
 | barbarianBonus | Float | 0 | |
 | barbarianSpawnDelay | Integer | 0 | |
-| playerBonusStartingUnits | List of Strings | 空 | 也可以是 'Era Starting Unit'，映射到 Eras 文件的 `startingMilitaryUnit`。所有其他单位必须在 [Units.json](单位相关JSON文件.md#unitsjson) 中。仅适用于人类玩家文明 |
+| playerBonusStartingUnits | List of Strings | 空 | 也可以是 'Era Starting Unit'，映射到 Eras 文件的 `startingMilitaryUnit`。所有其他单位必须在 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson) 中。仅适用于人类玩家文明 |
 | aiDifficultyLevel | String | 空 | 从选择的难度对 AI 应用一些修饰符。诸如 unhappinessModifier 和 aiUnhappinessModifier 等修饰符会相乘堆叠。如果为空：默认为 "Chieftain" 或第一个可用的难度。 |
 | aiCityGrowthModifier | Float | 1 | |
 | aiUnitCostModifier | Float | 1 | |
@@ -37,7 +37,7 @@ title: 其他 JSON 文件
 | aiBuildingMaintenanceModifier | Float | 1 | |
 | aiUnitMaintenanceModifier | Float | 1 | |
 | aiUnitSupplyModifier | Integer | 5 | |
-| aiFreeTechs | List of Strings | 空 | 必须在 [Techs.json](文明相关JSON文件.md#techsjson) 中 |
+| aiFreeTechs | List of Strings | 空 | 必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techsjson) 中 |
 | aiMajorCivBonusStartingUnits | List of Strings | 空 | 与 playerBonusStartingUnits 相同的规则，请参阅上文。仅适用于 AI 主要文明 |
 | aiCityStateBonusStartingUnits | List of Strings | 空 | 与 playerBonusStartingUnits 相同的规则，请参阅上文。仅适用于城邦文明 |
 | aiUnhappinessModifier | Float | 1 | |
@@ -59,11 +59,11 @@ title: 其他 JSON 文件
 | researchAgreementCost | Integer (≥0) | 300 | 当科技最先进的文明处于此时代时，研究协议的成本 |
 | iconRGB | [List of 3× Integer](#rgb-颜色列表) | white | 此时代的科技图标在科技屏幕中应具有的 RGB 颜色 |
 | startingSettlerCount | Integer (≥0) | 1 | 在此时代开始游戏时应生成的定居者单位数量（不建议将其设置为零 [^1]） |
-| startingSettlerUnit | String | "Settler" | 应用于前一个字段的单位名称。必须在 [Units.json](单位相关JSON文件.md#unitsjson) 中，或者必须存在具有 "Founds a new city" unique 的单位 |
+| startingSettlerUnit | String | "Settler" | 应用于前一个字段的单位名称。必须在 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson) 中，或者必须存在具有 "Founds a new city" unique 的单位 |
 | startingWorkerCount | Integer (≥0) | 0 | 在此时代开始游戏时应生成的工人单位数量 |
-| startingWorkerUnit | String | "Worker" | 应用于前一个字段的单位名称。如果 startingWorkerCount>0，则它必须存在于 [Units.json](单位相关JSON文件.md#unitsjson) 中，或者必须存在具有 "Can build [filter] improvements on tiles" unique 的单位 |
+| startingWorkerUnit | String | "Worker" | 应用于前一个字段的单位名称。如果 startingWorkerCount>0，则它必须存在于 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson) 中，或者必须存在具有 "Can build [filter] improvements on tiles" unique 的单位 |
 | startingMilitaryUnitCount | Integer (≥0) | 1 | 在此时代开始游戏时应生成的军事单位数量 |
-| startingMilitaryUnit | String | "Warrior" | 应用于前一个字段的单位名称。必须在 [Units.json](单位相关JSON文件.md#unitsjson) 中 |
+| startingMilitaryUnit | String | "Warrior" | 应用于前一个字段的单位名称。必须在 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson) 中 |
 | startingGold | Integer (≥0) | 0 | 每个文明在此时代开始游戏时应收到的金币数量 |
 | startingCulture | Integer (≥0) | 0 | 每个文明在此时代开始游戏时应收到的文化数量 |
 | settlerPopulation | Integer (>0) | 1 | 在此时代开始游戏时定居时每个城市应有的人口数量 |
@@ -139,7 +139,7 @@ title: 其他 JSON 文件
 | name | String | 必需 | 用于通过 "Triggers a [event] event" unique 进行触发 |
 | text | String | None | 向用户显示的风味文字 |
 | presentation | One of: "None", "Alert", "Floating" | Alert | "Alert" 表示常规弹出窗口，"None" 表示随机选择，"Floating" 用于教程风格的指示器 |
-| civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](其他JSON文件.md#civilopedia-text) |
+| civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
 | choices | List of EventChoices | | 用户可以选择触发其中一个可行的选择 |
 
 你可以使用 text 和/或 civilopediaText，如果两者都存在，则两者都显示（但为什么呢？）
@@ -151,7 +151,7 @@ title: 其他 JSON 文件
 | text | String | 必需 | 作为按钮显示给用户。应该是动作名称 - "Do X" |
 | uniques | List of uniques to trigger or limit conditions | 必需 | 此选择在被选中时激活的触发器，以及 "Unavailable" / "Only available" uniques |
 | keyShortcut | key to select (name) | none | 键名称请参阅 [Gdx.Input.Keys](https://github.com/libgdx/libgdx/blob/master/gdx/src/com/badlogic/gdx/Input.java#L69) |
-| civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](其他JSON文件.md#civilopedia-text) |
+| civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
 
 在这里，civilopediaText 显示在活动按钮之外，在 triggeredUniques 之前。
 
@@ -164,7 +164,7 @@ title: 其他 JSON 文件
 - 在 Vanilla 规则集中不存在
 - 完全是可选的，但在下载模组后会创建
 
-请注意，此文件控制_声明性模组兼容性_（进行中）- 例如，有 [uniques](../Unique能力列表.md#modoptions-uniques) 表示你的模组应该只或从不作为'永久视觉模组'使用。
+请注意，此文件控制_声明性模组兼容性_（进行中）- 例如，有 [uniques](/zh/Modders/uniques#modoptions-uniques) 表示你的模组应该只或从不作为'永久视觉模组'使用。
 不兼容性过滤目前适用于扩展模组和基础模组之间，但请随意使用相同的 Unique 记录已知的扩展到扩展的不兼容性。敬请期待！
 
 该文件可以具有以下属性，不包括 Unciv 自动设置的值：
@@ -172,15 +172,15 @@ title: 其他 JSON 文件
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | isBaseRuleset | Boolean | false | 如果为 true，则替换 vanilla 规则集 |
-| uniques | List | 空 | 模组范围的特性，[请参阅此处](../Unique能力列表.md#modoptions-uniques) |
-| techsToRemove | List | 空 | 要移除的[技术](文明相关JSON文件.md#techsjson)或[technologyFilter](../Unique参数详解.md#technologyfilter)列表（仅适用于 isBaseRuleset=false） |
-| buildingsToRemove | List | 空 | 要移除的[建筑或奇观](文明相关JSON文件.md#buildingsjson)或[buildingFilter](../Unique参数详解.md#buildingfilter)列表（仅适用于 isBaseRuleset=false） |
-| unitsToRemove | List | 空 | 要移除的[单位](单位相关JSON文件.md#unitsjson)或[unitFilter](../Unique参数详解.md#baseunitfilter)列表（仅适用于 isBaseRuleset=false） |
-| nationsToRemove | List | 空 | 要移除的[国家](文明相关JSON文件.md#nationsjson)或[nationFilter](../Unique参数详解.md#nationfilter)列表（仅适用于 isBaseRuleset=false） |
-| policyBranchesToRemove | List | 空 | 要移除的[政策分支](文明相关JSON文件.md#policiesjson)列表（仅适用于 isBaseRuleset=false） |
-| policiesToRemove | List | 空 | 要移除的[政策](文明相关JSON文件.md#policiesjson)列表（仅适用于 isBaseRuleset=false） |
-| beliefsToRemove | List | 空 | 要移除的[信仰](文明相关JSON文件.md#beliefsjson)列表（仅适用于 isBaseRuleset=false） |
-| religionsToRemove | List | 空 | 要移除的[宗教](文明相关JSON文件.md#religionsjson)列表（仅适用于 isBaseRuleset=false） |
+| uniques | List | 空 | 模组范围的特性，[请参阅此处](/zh/Modders/uniques#modoptions-uniques) |
+| techsToRemove | List | 空 | 要移除的[技术](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techsjson)或[technologyFilter](/zh/Modders/Unique-parameters#technologyfilter)列表（仅适用于 isBaseRuleset=false） |
+| buildingsToRemove | List | 空 | 要移除的[建筑或奇观](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#buildingsjson)或[buildingFilter](/zh/Modders/Unique-parameters#buildingfilter)列表（仅适用于 isBaseRuleset=false） |
+| unitsToRemove | List | 空 | 要移除的[单位](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson)或[unitFilter](/zh/Modders/Unique-parameters#baseunitfilter)列表（仅适用于 isBaseRuleset=false） |
+| nationsToRemove | List | 空 | 要移除的[国家](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nationsjson)或[nationFilter](/zh/Modders/Unique-parameters#nationfilter)列表（仅适用于 isBaseRuleset=false） |
+| policyBranchesToRemove | List | 空 | 要移除的[政策分支](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policiesjson)列表（仅适用于 isBaseRuleset=false） |
+| policiesToRemove | List | 空 | 要移除的[政策](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policiesjson)列表（仅适用于 isBaseRuleset=false） |
+| beliefsToRemove | List | 空 | 要移除的[信仰](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefsjson)列表（仅适用于 isBaseRuleset=false） |
+| religionsToRemove | List | 空 | 要移除的[宗教](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#religionsjson)列表（仅适用于 isBaseRuleset=false） |
 | constants | Object | 空 | 请参阅 [ModConstants](#modconstants) |
 | tileset | String | 空 | 仅适用于基础规则集 |
 | unitset | String | 空 | 仅适用于基础规则集 |
@@ -300,7 +300,7 @@ title: 其他 JSON 文件
             max((`base` + `perProduction` \* (new_unit_cost - old_unit_cost)), 0)
             \* (1 + eraNumber \* `eraMultiplier`) \* `civModifier`
         ) ^ `exponent`
-其中 `civModifier` 是适用于 ["\[relativeAmount\]% Gold cost of upgrading"](../Unique能力列表.md#global-uniques) uniques 的乘法聚合。
+其中 `civModifier` 是适用于 ["\[relativeAmount\]% Gold cost of upgrading"](/zh/Modders/uniques#global-uniques) uniques 的乘法聚合。
 
 ## GlobalUniques.json
 
@@ -316,8 +316,8 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | name | String | "GlobalUniques" | name 字段未使用，但仍必须设置（规则集验证器可能会显示它）。 |
-| uniques | List of Strings | 空 | 全局应用的[独特能力](../Unique能力列表.md)列表 |
-| unitUniques | List of Strings | 空 | 应用于每个单位的[独特能力](../Unique能力列表.md)列表 |
+| uniques | List of Strings | 空 | 全局应用的[独特能力](/zh/Modders/uniques)列表 |
+| unitUniques | List of Strings | 空 | 应用于每个单位的[独特能力](/zh/Modders/uniques)列表 |
 
 当扩展规则集定义 GlobalUniques 时，所有 uniques 都会合并。目前，无法更改/移除基础模组设置的 uniques。
 
@@ -362,7 +362,7 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 | hiddenInVictoryScreen | Boolean | false | 此胜利的进度是否在胜利屏幕中隐藏 |
 | requiredSpaceshipParts | List of Strings | 空 | 必须添加到首都以实现相应里程碑的太空船部件 |
 | Milestones | List of Strings | 必需 | 必须完成以获胜的里程碑列表，[请参阅下文](#里程碑) |
-| civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](其他JSON文件.md#civilopedia-text) |
+| civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
 
 ### 里程碑
 
