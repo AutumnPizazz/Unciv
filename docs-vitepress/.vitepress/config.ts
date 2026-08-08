@@ -110,6 +110,8 @@ export default defineConfig({
           { text: 'Developers', link: '/Developers/Building-Locally' },
           { text: 'Translating', link: '/Translating/Translating' },
           { text: 'Other', link: '/Other/Multiplayer' },
+          { text: 'UncivCN', link: '/UncivCN/' },
+          { text: 'Community', link: '/Community/Guides/Unciv-basics/' },
         ],
         sidebar: [
           {
@@ -187,7 +189,52 @@ export default defineConfig({
               { text: 'Trailer Audio Credits', link: '/Credits_trailer' },
               { text: 'Guiding Principles', link: '/Guiding-Principles' },
               { text: 'Privacy Policy', link: '/Privacy-Policy' },
-            ]
+            ],
+          },
+          {
+            text: 'UncivCN',
+            collapsed: true,
+            items: [
+              { text: 'About the branch', link: '/UncivCN/' },
+              { text: 'Features', link: '/UncivCN/Features' },
+              { text: 'Changelog', link: '/UncivCN/Changelog' },
+              { text: 'Differences vs upstream', link: '/UncivCN/Differences' },
+              { text: 'Coding standards', link: '/UncivCN/Coding-standards' },
+              { text: 'Polling multiplayer', link: '/UncivCN/Polling-multiplayer' },
+            ],
+          },
+          {
+            text: 'Community',
+            collapsed: true,
+            items: [
+              {
+                text: 'Guides',
+                items: [
+                  { text: 'Basic terminology', link: '/Community/Guides/Unciv-basics/' },
+                  { text: 'Gods & Kings guide', link: '/Community/Guides/Gods-and-Kings-guide/' },
+                  { text: 'Liberty opening strategy', link: '/Community/Guides/Liberty-opening-strategy/' },
+                  { text: 'PVP arena guide', link: '/Community/Guides/PVP-arena-guide/' },
+                  { text: 'Multiplayer tutorial', link: '/Community/Guides/Multiplayer-tutorial/' },
+                ],
+              },
+              {
+                text: 'Mods',
+                items: [
+                  { text: 'CoeHarMod', link: '/Community/Mods/CoeHarMod/' },
+                  { text: 'CoeHarMod changelog', link: '/Community/Mods/CoeHarMod/更新日志/' },
+                  { text: 'CoeHarMod roadmap', link: '/Community/Mods/CoeHarMod/更新日志/更新计划' },
+                  { text: 'Emperors and Deities', link: '/Community/Mods/Emperors-and-Deities/' },
+                ],
+              },
+              {
+                text: 'Code analysis',
+                items: [
+                  { text: 'Military strength', link: '/Community/Code-analysis/Military-strength/' },
+                  { text: 'Score calculation', link: '/Community/Code-analysis/Score-calculation/' },
+                ],
+              },
+              { text: 'Upstream changelog (zh)', link: '/Community/Upstream-changelog' },
+            ],
           },
         ],
         outline: { label: 'On this page', level: [2, 3] },
@@ -238,47 +285,48 @@ export default defineConfig({
         ],
         sidebar: [
           {
-            text: 'UncivCN 专区（中文独有）',
+            text: 'UncivCN 专区',
             collapsed: false,
             items: [
               { text: '分支介绍', link: '/zh/UncivCN/' },
-              { text: '新特性', link: '/zh/UncivCN/新特性' },
-              { text: '更新日志', link: '/zh/UncivCN/更新日志' },
-              { text: '与上游差异', link: '/zh/UncivCN/与上游差异' },
-              { text: '代码规范', link: '/zh/UncivCN/代码规范' },
-              { text: '轮询联机', link: '/zh/UncivCN/轮询联机' },
-              { text: 'Unciv 原版更新日志', link: '/zh/UncivCN/Unciv原版更新日志' },
+              { text: '新特性', link: '/zh/UncivCN/Features' },
+              { text: '更新日志', link: '/zh/UncivCN/Changelog' },
+              { text: '与上游差异', link: '/zh/UncivCN/Differences' },
+              { text: '代码规范', link: '/zh/UncivCN/Coding-standards' },
+              { text: '轮询联机', link: '/zh/UncivCN/Polling-multiplayer' },
+            ],
+          },
+          {
+            text: '社区内容（Community）',
+            collapsed: true,
+            items: [
               {
-                text: '源码分析',
+                text: '原版攻略（Guides）',
                 items: [
-                  { text: '军事实力计算方式', link: '/zh/UncivCN/源码分析/军事实力计算方式/' },
-                  { text: '文明积分计算', link: '/zh/UncivCN/源码分析/文明积分计算/' },
+                  { text: '基础术语', link: '/zh/Community/Guides/Unciv-basics/' },
+                  { text: '众神与国王入门指南', link: '/zh/Community/Guides/Gods-and-Kings-guide/' },
+                  { text: '自主左二前应该做什么', link: '/zh/Community/Guides/Liberty-opening-strategy/' },
+                  { text: '鳇脯菌校：全局篇', link: '/zh/Community/Guides/PVP-arena-guide/' },
+                  { text: '联机教程', link: '/zh/Community/Guides/Multiplayer-tutorial/' },
                 ],
               },
               {
-                text: '原版专区',
+                text: '模组专区（Mods）',
                 items: [
-                  { text: 'Unciv 基础术语', link: '/zh/UncivCN/原版专区/Unciv基础术语/' },
-                  { text: '众神与国王入门指南', link: '/zh/UncivCN/原版专区/众神与国王入门指南/' },
-                  { text: '自主左二前应该做什么', link: '/zh/UncivCN/原版专区/自主左二前应该做什么/' },
-                  { text: 'Unciv 鳇脯菌校：全局篇', link: '/zh/UncivCN/原版专区/Unciv鳇脯菌校/' },
-                  { text: '联机教程', link: '/zh/UncivCN/原版专区/联机教程/' },
+                  { text: 'CoeHarMod 介绍', link: '/zh/Community/Mods/CoeHarMod/' },
+                  { text: 'CoeHarMod 更新日志', link: '/zh/Community/Mods/CoeHarMod/更新日志/' },
+                  { text: 'CoeHarMod 更新计划', link: '/zh/Community/Mods/CoeHarMod/更新日志/更新计划' },
+                  { text: 'Emperors and Deities', link: '/zh/Community/Mods/Emperors-and-Deities/' },
                 ],
               },
               {
-                text: '模组专区',
+                text: '源码分析（Code analysis）',
                 items: [
-                  {
-                    text: 'CoeHarMod',
-                    items: [
-                      { text: '模组介绍', link: '/zh/UncivCN/模组专区/CoeHarMod/' },
-                      { text: '更新日志', link: '/zh/UncivCN/模组专区/CoeHarMod/更新日志/' },
-                      { text: '更新计划', link: '/zh/UncivCN/模组专区/CoeHarMod/更新日志/更新计划' },
-                    ],
-                  },
-                  { text: 'Emperors and Deities', link: '/zh/UncivCN/模组专区/Emperors%20and%20Deities/' },
+                  { text: '军事实力计算方式', link: '/zh/Community/Code-analysis/Military-strength/' },
+                  { text: '文明积分计算', link: '/zh/Community/Code-analysis/Score-calculation/' },
                 ],
               },
+              { text: 'Unciv 原版更新日志', link: '/zh/Community/Upstream-changelog' },
             ],
           },
           {

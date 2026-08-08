@@ -23,13 +23,13 @@ title: UncivCN 分支介绍
 
 | 类别 | 特性 |
 |---|---|
-| 联机 | [轮询联机](./轮询联机)、默认服务器（sp.unciv.cn）、联机禁用读档随机数 |
+| 联机 | [轮询联机./Polling-multiplayer)、默认服务器（sp.unciv.cn）、联机禁用读档随机数 |
 | 地图 | 三种镜像地图模式、环形地图、取消半径奇偶限制 |
-| 模组 | [Lua 脚本](./新特性#lua-模组系统42082-起持续增强)、[MergeAction 扩展 JSON 系统](./新特性#mergeaction-扩展-json-系统42073)、tile-claim 地块归属 |
+| 模组 | [Lua 脚本./Features#lua-模组系统42082-起持续增强)、[MergeAction 扩展 JSON 系统./Features#mergeaction-扩展-json-系统42073)、tile-claim 地块归属 |
 | UI | 单位钉/地图钉、人口自动锁定按钮、设置导出/导入剪贴板 |
 | 其他 | 游戏版本兼容性隔离、随机数读档可变（单机） |
 
-详细说明见 [新特性](./新特性) 与 [与上游差异](./与上游差异)。
+详细说明见 [新特性./Features) 与 [与上游差异./Differences)。
 
 ## 构建方式
 
@@ -42,4 +42,4 @@ title: UncivCN 分支介绍
 
 Android 构建需 `local.properties`（`sdk.dir`）或 `ANDROID_HOME` 环境变量。
 
-版本号定义在 `buildSrc/src/main/kotlin/BuildConfig.kt`，变更记录见 [更新日志](./更新日志)。
+版本号定义在 `buildSrc/src/main/kotlin/BuildConfig.kt`，变更记录见 [更新日志./Changelog)。

@@ -79,5 +79,5 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 
 ## 相关文档
 
-- [与上游差异（游戏内容对照）](./与上游差异)
-- [UncivCN 更新日志](./更新日志)
+- [与上游差异（游戏内容对照）./Differences)
+- [UncivCN 更新日志./Changelog)
