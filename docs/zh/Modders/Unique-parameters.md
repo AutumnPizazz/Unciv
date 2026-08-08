@@ -368,76 +368,103 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
 
 允许的值：
 
-- 整数常量 - 任何正整数或负整数
+[//]: # (Countables automatically generated BEGIN)
+-   整数常量 - 任何正整数或负整数
     - 示例：`Only available <when number of [123] is more than [0]>`
-- `turns` - 已进行的回合数
+-   `turns` - 已进行的回合数
     - 示例：`Only available <when number of [turns] is more than [0]>`
     - 无论游戏速度或开始时代如何，始终从零开始
-- `year` - 当前年份
+-   `year` - 当前年份
     - 示例：`Only available <when number of [year] is more than [0]>`
     - 取决于游戏速度或开始时代，公元前年份为负数
-- `Cities` - 相关文明拥有的城市数量
+-   `Cities` - 相关文明拥有的城市数量
     - 示例：`Only available <when number of [Cities] is more than [0]>`
-- `Units` - 相关文明拥有的单位数量
+-   `Units` - 相关文明拥有的单位数量
     - 示例：`Only available <when number of [Units] is more than [0]>`
-- 统计名称（`Production`、`Food`、`Gold`、`Science`、`Culture`、`Happiness` 或 `Faith`）
+-   `City Population` - 相关城市的人口
+    - 示例：`Only available <when number of [City Population] is more than [0]>`
+-   `Total Population` - 相关文明的总人口
+    - 示例：`Only available <when number of [Total Population] is more than [0]>`
+-   `Unit Health` - 相关单位的当前生命值（0-100）
+    - 示例：`Only available <when number of [Unit Health] is more than [0]>`
+-   `Unit Experience` - 相关单位累计的经验
+    - 示例：`Only available <when number of [Unit Experience] is more than [0]>`
+-   `Unit Level` - 相关单位的等级（晋升次数 + 1）
+    - 示例：`Only available <when number of [Unit Level] is more than [0]>`
+-   `Golden Age Points` - 为下一次黄金时代累积的笑脸点数
+    - 示例：`Only available <when number of [Golden Age Points] is more than [0]>`
+-   `Golden Age Turns` - 当前黄金时代剩余回合数
+    - 示例：`Only available <when number of [Golden Age Turns] is more than [0]>`
+-   `Researched Technologies` - 相关文明已研究的科技数量
+    - 示例：`Only available <when number of [Researched Technologies] is more than [0]>`
+-   `Adopted Policies` - 相关文明已采用的政策数量
+    - 示例：`Only available <when number of [Adopted Policies] is more than [0]>`
+-   `City Strength` - 相关城市的战斗强度
+    - 示例：`Only available <when number of [City Strength] is more than [0]>`
+-   统计名称（`Production`, `Food`, `Gold`, `Science`, `Culture`, `Happiness` or `Faith`）
     - 示例：`Only available <when number of [Science] is more than [0]>`
     - 获取统计*储备*，而不是每回合的数量（可以是城市统计或文明统计，取决于 unique 在何处使用）
-- 统计/资源每回合
+-   统计/资源每回合
     - 示例：`Only available <when number of [[Culture] Per Turn] is more than [0]>`
     - 获取文明每回合获得的统计或资源数量
-- `Completed Policy branches`
+-   `Completed Policy branches`
     - 示例：`Only available <when number of [Completed Policy branches] is more than [0]>`
-- `[cityFilter] Cities`
+-   `[cityFilter] Cities`
     - 示例：`Only available <when number of [[in all cities] Cities] is more than [0]>`
-- `[mapUnitFilter] Units`
+-   `[mapUnitFilter] Units`
     - 示例：`Only available <when number of [[Wounded] Units] is more than [0]>`
-- `Carried [mapUnitFilter] units` - 该单位携带的单位数量
+-   `Carried [mapUnitFilter] units` - 该单位携带的单位数量
     - 示例：`Only available <when number of [Carried [Air] units] is more than [0]>`
-    - 仅计算匹配过滤器的运输单位。用于'when number of'条件。
-- `[buildingFilter] Buildings`
+    - 仅计算匹配过滤器的运输单位。用于 'when number of' 条件。
+-   `[buildingFilter] Buildings`
     - 示例：`Only available <when number of [[Culture] Buildings] is more than [0]>`
-- `[buildingFilter] Buildings by [civFilter] Civilizations`
+-   `[buildingFilter] Buildings by [civFilter] Civilizations`
     - 示例：`Only available <when number of [[Culture] Buildings by [City-States] Civilizations] is more than [0]>`
-- `[cityFilter] Cities of [civFilter] Civilizations`
+-   `[cityFilter] Cities of [civFilter] Civilizations`
     - 示例：`Only available <when number of [[in all cities] Cities of [City-States] Civilizations] is more than [0]>`
-- `Adopted [policyFilter] Policies`
+-   `Adopted [policyFilter] Policies`
     - 示例：`Only available <when number of [Adopted [Oligarchy] Policies] is more than [0]>`
-- `Adopted [policyFilter] Policies by [civFilter] Civilizations`
+-   `Adopted [policyFilter] Policies by [civFilter] Civilizations`
     - 示例：`Only available <when number of [Adopted [Oligarchy] Policies by [City-States] Civilizations] is more than [0]>`
-- `Researched [techFilter] Technologies`
+-   `Researched [techFilter] Technologies`
     - 示例：`Only available <when number of [Researched [Agriculture] Technologies] is more than [0]>`
-    - 计算相关文明研究的匹配科技
-    - 可重复科技，如未来科技，只计算一次
-- `Remaining [civFilter] Civilizations`
+    - 统计相关文明已研究的匹配科技
+    - 可重复科技（如未来科技）只计一次
+-   `Remaining [civFilter] Civilizations`
     - 示例：`Only available <when number of [Remaining [City-States] Civilizations] is more than [0]>`
-- `Owned [tileFilter] Tiles`
+-   `Worked [tileFilter] Tiles in this city`
+    - 示例：`Only available <when number of [Worked [Farm] Tiles in this city] is more than [0]>`
+-   `Worked [tileFilter] Tiles`
+    - 示例：`Only available <when number of [Worked [Farm] Tiles] is more than [0]>`
+-   `Owned [tileFilter] Tiles`
     - 示例：`Only available <when number of [Owned [Farm] Tiles] is more than [0]>`
-- `[tileFilter] Tiles`
+-   `[tileFilter] Tiles`
     - 示例：`Only available <when number of [[Desert] Tiles] is more than [0]>`
-- 资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson)
+-   资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson)
     - 示例：`Only available <when number of [Iron] is more than [0]>`
     - 可以是城市统计或文明统计，取决于 unique 在何处使用
-    - 例如：如果 unique 放置在建筑上，则检索的资源将是城市的。如果放置在政策上，它们将是文明的。
-    - 这可能产生影响，例如本地资源，这些资源是按城市计算的。
-- `[resourceFilter] resource of [civFilter] Civilizations`
+    - 例如：如果 unique 放在建筑上，获取的资源属于城市；如果放在政策上，则属于文明。
+    - 这对例如按城市计数的本地资源会有影响。
+-   `[resourceFilter] resource of [civFilter] Civilizations`
     - 示例：`Only available <when number of [[Strategic] resource of [City-States] Civilizations] is more than [0]>`
-- `Era number` - 当前玩家所处的时代编号
+-   `Era number` - 当前玩家所处时代的编号
     - 示例：`Only available <when number of [Era number] is more than [0]>`
     - Eras.json 中时代的从零开始的索引。
-- `Speed modifier for [stat]` - 特定统计的游戏速度修改器，作为百分比
+-   `Speed modifier for [stat]` - 特定产出的游戏速度修正，以百分比表示
     - 示例：`Only available <when number of [Speed modifier for [Culture]] is more than [0]>`
-    - 从玩家选择的 Speeds.json 条目中选择适当的字段。
-    - 它返回乘以 100 的值。
-    - Food 和 Happiness 返回通用的 `modifier` 字段。
-    - 其他字段如 `goldGiftModifier` 或 `barbarianModifier` 无法通过此 Countable 访问。
-- 评估表达式！
+    - 从玩家选择的 Speeds.json 条目中选择合适的字段。
+    - 返回值乘以 100。
+    - 食物和笑脸返回通用的 `modifier` 字段。
+    - 其他字段如 `goldGiftModifier` 或 `barbarianModifier` 不能通过此 Countable 访问。
+-   评估表达式！
     - 示例：`Only available <when number of [[Iron] + 2] is more than [0]>`
-    - 表达式支持任意数学运算，并且可以包含其他 countables，当用方括号包围时。
-    - 例如，由于 `Cities` 是一个 countable，并且 `[Melee] units` 是一个 countable，你可以有类似这样的东西：`([[Melee] units] + 1) / [Cities]`（空格是可选的，但有助于可读性）
-    - 由于在翻译时，括号被移除，表达式将显示为 `(Melee units + 1) / Cities`
+    - 表达式支持任意数学运算，用方括号包围时可以包含其他 countable。
+    - 例如，`Cities` 是 countable，`[Melee] units` 也是 countable，你可以写类似：`([[Melee] units] + 1) / [Cities]`（空格可选，但有助于阅读）
+    - 由于翻译时会移除方括号，表达式将显示为 `(Melee units + 1) / Cities`
     - 2 个值之间支持的操作是：+、-、*、/、%、^
     - 1 个值上支持的操作是：-（否定）、√（平方根）、abs（绝对值 - 将负数变为正数）、sqrt（平方根）、floor（向下取整）、ceil（向上取整）
     - 支持的函数：
     -  - `max(expression,expression,...)`
     -  - `min(expression,expression,...)`
+
+[//]: # (Countables automatically generated END)

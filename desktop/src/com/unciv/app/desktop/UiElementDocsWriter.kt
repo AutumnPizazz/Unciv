@@ -5,6 +5,7 @@ import java.io.File
 class UiElementDocsWriter {
     companion object {
         private const val docPath = "../../docs/Modders/Creating-a-UI-skin.md"
+        private const val docPathZh = "../../docs/zh/Modders/Creating-a-UI-skin.md"
         private const val startMarker = "<!--- DO NOT REMOVE OR MODIFY THIS LINE UI_ELEMENT_TABLE_REGION -->"
         private const val endMarker = "<!--- DO NOT REMOVE OR MODIFY THIS LINE UI_ELEMENT_TABLE_REGION_END -->"
         private const val srcPath = "../../core/src/com/unciv/"
@@ -12,6 +13,11 @@ class UiElementDocsWriter {
 
     @Suppress("RegExpRepeatedSpace")  // IDE doesn't know about commented RegExes
     fun write() {
+        writeDoc(docPath, "Directory", "Name", "Default shape", "Image")
+        writeDoc(docPathZh, "目录", "名称", "默认形状", "图片")
+    }
+
+    private fun writeDoc(docPath: String, directoryHeader: String, nameHeader: String, shapeHeader: String, imageHeader: String) {
         val docFile = File(docPath)
         val srcFile = File(srcPath)
         if (!srcFile.exists() || !docFile.parentFile.exists()) return
@@ -92,7 +98,7 @@ class UiElementDocsWriter {
         val newLines = sequence {
             yieldAll(originalLines.subList(0, startIndex))
             yield(startMarker)
-            yield("| Directory | Name | Default shape | Image |")
+            yield("| $directoryHeader | $nameHeader | $shapeHeader | $imageHeader |")
             yield("|---|:---:|:---:|---|")
             yieldAll(elements.asSequence().sorted().distinct())    // FileTreeWalk guarantees no specific order as it uses File.listFiles
             yield(endMarker)

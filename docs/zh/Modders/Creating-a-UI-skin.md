@@ -38,7 +38,7 @@ title: 创建 UI 皮肤
 <!--- 下面的表格是自动生成的，不应手动修改。如果你想更改它，请参阅 UiElementDocsWriter.kt -->
 
 <!--- DO NOT REMOVE OR MODIFY THIS LINE UI_ELEMENT_TABLE_REGION -->
-| 目录 | 名称 | 默认形状 | 图像 |
+| 目录 | 名称 | 默认形状 | 图片 |
 |---|:---:|:---:|---|
 | AnimatedMenu/ | Button | roundedEdgeRectangleMid | |
 | CityScreen/ | CityPickerTable | roundedEdgeRectangle | |
@@ -52,6 +52,7 @@ title: 创建 UI 皮肤
 | CityScreen/CityConstructionTable/ | PickConstructionButtonSelected | null | |
 | CityScreen/CityConstructionTable/ | QueueEntry | null | |
 | CityScreen/CityConstructionTable/ | QueueEntrySelected | null | |
+| CityScreen/CityScreenTileTable/ | AutoLockCell | null | |
 | CityScreen/CityScreenTileTable/ | Background | null | |
 | CityScreen/CityScreenTileTable/ | InnerTable | null | |
 | CityScreen/CityStatsTable/ | Background | null | |

@@ -183,6 +183,26 @@ on: push branches: [UncivCN] + workflow_dispatch
   无悬浮提示）
 - 阶段 3：更新日志自动生成、pagefind、Modders 文档逐步翻译
 
+## 10.3 自动生成 vs 人工维护清单（2026-08-09）
+
+经源码审计，文档站文件分两类，维护方式必须区分：
+
+| 文件 | 生成器 | 维护方式 |
+|---|---|---|
+| docs/Modders/uniques.md | UniqueDocsWriter.write() | **整体自动**，改生成器源码 |
+| docs/zh/Modders/uniques.md | UniqueDocsWriter.writeChinese() | **整体自动**，改生成器源码 |
+| docs/Modders/Unique-parameters.md | UniqueDocsWriter.writeCountables() | marker 区间自动，其余人工 |
+| docs/zh/Modders/Unique-parameters.md | UniqueDocsWriter.writeCountables()（新增） | marker 区间自动（中文翻译内置在生成器），其余人工 |
+| docs/Modders/Mod-file-structure/6-MergeActions.md | MergeActionDocsWriter | **整体自动** |
+| docs/Modders/Creating-a-UI-skin.md | UiElementDocsWriter | marker 区间自动，其余人工 |
+| docs/zh/Modders/Creating-a-UI-skin.md | UiElementDocsWriter（新增中文输出） | marker 区间自动，其余人工 |
+| 其余 docs/、docs/zh/ 页面 | — | 人工维护 |
+
+原则：自动生成的文档**只通过改生成器源码 + 重新运行生成器维护**（
+`./gradlew desktop:generateDocs`），不得人工编辑产物；人工文档（含社区翻译）
+直接维护。生成器内置的文档中文翻译（docsSentence / countablesTranslate）
+同样随源码维护。
+
 ## 10.2 中文区重构与全量翻译（2026-08-09）
 
 按用户要求，中文区抛弃社区仓库的目录结构，改为**英文文档的翻译镜像**：

@@ -23,6 +23,8 @@ class UniqueDocsWriter {
         /** Where the Countables documentation is to inserted,
          *  relative to the current (assets) directory (not incluenced by `--data-dir=`). */
         private const val countablesFileName = "../../docs/Modders/Unique-parameters.md"
+        /** Same, for the Chinese docs. */
+        private const val countablesZhFileName = "../../docs/zh/Modders/Unique-parameters.md"
         /** Where in the documentation file the Countables are to be inserted, start marker. */
         private const val countablesBeginMarker = "[//]: # (Countables automatically generated BEGIN)"
         /** Where in the documentation file the Countables are to be inserted, end marker. An empty line will always be inserted above it. */
@@ -264,36 +266,118 @@ class UniqueDocsWriter {
     }
 
     private fun writeCountables() {
-        val file = File(countablesFileName)
+        writeCountablesFile(countablesFileName, language = null)
+        writeCountablesFile(countablesZhFileName, language = "Simplified_Chinese")
+    }
+
+    /**
+     * Doc-only translations for the Countables section of Unique-parameters.md.
+     * Literals (countable text/example, e.g. `turns`, `[cityFilter] Cities`) must stay as-is:
+     * they are used verbatim in mod JSON.
+     */
+    private fun countablesTranslate(text: String, language: String?): String {
+        if (language != "Simplified_Chinese") return text
+        if (text.startsWith("Stat name ("))  // dynamic: contains Stat enum names (literals)
+            return "统计名称（" + text.removePrefix("Stat name (").removeSuffix(")") + "）"
+        if (text.startsWith("Resource name - From [TileResources.json]("))
+            return "资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson)"
+        return when (text) {
+            "Integer constant - any positive or negative integer number" -> "整数常量 - 任何正整数或负整数"
+            "Number of turns played" -> "已进行的回合数"
+            "Always starts at zero irrespective of game speed or start era" -> "无论游戏速度或开始时代如何，始终从零开始"
+            "The current year" -> "当前年份"
+            "Depends on game speed or start era, negative for years BC" -> "取决于游戏速度或开始时代，公元前年份为负数"
+            "The number of cities the relevant Civilization owns" -> "相关文明拥有的城市数量"
+            "The number of units the relevant Civilization owns" -> "相关文明拥有的单位数量"
+            "The population of the relevant City" -> "相关城市的人口"
+            "The total population of the relevant Civilization" -> "相关文明的总人口"
+            "The current health of the relevant Unit (0-100)" -> "相关单位的当前生命值（0-100）"
+            "The accumulated experience of the relevant Unit" -> "相关单位累计的经验"
+            "The level of the relevant Unit (number of promotions + 1)" -> "相关单位的等级（晋升次数 + 1）"
+            "The stored happiness points towards the next Golden Age" -> "为下一次黄金时代累积的笑脸点数"
+            "The remaining turns of the current Golden Age" -> "当前黄金时代剩余回合数"
+            "The number of technologies researched by the relevant Civilization" -> "相关文明已研究的科技数量"
+            "The number of policies adopted by the relevant Civilization" -> "相关文明已采用的政策数量"
+            "The combat strength of the relevant City" -> "相关城市的战斗强度"
+            "Stat/Resource Per Turn" -> "统计/资源每回合"
+            "Gets the stat *reserve*, not the amount per turn (can be city stats or civilization stats, depending on where the unique is used)" ->
+                "获取统计*储备*，而不是每回合的数量（可以是城市统计或文明统计，取决于 unique 在何处使用）"
+            "Gets the amount of a stat or resource the civilization gains per turn" -> "获取文明每回合获得的统计或资源数量"
+            "The number of units being carried by this unit" -> "该单位携带的单位数量"
+            "Only counts transported units matching the filter. For use with 'when number of' conditionals." ->
+                "仅计算匹配过滤器的运输单位。用于 'when number of' 条件。"
+            "Counts researched matching technologies for the relevant Civilization" -> "统计相关文明已研究的匹配科技"
+            "Repeatable technologies, like Future Tech, are only counted once" -> "可重复科技（如未来科技）只计一次"
+            "Number of the era the current player is in" -> "当前玩家所处时代的编号"
+            "Zero-based index of the Era in Eras.json." -> "Eras.json 中时代的从零开始的索引。"
+            "A game speed modifier for a specific Stat, as percentage" -> "特定产出的游戏速度修正，以百分比表示"
+            "Chooses an appropriate field from the Speeds.json entry the player has chosen." -> "从玩家选择的 Speeds.json 条目中选择合适的字段。"
+            "It is returned multiplied by 100." -> "返回值乘以 100。"
+            "Food and Happiness return the generic `modifier` field." -> "食物和笑脸返回通用的 `modifier` 字段。"
+            "Other fields like `goldGiftModifier` or `barbarianModifier` are not accessible with this Countable." ->
+                "其他字段如 `goldGiftModifier` 或 `barbarianModifier` 不能通过此 Countable 访问。"
+            "Evaluate expressions!" -> "评估表达式！"
+            "Expressions support arbitrary math operations, and can include other countables, when surrounded by square brackets." ->
+                "表达式支持任意数学运算，用方括号包围时可以包含其他 countable。"
+            "For example, since `Cities` is a countable, and `[Melee] units` is a countable, you can have something like: `([[Melee] units] + 1) / [Cities]` (the whitespace is optional but helps readability)" ->
+                "例如，`Cities` 是 countable，`[Melee] units` 也是 countable，你可以写类似：`([[Melee] units] + 1) / [Cities]`（空格可选，但有助于阅读）"
+            "Since on translation, the brackets are removed, the expression will be displayed as `(Melee units + 1) / Cities`" ->
+                "由于翻译时会移除方括号，表达式将显示为 `(Melee units + 1) / Cities`"
+            "Supported operations between 2 values are: +, -, *, /, %, ^" -> "2 个值之间支持的操作是：+、-、*、/、%、^"
+            "Supported operations on 1 value are: - (negation), √ (square root), abs (absolute value - turns negative into positive), sqrt (square root), floor (round down), ceil (round up)" ->
+                "1 个值上支持的操作是：-（否定）、√（平方根）、abs（绝对值 - 将负数变为正数）、sqrt（平方根）、floor（向下取整）、ceil（向上取整）"
+            "Supported functions:" -> "支持的函数："
+            "Can be city stats or civilization stats, depending on where the unique is used" -> "可以是城市统计或文明统计，取决于 unique 在何处使用"
+            "For example: If a unique is placed on a building, then the retrieved resources will be of the city. If placed on a policy, they will be of the civilization." ->
+                "例如：如果 unique 放在建筑上，获取的资源属于城市；如果放在政策上，则属于文明。"
+            "This can make a difference for e.g. local resources, which are counted per city." -> "这对例如按城市计数的本地资源会有影响。"
+            else -> text
+        }
+    }
+
+    private fun writeCountablesFile(fileName: String, language: String?) {
+        val file = File(fileName)
         val oldContent = try {
             file.readText(Charsets.UTF_8)
         } catch (ex: Throwable) {
-            Log.error("Can't read $countablesFileName", ex)
+            Log.error("Can't read $fileName", ex)
             return
         }
         val truncateBegin = oldContent.indexOf(countablesBeginMarker)
         if (truncateBegin < 0)
-            Log.error("Can't find `%s` in %s", countablesBeginMarker, countablesFileName)
+            Log.error("Can't find `%s` in %s", countablesBeginMarker, fileName)
         val truncateEnd = oldContent.indexOf(countablesEndMarker)
         if (truncateEnd < 0)
-            Log.error("Can't find `%s` in %s", countablesEndMarker, countablesFileName)
+            Log.error("Can't find `%s` in %s", countablesEndMarker, fileName)
         if (truncateBegin < 0 || truncateEnd < 0) return
         if (truncateEnd < truncateBegin) {
-            Log.error("Inverted Countables markers in %s", countablesEndMarker, countablesFileName)
+            Log.error("Inverted Countables markers in %s", countablesEndMarker, fileName)
             return
         }
 
+        val examplePrefix = if (language == null) "Example: " else "示例："
         val newContent = StringBuilder(oldContent.length)
         newContent.append(oldContent, 0, truncateBegin + countablesBeginMarker.length)
         newContent.appendLine()
 
+        // documentationHeader 形如 "`turns` - Number of turns played"（反引号部分是 JSON 字面量，
+        // 描述部分可翻译）；也可能是纯描述文本。
+        val backtickHeader = Regex("^(`[^`]+` - )(.*)$")
         for (countable in Countables.entries) {
             if (countable.getDeprecationAnnotation() != null) continue
-            newContent.appendLine("-   ${countable.documentationHeader}")
-            newContent.appendLine("    - Example: `Only available <when number of [${countable.example}] is more than [0]>`") // Sublist
+            var header = countable.documentationHeader
+            if (language != null) {
+                val m = backtickHeader.find(header)
+                header = if (m != null)
+                    m.groupValues[1] + countablesTranslate(m.groupValues[2], language)
+                else
+                    countablesTranslate(header, language)
+            }
+            newContent.appendLine("-   $header")
+            newContent.appendLine("    - $examplePrefix`Only available <when number of [${countable.example}] is more than [0]>`") // Sublist
             for (extraLine in countable.documentationStrings) {
                 newContent.append("    - ") // Sublist
-                newContent.appendLine(extraLine)
+                newContent.appendLine(countablesTranslate(extraLine, language))
             }
         }
 
@@ -302,7 +386,7 @@ class UniqueDocsWriter {
         try {
             file.writeText(newContent.toString(), Charsets.UTF_8)
         } catch (ex: Throwable) {
-            Log.error("Can't write $countablesFileName", ex)
+            Log.error("Can't write $fileName", ex)
             return
         }
     }
