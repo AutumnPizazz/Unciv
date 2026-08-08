@@ -82,9 +82,9 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 
 ## 文档站维护
 
-VitePress 文档站（`docs-vitepress/`）：英文区 = `docs/`（上游原样复用），中文区 = `docs/zh/`（英文翻译镜像，同一路径即对应翻译；独有内容只放 `docs/zh/UncivCN/`）。
+VitePress 文档站（`docs-vitepress/`）。**中英完全双向对应**：`docs/` ↔ `docs/zh/` 为上游文档翻译镜像（同一路径即对应翻译，**文件/目录必须同名**，中文区新页面用英文文件名）；独有内容分两处——`docs/{,zh/}UncivCN/`（分支内容：介绍/Features/Changelog/Differences/Coding-standards/Polling-multiplayer）与 `docs/{,zh/}Community/`（社区内容：Guides/Mods/Code-analysis/Upstream-changelog）。新页面必须同时补中英两版，否则语言切换 404。
 
-**遇到以下情况，必须先读取 `docs/zh/UncivCN/代码规范.md`（分支工程规范，含全部踩坑教训）：**
+**遇到以下情况，必须先读取 `docs/zh/UncivCN/Coding-standards.md`（分支工程规范，含全部踩坑教训）：**
 
 - 修改 `docs/`、`docs-vitepress/` 下任何文档或工程文件（含新增/移动/重命名页面）
 - 修改文档生成器：`UniqueDocsWriter` / `MergeActionDocsWriter` / `UiElementDocsWriter`，或运行 `./gradlew desktop:generateDocs`
@@ -102,7 +102,15 @@ VitePress 文档站（`docs-vitepress/`）：英文区 = `docs/`（上游原样�
 | `docs/Modders/Mod-file-structure/6-MergeActions.md` | `MergeActionDocsWriter`（整体重写） |
 | `docs/{,zh/}Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter`（marker 区间） |
 
-- 其余文档人工维护。翻译原则：**JSON 字面量不翻译**——unique 文本、参数名、Countables 文本/示例必须保留英文原文（游戏按文本逐字匹配枚举才能生效）；`docDescription` 定义处必须同时写 `docDescriptionZh`；生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）随源码维护。
+- 其余文档人工维护。翻译原则：**JSON 字面量不翻译**——unique 文本、参数名、Countables 文本/示例必须保留英文原文（游戏按文本逐字匹配枚举才能生效）；`docDescription` 定义处必须同时写 `docDescriptionZh`（**禁止在生成器里维护大翻译映射表**）；生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）随源码维护。
+
+- **VitePress 配置坑（均已踩过）**：
+  - 容器内容**禁止缩进**（4 空格/tab = 代码块 `<pre>`，不换行撑破屏幕）
+  - `::: note` 非内置类型，需在 config.ts 注册 markdown-it-container（无标题）
+  - localSearch 的 `provider: 'local'` 必须在**顶层 themeConfig** 声明（locale 级不生效，搜索框不渲染）；文案 translations 可放 locale 级
+  - locale key 用 `root` / `zh`（**不带斜杠**；`'/'` 会被当正则永远匹配导致 locale 失效）
+  - srcDir 在工程外（`../docs`）时：vue 导入需 `vite.resolve.alias.vue` 指回本地 node_modules；public 资源用 `buildEnd` 钩子复制
+  - `build.bat` 必须是 **CRLF 行尾**（LF 导致 cmd 解析 if/for 块错乱）
 
 本地预览：双击 `docs-vitepress/build.bat`（构建 / 打开现有 / 重建重启三选一，服务器空闲 5 分钟自动退出）。
 
