@@ -3,7 +3,9 @@ package com.unciv
 object Constants {
     const val settler = "Settler"
     const val eraSpecificUnit = "Era Starting Unit"
-    val all = setOf("All", "all")
+    const val lowercaseAll = "all"
+    const val uppercaseAll = "All"
+    val all = setOf(uppercaseAll, lowercaseAll)
     const val NO_ID = -1
 
     const val english = "English"
@@ -11,7 +13,10 @@ object Constants {
     const val impassable = "Impassable"
     const val ocean = "Ocean"
 
-    /** The "Coast" _terrain_ */
+    /** The "Coast" _terrain_
+     *  @see com.unciv.models.ruleset.tile.Terrain.isCoast
+     */
+    @Deprecated("By PR #15123, except for tests. Remove use in Terrain and this deprecation after a grace period.")
     const val coast = "Coast"
     /** The "Coastal" terrain _filter_ */
     const val coastal = "Coastal"

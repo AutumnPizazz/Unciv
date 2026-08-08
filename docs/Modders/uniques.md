@@ -208,6 +208,11 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Triggerable
 
+??? example  "Add [resource] to this tile"
+	Example: "Add [Iron] to this tile"
+
+	Applicable to: Triggerable
+
 ??? example  "Remove [resourceFilter] resources from this tile"
 	Example: "Remove [Strategic] resources from this tile"
 
@@ -1020,6 +1025,13 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Global
 
+??? example  "Spies in [cityFilter] cities act as though they have [relativeAmount] levels for [spyAction]"
+	Temporary effective rank change ([relativeAmount] added to rank, e.g. +1) for spies doing the given action in a matching city. Does not permanently level the spy. Stacks additively, capped by maxSpyRank.
+
+	Example: "Spies in [in all cities] cities act as though they have [+20] levels for [Counter-intelligence]"
+
+	Applicable to: Global
+
 ??? example  "Triggers victory"
 	Applicable to: Global
 
@@ -1240,6 +1252,13 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 	Applicable to: Nation
 
+??? example  "Start bias [terrainFilter]"
+	Same effect as a Nation startBias field entry. Merged with the startBias field and, for city-states, with matching uniques on their CityStateType. Conditionals run against GameInfo only during map generation / start placement (no Civilization — it may be only partially initialized). Do not use conditionals that require tiles, cities, or units.
+
+	Example: "Start bias [Fresh Water]"
+
+	Applicable to: Nation, CityState
+
 ??? example  "All units move through Forest and Jungle Tiles in friendly territory as if they have roads. These tiles can be used to establish City Connections upon researching the Wheel."
 	Due to performance considerations, this unique is cached, thus conditionals that may change within a turn may not work.
 
@@ -1256,6 +1275,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Nation, Terrain, Improvement, Resource
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -1273,6 +1298,13 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 ## Personality uniques
 ??? example  "Will not build [baseUnitFilter/buildingFilter]"
 	Example: "Will not build [Melee]"
+
+	Applicable to: Personality
+
+??? example  "[relativeAmount]% weight to [baseUnitFilter/buildingFilter] for AI decisions"
+	Example: "[+20]% weight to [Melee] for AI decisions"
+
+	This unique is automatically hidden from users.
 
 	Applicable to: Personality
 
@@ -1311,6 +1343,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -1341,6 +1379,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -1390,6 +1434,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -1681,6 +1731,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -1890,6 +1946,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -2169,6 +2231,11 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Example: "[3] HP when healing"
 
 	Applicable to: Global, Unit
+
+??? example  "Before engaging in combat performs an extra ranged attack with [amount]% of melee combat strength"
+	Example: "Before engaging in combat performs an extra ranged attack with [3]% of melee combat strength"
+
+	Applicable to: Unit
 
 ??? example  "[relativeAmount]% Spread Religion Strength"
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
@@ -2561,6 +2628,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Unit
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -2579,6 +2652,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 ## UnitType uniques
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -2620,6 +2699,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -2860,6 +2945,14 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain
 
 ??? example  "Coastal Water"
+	Marks water tiles as Coast - all other water tiles count as Ocean. These distinctions are relevant e.g. for map generator or the ability to navigate here.
+
+	Note that terrain filters do not recognize this distinction, filtering for "Coast" or "Ocean" will only look for a terrain of that name.
+
+	Also note that for compatibility reasons, terrains named "Coast" are assuned to have this Unique even if it's missing. This may be removed in a future version.
+
+	A tile marked this way marks adjacent land tiles as "Coastal", so they fulfill the terrain filter, and cities built there can build ships, Harbor, etc.
+
 	Applicable to: Terrain
 
 ??? example  "Excluded from map editor"
@@ -2868,6 +2961,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Nation, Terrain, Improvement, Resource
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -3076,6 +3175,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Improvement
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -3207,6 +3312,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Resource
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -3240,6 +3351,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Ruins
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -3257,6 +3374,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
     Speed uniques will be treated as part of GlobalUniques for the Speed selected in a game
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -3285,6 +3408,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
     Difficulty uniques will be treated as part of GlobalUniques for the Difficulty selected in a game
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -3304,6 +3433,13 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 
 ??? example  "Provides a unique luxury"
 	Applicable to: CityState
+
+??? example  "Start bias [terrainFilter]"
+	Same effect as a Nation startBias field entry. Merged with the startBias field and, for city-states, with matching uniques on their CityStateType. Conditionals run against GameInfo only during map generation / start placement (no Civilization — it may be only partially initialized). Do not use conditionals that require tiles, cities, or units.
+
+	Example: "Start bias [Fresh Water]"
+
+	Applicable to: Nation, CityState
 
 ## ModOptions uniques
 ??? example  "Diplomatic relationships cannot change"
@@ -3351,6 +3487,13 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: ModOptions
 
 ??? example  "Allow cities to claim tiles"
+	This unique does not support conditionals.
+
+	Applicable to: ModOptions
+
+??? example  "City-states search for first city location"
+	By default, city-state settlers with no cities yet found on their current tile when valid (predetermined map-gen / editor start). With this unique they use the same nearby-site search as major civs.
+
 	This unique does not support conditionals.
 
 	Applicable to: ModOptions
@@ -3440,6 +3583,12 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Promotion, EventChoice
 
 ??? example  "Will not be displayed in Civilopedia"
+	Supports conditionals that need only a Game as context and nothing else.
+
+	Most conditionals require at least a Civilization and will **not** work.
+
+	Note that when Civilopedia runs from main menu, conditionals will be ignored.
+
 	This unique is automatically hidden from users.
 
 	Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
@@ -4322,6 +4471,7 @@ There is a conversion affecting dashes and leading/trailing blanks. Please make 
 *[resourceFilter]: A resource name, type, 'all', or a Stat listed in the resource's improvementStats.
 *[specialist]: The name of any specialist.
 *[speed]: The name of any speed.
+*[spyAction]: A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`.
 *[stat]: This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized!
 *[stats]: For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized!
 *[stockpile]: The name of any stockpiled resource.

@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Align
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.GameInfo
+import com.unciv.view.GameView
 import com.unciv.logic.UncivShowableException
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.PlayerType
@@ -37,6 +38,7 @@ import com.unciv.ui.popups.AuthPopup
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.popups.hasOpenPopups
+import com.unciv.ui.popups.options.OptionsPopupPages
 import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.cityscreen.CityScreen
 import com.unciv.ui.screens.devconsole.DevConsolePopup
@@ -105,6 +107,10 @@ class WorldScreen(
 
     /** Selected civilization, used in spectator and replay mode, equals viewingCiv in ordinary games */
     var selectedCiv = viewingCiv
+        internal set
+    /** This is the *base view* from which all other views are derived */
+    var gameView = GameView(gameInfo, selectedCiv, spectatorMode = viewingCiv.isSpectator())
+        internal set
 
     var fogOfWar = true
 
@@ -255,7 +261,7 @@ class WorldScreen(
     override fun getCivilopediaRuleset() = gameInfo.ruleset
 
     // Handle disabling and re-enabling WASD listener while Options are open
-    override fun openOptionsPopup(startingPage: Int, withDebug: Boolean, onClose: () -> Unit) {
+    override fun openOptionsPopup(startingPage: OptionsPopupPages, withDebug: Boolean, onClose: () -> Unit) {
         val oldListener = stage.root.listeners.filterIsInstance<KeyboardPanningListener>().firstOrNull()
         if (oldListener != null) {
             stage.removeListener(oldListener)
@@ -302,7 +308,7 @@ class WorldScreen(
         globalShortcuts.add(KeyboardBinding.ViewCapitalCity) {
             val capital = gameInfo.getCurrentPlayerCivilization().getCapital()
             if (capital != null && !mapHolder.setCenterPosition(capital.location.toHexCoord()))
-                game.pushScreen(CityScreen(capital))
+                game.pushScreen(CityScreen(gameView.getCityView(capital)))
         }
         globalShortcuts.add(KeyboardBinding.Options) { // Game Options
             openOptionsPopup { nextTurnButton.update() }
@@ -408,8 +414,8 @@ class WorldScreen(
             if (fogOfWar) minimapWrapper.update(selectedCiv)
             else minimapWrapper.update(viewingCiv)
 
-            if (fogOfWar) bottomTileInfoTable.selectedCiv = selectedCiv
-            else bottomTileInfoTable.selectedCiv = viewingCiv
+            if (fogOfWar) bottomTileInfoTable.civView = gameView.civView
+            else bottomTileInfoTable.civView = gameView.civView
             bottomTileInfoTable.updateTileTable(mapHolder.selectedTile)
             bottomTileInfoTable.x = stage.width - bottomTileInfoTable.width
             bottomTileInfoTable.y = if (game.settings.showMinimap) minimapWrapper.height + 5f else 0f
@@ -438,8 +444,8 @@ class WorldScreen(
         // it doesn't update the explored tiles of the civ... need to think about that harder
         // it causes a bug when we move a unit to an unexplored tile (for instance a cavalry unit which can move far)
 
-        if (fogOfWar) mapHolder.updateTiles(selectedCiv)
-        else mapHolder.updateTiles(viewingCiv)
+        if (fogOfWar) mapHolder.updateTiles(gameView.civView)
+        else mapHolder.updateTiles(gameView.civView)
 
         topBar.update(selectedCiv)
         if (tutorialTaskTable.isVisible)
@@ -567,12 +573,17 @@ class WorldScreen(
         tutorialTaskTable.isVisible = true
     }
 
+    fun setSelectedCiv(civ: Civilization) {
+        selectedCiv = civ
+        gameView = GameView(gameInfo, civ, viewingCiv.isSpectator())
+    }
+
     private fun updateSelectedCiv() {
-        selectedCiv = when {
+        setSelectedCiv(when {
             bottomUnitTable.selectedUnit != null -> bottomUnitTable.selectedUnit!!.civ
-            bottomUnitTable.selectedCity != null -> bottomUnitTable.selectedCity!!.civ
+            bottomUnitTable.selectedCity != null -> bottomUnitTable.selectedCity!!.owningCiv().getCiv()
             else -> viewingCiv
-        }
+        })
     }
 
     class RestoreState(
@@ -601,7 +612,7 @@ class WorldScreen(
             mapHolder.updateVisualScroll()
         }
 
-        selectedCiv = gameInfo.getCivilization(restoreState.selectedCivName)
+        setSelectedCiv(gameInfo.getCivilization(restoreState.selectedCivName))
         fogOfWar = restoreState.fogOfWar
     }
 

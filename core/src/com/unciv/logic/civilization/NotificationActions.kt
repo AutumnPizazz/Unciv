@@ -72,7 +72,7 @@ class CityAction(private val city: HexCoord = HexCoord.Zero) : NotificationActio
         val cityObject = worldScreen.mapHolder.tileMap[city].getCity()
             ?: return
         if (cityObject.civ == worldScreen.viewingCiv)
-            worldScreen.game.pushScreen(CityScreen(cityObject))
+            worldScreen.game.pushScreen(CityScreen(worldScreen.gameView.getCityView(cityObject)))
     }
     companion object {
         fun withLocation(city: City) = listOf(LocationAction(city.location), CityAction(city.location))
@@ -141,17 +141,15 @@ class MapUnitAction(
 ) : NotificationAction {
     constructor(unit: MapUnit) : this(unit.currentTile.position.toHexCoord(), unit.id)
     override fun execute(worldScreen: WorldScreen) {
-        val selectUnit = id != Constants.NO_ID // This is the unspecific "select any unit on that tile", specific works without this being on
-        val unit = if (selectUnit) 
-            worldScreen.selectedCiv.units.getUnitById(id) 
-        else
-            worldScreen.gameInfo.tileMap[location].getUnits().firstOrNull { it.id == id }
+        val unit = if (id != Constants.NO_ID)
+            worldScreen.selectedCiv.units.getUnitById(id)
+        else null
         if (unit != null) {
             val unitLocation = unit.currentTile.position.toHexCoord()
-            worldScreen.mapHolder.setCenterPosition(unitLocation, selectUnit = selectUnit, forceSelectUnit = unit)
+            worldScreen.mapHolder.setCenterPosition(unitLocation, forceSelectUnit = unit)
         }
         else {
-            worldScreen.mapHolder.setCenterPosition(location.toHexCoord(), selectUnit = false)
+            worldScreen.mapHolder.setCenterPosition(location.toHexCoord(), selectUnit = id == Constants.NO_ID)
         }
     }
     companion object {

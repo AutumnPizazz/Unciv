@@ -76,6 +76,8 @@ class Tile : IsPartOfGameInfoSerialization {
             turnsToImprovement = (turnsToImprovement - 1).coerceAtLeast(0)
             return turnsToImprovement > 0
         }
+        @Readonly
+        fun clone() = ImprovementQueueEntry(improvement, turnsToImprovement)
     }
     internal val improvementQueue = ArrayList<ImprovementQueueEntry>(1)
 
@@ -114,7 +116,10 @@ class Tile : IsPartOfGameInfoSerialization {
     // This is for performance - since we access the neighbors of a tile ALL THE TIME,
     // and the neighbors of a tile never change, it's much more efficient to save the list once and for all!
     @delegate:Transient
-    val neighbors: Sequence<Tile> by lazy { getTilesAtDistance(1).toList().asSequence() }
+    val neighbors: Sequence<Tile> by lazy {
+        if (!isTilemapInitialized()) emptySequence()
+        else getTilesAtDistance(1).toList().asSequence()
+    }
     // We have to .toList() so that the values are stored together once for caching,
     // and the toSequence so that aggregations (like neighbors.flatMap{it.units} don't take up their own space
 
@@ -216,7 +221,11 @@ class Tile : IsPartOfGameInfoSerialization {
     val improvementInProgress get() = improvementQueue.firstOrNull()?.improvement
     val turnsToImprovement get() = improvementQueue.firstOrNull()?.turnsToImprovement ?: 0
 
+    @Transient
+    internal var stateThisTile: GameContext = GameContext.EmptyState
+
     //endregion
+    //region pure functions
 
     @Readonly
     fun clone(/** For stat diff checks, units are meaningless */ addUnits:Boolean = true): Tile {
@@ -243,7 +252,7 @@ class Tile : IsPartOfGameInfoSerialization {
         toReturn.resourceAmount = resourceAmount
         toReturn.improvement = improvement
         @LocalState val cloneImprovementQueue = toReturn.improvementQueue
-        cloneImprovementQueue.addAll(improvementQueue)
+        cloneImprovementQueue.addAll(improvementQueue.map { it.clone() })
         toReturn.improvementIsPillaged = improvementIsPillaged
         toReturn.roadStatus = roadStatus
         toReturn.roadIsPillaged = roadIsPillaged
@@ -259,13 +268,11 @@ class Tile : IsPartOfGameInfoSerialization {
         return toReturn
     }
 
-    //region pure functions
-
     @Readonly fun getHillTerrain(): Terrain? {
         val base = getBaseTerrain()
         if (base.isHill)
             return base
-        return terrainFeatureObjects.firstOrNull {it.isHill }
+        return terrainFeatureObjects.firstOrNull { it.isHill }
     }
     @Readonly fun isHill() = getHillTerrain() != null
 
@@ -275,7 +282,7 @@ class Tile : IsPartOfGameInfoSerialization {
         // common case - do not allocate memory for a new sequence
         if (militaryUnit == null && civilianUnit == null && airUnits.isEmpty())
             return emptySequence()
-        
+
         return sequence {
             if (militaryUnit != null) yield(militaryUnit!!)
             if (civilianUnit != null) yield(civilianUnit!!)
@@ -426,10 +433,8 @@ class Tile : IsPartOfGameInfoSerialization {
         return civInfo.isAtWarWith(tileOwner)
     }
 
-    @Readonly fun isRoughTerrain() = allTerrains.any { it.isRough}
+    @Readonly fun isRoughTerrain() = allTerrains.any { it.isRough }
 
-    @Transient
-    internal var stateThisTile: GameContext = GameContext.EmptyState
     /** Checks whether any of the TERRAINS of this tile has a certain unique */
     @Readonly
     fun terrainHasUnique(uniqueType: UniqueType, state: GameContext = stateThisTile) =
@@ -573,7 +578,7 @@ class Tile : IsPartOfGameInfoSerialization {
             "All", "all" -> return true
             "Water" -> return isWater
             "Land" -> return isLand
-            Constants.coastal -> return _isAdjacentToCoast
+            Constants.coastal -> return isAdjacentToCoast()
             Constants.river -> return isAdjacentToRiver()
             "Unowned" -> return getOwner() == null
             "your" -> return observingCiv != null && getOwner() == observingCiv
@@ -583,7 +588,7 @@ class Tile : IsPartOfGameInfoSerialization {
             "resource" -> return observingCiv != null && observingCiv.canSeeResource(tileResource)
             "Water resource" -> return isWater && observingCiv != null && observingCiv.canSeeResource(tileResource)
             "Featureless" -> return terrainFeatures.isEmpty()
-            "Open terrain" -> return allTerrains.all { !it.isRough} // special case - if *one* terrain is open, we don't care, we need *all*
+            "Open terrain" -> return allTerrains.all { !it.isRough } // special case - if *one* terrain is open, we don't care, we need *all*
             Constants.freshWaterFilter ->
                 return isAdjacentTo(Constants.freshWater, observingCiv)
         }
@@ -593,10 +598,10 @@ class Tile : IsPartOfGameInfoSerialization {
             resource -> observingCiv == null || observingCiv.canSeeResource(tileResource)
 
             else -> {
-                val owner = getOwner()
                 if (allTerrains.any { it.matchesFilter(filter, stateThisTile, false) }) return true
-                if (owner != null && owner.matchesFilter(filter, stateThisTile, false)) return true
 
+                val owner = getOwner()
+                if (owner != null && owner.matchesFilter(filter, stateThisTile, false)) return true
 
                 // Checks 'luxury resource', 'strategic resource' and 'bonus resource' - only those that are visible of course
                 // not using canSeeResource as observingCiv is often not passed in,
@@ -617,7 +622,7 @@ class Tile : IsPartOfGameInfoSerialization {
         }
     }
 
-    @Readonly fun isAdjacentToCoast() = _isAdjacentToCoast
+    @Readonly fun isAdjacentToCoast() = isLand && _isAdjacentToCoast
 
     @Readonly fun getViewableTilesList(distance: Int): List<Tile> = tileMap.getViewableTiles(position, distance)
     @Deprecated(message = "forEachTileInDistance is faster. If not viable, then this can still be used",
@@ -629,7 +634,7 @@ class Tile : IsPartOfGameInfoSerialization {
     @Deprecated(message = "forEachTileAtDistance is faster. If not viable, then this can still be used",
         replaceWith = ReplaceWith("forEachTileAtDistance"))
     @Readonly fun getTilesAtDistance(distance: Int): Sequence<Tile> = tileMap.getTilesAtDistance(position, distance)
-    
+
     @Readonly fun forEachTileInDistance(distance: Int, op: (Tile)->Unit) = tileMap.forEachTileInDistance(position, distance, op)
     @Readonly fun forEachTileInDistance(distance: Int, filter: (Tile)->Boolean, op: (Tile)->Unit) = tileMap.forEachTileInDistance(position, distance, filter, op)
     @Readonly fun forEachTileInDistanceRange(range: IntRange, op: (Tile)->Unit) = tileMap.forEachTileInDistanceRange(position, range, op)
@@ -778,7 +783,7 @@ class Tile : IsPartOfGameInfoSerialization {
             getUnpillagedRoad() == RoadStatus.Railroad
         else
             roadStatus == RoadStatus.Railroad
-    
+
     @Readonly
     fun getConnectionStatus(civInfo: Civilization): RoadStatus {
         val roadType = getUnpillagedRoad()
@@ -788,7 +793,7 @@ class Tile : IsPartOfGameInfoSerialization {
             return RoadStatus.Road
         return RoadStatus.None
     }
-    
+
     @Readonly
     private fun forestOrJungleAreRoads(civInfo: Civilization) =
             civInfo.nation.forestsAndJunglesAreRoads
@@ -835,9 +840,9 @@ class Tile : IsPartOfGameInfoSerialization {
         else probability
     }
 
-    /** Will be false if this is a "fake tile" - either created for calculation purposes, 
+    /** Will be false if this is a "fake tile" - either created for calculation purposes,
      * or to display how things look e.g. in Civilopedia  */
-    fun isTilemapInitialized() = ::tileMap.isInitialized
+    @Readonly fun isTilemapInitialized() = ::tileMap.isInitialized
 
     //endregion
     //region state-changing functions
@@ -1035,7 +1040,7 @@ class Tile : IsPartOfGameInfoSerialization {
             militaryUnit == mapUnit -> militaryUnit = null
         }
     }
-    
+
     fun setImprovementBasic(tileImprovement: TileImprovement?) {
         if (tileImprovement == null) {
             this.tileImprovement = null
@@ -1089,7 +1094,7 @@ class Tile : IsPartOfGameInfoSerialization {
 
     fun startWorkingOnImprovement(improvement: TileImprovement, civInfo: Civilization, unit: MapUnit) {
         if (isMarkedForCreatesOneImprovement()) return
-        
+
         val gameContext = GameContext(civInfo, unit = unit, tile = this)
         for ((resourceName, amount) in improvement.getStockpiledResourceRequirements(gameContext)) {
             val resource = ruleset.tileResources[resourceName] ?: continue

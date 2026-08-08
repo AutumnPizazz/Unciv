@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Align
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.files.UnitNotesManager
+import com.unciv.view.CivView
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.toLabel
@@ -26,9 +27,9 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         militaryUnitIcon?.let { removeOwnedActor(it) }
     }
 
-    private fun showMilitaryUnit(viewingCiv: Civilization) = tileGroup.isForceVisible
-            || viewingCiv.viewableInvisibleUnitsTiles.contains(tileGroup.tile)
-            || !tileGroup.tile.hasEnemyInvisibleUnit(viewingCiv)
+    private fun showMilitaryUnit(viewingCiv: CivView) = tileGroup.isForceVisible
+            || viewingCiv.getCiv().viewableInvisibleUnitsTiles.contains(tileGroup.tile)
+            || !tileGroup.tile.hasEnemyInvisibleUnit(viewingCiv.getCiv())
 
     private fun setIconPosition(slot: Int, icon: UnitIconGroup) {
         // Centre horizontally; offset vertically per slot (slot 0 = bottom, slot 1 = top)
@@ -36,7 +37,7 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         icon.y = tileY + (size - icon.height) / 2 + if (slot == 1) 20f else -20f
     }
 
-    private fun newUnitIcon(slot: Int, unit: MapUnit?, isViewable: Boolean, viewingCiv: Civilization?): UnitIconGroup? {
+    private fun newUnitIcon(slot: Int, unit: MapUnit?, isViewable: Boolean, viewingCiv: CivView?): UnitIconGroup? {
 
         var newIcon: UnitIconGroup? = null
 
@@ -55,11 +56,11 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
             }
 
             // Fade out action indicator for own non-idle units
-            if (unit.civ == viewingCiv && !unit.isIdle() && UncivGame.Current.settings.unitIconOpacity == 1f)
+            if (unit.civ === viewingCiv?.getCiv() && !unit.isIdle() && UncivGame.Current.settings.unitIconOpacity == 1f)
                 newIcon.actionGroup?.color?.a = 0.5f
 
             // Fade out flag for own out-of-moves units
-            if (unit.civ == viewingCiv && !unit.hasMovement())
+            if (unit.civ === viewingCiv?.getCiv() && !unit.hasMovement())
                 newIcon.color.a = 0.5f * UncivGame.Current.settings.unitIconOpacity
 
             // Show note bubble below unit when toggle is enabled
@@ -122,7 +123,7 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         militaryUnitIcon?.highlightRed()
     }
 
-    private fun fillSlots(viewingCiv: Civilization?) {
+    private fun fillSlots(viewingCiv: CivView?) {
         val isForceVisible = viewingCiv == null || tileGroup.isForceVisible
 
         val isViewable = isForceVisible || isViewable(viewingCiv!!)
@@ -135,14 +136,14 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         militaryUnitIcon = newUnitIcon(1, tileGroup.tile.militaryUnit, isMilitaryShown, viewingCiv)
     }
 
-    override fun doUpdate(viewingCiv: Civilization?) {
+    override fun doUpdate(viewingCiv: CivView?) {
         clearSlots()
         fillSlots(viewingCiv)
 
         if (viewingCiv != null) {
             val unitsInTile = tile.getUnits()
             val shouldBeHighlighted = unitsInTile.any()
-                    && unitsInTile.first().civ.isAtWarWith(viewingCiv)
+                    && unitsInTile.first().civ.isAtWarWith(viewingCiv.getCiv())
                     && isViewable(viewingCiv)
                     && showMilitaryUnit(viewingCiv)
             if (shouldBeHighlighted)
