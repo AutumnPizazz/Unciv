@@ -5319,9 +5319,7 @@ title: Unique 能力列表
 | `improvementName` | The name of any improvement excluding 'Cancel improvement order' |
 | `leaderTitle` | Provides a leader title that includes the leader's name in parameters. |
 | `luaFunction` | A Lua function reference in the form [modName:]functionName. |
-| `modFilter` | A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.
-Note that this must use the Mod name as Unciv displays it, not the Repository name.
-There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused. |
+| `modFilter` | A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.<br>Note that this must use the Mod name as Unciv displays it, not the Repository name.<br>There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused. |
 | `nonNegativeAmount` | This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional. Also accepts Countable expressions. |
 | `pediaLink` | A Civilopedia link in the form category/entry. |
 | `policy` | The name of any policy. |

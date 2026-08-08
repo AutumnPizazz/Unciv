@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 // @ts-ignore
 import taskLists from 'markdown-it-task-lists'
 import mathjax3 from 'markdown-it-mathjax3'
+import container from 'markdown-it-container'
 
 /**
  * UncivCN 文档站配置
@@ -41,6 +42,16 @@ export default defineConfig({
     config: (md) => {
       md.use(taskLists)
       md.use(mathjax3)
+      // 自定义 note 容器：mkdocs 的 `!!! note` 无标题提示块，VitePress 未内置 note 类型。
+      // 渲染为无标题的提示块（复用 info 配色，见 custom.css 的 .custom-block.note）。
+      md.use(container, 'note', {
+        render(tokens, idx) {
+          if (tokens[idx].nesting === 1) {
+            return '<div class="custom-block note">\n'
+          }
+          return '</div>\n'
+        },
+      })
     }
   },
 

@@ -259,7 +259,9 @@ class UniqueDocsWriter {
         for (paramType in UniqueParameterType.entries.asSequence().sortedBy { it.parameterName }) {
             if (paramType.docDescription == null) continue
             val punctuation = if (paramType.docDescription!!.last().category == '.'.category) "" else "."
-            lines += "| `" + paramType.parameterName + "` | " + tr(paramType.docDescription!!) + punctuation + " |"
+            // 多行 docDescription 在 markdown 表格中会撑破表格，换行替换为 <br>
+            val description = tr(paramType.docDescription!!).replace("\n", "<br>") + punctuation
+            lines += "| `" + paramType.parameterName + "` | " + description + " |"
         }
 
         File(outputFileName).writeText(lines.joinToString("\n"))

@@ -538,3 +538,16 @@ html {
 .dark .vp-doc details > summary::before {
   border-color: var(--vp-c-brand-1);
 }
+
+/* 自定义 note 容器：mkdocs !!! note 的无标题提示块（复用 info 配色） */
+.custom-block.note {
+  background-color: var(--vp-custom-block-info-bg);
+  border-color: var(--vp-custom-block-info-border);
+  color: var(--vp-custom-block-info-text);
+  border-radius: 8px;
+  padding: 16px 16px 8px;
+  margin: 16px 0;
+}
+.custom-block.note code {
+  background-color: var(--vp-custom-block-code-bg);
+}
