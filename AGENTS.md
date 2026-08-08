@@ -80,6 +80,23 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 - 可翻译文本中不能出现 `[]`、`{}`、`<>`，改用 `()`
 - 测试 `allTranslationsHaveNoExtraPlaceholders` 与 `allTranslationsHaveCorrectPlaceholders` 校验占位符一致性
 
+## 文档站维护
+
+VitePress 文档站（`docs-vitepress/`）：英文区 = `docs/`（上游原样复用），中文区 = `docs/zh/`（英文翻译镜像，同一路径即对应翻译；独有内容只放 `docs/zh/UncivCN/`）。
+
+**自动生成文档只许改生成器源码后运行 `./gradlew desktop:generateDocs`，严禁人工编辑产物**：
+
+| 产物 | 生成器 |
+|---|---|
+| `docs/{,zh/}Modders/uniques.md` | `UniqueDocsWriter`（write / writeChinese，整体重写） |
+| `docs/{,zh/}Modders/Unique-parameters.md` | `UniqueDocsWriter.writeCountables`（marker 区间） |
+| `docs/Modders/Mod-file-structure/6-MergeActions.md` | `MergeActionDocsWriter`（整体重写） |
+| `docs/{,zh/}Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter`（marker 区间） |
+
+其余文档人工维护。翻译原则：**JSON 字面量不翻译**——unique 文本、参数名、Countables 文本/示例必须保留英文原文（游戏按文本逐字匹配枚举才能生效）；生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）随源码维护。
+
+本地预览：双击 `docs-vitepress/build.bat`（构建 / 打开现有 / 重建重启三选一，服务器空闲 5 分钟自动退出）。
+
 ## Mod 与资源
 
 - Mod 位于 `android/assets/mods/`，通过 JSON 扩展规则集
