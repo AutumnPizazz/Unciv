@@ -3,23 +3,56 @@ rem ============================================================
 rem  UncivCN docs site: one-click build + local preview
 rem  Pipeline: Kotlin docs -> npm deps -> VitePress build -> preview
 rem  Usage: double-click this file, or run build.bat in a terminal
-rem  If a preview server is already running, this script just
-rem  reopens the browser and exits.
+rem  If a preview server is already running, you can choose to
+rem  open it, rebuild+restart it, or exit.
 rem ============================================================
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
 
-rem ---- Fast path: server already running? Just open browser ----
+rem ---- Detect whether a preview server is already running ----
+set SERVER_RUNNING=0
 curl -s -o nul --max-time 2 http://127.0.0.1:4173/Unciv/ 2>nul
-if not errorlevel 1 (
-    echo Preview server is already running at http://localhost:4173/Unciv/
+if not errorlevel 1 set SERVER_RUNNING=1
+
+if "%SERVER_RUNNING%"=="1" (
+    echo.
+    echo ============================================
+    echo   预览服务器正在运行: http://localhost:4173/Unciv/
+    echo ============================================
+    echo.
+    echo   [1] 打开现有预览（不重新构建）
+    echo   [2] 重新构建并重启预览
+    echo   [3] 退出
+    echo.
+    choice /c 123 /n /m "请选择 (1/2/3): "
+    if errorlevel 3 (
+        echo 已退出。
+        endlocal
+        exit /b 0
+    )
+    if errorlevel 2 goto :rebuild
+    rem ---- Option 1: just open the browser ----
     start "" "http://localhost:4173/Unciv/"
     endlocal
     exit /b 0
 )
 
+echo 未检测到运行中的预览服务器，开始完整构建。
 echo.
+
+:rebuild
+rem ---- If rebuilding while a server is running, stop it first ----
+if "%SERVER_RUNNING%"=="1" (
+    echo 正在停止现有预览服务器...
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":4173" ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+    )
+    ping -n 2 127.0.0.1 >nul
+    echo 已停止。
+    echo.
+)
+
 echo ============================================
 echo   [1/4] Generating Kotlin docs (uniques etc.)
 echo ============================================
