@@ -8,9 +8,9 @@ title: Unique 能力列表
 
 > 本列表由游戏代码自动生成，随版本保持最新。
 > Uniques 概述可以在[这里](../Developers/Uniques.md)找到。
-> 简单的 Unique 参数通过悬浮提示说明，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。
+> 简单的 Unique 参数见文末参数表，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。
 
-## 触发型词条
+## Triggerable uniques（触发型词条）
 ::: note
 
     具有即时、一次性效果的词条。可添加到科技（研究时触发）、政策（采用时触发）、时代（到达时触发）、建筑（建造时触发）；或为其添加触发条件（TriggerCondition），使其成为在特定事件时激活的全局词条。也可添加到单位，赋予其将效果作为行动触发的能力（可用 UnitActionModifier / UnitTriggerCondition 条件修饰）。
@@ -21,257 +21,257 @@ title: Unique 能力列表
 
 	示例："Gain a free [Library] [in all cities]"
 
-	适用范围：触发型，全球
+	适用范围：Triggerable，Global
 
 :::
-::: details 移除[cityFilter]城市的[buildingFilter]
-	示例："移除[Culture]城市的[in all cities]"
+::: details Remove [buildingFilter] [cityFilter]
+	示例："Remove [Culture] [in all cities]"
 
-	适用范围：触发型，全球
-
-:::
-::: details 拆毁[cityFilter]的[buildingFilter](返还少量金钱)
-	示例："拆毁[Culture]的[in all cities](返还少量金钱)"
-
-	适用范围：触发型，全球
+	适用范围：Triggerable，Global
 
 :::
-::: details 免费的[unit]出现
-	示例："免费的[Musketman]出现"
+::: details Sell [buildingFilter] buildings [cityFilter]
+	示例："Sell [Culture] buildings [in all cities]"
 
-	适用范围：触发型
-
-:::
-::: details [positiveAmount]个免费的[unit]出现
-	示例："[3]个免费的[Musketman]出现"
-
-	适用范围：触发型
+	适用范围：Triggerable，Global
 
 :::
-::: details 一个[unit]反叛
-	示例："一个[Musketman]反叛"
+::: details Free [unit] appears
+	示例："Free [Musketman] appears"
 
-	适用范围：触发型
-
-:::
-::: details [positiveAmount][unit]反叛
-	示例："[3][Musketman]反叛"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 推行1项免费社会政策
-	适用范围：触发型
+::: details [positiveAmount] free [unit] units appear
+	示例："[3] free [Musketman] units appear"
+
+	适用范围：Triggerable
 
 :::
-::: details 免费获得[positiveAmount]个社会政策
-	示例："免费获得[3]个社会政策"
+::: details A [unit] rebels
+	示例："A [Musketman] rebels"
 
-	适用范围：触发型
-
-:::
-::: details 帝国进入黄金时代
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details  帝国进入[positiveAmount]回合的黄金时代 
-	示例：" 帝国进入[3]回合的黄金时代 "
+::: details [positiveAmount] [unit]s rebel
+	示例："[3] [Musketman]s rebel"
 
-	适用范围：触发型
-
-:::
-::: details 免费的伟人
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details [cityFilter][amount]人口
-	示例："[3][in all cities]人口"
-
-	适用范围：触发型
+::: details Free Social Policy
+	适用范围：Triggerable
 
 :::
-::: details 在一个随机城市中增加[amount]人口
-	示例："在一个随机城市中增加[3]人口"
+::: details [positiveAmount] Free Social Policies
+	示例："[3] Free Social Policies"
 
-	适用范围：触发型
-
-:::
-::: details 发现[tech]
-	示例："发现[Agriculture]"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 立刻推行[policy/belief]
-	示例："立刻推行[Oligarchy]"
-
-	适用范围：触发型
+::: details Empire enters golden age
+	适用范围：Triggerable
 
 :::
-::: details 取消推行[policyFilter]
-	示例："取消推行[Oligarchy]"
+::: details Empire enters a [positiveAmount]-turn Golden Age
+	示例："Empire enters a [3]-turn Golden Age"
 
-	适用范围：触发型
-
-:::
-::: details 取消推行[policyFilter]并返还[amount]%的文化花费
-	示例："取消推行[Oligarchy]并返还[3]%的文化花费"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 获得1项免费科技
-	适用范围：触发型
+::: details Free Great Person
+	适用范围：Triggerable
 
 :::
-::: details 获得[positiveAmount]项免费科技
-	示例："获得[3]项免费科技"
+::: details [amount] population [cityFilter]
+	示例："[3] population [in all cities]"
 
-	适用范围：触发型
-
-:::
-::: details 免费获得[eraFilter]的[positiveAmount]个可研究科技
-	示例："免费获得[3]的[Ancient era]个可研究科技"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 揭示全图
-	适用范围：触发型
+::: details [amount] population in a random city
+	示例："[3] population in a random city"
+
+	适用范围：Triggerable
 
 :::
-::: details 获得免费的[beliefType]信仰
-	示例："获得免费的[Follower]信仰"
+::: details Discover [tech]
+	示例："Discover [Agriculture]"
 
-	适用范围：触发型
-
-:::
-::: details 发起外交胜利投票
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 立即消耗[positiveAmount][stockpiledResource]
-	示例："立即消耗[3][Mana]"
+::: details Adopt [policy/belief]
+	示例："Adopt [Oligarchy]"
 
-	适用范围：触发型
-
-:::
-::: details 立即提供[positiveAmount][stockpiledResource]
-	示例："立即提供[3][Mana]"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 设定[stockpile]为[countable]
-	示例："设定[Mana]为[1000]"
+::: details Remove [policyFilter]
+	示例："Remove [Oligarchy]"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details  立即获得 [amount] [stockpile]
-	示例：" 立即获得 [3] [Mana]"
+::: details Remove [policyFilter] and refund [amount]% of its cost
+	示例："Remove [Oligarchy] and refund [3]% of its cost"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 获得[amount][stat]
-	示例："获得[3][Culture]"
-
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	适用范围：触发型
+::: details Free Technology
+	适用范围：Triggerable
 
 :::
-::: details 获得[amount]-[amount2][stat]
-	示例："获得[3]-[3][Culture]"
+::: details [positiveAmount] Free Technologies
+	示例："[3] Free Technologies"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 为万神殿获得足够的信仰
-	适用范围：触发型
+::: details [positiveAmount] free random researchable Tech(s) from the [eraFilter]
+	示例："[3] free random researchable Tech(s) from the [Ancient era]"
+
+	适用范围：Triggerable
 
 :::
-::: details 获得足够一个大先知的[positiveAmount]%的信仰
-	示例："获得足够一个大先知的[3]%的信仰"
-
-	适用范围：触发型
+::: details Reveals the entire map
+	适用范围：Triggerable
 
 :::
-::: details 获得[tech][relativeAmount]%的进度
-	示例："获得[+20][Agriculture]%的进度"
+::: details Gain a free [beliefType] belief
+	示例："Gain a free [Follower] belief"
 
-	适用范围：触发型
-
-:::
-::: details 获得以[tileFilter]为中心[nonNegativeAmount]格半径的地块
-	示例："获得以[Farm]为中心[3]格半径的地块"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 获得对[cityFilter][positiveAmount]格领土的控制权
-	示例："获得对[3][in all cities]格领土的控制权"
-
-	适用范围：触发型
+::: details Triggers voting for the Diplomatic Victory
+	适用范围：Triggerable
 
 :::
-::: details 在[positiveAmount]格半径内最多显示[positiveAmount/'all'][tileFilter]
-	示例："在[3]格半径内最多显示[Farm][3]"
+::: details Instantly consumes [positiveAmount] [stockpiledResource]
+	示例："Instantly consumes [3] [Mana]"
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 触发下列全局警报：[comment]
+::: details Instantly provides [positiveAmount] [stockpiledResource]
+	示例："Instantly provides [3] [Mana]"
+
+	适用范围：Triggerable
+
+:::
+::: details Set [stockpile] to [countable]
+	示例："Set [Mana] to [1000]"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	适用范围：Triggerable
+
+:::
+::: details Instantly gain [amount] [stockpile]
+	示例："Instantly gain [3] [Mana]"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	适用范围：Triggerable
+
+:::
+::: details Gain [amount] [stat]
+	示例："Gain [3] [Culture]"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	适用范围：Triggerable
+
+:::
+::: details Gain [amount]-[amount] [stat]
+	示例："Gain [3]-[3] [Culture]"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	适用范围：Triggerable
+
+:::
+::: details Gain enough Faith for a Pantheon
+	适用范围：Triggerable
+
+:::
+::: details Gain enough Faith for [positiveAmount]% of a Great Prophet
+	示例："Gain enough Faith for [3]% of a Great Prophet"
+
+	适用范围：Triggerable
+
+:::
+::: details Research [relativeAmount]% of [tech]
+	示例："Research [+20]% of [Agriculture]"
+
+	适用范围：Triggerable
+
+:::
+::: details Gain control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
+	示例："Gain control over [Farm] tiles in a [3]-tile radius"
+
+	适用范围：Triggerable
+
+:::
+::: details Gain control over [positiveAmount] tiles [cityFilter]
+	示例："Gain control over [3] tiles [in all cities]"
+
+	适用范围：Triggerable
+
+:::
+::: details Reveal up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
+	示例："Reveal up to [3] [Farm] within a [3] tile radius"
+
+	适用范围：Triggerable
+
+:::
+::: details Triggers the following global alert: [comment]
 	Supported on Policies and Technologies.
 
 	For other targets, the generated Notification may not read nicely, and will likely not support translation. Reason: Your [comment] gets a generated introduction, other triggers usually notify _you_, not _others_, and that difference is currently handled by mapping text.
 
 	Conditionals evaluate in the context of the civilization having the Unique, not the recipients of the alerts.
 
-	示例："触发下列全局警报：[comment]"
+	示例："Triggers the following global alert: [comment]"
 
-	适用范围：触发型
-
-:::
-::: details 令所有间谍升[positiveAmount]级
-	示例："令所有间谍升[3]级"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 获得1个间谍
-	适用范围：触发型
+::: details Promotes all spies [positiveAmount] time(s)
+	示例："Promotes all spies [3] time(s)"
+
+	适用范围：Triggerable
 
 :::
-::: details 将此地块转变为[terrainName]
-	示例："将此地块转变为[Forest]"
+::: details Gain an extra spy
+	适用范围：Triggerable
 
-	适用范围：触发型
+:::
+::: details Turn this tile into a [terrainName] tile
+	示例："Turn this tile into a [Forest] tile"
+
+	适用范围：Triggerable
 
 :::
 ::: details Add [resource] to this tile
 	示例："Add [Iron] to this tile"
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 从该地块移除[resourceFilter]资源
-	示例："从该地块移除[Strategic]资源"
+::: details Remove [resourceFilter] resources from this tile
+	示例："Remove [Strategic] resources from this tile"
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 从该地块移除[improvementFilter]地块改良
-	示例："从该地块移除[All Road]地块改良"
+::: details Remove [improvementFilter] improvements from this tile
+	示例："Remove [All Road] improvements from this tile"
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
 ::: details [mapUnitFilter] units gain the [promotion] promotion
@@ -279,31 +279,31 @@ title: Unique 能力列表
 
 	示例："[Wounded] units gain the [Shock I] promotion"
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 前[positiveAmount]座城市免费获得最便宜的[stat]建筑
-	示例："前[Culture]座城市免费获得最便宜的[3]建筑"
+::: details Provides the cheapest [stat] building in your first [positiveAmount] cities for free
+	示例："Provides the cheapest [Culture] building in your first [3] cities for free"
 
-	适用范围：触发型
-
-:::
-::: details 前[positiveAmount]座城市免费获得一座[buildingName]
-	示例："前[Library]座城市免费获得一座[3]"
-
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details 触发事件：[event]
-	示例："触发事件：[Inspiration]"
+::: details Provides a [buildingName] in your first [positiveAmount] cities for free
+	示例："Provides a [Library] in your first [3] cities for free"
 
-	适用范围：触发型
+	适用范围：Triggerable
+
+:::
+::: details Triggers a [event] event
+	示例："Triggers a [Inspiration] event"
+
+	适用范围：Triggerable
 
 :::
 ::: details Trigger the function [luaFunction] with [comment]
 	示例："Trigger the function [myMod:myFunction] with [comment]"
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
 ::: details Mark tutorial [comment] complete
@@ -313,7 +313,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
 ::: details Play [comment] sound
@@ -323,7 +323,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
 ::: details Get the leader title of [leaderTitle]
@@ -331,10 +331,10 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
-::: details Choose a music track for [param], [param2], [param3]
+::: details Choose a music track for [param], [param], [param]
 	Parameters are unchecked, strings not matching existing tracks or flags are ignored.
 
 	See [Context-sensitive music](Images-and-Audio.md#context-sensitive-music-overview)
@@ -349,7 +349,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型
+	适用范围：Triggerable
 
 :::
 ::: details Suppress warning [validationWarning]
@@ -361,96 +361,96 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型，地形修正，游戏速度，模组选项，元修饰
+	适用范围：Triggerable，Terrain，Speed，ModOptions，MetaModifier
 
 :::
-## 单位触发型词条
+## UnitTriggerable uniques（单位触发型词条）
 ::: note
 
     对单位产生即时、一次性效果的词条。可添加到单位（单位、单位类型或晋升），赋予其将效果作为行动触发的能力（可用 UnitActionModifier / UnitTriggerCondition 条件修饰）。
 :::
 
-::: details [unitTriggerTarget]恢复[positiveAmount]生命值
-	示例："[This Unit]恢复[3]生命值"
+::: details [unitTriggerTarget] heals [positiveAmount] HP
+	示例："[This Unit] heals [3] HP"
 
-	适用范围：单位触发型
-
-:::
-::: details [unitTriggerTarget]受到[positiveAmount]伤害
-	示例："[This Unit]受到[3]伤害"
-
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-::: details [unitTriggerTarget]获得[amount]经验值
-	示例："[This Unit]获得[3]经验值"
+::: details [unitTriggerTarget] takes [positiveAmount] damage
+	示例："[This Unit] takes [3] damage"
 
-	适用范围：单位触发型
-
-:::
-::: details [unitTriggerTarget]免费升级
-	示例："[This Unit]免费升级"
-
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-::: details [unitTriggerTarget]免费升级(含特色单位升级)
-	示例："[This Unit]免费升级(含特色单位升级)"
+::: details [unitTriggerTarget] gains [amount] XP
+	示例："[This Unit] gains [3] XP"
 
-	适用范围：单位触发型
-
-:::
-::: details [unitTriggerTarget]获得[promotion]晋升项
-	示例："[This Unit]获得[Shock I]晋升项"
-
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-::: details [unitTriggerTarget]失去[promotion]晋升项
-	示例："[This Unit]失去[Shock I]晋升项"
+::: details [unitTriggerTarget] upgrades for free
+	示例："[This Unit] upgrades for free"
 
-	适用范围：单位触发型
-
-:::
-::: details [unitTriggerTarget]获得[positiveAmount]移动力
-	示例："[This Unit]获得[3]移动力"
-
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-::: details [unitTriggerTarget]失去[positiveAmount]移动力
-	示例："[This Unit]失去[3]移动力"
+::: details [unitTriggerTarget] upgrades for free including special upgrades
+	示例："[This Unit] upgrades for free including special upgrades"
 
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-::: details [unitTriggerTarget]获得[promotion]临时晋升项(持续[positiveAmount]回合)
+::: details [unitTriggerTarget] gains the [promotion] promotion
+	示例："[This Unit] gains the [Shock I] promotion"
+
+	适用范围：UnitTriggerable
+
+:::
+::: details [unitTriggerTarget] loses the [promotion] promotion
+	示例："[This Unit] loses the [Shock I] promotion"
+
+	适用范围：UnitTriggerable
+
+:::
+::: details [unitTriggerTarget] gains [positiveAmount] movement
+	示例："[This Unit] gains [3] movement"
+
+	适用范围：UnitTriggerable
+
+:::
+::: details [unitTriggerTarget] loses [positiveAmount] movement
+	示例："[This Unit] loses [3] movement"
+
+	适用范围：UnitTriggerable
+
+:::
+::: details [unitTriggerTarget] gains the [promotion] status for [positiveAmount] turn(s)
 	Statuses are temporary promotions. They do not stack, and reapplying a specific status take the highest number - so reapplying a 3-turn on a 1-turn makes it 3, but doing the opposite will have no effect. Turns left on the status decrease at the *start of turn*, so bonuses applied for 1 turn are stll applied during other civ's turns.
 
-	示例："[This Unit]获得[Shock I]临时晋升项(持续[3]回合)"
+	示例："[This Unit] gains the [Shock I] status for [3] turn(s)"
 
-	适用范围：单位触发型
-
-:::
-::: details [unitTriggerTarget]失去[promotion]临时晋升项
-	示例："[This Unit]失去[Shock I]临时晋升项"
-
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-::: details [unitTriggerTarget]被消灭
-	示例："[This Unit]被消灭"
+::: details [unitTriggerTarget] loses the [promotion] status
+	示例："[This Unit] loses the [Shock I] status"
 
-	适用范围：单位触发型
-
-:::
-::: details [unitTriggerTarget]从[unitNameGroup]名称库中获得一个名字
-	示例："[This Unit]从[Scientist]名称库中获得一个名字"
-
-	适用范围：单位触发型
+	适用范围：UnitTriggerable
 
 :::
-## 全球词条
+::: details [unitTriggerTarget] is destroyed
+	示例："[This Unit] is destroyed"
+
+	适用范围：UnitTriggerable
+
+:::
+::: details [unitTriggerTarget] gets a name from the [unitNameGroup] group
+	示例："[This Unit] gets a name from the [Scientist] group"
+
+	适用范围：UnitTriggerable
+
+:::
+## Global uniques（全球词条）
 ::: note
 
     全局生效的词条。文明从国家词条、已到达的时代、已研究的科技、已采用的政策、已建造的建筑、宗教「创始人」词条、拥有的资源以及规则集全局词条中获得这些能力。
@@ -459,75 +459,75 @@ title: Unique 能力列表
 ::: details [stats]
 	示例："[+1 Gold, +2 Production]"
 
-	适用范围：全球，地形修正，地块改良
+	适用范围：Global，Terrain，Improvement
 
 :::
-::: details [cityFilter][stats]
-	示例："[+1 Gold, +2 Production][in all cities]"
+::: details [stats] [cityFilter]
+	示例："[+1 Gold, +2 Production] [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]中的每个专业人员[stats]
-	示例："[+1 Gold, +2 Production]中的每个专业人员[in all cities]"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]每[positiveAmount]人口[stats]
-	示例："[+1 Gold, +2 Production]每[3]人口[in all cities]"
+::: details [stats] from every specialist [cityFilter]
+	示例："[+1 Gold, +2 Production] from every specialist [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 每推行[positiveAmount]个政策[stats]
+::: details [stats] per [positiveAmount] population [cityFilter]
+	示例："[+1 Gold, +2 Production] per [3] population [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stats] per [positiveAmount] social policies adopted
 	Only works for civ-wide stats
 
-	示例："每推行[+1 Gold, +2 Production]个政策[3]"
+	示例："[+1 Gold, +2 Production] per [3] social policies adopted"
 
-	适用范围：全球
-
-:::
-::: details  每[positiveAmount][civWideStat][stats]
-	示例：" 每[+1 Gold, +2 Production][3][Gold]"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 坐落于[terrainFilter]的城市[stats]
-	示例："坐落于[+1 Gold, +2 Production]的城市[Fresh Water]"
+::: details [stats] per every [positiveAmount] [civWideStat]
+	示例："[+1 Gold, +2 Production] per every [3] [Gold]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 所有[buildingFilter]建筑[stats]
-	示例："所有[+1 Gold, +2 Production]建筑[Culture]"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details [cityFilter]的[tileFilter]地块[stats]
-	示例："[+1 Gold, +2 Production]的[Farm]地块[in all cities]"
+::: details [stats] in cities on [terrainFilter] tiles
+	示例："[+1 Gold, +2 Production] in cities on [Fresh Water] tiles"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]除[tileFilter2]地块之外的[tileFilter]的地块[stats]
-	示例："[+1 Gold, +2 Production]除[Farm]地块之外的[Farm]的地块[in all cities]"
+::: details [stats] from all [buildingFilter] buildings
+	示例："[+1 Gold, +2 Production] from all [Culture] buildings"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stats] from [tileFilter] tiles [cityFilter]
+	示例："[+1 Gold, +2 Production] from [Farm] tiles [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stats] from [tileFilter] tiles without [tileFilter] [cityFilter]
+	示例："[+1 Gold, +2 Production] from [Farm] tiles without [Farm] [in all cities]"
+
+	适用范围：Global，FollowerBelief
 
 :::
 ::: details [stats] from every [tileFilter/specialist/buildingFilter]
 	示例："[+1 Gold, +2 Production] from every [Farm]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 每条贸易路线 [stats]
-	示例："每条贸易路线 [+1 Gold, +2 Production]"
+::: details [stats] from each Trade Route
+	示例："[+1 Gold, +2 Production] from each Trade Route"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
 ::: details [relativeAmount]% [stat]
@@ -535,341 +535,341 @@ title: Unique 能力列表
 
 	示例："[+20]% [Culture]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter][relativeAmount]%[stat]
+::: details [relativeAmount]% [stat] [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20][Culture]%[in all cities]"
+	示例："[+20]% [Culture] [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat] 来自每个 [tileFilter/buildingFilter]
+::: details [relativeAmount]% [stat] from every [tileFilter/buildingFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20]% [Culture] 来自每个 [Farm]"
+	示例："[+20]% [Culture] from every [Farm]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [relativeAmount]%来自每个[tileFilter/buildingFilter]的产出
+::: details [relativeAmount]% Yield from every [tileFilter/buildingFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20]%来自每个[Farm]的产出"
+	示例："[+20]% Yield from every [Farm]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 来自城邦的[stat][relativeAmount]%
-	示例："来自城邦的[+20][Culture]%"
-
-	适用范围：全球
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 来自贸易路线的[stat][relativeAmount]%
-	示例："来自贸易路线的[+20][Culture]%"
+::: details [relativeAmount]% [stat] from City-States
+	示例："[+20]% [Culture] from City-States"
 
-	适用范围：全球
-
-:::
-::: details 消除[cityFilter]的[stat]
-	示例："消除[Culture]的[in all cities]"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 停止[cityFilter]中的人口增长
-	示例："停止[in all cities]中的人口增长"
+::: details [relativeAmount]% [stat] from Trade Routes
+	示例："[+20]% [Culture] from Trade Routes"
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details [cityFilter] 建造[buildingFilter]建筑 时 [relativeAmount]%产能
+::: details Nullifies [stat] [cityFilter]
+	示例："Nullifies [Culture] [in all cities]"
+
+	适用范围：Global
+
+:::
+::: details Nullifies Growth [cityFilter]
+	示例："Nullifies Growth [in all cities]"
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Production when constructing [buildingFilter] buildings [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20] 建造[Culture]建筑 时 [in all cities]%产能"
+	示例："[+20]% Production when constructing [Culture] buildings [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter] 建造[baseUnitFilter]单位 时 [relativeAmount]%产能
+::: details [relativeAmount]% Production when constructing [baseUnitFilter] units [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20] 建造[Melee]单位 时 [in all cities]%产能"
+	示例："[+20]% Production when constructing [Melee] units [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter] 建造[buildingFilter]奇观 时 [relativeAmount]%产能
+::: details [relativeAmount]% Production when constructing [buildingFilter] wonders [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20] 建造[Culture]奇观 时 [in all cities]%产能"
+	示例："[+20]% Production when constructing [Culture] wonders [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 当所有在首都已建成的建筑在其他城市建造时 [relativeAmount]% 产能
-	示例："当所有在首都已建成的建筑在其他城市建造时 [+20]% 产能"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 掠夺地块的收益[relativeAmount]%
-	示例："掠夺地块的收益[+20]%"
+::: details [relativeAmount]% Production towards any buildings that already exist in the Capital
+	示例："[+20]% Production towards any buildings that already exist in the Capital"
 
-	适用范围：全球，单位
-
-:::
-::: details 掠夺地块的血量恢复[relativeAmount]%
-	示例："掠夺地块的血量恢复[+20]%"
-
-	适用范围：全球，单位
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 城邦赠送的军事单位起始拥有[positiveAmount]经验
-	示例："城邦赠送的军事单位起始拥有[3]经验"
+::: details [relativeAmount]% Yield from pillaging tiles
+	示例："[+20]% Yield from pillaging tiles"
 
-	适用范围：全球
-
-:::
-::: details 与共同的敌人交战时，军事型城邦提供单位的频率为平时的[positiveAmount]倍。
-	示例："与共同的敌人交战时，军事型城邦提供单位的频率为平时的[3]倍。"
-
-	适用范围：全球
+	适用范围：Global，Unit
 
 :::
-::: details 赠与城邦金钱提升的影响力+[relativeAmount]%
-	示例："赠与城邦金钱提升的影响力+[+20]%"
+::: details [relativeAmount]% Health from pillaging tiles
+	示例："[+20]% Health from pillaging tiles"
 
-	适用范围：全球
-
-:::
-::: details 可以花费金钱来吞并或傀儡一个已经连续[nonNegativeAmount]回合成为你盟友的城邦
-	示例："可以花费金钱来吞并或傀儡一个已经连续[3]回合成为你盟友的城邦"
-
-	适用范围：全球
+	适用范围：Global，Unit
 
 :::
-::: details 城邦领土始终视为友好领土
-	适用范围：全球
+::: details Military Units gifted from City-States start with [positiveAmount] XP
+	示例："Military Units gifted from City-States start with [3] XP"
+
+	适用范围：Global
 
 :::
-::: details 附属城邦随机赠送伟人
-	适用范围：全球
+::: details Militaristic City-States grant units [positiveAmount] times as fast when you are at war with a common nation
+	示例："Militaristic City-States grant units [3] times as fast when you are at war with a common nation"
+
+	适用范围：Global
 
 :::
-::: details 对城邦影响减少成度增加[relativeAmount]% 
-	示例："对城邦影响减少成度增加[+20]% "
+::: details Gifts of Gold to City-States generate [relativeAmount]% more Influence
+	示例："Gifts of Gold to City-States generate [+20]% more Influence"
 
-	适用范围：全球
-
-:::
-::: details 对所有城邦的影响力的基准值[amount]
-	示例："对所有城邦的影响力的基准值[3]"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 附属城邦提供自身[stat]的[relativeAmount]%
-	示例："附属城邦提供自身[Culture]的[+20]%"
+::: details Can spend Gold to annex or puppet a City-State that has been your Ally for [nonNegativeAmount] turns
+	示例："Can spend Gold to annex or puppet a City-State that has been your Ally for [3] turns"
 
-	适用范围：全球
-
-:::
-::: details [relativeAmount]%城邦赠送的资源
-	示例："[+20]%城邦赠送的资源"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details [relativeAmount]% 城邦赠送的奢侈资源带来的快乐
-	示例："[+20]% 城邦赠送的奢侈资源带来的快乐"
-
-	适用范围：全球
+::: details City-State territory always counts as friendly territory
+	适用范围：Global
 
 :::
-::: details 对城邦的影响力恢复速度是正常水平的两倍
-	适用范围：全球
+::: details Allied City-States will occasionally gift Great People
+	适用范围：Global
 
 :::
-::: details [cityFilter][relativeAmount]%人口增长
-	示例："[+20][in all cities]%人口增长"
+::: details [relativeAmount]% City-State Influence degradation
+	示例："[+20]% City-State Influence degradation"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details [cityFilter]在人口增长后人口增长所需食物减少[amount]%
+::: details Resting point for Influence with City-States is increased by [amount]
+	示例："Resting point for Influence with City-States is increased by [3]"
+
+	适用范围：Global
+
+:::
+::: details Allied City-States provide [stat] equal to [relativeAmount]% of what they produce for themselves
+	示例："Allied City-States provide [Culture] equal to [+20]% of what they produce for themselves"
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% resources gifted by City-States
+	示例："[+20]% resources gifted by City-States"
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Happiness from luxury resources gifted by City-States
+	示例："[+20]% Happiness from luxury resources gifted by City-States"
+
+	适用范围：Global
+
+:::
+::: details City-State Influence recovers at twice the normal rate
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% growth [cityFilter]
+	示例："[+20]% growth [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [amount]% Food is carried over after population increases [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[3]在人口增长后人口增长所需食物减少[in all cities]%"
+	示例："[3]% Food is carried over after population increases [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]中[populationFilter]消耗的食物[relativeAmount]%
-	示例："[+20]中[Followers of this Religion]消耗的食物[in all cities]%"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 城市数量造成的不快乐[relativeAmount]%
-	示例："城市数量造成的不快乐[+20]%"
+::: details [relativeAmount]% Food consumption by [populationFilter] [cityFilter]
+	示例："[+20]% Food consumption by [Followers of this Religion] [in all cities]"
 
-	适用范围：全球
-
-:::
-::: details [cityFilter][populationFilter]造成的不快乐[relativeAmount]%
-	示例："[+20][Followers of this Religion]造成的不快乐[in all cities]%"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [amount]幸福度来源于每一种奢侈品资源
-	示例："[3]幸福度来源于每一种奢侈品资源"
+::: details [relativeAmount]% unhappiness from the number of cities
+	示例："[+20]% unhappiness from the number of cities"
 
-	适用范围：全球
-
-:::
-::: details 每种奢侈资源即使全部交易出去仍可保留 [relativeAmount]% 快乐奖励
-	示例："每种奢侈资源即使全部交易出去仍可保留 [+20]% 快乐奖励"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details [relativeAmount]%富余的快乐转化为[stat]
-	示例："[+20]%富余的快乐转化为[Culture]"
+::: details [relativeAmount]% Unhappiness from [populationFilter] [cityFilter]
+	示例："[+20]% Unhappiness from [Followers of this Religion] [in all cities]"
 
-	适用范围：全球
-
-:::
-::: details 无法建造[baseUnitFilter]单位
-	示例："无法建造[Melee]单位"
-
-	适用范围：全球
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 允许建造太空飞船的部件
-	适用范围：全球
+::: details [amount] Happiness from each type of luxury resource
+	示例："[3] Happiness from each type of luxury resource"
+
+	适用范围：Global
 
 :::
-::: details [cityFilter]可以以不断上涨的价格([nonNegativeAmount])用[amount][stat]购买[baseUnitFilter]单位
-	示例："[Melee]可以以不断上涨的价格([3])用[Culture][in all cities]购买[3]单位"
+::: details Retain [relativeAmount]% of the happiness from a luxury after the last copy has been traded away
+	示例："Retain [+20]% of the happiness from a luxury after the last copy has been traded away"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]可以以不断上涨的价格([nonNegativeAmount])用[amount][stat]购买[buildingFilter]建筑
-	示例："[Culture]可以以不断上涨的价格([3])用[Culture][in all cities]购买[3]建筑"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details [cityFilter]可以用[nonNegativeAmount][stat]购买[baseUnitFilter]单位
-	示例："[Melee]可以用[3][Culture]购买[in all cities]单位"
+::: details [relativeAmount]% of excess happiness converted to [stat]
+	示例："[+20]% of excess happiness converted to [Culture]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]中可以用[nonNegativeAmount][stat]购买[buildingFilter]建筑
-	示例："[Culture]中可以用[3][Culture]购买[in all cities]建筑"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details [cityFilter]可以用[stat]购买[baseUnitFilter]单位
-	示例："[Melee]可以用[Culture]购买[in all cities]单位"
+::: details Cannot build [baseUnitFilter] units
+	示例："Cannot build [Melee] units"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]可以用[stat]购买[buildingFilter]建筑
-	示例："[Culture]可以用[Culture]购买[in all cities]建筑"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details 可以用[stat]购买[baseUnitFilter]单位，价格为其正常生产成本的[nonNegativeAmount]倍
-	示例："可以用[Melee]购买[Culture]单位，价格为其正常生产成本的[3]倍"
-
-	适用范围：全球，追随者信仰
+::: details Enables construction of Spaceship parts
+	适用范围：Global
 
 :::
-::: details 可以用[nonNegativeAmount]倍于其正常的生产花费的[stat]购买[buildingFilter]建筑
-	示例："可以用[Culture]倍于其正常的生产花费的[Culture]购买[3]建筑"
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+	示例："May buy [Melee] units for [3] [Culture] [in all cities] at an increasing price ([3])"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 在城市建造/组建单位时的[stat]花费[relativeAmount]%
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+	示例："May buy [Culture] buildings for [3] [Culture] [in all cities] at an increasing price ([3])"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter]
+	示例："May buy [Melee] units for [3] [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter]
+	示例："May buy [Culture] buildings for [3] [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [baseUnitFilter] units with [stat] [cityFilter]
+	示例："May buy [Melee] units with [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [buildingFilter] buildings with [stat] [cityFilter]
+	示例："May buy [Culture] buildings with [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [baseUnitFilter] units with [stat] for [nonNegativeAmount] times their normal Production cost
+	示例："May buy [Melee] units with [Culture] for [3] times their normal Production cost"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [buildingFilter] buildings with [stat] for [nonNegativeAmount] times their normal Production cost
+	示例："May buy [Culture] buildings with [Culture] for [3] times their normal Production cost"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stat] cost of purchasing items in cities [relativeAmount]%
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："在城市建造/组建单位时的[Culture]花费[+20]%"
+	示例："[Culture] cost of purchasing items in cities [+20]%"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 购买[buildingFilter]建筑的[stat]花费[relativeAmount]%
+::: details [stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："购买[Culture]建筑的[Culture]花费[+20]%"
+	示例："[Culture] cost of purchasing [Culture] buildings [+20]%"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [baseUnitFilter]单位的[stat]花费[relativeAmount]%
+::: details [stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[Culture]单位的[Melee]花费[+20]%"
+	示例："[Culture] cost of purchasing [Melee] units [+20]%"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 允许在城市中将产能转化成[stat]
-	示例："允许在城市中将产能转化成[Culture]"
-
-	适用范围：全球
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 城市中向[stat]的产能转化[relativeAmount]%
-	示例："城市中向[Culture]的产能转化[+20]%"
+::: details Enables conversion of city production to [stat]
+	示例："Enables conversion of city production to [Culture]"
 
-	适用范围：全球
-
-:::
-::: details 提高道路上的移动速度
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 道路/铁路可跨河建造
-	适用范围：全球
+::: details Production to [stat] conversion in cities changed by [relativeAmount]%
+	示例："Production to [Culture] conversion in cities changed by [+20]%"
+
+	适用范围：Global
 
 :::
-::: details 道路/铁路维护费[relativeAmount]%
+::: details Improves movement speed on roads
+	适用范围：Global
+
+:::
+::: details Roads connect tiles across rivers
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% maintenance on road & railroads
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："道路/铁路维护费[+20]%"
+	示例："[+20]% maintenance on road & railroads"
 
-	适用范围：全球
-
-:::
-::: details 在[tileFilter]地块的改良无维修费用
-	示例："在[Farm]地块的改良无维修费用"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 对 [improvementFilter] 地块改良 [relativeAmount]% 的建造时间
-	示例："对 [+20] 地块改良 [All Road]% 的建造时间"
+::: details No Maintenance costs for improvements in [tileFilter] tiles
+	示例："No Maintenance costs for improvements in [Farm] tiles"
 
-	适用范围：全球，单位
+	适用范围：Global
 
 :::
-::: details 可以以[relativeAmount]%的速度建造[improvementFilter]地块改进改良。
-	示例："可以以[All Road]%的速度建造[+20]地块改进改良。"
+::: details [relativeAmount]% construction time for [improvementFilter] improvements
+	示例："[+20]% construction time for [All Road] improvements"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
+
+:::
+::: details Can build [improvementFilter] improvements at a [relativeAmount]% rate
+	示例："Can build [All Road] improvements at a [+20]% rate"
+
+	适用范围：Global，Unit
 
 :::
 ::: details Gain a free [buildingName] [cityFilter]
@@ -877,353 +877,353 @@ title: Unique 能力列表
 
 	示例："Gain a free [Library] [in all cities]"
 
-	适用范围：触发型，全球
+	适用范围：Triggerable，Global
 
 :::
-::: details [cityFilter]中[buildingFilter]建筑维护费[relativeAmount]%
+::: details [relativeAmount]% maintenance cost for [buildingFilter] buildings [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]中[Culture]建筑维护费[in all cities]%"
+	示例："[+20]% maintenance cost for [Culture] buildings [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 移除[cityFilter]城市的[buildingFilter]
-	示例："移除[Culture]城市的[in all cities]"
-
-	适用范围：触发型，全球
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 拆毁[cityFilter]的[buildingFilter](返还少量金钱)
-	示例："拆毁[Culture]的[in all cities](返还少量金钱)"
+::: details Remove [buildingFilter] [cityFilter]
+	示例："Remove [Culture] [in all cities]"
 
-	适用范围：触发型，全球
+	适用范围：Triggerable，Global
 
 :::
-::: details [cityFilter]自然扩张文化需求[relativeAmount]%
+::: details Sell [buildingFilter] buildings [cityFilter]
+	示例："Sell [Culture] buildings [in all cities]"
+
+	适用范围：Triggerable，Global
+
+:::
+::: details [relativeAmount]% Culture cost of natural border growth [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]自然扩张文化需求[in all cities]%"
+	示例："[+20]% Culture cost of natural border growth [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]购买地块金钱需求[relativeAmount]%
+::: details [relativeAmount]% Gold cost of acquiring tiles [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]购买地块金钱需求[in all cities]%"
+	示例："[+20]% Gold cost of acquiring tiles [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 建立新城市引起的政策文化费用增幅-[relativeAmount]%
-	示例："建立新城市引起的政策文化费用增幅-[+20]%"
-
-	适用范围：全球
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 推行新政策的文化花费[relativeAmount]%
+::: details Each city founded increases culture cost of policies [relativeAmount]% less than normal
+	示例："Each city founded increases culture cost of policies [+20]% less than normal"
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Culture cost of adopting new Policies
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："推行新政策的文化花费[+20]%"
+	示例："[+20]% Culture cost of adopting new Policies"
 
-	适用范围：全球
-
-:::
-::: details 建立新城市引起的科学研究费用增幅-[relativeAmount]%
-	示例："建立新城市引起的科学研究费用增幅-[+20]%"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 研究新科技的科技花费[relativeAmount]%
+::: details Each city founded increases Science cost of Technologies [relativeAmount]% less than normal
+	示例："Each city founded increases Science cost of Technologies [+20]% less than normal"
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Science cost of researching new Technologies
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："研究新科技的科技花费[+20]%"
+	示例："[+20]% Science cost of researching new Technologies"
 
-	适用范围：全球
-
-:::
-::: details 每发现一个自然奇观就[stats]
-	示例："每发现一个自然奇观就[+1 Gold, +2 Production]"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 每发现一个自然奇观就[stats]，若为首个发现则[stats2]
-	示例："每发现一个自然奇观就[+1 Gold, +2 Production]，若为首个发现则[+1 Gold, +2 Production]"
+::: details [stats] for every known Natural Wonder
+	示例："[+1 Gold, +2 Production] for every known Natural Wonder"
 
-	适用范围：全球
-
-:::
-::: details [cityFilter]伟人点数生成速度[relativeAmount]%
-	示例："[+20]伟人点数生成速度[in all cities]%"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details [relativeAmount]%来源于大商人贸易任务的金钱
-	示例："[+20]%来源于大商人贸易任务的金钱"
+::: details [stats] for discovering a Natural Wonder (bonus enhanced to [stats] if first to discover it)
+	示例："[+1 Gold, +2 Production] for discovering a Natural Wonder (bonus enhanced to [+1 Gold, +2 Production] if first to discover it)"
 
-	适用范围：全球，单位
-
-:::
-::: details 大军事家提供双倍战斗力加成
-	适用范围：全球，单位
+	适用范围：Global
 
 :::
-::: details 研究[tech]后，每[comment]结束时(每394年)得到一个免费的伟人，每种伟人只能选择一次。
-	示例："研究[comment]后，每[Agriculture]结束时(每394年)得到一个免费的伟人，每种伟人只能选择一次。"
+::: details [relativeAmount]% Great Person generation [cityFilter]
+	示例："[+20]% Great Person generation [in all cities]"
 
-	适用范围：全球
-
-:::
-::: details 一旦长历法激活，世界屏幕上的年份将显示为传统的玛雅长计数。
-	适用范围：全球
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [amount]单位补给
-	示例："[3]单位补给"
+::: details [relativeAmount]% Gold from Great Merchant trade missions
+	示例："[+20]% Gold from Great Merchant trade missions"
 
-	适用范围：全球
-
-:::
-::: details [cityFilter]毎[positiveAmount]人口[amount]单位补给
-	示例："[3]毎[3]人口[in all cities]单位补给"
-
-	适用范围：全球
+	适用范围：Global，Unit
 
 :::
-::: details 每座城市[amount]单位补给
-	示例："每座城市[3]单位补给"
-
-	适用范围：全球
+::: details Great General provides double combat bonus
+	适用范围：Global，Unit
 
 :::
-::: details 免除[amount]个单位的维护费
-	示例："免除[3]个单位的维护费"
+::: details Receive a free Great Person at the end of every [comment] (every 394 years), after researching [tech]. Each bonus person can only be chosen once.
+	示例："Receive a free Great Person at the end of every [comment] (every 394 years), after researching [Agriculture]. Each bonus person can only be chosen once."
 
-	适用范围：全球
-
-:::
-::: details 免除市中心驻军的维护费
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 陆军单位拥有船运能力
+::: details Once The Long Count activates, the year on the world screen displays as the traditional Mayan Long Count.
+	适用范围：Global
+
+:::
+::: details [amount] Unit Supply
+	示例："[3] Unit Supply"
+
+	适用范围：Global
+
+:::
+::: details [amount] Unit Supply per [positiveAmount] population [cityFilter]
+	示例："[3] Unit Supply per [3] population [in all cities]"
+
+	适用范围：Global
+
+:::
+::: details [amount] Unit Supply per city
+	示例："[3] Unit Supply per city"
+
+	适用范围：Global
+
+:::
+::: details [amount] units cost no maintenance
+	示例："[3] units cost no maintenance"
+
+	适用范围：Global
+
+:::
+::: details Units in cities cost no Maintenance
+	适用范围：Global
+
+:::
+::: details Enables embarkation for land units
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 允许[mapUnitFilter]单位进入海洋
-	示例："允许[Wounded]单位进入海洋"
+::: details Enables [mapUnitFilter] units to enter ocean tiles
+	示例："Enables [Wounded] units to enter ocean tiles"
 
-	适用范围：全球
-
-:::
-::: details 获得首个[baseUnitFilter]以后，陆地单位能穿过[terrainName]地块
-	示例："获得首个[Forest]以后，陆地单位能穿过[Melee]地块"
-
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 敌方的[mapUnitFilter]必须在你的土地上花费额外的[positiveAmount]点行动力
-	示例："敌方的[Wounded]必须在你的土地上花费额外的[3]点行动力"
+::: details Land units may cross [terrainName] tiles after the first [baseUnitFilter] is earned
+	示例："Land units may cross [Forest] tiles after the first [Melee] is earned"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details [cityFilter]新训练的[baseUnitFilter]单位初始拥有[amount]XP
-	示例："[Melee]新训练的[3]单位初始拥有[in all cities]XP"
+::: details Enemy [mapUnitFilter] units must spend [positiveAmount] extra movement points when inside your territory
+	示例："Enemy [Wounded] units must spend [3] extra movement points when inside your territory"
 
-	适用范围：全球，追随者信仰
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-:::
-::: details [cityFilter]新训练的[baseUnitFilter]单位初始拥有[promotion]晋升
-	示例："[Melee]新训练的[in all cities]单位初始拥有[Shock I]晋升"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global
 
 :::
-::: details 毗邻城市中心的[mapUnitFilter]单位自愈时额外[amount]HP
-	示例："毗邻城市中心的[Wounded]单位自愈时额外[3]HP"
+::: details New [baseUnitFilter] units start with [amount] XP [cityFilter]
+	示例："New [Melee] units start with [3] XP [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 晋升所需XP[relativeAmount]%
+::: details All newly-trained [baseUnitFilter] units [cityFilter] receive the [promotion] promotion
+	示例："All newly-trained [Melee] units [in all cities] receive the [Shock I] promotion"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [mapUnitFilter] Units adjacent to this city heal [amount] HP per turn when healing
+	示例："[Wounded] Units adjacent to this city heal [3] HP per turn when healing"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [relativeAmount]% XP required for promotions
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："晋升所需XP[+20]%"
+	示例："[+20]% XP required for promotions"
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 建筑提供的防御力[relativeAmount]%
+::: details [relativeAmount]% City Strength from defensive buildings
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："建筑提供的防御力[+20]%"
+	示例："[+20]% City Strength from defensive buildings"
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 城市战斗力[relativeAmount]%
+::: details [relativeAmount]% Strength for cities
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："城市战斗力[+20]%"
+	示例："[+20]% Strength for cities"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 获得[amount]单位[resource]
-	示例："获得[3]单位[Iron]"
-
-	适用范围：全球，追随者信仰，地块改良
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [resourceFilter]资源产量[relativeAmount]% 
-	示例："[+20]资源产量[Strategic]% "
+::: details Provides [amount] [resource]
+	示例："Provides [3] [Iron]"
 
-	适用范围：全球
-
-:::
-::: details 启用大使馆功能
-	适用范围：全球
+	适用范围：Global，FollowerBelief，Improvement
 
 :::
-::: details 需先建立大使馆才能开展高级外交
-	适用范围：全球
+::: details [relativeAmount]% [resourceFilter] resource production
+	示例："[+20]% [Strategic] resource production"
+
+	适用范围：Global
 
 :::
-::: details 允许开放边境
-	适用范围：全球
+::: details Enables establishment of embassies
+	适用范围：Global
 
 :::
-::: details 允许签订科研协定
-	适用范围：全球
+::: details Requires establishing embassies to conduct advanced diplomacy
+	适用范围：Global
 
 :::
-::: details 从科研协定中获得的科技值[relativeAmount]%
-	示例："从科研协定中获得的科技值[+20]%"
-
-	适用范围：全球
+::: details Enables Open Borders agreements
+	适用范围：Global
 
 :::
-::: details 允许签订共同防御条约
-	适用范围：全球
+::: details Enables Research agreements
+	适用范围：Global
 
 :::
-::: details 当宣布友谊宣言时，双方都获得[relativeAmount]%的伟人产生速率。
-	示例："当宣布友谊宣言时，双方都获得[+20]%的伟人产生速率。"
+::: details Science gained from research agreements [relativeAmount]%
+	示例："Science gained from research agreements [+20]%"
 
-	适用范围：全球
-
-:::
-::: details 其他文明对城邦的影响力下降速度+[relativeAmount]%
-	示例："其他文明对城邦的影响力下降速度+[+20]%"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 向城邦送予[baseUnitFilter]礼物时[amount]影响力
-	示例："向城邦送予[3]礼物时[Melee]影响力"
-
-	适用范围：全球
+::: details Enables Defensive Pacts
+	适用范围：Global
 
 :::
-::: details 对信奉该宗教的城邦影响力点数[amount]
-	示例："对信奉该宗教的城邦影响力点数[3]"
+::: details When declaring friendship, both parties gain a [relativeAmount]% boost to great person generation
+	示例："When declaring friendship, both parties gain a [+20]% boost to great person generation"
 
-	适用范围：全球
-
-:::
-::: details 标记新蛮族营地的位置
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 从掠夺城市和摧毁蛮族营地中获得[relativeAmount]%金钱
-	示例："从掠夺城市和摧毁蛮族营地中获得[+20]%金钱"
+::: details Influence of all other civilizations with all city-states degrades [relativeAmount]% faster
+	示例："Influence of all other civilizations with all city-states degrades [+20]% faster"
 
-	适用范围：全球
-
-:::
-::: details 摧毁蛮族营地时俘获一个蛮族并获得[amount]金钱
-	示例："摧毁蛮族营地时俘获一个蛮族并获得[3]金钱"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 击败[mapUnitFilter]单位时获得[amount]金钱并将其俘获
-	示例："击败[Wounded]单位时获得[3]金钱并将其俘获"
+::: details Gain [amount] Influence with a [baseUnitFilter] gift to a City-State
+	示例："Gain [3] Influence with a [Melee] gift to a City-State"
 
-	适用范围：全球
-
-:::
-::: details 当[foundingOrEnhancing]一个宗教时，可以额外选择[amount]个[beliefType]信条
-	示例："当[3]一个宗教时，可以额外选择[Follower]个[founding]信条"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 当[foundingOrEnhancing]一个宗教时，可以选择[amount]个任意类型的额外信条
-	示例："当[3]一个宗教时，可以选择[founding]个任意类型的额外信条"
+::: details Resting point for Influence with City-States following this religion [amount]
+	示例："Resting point for Influence with City-States following this religion [3]"
 
-	适用范围：全球
-
-:::
-::: details 城市首次接受宗教的时间[stats]
-	示例："城市首次接受宗教的时间[+1 Gold, +2 Production]"
-
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details [cityFilter]宗教自然传播[relativeAmount]%
+::: details Notified of new Barbarian encampments
+	适用范围：Global
+
+:::
+::: details Receive [relativeAmount]% Gold from Barbarian encampments and pillaging Cities
+	示例："Receive [+20]% Gold from Barbarian encampments and pillaging Cities"
+
+	适用范围：Global
+
+:::
+::: details When conquering an encampment, earn [amount] Gold and recruit a Barbarian unit
+	示例："When conquering an encampment, earn [3] Gold and recruit a Barbarian unit"
+
+	适用范围：Global
+
+:::
+::: details When defeating a [mapUnitFilter] unit, earn [amount] Gold and recruit it
+	示例："When defeating a [Wounded] unit, earn [3] Gold and recruit it"
+
+	适用范围：Global
+
+:::
+::: details May choose [amount] additional [beliefType] beliefs when [foundingOrEnhancing] a religion
+	示例："May choose [3] additional [Follower] beliefs when [founding] a religion"
+
+	适用范围：Global
+
+:::
+::: details May choose [amount] additional belief(s) of any type when [foundingOrEnhancing] a religion
+	示例："May choose [3] additional belief(s) of any type when [founding] a religion"
+
+	适用范围：Global
+
+:::
+::: details [stats] when a city adopts this religion for the first time
+	示例："[+1 Gold, +2 Production] when a city adopts this religion for the first time"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Natural religion spread [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]宗教自然传播[in all cities]%"
+	示例："[+20]% Natural religion spread [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 宗教自然传播距离扩大[amount]地块
-	示例："宗教自然传播距离扩大[3]地块"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 不能自然产生大先知
-	适用范围：全球
+::: details Religion naturally spreads to cities [amount] tiles away
+	示例："Religion naturally spreads to cities [3] tiles away"
+
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 获得大先知必须的信仰[relativeAmount]%
-	示例："获得大先知必须的信仰[+20]%"
-
-	适用范围：全球
+::: details May not generate great prophet equivalents naturally
+	适用范围：Global
 
 :::
-::: details [cityFilter]的我方间谍工作效率[relativeAmount]%
-	示例："[+20]的我方间谍工作效率[in all cities]%"
+::: details [relativeAmount]% Faith cost of generating Great Prophet equivalents
+	示例："[+20]% Faith cost of generating Great Prophet equivalents"
 
-	适用范围：全球
-
-:::
-::: details  [cityFilter]的敌方间谍工作效率[relativeAmount]%
-	示例：" [+20]的敌方间谍工作效率[in all cities]%"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 新间谍等级提高为[amount]级
-	示例："新间谍等级提高为[3]级"
+::: details [relativeAmount]% spy effectiveness [cityFilter]
+	示例："[+20]% spy effectiveness [in all cities]"
 
-	适用范围：全球
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% enemy spy effectiveness [cityFilter]
+	示例："[+20]% enemy spy effectiveness [in all cities]"
+
+	适用范围：Global
+
+:::
+::: details New spies start with [amount] level(s)
+	示例："New spies start with [3] level(s)"
+
+	适用范围：Global
 
 :::
 ::: details Spies in [cityFilter] cities act as though they have [relativeAmount] levels for [spyAction]
@@ -1231,274 +1231,274 @@ title: Unique 能力列表
 
 	示例："Spies in [in all cities] cities act as though they have [+20] levels for [Counter-intelligence]"
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 触发胜利
-	适用范围：全球
+::: details Triggers victory
+	适用范围：Global
 
 :::
-::: details 完成后触发文化胜利
-	适用范围：全球
+::: details Triggers a Cultural Victory upon completion
+	适用范围：Global
 
 :::
-::: details 可以在傀儡城市中购买建筑和单位
-	适用范围：全球
+::: details May buy items in puppet cities
+	适用范围：Global
 
 :::
-::: details 可能不会吞并城市
-	适用范围：全球
+::: details May not annex cities
+	适用范围：Global
 
 :::
-::: details 从其他文明处借用城市名
-	适用范围：全球
+::: details "Borrows" city names from other civilizations in the game
+	适用范围：Global
 
 :::
-::: details [amount] 倍城市拆除速度
-	示例："[3] 倍城市拆除速度"
+::: details Cities are razed [amount] times as fast
+	示例："Cities are razed [3] times as fast"
 
-	适用范围：全球
-
-:::
-::: details 每当在首都建成科研建筑 / 奇观时立刻获得一次科研点数奖励
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 黄金时代长度[relativeAmount]%
+::: details Receive a tech boost when scientific buildings/wonders are built in capital
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Golden Age length
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："黄金时代长度[+20]%"
+	示例："[+20]% Golden Age length"
 
-	适用范围：全球
-
-:::
-::: details [cityFilter]核武器造成的人口损失[relativeAmount]%
-	示例："[+20]核武器造成的人口损失[in all cities]%"
-
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details [cityFilter]核武器造成的防御损失[relativeAmount]%
-	示例："[+20]核武器造成的防御损失[in all cities]%"
+::: details Population loss from nuclear attacks [relativeAmount]% [cityFilter]
+	示例："Population loss from nuclear attacks [+20]% [in all cities]"
 
-	适用范围：全球
-
-:::
-::: details 可能会出现反叛单位
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 不可建造[buildingFilter]建筑
-	示例："不可建造[Culture]建筑"
+::: details Damage to garrison from nuclear attacks [relativeAmount]% [cityFilter]
+	示例："Damage to garrison from nuclear attacks [+20]% [in all cities]"
 
-	适用范围：全球
+	适用范围：Global
 
 :::
-::: details 战斗力[relativeAmount]%
+::: details Rebel units may spawn
+	适用范围：Global
+
+:::
+::: details Cannot build [buildingFilter] buildings
+	示例："Cannot build [Culture] buildings"
+
+	适用范围：Global
+
+:::
+::: details [relativeAmount]% Strength
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："战斗力[+20]%"
+	示例："[+20]% Strength"
 
-	适用范围：全球，单位
-
-:::
-::: details 战斗力[relativeAmount]
-	示例："战斗力[+20]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 战斗力加成随与首都的距离减小而增大,最高为[relativeAmount]%
-	示例："战斗力加成随与首都的距离减小而增大,最高为[+20]%"
+::: details [relativeAmount] Strength
+	示例："[+20] Strength"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 侧翼攻击加成[relativeAmount]%
+::: details [relativeAmount]% Strength decreasing with distance from the capital
+	示例："[+20]% Strength decreasing with distance from the capital"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount]% to Flank Attack bonuses
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："侧翼攻击加成[+20]%"
+	示例："[+20]% to Flank Attack bonuses"
 
-	适用范围：全球，单位
-
-:::
-::: details 在每回合可以额外攻击[amount]次
-	示例："在每回合可以额外攻击[3]次"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 移动力[amount]
-	示例："移动力[3]"
+::: details [amount] additional attacks per turn
+	示例："[3] additional attacks per turn"
 
-	适用范围：全球，单位
-
-:::
-::: details 视野[amount]
-	示例："视野[3]"
-
-	适用范围：全球，单位，地形修正，地块改良
+	适用范围：Global，Unit
 
 :::
-::: details 射程[amount]
-	示例："射程[3]"
+::: details [amount] Movement
+	示例："[3] Movement"
 
-	适用范围：全球，单位
-
-:::
-::: details 航空器拦截范围[relativeAmount]
-	示例："航空器拦截范围[+20]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 恢复时额外恢复[amount]点生命值
-	示例："恢复时额外恢复[3]点生命值"
+::: details [amount] Sight
+	示例："[3] Sight"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit，Terrain，Improvement
 
 :::
-::: details 宗教传播力量[relativeAmount]%
+::: details [amount] Range
+	示例："[3] Range"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount] Air Interception Range
+	示例："[+20] Air Interception Range"
+
+	适用范围：Global，Unit
+
+:::
+::: details [amount] HP when healing
+	示例："[3] HP when healing"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount]% Spread Religion Strength
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："宗教传播力量[+20]%"
+	示例："[+20]% Spread Religion Strength"
 
-	适用范围：全球，单位
-
-:::
-::: details 将新城传教成功时获得此城其他宗教教徒数量[amount]倍的[stat]
-	示例："将新城传教成功时获得此城其他宗教教徒数量[3]倍的[Culture]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 远程攻击能越过障碍
-	适用范围：全球，单位
+::: details When spreading religion to a city, gain [amount] times the amount of followers of other religions as [stat]
+	示例："When spreading religion to a city, gain [3] times the amount of followers of other religions as [Culture]"
+
+	适用范围：Global，Unit
 
 :::
-::: details 不受正面防御地形的影响
-	适用范围：全球，单位
+::: details Ranged attacks may be performed over obstacles
+	适用范围：Global，Unit
 
 :::
-::: details 不受负面防御地形的影响
-	适用范围：全球，单位
+::: details No defensive terrain bonus
+	适用范围：Global，Unit
 
 :::
-::: details 受伤单位免受伤害惩罚
-	适用范围：全球，单位
+::: details No defensive terrain penalty
+	适用范围：Global，Unit
 
 :::
-::: details 不能攻陷城市
-	适用范围：全球，单位
+::: details No damage penalty for wounded units
+	适用范围：Global，Unit
 
 :::
-::: details 不能劫掠地块
-	适用范围：全球，单位
+::: details Unable to capture cities
+	适用范围：Global，Unit
 
 :::
-::: details 劫掠不消耗移动力
-	适用范围：全球，单位
+::: details Unable to pillage tiles
+	适用范围：Global，Unit
 
 :::
-::: details 可以在友好领土之外自愈
-	适用范围：全球，单位
+::: details No movement cost to pillage
+	适用范围：Global，Unit
 
 :::
-::: details 所有生命回复效果翻倍
-	适用范围：全球，单位
+::: details May heal outside of friendly territory
+	适用范围：Global，Unit
 
 :::
-::: details 消灭敌方单位时恢复[amount]生命值
-	示例："消灭敌方单位时恢复[3]生命值"
-
-	适用范围：全球，单位
+::: details All healing effects doubled
+	适用范围：Global，Unit
 
 :::
-::: details 只能通过劫掠恢复生命值
-	适用范围：全球，单位
+::: details Heals [amount] damage if it kills a unit
+	示例："Heals [3] damage if it kills a unit"
+
+	适用范围：Global，Unit
 
 :::
-::: details 维护费[relativeAmount]%
+::: details Can only heal by pillaging
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount]% maintenance costs
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："维护费[+20]%"
+	示例："[+20]% maintenance costs"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 升级单位的金钱花费[relativeAmount]%
+::: details [relativeAmount]% Gold cost of upgrading
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："升级单位的金钱花费[+20]%"
+	示例："[+20]% Gold cost of upgrading"
 
-	适用范围：全球，单位
-
-:::
-::: details 对[combatantFilter]单位造成时获得伤害[amount]%的[stockpile]
-	示例："对[3]单位造成时获得伤害[City]%的[Mana]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 攻陷城市时获得它[stat]产出[amount]倍的[stockpile]
-	示例："攻陷城市时获得它[3]产出[Culture]倍的[Mana]"
+::: details Earn [amount]% of the damage done to [combatantFilter] units as [stockpile]
+	示例："Earn [3]% of the damage done to [City] units as [Mana]"
 
-	适用范围：全球，单位
-
-:::
-::: details 击杀敌方[mapUnitFilter]单位时获得[stockpile](≈已击杀单位的[costOrStrength]×[amount]%)
-	示例："击杀敌方[3]单位时获得[Wounded](≈已击杀单位的[Cost]×[Mana]%)"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 从每次战斗中额外获得[amount]XP
-	示例："从每次战斗中额外获得[3]XP"
+::: details Upon capturing a city, receive [amount] times its [stat] production as [stockpile] immediately
+	示例："Upon capturing a city, receive [3] times its [Culture] production as [Mana] immediately"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 从战斗中获得的经验[relativeAmount]%
+::: details Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]
+	示例："Earn [3]% of killed [Wounded] unit's [Cost] as [Mana]"
+
+	适用范围：Global，Unit
+
+:::
+::: details [amount] XP gained from combat
+	示例："[3] XP gained from combat"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount]% XP gained from combat
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："从战斗中获得的经验[+20]%"
+	示例："[+20]% XP gained from combat"
 
-	适用范围：全球，单位
-
-:::
-::: details [greatPerson]的招募速率[relativeAmount]%
-	示例："[Great General]的招募速率[+20]%"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 登陆时消耗[nonNegativeAmount]移动力
-	示例："登陆时消耗[3]移动力"
+::: details [greatPerson] is earned [relativeAmount]% faster
+	示例："[Great General] is earned [+20]% faster"
+
+	适用范围：Global，Unit
+
+:::
+::: details [nonNegativeAmount] Movement point cost to disembark
+	示例："[3] Movement point cost to disembark"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 下水时消耗[nonNegativeAmount]行动力
-	示例："下水时消耗[3]行动力"
+::: details [nonNegativeAmount] Movement point cost to embark
+	示例："[3] Movement point cost to embark"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-## 国家词条
-::: details 初始即拥有科技：[tech]
-	示例："初始即拥有科技：[Agriculture]"
+## Nation uniques（国家词条）
+::: details Starts with [tech]
+	示例："Starts with [Agriculture]"
 
-	适用范围：国家
+	适用范围：Nation
 
 :::
-::: details 游戏开始时就推行[policy]
-	示例："游戏开始时就推行[Oligarchy]"
+::: details Starts with [policy] adopted
+	示例："Starts with [Oligarchy] adopted"
 
-	适用范围：国家
+	适用范围：Nation
 
 :::
 ::: details Start bias [terrainFilter]
@@ -1506,25 +1506,25 @@ title: Unique 能力列表
 
 	示例："Start bias [Fresh Water]"
 
-	适用范围：国家，城邦
+	适用范围：Nation，CityState
 
 :::
-::: details 单位在己方森林和丛林地块上移动时视同在道路上移动，此类地块在研究轮子科技后可建立城市连接
+::: details All units move through Forest and Jungle Tiles in friendly territory as if they have roads. These tiles can be used to establish City Connections upon researching the Wheel.
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：国家
+	适用范围：Nation
 
 :::
-::: details 进行移动力损耗计算时忽略丘陵的影响
+::: details Units ignore terrain costs when moving into any tile with Hills
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：国家
+	适用范围：Nation
 
 :::
 ::: details Excluded from map editor
 	此词条自动对用户隐藏。
 
-	适用范围：国家，地形修正，地块改良，资源
+	适用范围：Nation，Terrain，Improvement，Resource
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -1536,26 +1536,26 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details 不能在新游戏中选择
-	适用范围：国家
+::: details Will not be chosen for new games
+	适用范围：Nation
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 个性词条
-::: details 禁止建造[baseUnitFilter/buildingFilter]
-	示例："禁止建造[Melee]"
+## Personality uniques（个性词条）
+::: details Will not build [baseUnitFilter/buildingFilter]
+	示例："Will not build [Melee]"
 
-	适用范围：个性
+	适用范围：Personality
 
 :::
 ::: details [relativeAmount]% weight to [baseUnitFilter/buildingFilter] for AI decisions
@@ -1563,41 +1563,41 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：个性
+	适用范围：Personality
 
 :::
-## 时代词条
-::: details 在此时代开始游戏将会禁用宗教
-	适用范围：时代
+## Era uniques（时代词条）
+::: details Starting in this era disables religion
+	适用范围：Era
 
 :::
-::: details 当第一个文明进入此时代后，每个文明(城邦除外)都会获得一个间谍
-	适用范围：时代
+::: details Every major Civilization gains a spy once a civilization enters this era
+	适用范围：Era
 
 :::
-## 科技词条
-::: details 初始科技
-	适用范围：科技
+## Tech uniques（科技词条）
+::: details Starting tech
+	适用范围：Tech
 
 :::
-::: details 可以持续研究
-	适用范围：科技
+::: details Can be continually researched
+	适用范围：Tech
 
 :::
-::: details 可用
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可加速建造
-	适用范围：科技，建筑
+::: details Cannot be hurried
+	适用范围：Tech，Building
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -1605,7 +1605,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -1617,28 +1617,28 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 政策词条
-::: details 可用
+## Policy uniques（政策词条）
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -1646,7 +1646,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -1658,51 +1658,51 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 创始人信仰词条
+## FounderBelief uniques（创始人信仰词条）
 ::: note
 
     创始人及增强类信条的词条，作用于该宗教的创始人
 :::
 
-::: details 所有信教的城市[stats]
-	示例："所有信教的城市[+1 Gold, +2 Production]"
+::: details [stats] for each global city following this religion
+	示例："[+1 Gold, +2 Production] for each global city following this religion"
 
-	适用范围：创始人信仰
-
-:::
-::: details [cityFilter]中每拥有[positiveAmount]单位全球教徒每回合[stats]
-	示例："[+1 Gold, +2 Production]中每拥有[3]单位全球教徒每回合[in all cities]"
-
-	适用范围：创始人信仰
+	适用范围：FounderBelief
 
 :::
-::: details 每个信徒都[relativeAmount]% [stat] ，但是最多到 [relativeAmount2]%
-	示例："每个信徒都[+20]% [Culture] ，但是最多到 [+20]%"
+::: details [stats] from every [positiveAmount] global followers [cityFilter]
+	示例："[+1 Gold, +2 Production] from every [3] global followers [in all cities]"
 
-	适用范围：创始人信仰，追随者信仰
+	适用范围：FounderBelief
 
 :::
-::: details 可用
+::: details [relativeAmount]% [stat] from every follower, up to [relativeAmount]%
+	示例："[+20]% [Culture] from every follower, up to [+20]%"
+
+	适用范围：FounderBelief，FollowerBelief
+
+:::
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -1710,7 +1710,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -1722,75 +1722,75 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 追随者信仰词条
+## FollowerBelief uniques（追随者信仰词条）
 ::: note
 
     万神殿与追随者类信条的词条，作用于该宗教为主导宗教的每座城市
 :::
 
-::: details [cityFilter][stats]
-	示例："[+1 Gold, +2 Production][in all cities]"
+::: details [stats] [cityFilter]
+	示例："[+1 Gold, +2 Production] [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]中的每个专业人员[stats]
-	示例："[+1 Gold, +2 Production]中的每个专业人员[in all cities]"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]每[positiveAmount]人口[stats]
-	示例："[+1 Gold, +2 Production]每[3]人口[in all cities]"
+::: details [stats] from every specialist [cityFilter]
+	示例："[+1 Gold, +2 Production] from every specialist [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 坐落于[terrainFilter]的城市[stats]
-	示例："坐落于[+1 Gold, +2 Production]的城市[Fresh Water]"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 所有[buildingFilter]建筑[stats]
-	示例："所有[+1 Gold, +2 Production]建筑[Culture]"
+::: details [stats] per [positiveAmount] population [cityFilter]
+	示例："[+1 Gold, +2 Production] per [3] population [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]的[tileFilter]地块[stats]
-	示例："[+1 Gold, +2 Production]的[Farm]地块[in all cities]"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]除[tileFilter2]地块之外的[tileFilter]的地块[stats]
-	示例："[+1 Gold, +2 Production]除[Farm]地块之外的[Farm]的地块[in all cities]"
+::: details [stats] in cities on [terrainFilter] tiles
+	示例："[+1 Gold, +2 Production] in cities on [Fresh Water] tiles"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stats] from all [buildingFilter] buildings
+	示例："[+1 Gold, +2 Production] from all [Culture] buildings"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stats] from [tileFilter] tiles [cityFilter]
+	示例："[+1 Gold, +2 Production] from [Farm] tiles [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stats] from [tileFilter] tiles without [tileFilter] [cityFilter]
+	示例："[+1 Gold, +2 Production] from [Farm] tiles without [Farm] [in all cities]"
+
+	适用范围：Global，FollowerBelief
 
 :::
 ::: details [stats] from every [tileFilter/specialist/buildingFilter]
 	示例："[+1 Gold, +2 Production] from every [Farm]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 每条贸易路线 [stats]
-	示例："每条贸易路线 [+1 Gold, +2 Production]"
+::: details [stats] from each Trade Route
+	示例："[+1 Gold, +2 Production] from each Trade Route"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
 ::: details [relativeAmount]% [stat]
@@ -1798,259 +1798,259 @@ title: Unique 能力列表
 
 	示例："[+20]% [Culture]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter][relativeAmount]%[stat]
+::: details [relativeAmount]% [stat] [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20][Culture]%[in all cities]"
+	示例："[+20]% [Culture] [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat] 来自每个 [tileFilter/buildingFilter]
+::: details [relativeAmount]% [stat] from every [tileFilter/buildingFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20]% [Culture] 来自每个 [Farm]"
+	示例："[+20]% [Culture] from every [Farm]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [relativeAmount]%来自每个[tileFilter/buildingFilter]的产出
+::: details [relativeAmount]% Yield from every [tileFilter/buildingFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20]%来自每个[Farm]的产出"
+	示例："[+20]% Yield from every [Farm]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 每个信徒都[relativeAmount]% [stat] ，但是最多到 [relativeAmount2]%
-	示例："每个信徒都[+20]% [Culture] ，但是最多到 [+20]%"
-
-	适用范围：创始人信仰，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter] 建造[buildingFilter]建筑 时 [relativeAmount]%产能
+::: details [relativeAmount]% [stat] from every follower, up to [relativeAmount]%
+	示例："[+20]% [Culture] from every follower, up to [+20]%"
+
+	适用范围：FounderBelief，FollowerBelief
+
+:::
+::: details [relativeAmount]% Production when constructing [buildingFilter] buildings [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20] 建造[Culture]建筑 时 [in all cities]%产能"
+	示例："[+20]% Production when constructing [Culture] buildings [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter] 建造[baseUnitFilter]单位 时 [relativeAmount]%产能
+::: details [relativeAmount]% Production when constructing [baseUnitFilter] units [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20] 建造[Melee]单位 时 [in all cities]%产能"
+	示例："[+20]% Production when constructing [Melee] units [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter] 建造[buildingFilter]奇观 时 [relativeAmount]%产能
+::: details [relativeAmount]% Production when constructing [buildingFilter] wonders [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[+20] 建造[Culture]奇观 时 [in all cities]%产能"
+	示例："[+20]% Production when constructing [Culture] wonders [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 当所有在首都已建成的建筑在其他城市建造时 [relativeAmount]% 产能
-	示例："当所有在首都已建成的建筑在其他城市建造时 [+20]% 产能"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter][relativeAmount]%人口增长
-	示例："[+20][in all cities]%人口增长"
+::: details [relativeAmount]% Production towards any buildings that already exist in the Capital
+	示例："[+20]% Production towards any buildings that already exist in the Capital"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]在人口增长后人口增长所需食物减少[amount]%
+::: details [relativeAmount]% growth [cityFilter]
+	示例："[+20]% growth [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [amount]% Food is carried over after population increases [cityFilter]
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："[3]在人口增长后人口增长所需食物减少[in all cities]%"
+	示例："[3]% Food is carried over after population increases [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]中[populationFilter]消耗的食物[relativeAmount]%
-	示例："[+20]中[Followers of this Religion]消耗的食物[in all cities]%"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter][populationFilter]造成的不快乐[relativeAmount]%
-	示例："[+20][Followers of this Religion]造成的不快乐[in all cities]%"
+::: details [relativeAmount]% Food consumption by [populationFilter] [cityFilter]
+	示例："[+20]% Food consumption by [Followers of this Religion] [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]可以以不断上涨的价格([nonNegativeAmount])用[amount][stat]购买[baseUnitFilter]单位
-	示例："[Melee]可以以不断上涨的价格([3])用[Culture][in all cities]购买[3]单位"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]可以以不断上涨的价格([nonNegativeAmount])用[amount][stat]购买[buildingFilter]建筑
-	示例："[Culture]可以以不断上涨的价格([3])用[Culture][in all cities]购买[3]建筑"
+::: details [relativeAmount]% Unhappiness from [populationFilter] [cityFilter]
+	示例："[+20]% Unhappiness from [Followers of this Religion] [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]可以用[nonNegativeAmount][stat]购买[baseUnitFilter]单位
-	示例："[Melee]可以用[3][Culture]购买[in all cities]单位"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]中可以用[nonNegativeAmount][stat]购买[buildingFilter]建筑
-	示例："[Culture]中可以用[3][Culture]购买[in all cities]建筑"
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+	示例："May buy [Melee] units for [3] [Culture] [in all cities] at an increasing price ([3])"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]可以用[stat]购买[baseUnitFilter]单位
-	示例："[Melee]可以用[Culture]购买[in all cities]单位"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]可以用[stat]购买[buildingFilter]建筑
-	示例："[Culture]可以用[Culture]购买[in all cities]建筑"
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+	示例："May buy [Culture] buildings for [3] [Culture] [in all cities] at an increasing price ([3])"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 可以用[stat]购买[baseUnitFilter]单位，价格为其正常生产成本的[nonNegativeAmount]倍
-	示例："可以用[Melee]购买[Culture]单位，价格为其正常生产成本的[3]倍"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 可以用[nonNegativeAmount]倍于其正常的生产花费的[stat]购买[buildingFilter]建筑
-	示例："可以用[Culture]倍于其正常的生产花费的[Culture]购买[3]建筑"
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter]
+	示例："May buy [Melee] units for [3] [Culture] [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 在城市建造/组建单位时的[stat]花费[relativeAmount]%
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter]
+	示例："May buy [Culture] buildings for [3] [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [baseUnitFilter] units with [stat] [cityFilter]
+	示例："May buy [Melee] units with [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [buildingFilter] buildings with [stat] [cityFilter]
+	示例："May buy [Culture] buildings with [Culture] [in all cities]"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [baseUnitFilter] units with [stat] for [nonNegativeAmount] times their normal Production cost
+	示例："May buy [Melee] units with [Culture] for [3] times their normal Production cost"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details May buy [buildingFilter] buildings with [stat] for [nonNegativeAmount] times their normal Production cost
+	示例："May buy [Culture] buildings with [Culture] for [3] times their normal Production cost"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [stat] cost of purchasing items in cities [relativeAmount]%
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："在城市建造/组建单位时的[Culture]花费[+20]%"
+	示例："[Culture] cost of purchasing items in cities [+20]%"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 购买[buildingFilter]建筑的[stat]花费[relativeAmount]%
+::: details [stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："购买[Culture]建筑的[Culture]花费[+20]%"
+	示例："[Culture] cost of purchasing [Culture] buildings [+20]%"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [baseUnitFilter]单位的[stat]花费[relativeAmount]%
+::: details [stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[Culture]单位的[Melee]花费[+20]%"
+	示例："[Culture] cost of purchasing [Melee] units [+20]%"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]中[buildingFilter]建筑维护费[relativeAmount]%
+::: details [relativeAmount]% maintenance cost for [buildingFilter] buildings [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]中[Culture]建筑维护费[in all cities]%"
+	示例："[+20]% maintenance cost for [Culture] buildings [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]自然扩张文化需求[relativeAmount]%
+::: details [relativeAmount]% Culture cost of natural border growth [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]自然扩张文化需求[in all cities]%"
+	示例："[+20]% Culture cost of natural border growth [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]购买地块金钱需求[relativeAmount]%
+::: details [relativeAmount]% Gold cost of acquiring tiles [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]购买地块金钱需求[in all cities]%"
+	示例："[+20]% Gold cost of acquiring tiles [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]伟人点数生成速度[relativeAmount]%
-	示例："[+20]伟人点数生成速度[in all cities]%"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]新训练的[baseUnitFilter]单位初始拥有[amount]XP
-	示例："[Melee]新训练的[3]单位初始拥有[in all cities]XP"
+::: details [relativeAmount]% Great Person generation [cityFilter]
+	示例："[+20]% Great Person generation [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details [cityFilter]新训练的[baseUnitFilter]单位初始拥有[promotion]晋升
-	示例："[Melee]新训练的[in all cities]单位初始拥有[Shock I]晋升"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 毗邻城市中心的[mapUnitFilter]单位自愈时额外[amount]HP
-	示例："毗邻城市中心的[Wounded]单位自愈时额外[3]HP"
+::: details New [baseUnitFilter] units start with [amount] XP [cityFilter]
+	示例："New [Melee] units start with [3] XP [in all cities]"
 
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 城市战斗力[relativeAmount]%
+::: details All newly-trained [baseUnitFilter] units [cityFilter] receive the [promotion] promotion
+	示例："All newly-trained [Melee] units [in all cities] receive the [Shock I] promotion"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [mapUnitFilter] Units adjacent to this city heal [amount] HP per turn when healing
+	示例："[Wounded] Units adjacent to this city heal [3] HP per turn when healing"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details [relativeAmount]% Strength for cities
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："城市战斗力[+20]%"
+	示例："[+20]% Strength for cities"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 获得[amount]单位[resource]
-	示例："获得[3]单位[Iron]"
-
-	适用范围：全球，追随者信仰，地块改良
+	适用范围：Global，FollowerBelief
 
 :::
-::: details [cityFilter]宗教自然传播[relativeAmount]%
+::: details Provides [amount] [resource]
+	示例："Provides [3] [Iron]"
+
+	适用范围：Global，FollowerBelief，Improvement
+
+:::
+::: details [relativeAmount]% Natural religion spread [cityFilter]
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："[+20]宗教自然传播[in all cities]%"
+	示例："[+20]% Natural religion spread [in all cities]"
 
-	适用范围：全球，追随者信仰
-
-:::
-::: details 宗教自然传播距离扩大[amount]地块
-	示例："宗教自然传播距离扩大[3]地块"
-
-	适用范围：全球，追随者信仰
+	适用范围：Global，FollowerBelief
 
 :::
-::: details 可用
+::: details Religion naturally spreads to cities [amount] tiles away
+	示例："Religion naturally spreads to cities [3] tiles away"
+
+	适用范围：Global，FollowerBelief
+
+:::
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 当[mapUnitFilter]单位中的[costOrStrength]在信仰该宗教的城市中4格范围内被击杀时获得其[stockpile]的[amount]%
-	示例："当[3]单位中的[Wounded]在信仰该宗教的城市中4格范围内被击杀时获得其[Cost]的[Mana]%"
+::: details Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion
+	示例："Earn [3]% of [Wounded] unit's [Cost] as [Mana] when killed within 4 tiles of a city following this religion"
 
-	适用范围：追随者信仰
+	适用范围：FollowerBelief
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -2058,7 +2058,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -2070,214 +2070,214 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
-
-:::
-## 建筑词条
-::: details 此城市中来自每个 [improvementFilter/buildingFilter] 中 [positiveAmount]% 的 [stat] 增添到 [resource] 中
-	示例："此城市中来自每个 [3] 中 [Culture]% 的 [All Road] 增添到 [Iron] 中"
-
-	适用范围：建筑
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details 消耗[amount]单位[resource]
-	示例："消耗[3]单位[Iron]"
+## Building uniques（建筑词条）
+::: details [positiveAmount]% of [stat] from every [improvementFilter/buildingFilter] in the city added to [resource]
+	示例："[3]% of [Culture] from every [All Road] in the city added to [Iron]"
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building
 
 :::
-::: details 消耗[amount][stockpiledResource]
+::: details Consumes [amount] [resource]
+	示例："Consumes [3] [Iron]"
+
+	适用范围：Building，Unit，Improvement
+
+:::
+::: details Costs [amount] [stockpiledResource]
 	These resources are removed *when work begins* on the construction. Do not confuse with "costs [amount] [stockpiledResource]" (lowercase 'c'), the Unit Action Modifier.
 
-	示例："消耗[3][Mana]"
+	示例："Costs [3] [Mana]"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 不可建造或训练
+::: details Unbuildable
 	Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 不可购买获得
-	适用范围：建筑，单位
+::: details Cannot be purchased
+	适用范围：Building，Unit
 
 :::
-::: details [cityFilter]可以使用[stat]购买
-	示例："[Culture]可以使用[in all cities]购买"
+::: details Can be purchased with [stat] [cityFilter]
+	示例："Can be purchased with [Culture] [in all cities]"
 
-	适用范围：建筑，单位
-
-:::
-::: details [cityFilter]可以用[amount][stat]购买
-	示例："[3]可以用[Culture][in all cities]购买"
-
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 每个文明限于[amount]个
-	示例："每个文明限于[3]个"
+::: details Can be purchased for [amount] [stat] [cityFilter]
+	示例："Can be purchased for [3] [Culture] [in all cities]"
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 可用
+::: details Limited to [amount] per Civilization
+	示例："Limited to [3] per Civilization"
+
+	适用范围：Building，Unit
+
+:::
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 组建过程中富余的食物将转化为产能
-	适用范围：建筑，单位
+::: details Excess Food converted to Production when under construction
+	适用范围：Building，Unit
 
 :::
-::: details 至少需要[amount]人口
-	示例："至少需要[3]人口"
+::: details Requires at least [amount] population
+	示例："Requires at least [3] population"
 
-	适用范围：建筑，单位
-
-:::
-::: details 在建造开始时触发全局警报
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 完成后触发全局警报
-	适用范围：建筑，单位
+::: details Triggers a global alert upon build start
+	适用范围：Building，Unit
 
 :::
-::: details 每座我方城市使建造时花费增加[amount]
-	示例："每座我方城市使建造时花费增加[3]"
-
-	适用范围：建筑，单位
+::: details Triggers a global alert upon completion
+	适用范围：Building，Unit
 
 :::
-::: details 每次重复建造使再次建造时花费增加[amount]
-	示例："每次重复建造使再次建造时花费增加[3]"
+::: details Cost increases by [amount] per owned city
+	示例："Cost increases by [3] per owned city"
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 造价[amount]%
+::: details Cost increases by [amount] when built
+	示例："Cost increases by [3] when built"
+
+	适用范围：Building，Unit
+
+:::
+::: details [amount]% production cost
 	Intended to be used with conditionals to dynamically alter construction costs. Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："造价[3]%"
+	示例："[3]% production cost"
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 只能建造
+::: details Can only be built
 	Meant to be used together with conditionals, like "Can only be built &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also NOT block Upgrade and Transform actions. See also OnlyAvailable.
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details (城市)[amount]格内的己方地块必须有[tileFilter]
-	示例："(城市)[Farm]格内的己方地块必须有[3]"
+::: details Must have an owned [tileFilter] within [amount] tiles
+	示例："Must have an owned [Farm] within [3] tiles"
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
-::: details 允许建造核武器
-	适用范围：建筑
+::: details Enables nuclear weapon
+	适用范围：Building
 
 :::
 ::: details Must be on [tileFilter]
 	示例："Must be on [Farm]"
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
-::: details (城市)不能位于[tileFilter]
-	示例："(城市)不能位于[Farm]"
+::: details Must not be on [tileFilter]
+	示例："Must not be on [Farm]"
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
 ::: details Must be next to [tileFilter]
 	示例："Must be next to [Farm]"
 
-	适用范围：建筑，地块改良
+	适用范围：Building，Improvement
 
 :::
-::: details (城市)不能建立在[tileFilter]旁边
-	示例："(城市)不能建立在[Farm]旁边"
+::: details Must not be next to [tileFilter]
+	示例："Must not be next to [Farm]"
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
-::: details 不可售卖
-	适用范围：建筑
+::: details Unsellable
+	适用范围：Building
 
 :::
 ::: details Obsolete with [tech]
 	示例："Obsolete with [Agriculture]"
 
-	适用范围：建筑，地块改良，资源
+	适用范围：Building，Improvement，Resource
 
 :::
-::: details 标记此城市为首都
-	适用范围：建筑
+::: details Indicates the capital city
+	适用范围：Building
 
 :::
-::: details 首都更迭时迁都
-	适用范围：建筑
+::: details Moves to new capital when capital changes
+	适用范围：Building
 
 :::
-::: details 此城开发的奢侈资源数量+1
-	适用范围：建筑
+::: details Provides 1 extra copy of each improved luxury resource near this City
+	适用范围：Building
 
 :::
-::: details 城市沦陷时摧毁
-	适用范围：建筑
+::: details Destroyed when the city is captured
+	适用范围：Building
 
 :::
-::: details 城市沦陷时不会摧毁
-	适用范围：建筑
+::: details Never destroyed when the city is captured
+	适用范围：Building
 
 :::
-::: details 该城市被敌人占领时，敌人额外获得[relativeAmount]%金钱。
-	示例："该城市被敌人占领时，敌人额外获得[+20]%金钱。"
+::: details [relativeAmount]% Gold given to enemy if city is captured
+	示例："[+20]% Gold given to enemy if city is captured"
 
-	适用范围：建筑
-
-:::
-::: details 消除吞并城市带来的额外不满
-	适用范围：建筑
+	适用范围：Building
 
 :::
-::: details 通过海路建立贸易路线
-	适用范围：建筑
+::: details Removes extra unhappiness from annexed cities
+	适用范围：Building
 
 :::
-::: details 在所有可能的城市中自动建造
-	适用范围：建筑
+::: details Connects trade routes over water
+	适用范围：Building
 
 :::
-::: details 可以在一个特定的地块上建造[improvementName]
+::: details Automatically built in all cities where it is buildable
+	适用范围：Building
+
+:::
+::: details Creates a [improvementName] improvement on a specific tile
 	When choosing to construct this building, the player must select a tile where the improvement can be built. Upon building completion, the tile will gain this improvement. Limited to one per building.
 
-	示例："可以在一个特定的地块上建造[Trading Post]"
+	示例："Creates a [Trading Post] improvement on a specific tile"
 
 	此词条不支持条件。
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
 ::: details Hidden from city screen
@@ -2285,31 +2285,31 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
-::: details 可在同一城市建造 [amount] 次
+::: details Can be built [amount] times in each city
 	Allows this building to be constructed multiple times in the same city. Using -1 allows unlimited times.
 
-	示例："可在同一城市建造 [3] 次"
+	示例："Can be built [3] times in each city"
 
-	适用范围：建筑
+	适用范围：Building
 
 :::
-::: details 可装载[amount]个额外的[mapUnitFilter]单位
+::: details Can carry [amount] extra [mapUnitFilter] units
 	For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.
 
-	示例："可装载[3]个额外的[Wounded]单位"
+	示例："Can carry [3] extra [Wounded] units"
 
-	适用范围：建筑，单位
-
-:::
-::: details 太空飞船部件
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 不可加速建造
-	适用范围：科技，建筑
+::: details Spaceship part
+	适用范围：Building，Unit
+
+:::
+::: details Cannot be hurried
+	适用范围：Tech，Building
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -2317,7 +2317,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -2329,415 +2329,415 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
 ::: details Shown while unbuilable
 	此词条自动对用户隐藏。
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 单位行动词条
+## UnitAction uniques（单位行动词条）
 ::: note
 
     影响单位行动的词条，可用 UnitActionModifiers 修饰
 :::
 
-::: details 建立新城市
-	适用范围：单位行动
+::: details Founds a new city
+	适用范围：UnitAction
 
 :::
-::: details 建立新傀儡城市
-	适用范围：单位行动
+::: details Founds a new puppet city
+	适用范围：UnitAction
 
 :::
-::: details 可立即建造[improvementFilter]地块改良
-	示例："可立即建造[All Road]地块改良"
+::: details Can instantly construct a [improvementFilter] improvement
+	示例："Can instantly construct a [All Road] improvement"
 
-	适用范围：单位行动
-
-:::
-::: details 可以传播宗教
-	适用范围：单位行动
+	适用范围：UnitAction
 
 :::
-::: details 可以驱除城市异教
-	适用范围：单位行动
+::: details Can Spread Religion
+	适用范围：UnitAction
 
 :::
-::: details 可创建一个宗教
-	适用范围：单位行动
+::: details Can remove other religions from cities
+	适用范围：UnitAction
 
 :::
-::: details 可增强一个宗教
-	适用范围：单位行动
+::: details May found a religion
+	适用范围：UnitAction
 
 :::
-::: details 可以转换为[unit]
+::: details May enhance a religion
+	适用范围：UnitAction
+
+:::
+::: details Can transform to [unit]
 	By default consumes all movement
 
-	示例："可以转换为[Musketman]"
+	示例："Can transform to [Musketman]"
 
-	适用范围：单位行动
+	适用范围：UnitAction
 
 :::
-## 单位词条
+## Unit uniques（单位词条）
 ::: note
 
     可添加到单位、单位类型或晋升的词条
 :::
 
-::: details 掠夺地块的收益[relativeAmount]%
-	示例："掠夺地块的收益[+20]%"
+::: details [relativeAmount]% Yield from pillaging tiles
+	示例："[+20]% Yield from pillaging tiles"
 
-	适用范围：全球，单位
-
-:::
-::: details 掠夺地块的血量恢复[relativeAmount]%
-	示例："掠夺地块的血量恢复[+20]%"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 对 [improvementFilter] 地块改良 [relativeAmount]% 的建造时间
-	示例："对 [+20] 地块改良 [All Road]% 的建造时间"
+::: details [relativeAmount]% Health from pillaging tiles
+	示例："[+20]% Health from pillaging tiles"
 
-	适用范围：全球，单位
-
-:::
-::: details 可以以[relativeAmount]%的速度建造[improvementFilter]地块改进改良。
-	示例："可以以[All Road]%的速度建造[+20]地块改进改良。"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details [relativeAmount]%来源于大商人贸易任务的金钱
-	示例："[+20]%来源于大商人贸易任务的金钱"
+::: details [relativeAmount]% construction time for [improvementFilter] improvements
+	示例："[+20]% construction time for [All Road] improvements"
 
-	适用范围：全球，单位
-
-:::
-::: details 大军事家提供双倍战斗力加成
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 消耗[amount]单位[resource]
-	示例："消耗[3]单位[Iron]"
+::: details Can build [improvementFilter] improvements at a [relativeAmount]% rate
+	示例："Can build [All Road] improvements at a [+20]% rate"
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Global，Unit
 
 :::
-::: details 消耗[amount][stockpiledResource]
+::: details [relativeAmount]% Gold from Great Merchant trade missions
+	示例："[+20]% Gold from Great Merchant trade missions"
+
+	适用范围：Global，Unit
+
+:::
+::: details Great General provides double combat bonus
+	适用范围：Global，Unit
+
+:::
+::: details Consumes [amount] [resource]
+	示例："Consumes [3] [Iron]"
+
+	适用范围：Building，Unit，Improvement
+
+:::
+::: details Costs [amount] [stockpiledResource]
 	These resources are removed *when work begins* on the construction. Do not confuse with "costs [amount] [stockpiledResource]" (lowercase 'c'), the Unit Action Modifier.
 
-	示例："消耗[3][Mana]"
+	示例："Costs [3] [Mana]"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 不可建造或训练
+::: details Unbuildable
 	Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 不可购买获得
-	适用范围：建筑，单位
+::: details Cannot be purchased
+	适用范围：Building，Unit
 
 :::
-::: details [cityFilter]可以使用[stat]购买
-	示例："[Culture]可以使用[in all cities]购买"
+::: details Can be purchased with [stat] [cityFilter]
+	示例："Can be purchased with [Culture] [in all cities]"
 
-	适用范围：建筑，单位
-
-:::
-::: details [cityFilter]可以用[amount][stat]购买
-	示例："[3]可以用[Culture][in all cities]购买"
-
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 每个文明限于[amount]个
-	示例："每个文明限于[3]个"
+::: details Can be purchased for [amount] [stat] [cityFilter]
+	示例："Can be purchased for [3] [Culture] [in all cities]"
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 可用
+::: details Limited to [amount] per Civilization
+	示例："Limited to [3] per Civilization"
+
+	适用范围：Building，Unit
+
+:::
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 组建过程中富余的食物将转化为产能
-	适用范围：建筑，单位
+::: details Excess Food converted to Production when under construction
+	适用范围：Building，Unit
 
 :::
-::: details 至少需要[amount]人口
-	示例："至少需要[3]人口"
+::: details Requires at least [amount] population
+	示例："Requires at least [3] population"
 
-	适用范围：建筑，单位
-
-:::
-::: details 在建造开始时触发全局警报
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 完成后触发全局警报
-	适用范围：建筑，单位
+::: details Triggers a global alert upon build start
+	适用范围：Building，Unit
 
 :::
-::: details 每座我方城市使建造时花费增加[amount]
-	示例："每座我方城市使建造时花费增加[3]"
-
-	适用范围：建筑，单位
+::: details Triggers a global alert upon completion
+	适用范围：Building，Unit
 
 :::
-::: details 每次重复建造使再次建造时花费增加[amount]
-	示例："每次重复建造使再次建造时花费增加[3]"
+::: details Cost increases by [amount] per owned city
+	示例："Cost increases by [3] per owned city"
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 造价[amount]%
+::: details Cost increases by [amount] when built
+	示例："Cost increases by [3] when built"
+
+	适用范围：Building，Unit
+
+:::
+::: details [amount]% production cost
 	Intended to be used with conditionals to dynamically alter construction costs. Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："造价[3]%"
+	示例："[3]% production cost"
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 只能建造
+::: details Can only be built
 	Meant to be used together with conditionals, like "Can only be built &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also NOT block Upgrade and Transform actions. See also OnlyAvailable.
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details 可在水上资源建造改良
-	适用范围：单位
+::: details May create improvements on water resources
+	适用范围：Unit
 
 :::
-::: details 可以建造地块改良：[improvementFilter/terrainFilter]
-	示例："可以建造地块改良：[All Road]"
+::: details Can build [improvementFilter/terrainFilter] improvements on tiles
+	示例："Can build [All Road] improvements on tiles"
 
-	适用范围：单位
-
-:::
-::: details 可以被加入在首都的[comment]
-	示例："可以被加入在首都的[comment]"
-
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 阻止紧邻城市的宗教传播
-	适用范围：单位
+::: details Can be added to [comment] in the Capital
+	示例："Can be added to [comment] in the Capital"
+
+	适用范围：Unit
 
 :::
-::: details  传播宗教时消除异端
-	适用范围：单位
+::: details Prevents spreading of religion to the city it is next to
+	适用范围：Unit
 
 :::
-::: details 可向[tileFilter]区域空投，最远[positiveAmount]格
-	示例："可向[Farm]区域空投，最远[3]格"
-
-	适用范围：单位
+::: details Removes other religions when spreading religion
+	适用范围：Unit
 
 :::
-::: details 可以进行空中扫荡
-	适用范围：单位
+::: details May Paradrop to [tileFilter] tiles up to [positiveAmount] tiles away
+	示例："May Paradrop to [Farm] tiles up to [3] tiles away"
+
+	适用范围：Unit
 
 :::
-::: details 可以加速建筑物的建造
-	适用范围：单位
+::: details Can perform Air Sweep
+	适用范围：Unit
 
 :::
-::: details 可以加速奇观的建造
-	适用范围：单位
+::: details Can speed up construction of a building
+	适用范围：Unit
 
 :::
-::: details 可以加速科技研究
-	适用范围：单位
+::: details Can speed up the construction of a wonder
+	适用范围：Unit
 
 :::
-::: details 可产生大量文化
-	适用范围：单位
+::: details Can hurry technology research
+	适用范围：Unit
 
 :::
-::: details 可以拓展与城邦的贸易，获得大笔金钱和[amount]影响力
-	示例："可以拓展与城邦的贸易，获得大笔金钱和[3]影响力"
+::: details Can generate a large amount of culture
+	适用范围：Unit
 
-	适用范围：单位
+:::
+::: details Can undertake a trade mission with City-State, giving a large sum of gold and [amount] Influence
+	示例："Can undertake a trade mission with City-State, giving a large sum of gold and [3] Influence"
+
+	适用范围：Unit
 
 :::
 ::: details Automation is a primary action
 	此词条自动对用户隐藏。
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 战斗力[relativeAmount]%
+::: details [relativeAmount]% Strength
 	Multiple bonuses stack additively: +50% + +50% = +100%
 
-	示例："战斗力[+20]%"
+	示例："[+20]% Strength"
 
-	适用范围：全球，单位
-
-:::
-::: details 战斗力[relativeAmount]
-	示例："战斗力[+20]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 战斗力加成随与首都的距离减小而增大,最高为[relativeAmount]%
-	示例："战斗力加成随与首都的距离减小而增大,最高为[+20]%"
+::: details [relativeAmount] Strength
+	示例："[+20] Strength"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 侧翼攻击加成[relativeAmount]%
+::: details [relativeAmount]% Strength decreasing with distance from the capital
+	示例："[+20]% Strength decreasing with distance from the capital"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount]% to Flank Attack bonuses
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："侧翼攻击加成[+20]%"
+	示例："[+20]% to Flank Attack bonuses"
 
-	适用范围：全球，单位
-
-:::
-::: details 位于相邻的[tileFilter]地块中的敌方[mapUnitFilter]单位[relativeAmount]%战斗力
-	示例："位于相邻的[+20]地块中的敌方[Wounded]单位[Farm]%战斗力"
-
-	适用范围：单位
+	适用范围：Global，Unit
 
 :::
-::: details 在[amount]格内[mapUnitFilter]单位[relativeAmount]%战斗力
-	示例："在[+20]格内[Wounded]单位[3]%战斗力"
+::: details [relativeAmount]% Strength for enemy [mapUnitFilter] units in adjacent [tileFilter] tiles
+	示例："[+20]% Strength for enemy [Wounded] units in adjacent [Farm] tiles"
 
-	适用范围：单位
-
-:::
-::: details 在每回合可以额外攻击[amount]次
-	示例："在每回合可以额外攻击[3]次"
-
-	适用范围：全球，单位
+	适用范围：Unit
 
 :::
-::: details 移动力[amount]
-	示例："移动力[3]"
+::: details [relativeAmount]% Strength bonus for [mapUnitFilter] units within [amount] tiles
+	示例："[+20]% Strength bonus for [Wounded] units within [3] tiles"
 
-	适用范围：全球，单位
-
-:::
-::: details 视野[amount]
-	示例："视野[3]"
-
-	适用范围：全球，单位，地形修正，地块改良
+	适用范围：Unit
 
 :::
-::: details 射程[amount]
-	示例："射程[3]"
+::: details [amount] additional attacks per turn
+	示例："[3] additional attacks per turn"
 
-	适用范围：全球，单位
-
-:::
-::: details 航空器拦截范围[relativeAmount]
-	示例："航空器拦截范围[+20]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 恢复时额外恢复[amount]点生命值
-	示例："恢复时额外恢复[3]点生命值"
+::: details [amount] Movement
+	示例："[3] Movement"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
+
+:::
+::: details [amount] Sight
+	示例："[3] Sight"
+
+	适用范围：Global，Unit，Terrain，Improvement
+
+:::
+::: details [amount] Range
+	示例："[3] Range"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount] Air Interception Range
+	示例："[+20] Air Interception Range"
+
+	适用范围：Global，Unit
+
+:::
+::: details [amount] HP when healing
+	示例："[3] HP when healing"
+
+	适用范围：Global，Unit
 
 :::
 ::: details Before engaging in combat performs an extra ranged attack with [amount]% of melee combat strength
 	示例："Before engaging in combat performs an extra ranged attack with [3]% of melee combat strength"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 宗教传播力量[relativeAmount]%
+::: details [relativeAmount]% Spread Religion Strength
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："宗教传播力量[+20]%"
+	示例："[+20]% Spread Religion Strength"
 
-	适用范围：全球，单位
-
-:::
-::: details 将新城传教成功时获得此城其他宗教教徒数量[amount]倍的[stat]
-	示例："将新城传教成功时获得此城其他宗教教徒数量[3]倍的[Culture]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 只能攻击[combatantFilter]单位
-	示例："只能攻击[City]单位"
+::: details When spreading religion to a city, gain [amount] times the amount of followers of other religions as [stat]
+	示例："When spreading religion to a city, gain [3] times the amount of followers of other religions as [Culture]"
 
-	适用范围：单位
-
-:::
-::: details 只能攻击[tileFilter]地块
-	示例："只能攻击[Farm]地块"
-
-	适用范围：单位
+	适用范围：Global，Unit
 
 :::
-::: details 不可攻击
-	适用范围：单位
+::: details Can only attack [combatantFilter] units
+	示例："Can only attack [City] units"
+
+	适用范围：Unit
 
 :::
-::: details 必须架设才能远程攻击
-	适用范围：单位
+::: details Can only attack [tileFilter] tiles
+	示例："Can only attack [Farm] tiles"
+
+	适用范围：Unit
 
 :::
-::: details 攻击时自毁
-	适用范围：单位
+::: details Cannot attack
+	适用范围：Unit
 
 :::
-::: details 消除跨海攻击的地形影响
-	适用范围：单位
+::: details Must set up to ranged attack
+	适用范围：Unit
 
 :::
-::: details 陆军单位可以在船载时攻击
-	适用范围：单位
+::: details Self-destructs when attacking
+	适用范围：Unit
 
 :::
-::: details 无视跨河攻击时的战斗力减益
-	适用范围：单位
+::: details Eliminates combat penalty for attacking across a coast
+	适用范围：Unit
 
 :::
-::: details 爆炸半径：[amount]
-	示例："爆炸半径：[3]"
-
-	适用范围：单位
+::: details May attack when embarked
+	适用范围：Unit
 
 :::
-::: details 远程攻击能越过障碍
-	适用范围：全球，单位
+::: details Eliminates combat penalty for attacking over a river
+	适用范围：Unit
 
 :::
-::: details 核武器威力：[amount]
-	示例："核武器威力：[3]"
+::: details Blast radius [amount]
+	示例："Blast radius [3]"
 
-	适用范围：单位
+	适用范围：Unit
+
+:::
+::: details Ranged attacks may be performed over obstacles
+	适用范围：Global，Unit
+
+:::
+::: details Nuclear weapon of Strength [amount]
+	示例："Nuclear weapon of Strength [3]"
+
+	适用范围：Unit
 
 :::
 ::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles
@@ -2747,7 +2747,7 @@ title: Unique 能力列表
 
 	示例："Attacks also target [Wounded] units within [3] tiles"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
 ::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance
@@ -2759,7 +2759,7 @@ title: Unique 能力列表
 
 	示例："Attacks also target [Wounded] units within [3] tiles, with damage decreasing by distance"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
 ::: details Takes [relativeAmount]% damage from own area attacks
@@ -2767,7 +2767,7 @@ title: Unique 能力列表
 
 	示例："Takes [+20]% damage from own area attacks"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
 ::: details Takes [relativeAmount]% counter damage from each unit hit by its area attacks
@@ -2775,377 +2775,377 @@ title: Unique 能力列表
 
 	示例："Takes [+20]% counter damage from each unit hit by its area attacks"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 不受正面防御地形的影响
-	适用范围：全球，单位
+::: details No defensive terrain bonus
+	适用范围：Global，Unit
 
 :::
-::: details 不受负面防御地形的影响
-	适用范围：全球，单位
+::: details No defensive terrain penalty
+	适用范围：Global，Unit
 
 :::
-::: details 受伤单位免受伤害惩罚
-	适用范围：全球，单位
+::: details No damage penalty for wounded units
+	适用范围：Global，Unit
 
 :::
-::: details 不可捕获
-	适用范围：单位
+::: details Uncapturable
+	适用范围：Unit
 
 :::
-::: details 在近战前撤退
-	适用范围：单位
+::: details Withdraws before melee combat
+	适用范围：Unit
 
 :::
-::: details 不能攻陷城市
-	适用范围：全球，单位
+::: details Unable to capture cities
+	适用范围：Global，Unit
 
 :::
-::: details 不能劫掠地块
-	适用范围：全球，单位
+::: details Unable to pillage tiles
+	适用范围：Global，Unit
 
 :::
-::: details [cityFilter]类型城市无法被占领，只能被摧毁 
+::: details Destroys [cityFilter] cities instead of capturing
 	The unit will destroy [cityFilter] cities instead of capturing them, also allows non-melee units to destroy cities.Capital cities (including city states) are immune to this effect.
 
-	示例："[in all cities]类型城市无法被占领，只能被摧毁 "
+	示例："Destroys [in all cities] cities instead of capturing"
 
-	适用范围：单位
-
-:::
-::: details 劫掠不消耗移动力
-	适用范围：全球，单位
+	适用范围：Unit
 
 :::
-::: details 攻击后可移动
-	适用范围：单位
+::: details No movement cost to pillage
+	适用范围：Global，Unit
 
 :::
-::: details 将移动力转移至[mapUnitFilter]单位
-	示例："将移动力转移至[Wounded]单位"
-
-	适用范围：单位
+::: details Can move after attacking
+	适用范围：Unit
 
 :::
-::: details 购买后无需等待一回合而可立即行动
-	适用范围：单位
+::: details Transfer Movement to [mapUnitFilter]
+	示例："Transfer Movement to [Wounded]"
+
+	适用范围：Unit
 
 :::
-::: details 可以在友好领土之外自愈
-	适用范围：全球，单位
+::: details Can move immediately once bought
+	适用范围：Unit
 
 :::
-::: details 所有生命回复效果翻倍
-	适用范围：全球，单位
+::: details May heal outside of friendly territory
+	适用范围：Global，Unit
 
 :::
-::: details 消灭敌方单位时恢复[amount]生命值
-	示例："消灭敌方单位时恢复[3]生命值"
-
-	适用范围：全球，单位
+::: details All healing effects doubled
+	适用范围：Global，Unit
 
 :::
-::: details 只能通过劫掠恢复生命值
-	适用范围：全球，单位
+::: details Heals [amount] damage if it kills a unit
+	示例："Heals [3] damage if it kills a unit"
+
+	适用范围：Global，Unit
 
 :::
-::: details 回合结束时自动恢复一定生命值
-	适用范围：单位
+::: details Can only heal by pillaging
+	适用范围：Global，Unit
 
 :::
-::: details 所有相邻单位在恢复时额外[amount]生命值
-	示例："所有相邻单位在恢复时额外[3]生命值"
-
-	适用范围：单位
+::: details Unit will heal every turn, even if it performs an action
+	适用范围：Unit
 
 :::
-::: details 无视野
-	适用范围：单位
+::: details All adjacent units heal [amount] HP when healing
+	示例："All adjacent units heal [3] HP when healing"
+
+	适用范围：Unit
 
 :::
-::: details 视野可以跨过障碍
-	适用范围：单位
+::: details No Sight
+	适用范围：Unit
 
 :::
-::: details 可装载[amount]个[mapUnitFilter]单位
-	示例："可装载[3]个[Wounded]单位"
-
-	适用范围：单位
+::: details Can see over obstacles
+	适用范围：Unit
 
 :::
-::: details 可装载[amount]个额外的[mapUnitFilter]单位
+::: details Can carry [amount] [mapUnitFilter] units
+	示例："Can carry [3] [Wounded] units"
+
+	适用范围：Unit
+
+:::
+::: details Can carry [amount] extra [mapUnitFilter] units
 	For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.
 
-	示例："可装载[3]个额外的[Wounded]单位"
+	示例："Can carry [3] extra [Wounded] units"
 
-	适用范围：建筑，单位
-
-:::
-::: details [mapUnitFilter]单位无法装载
-	示例："[Wounded]单位无法装载"
-
-	适用范围：单位
+	适用范围：Building，Unit
 
 :::
-::: details [relativeAmount]%几率拦截来袭的敌军飞机
-	示例："[+20]%几率拦截来袭的敌军飞机"
+::: details Cannot be carried by [mapUnitFilter] units
+	示例："Cannot be carried by [Wounded] units"
 
-	适用范围：单位
-
-:::
-::: details 遭受拦截时的损伤减少[relativeAmount]%
-	示例："遭受拦截时的损伤减少[+20]%"
-
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 拦截敌方飞机时伤害[relativeAmount]%
-	示例："拦截敌方飞机时伤害[+20]%"
+::: details [relativeAmount]% chance to intercept air attacks
+	示例："[+20]% chance to intercept air attacks"
 
-	适用范围：单位
-
-:::
-::: details 每回合拦截次数额外[amount]
-	示例："每回合拦截次数额外[3]"
-
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 不可拦截
-	适用范围：单位
+::: details Damage taken from interception reduced by [relativeAmount]%
+	示例："Damage taken from interception reduced by [+20]%"
+
+	适用范围：Unit
 
 :::
-::: details 无法拦截[mapUnitFilter]单位！
-	示例："无法拦截[Wounded]单位！"
+::: details [relativeAmount]% Damage when intercepting
+	示例："[+20]% Damage when intercepting"
 
-	适用范围：单位
-
-:::
-::: details 进行空中扫荡时力度[relativeAmount]%
-	示例："进行空中扫荡时力度[+20]%"
-
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 维护费[relativeAmount]%
+::: details [amount] extra interceptions may be made per turn
+	示例："[3] extra interceptions may be made per turn"
+
+	适用范围：Unit
+
+:::
+::: details Cannot be intercepted
+	适用范围：Unit
+
+:::
+::: details Cannot intercept [mapUnitFilter] units
+	示例："Cannot intercept [Wounded] units"
+
+	适用范围：Unit
+
+:::
+::: details [relativeAmount]% Strength when performing Air Sweep
+	示例："[+20]% Strength when performing Air Sweep"
+
+	适用范围：Unit
+
+:::
+::: details [relativeAmount]% maintenance costs
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："维护费[+20]%"
+	示例："[+20]% maintenance costs"
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 升级单位的金钱花费[relativeAmount]%
+::: details [relativeAmount]% Gold cost of upgrading
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："升级单位的金钱花费[+20]%"
+	示例："[+20]% Gold cost of upgrading"
 
-	适用范围：全球，单位
-
-:::
-::: details 对[combatantFilter]单位造成时获得伤害[amount]%的[stockpile]
-	示例："对[3]单位造成时获得伤害[City]%的[Mana]"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 攻陷城市时获得它[stat]产出[amount]倍的[stockpile]
-	示例："攻陷城市时获得它[3]产出[Culture]倍的[Mana]"
+::: details Earn [amount]% of the damage done to [combatantFilter] units as [stockpile]
+	示例："Earn [3]% of the damage done to [City] units as [Mana]"
 
-	适用范围：全球，单位
-
-:::
-::: details 击杀敌方[mapUnitFilter]单位时获得[stockpile](≈已击杀单位的[costOrStrength]×[amount]%)
-	示例："击杀敌方[3]单位时获得[Wounded](≈已击杀单位的[Cost]×[Mana]%)"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 能俘虏敌方被打败的[mapUnitFilter]单位
-	示例："能俘虏敌方被打败的[Wounded]单位"
+::: details Upon capturing a city, receive [amount] times its [stat] production as [stockpile] immediately
+	示例："Upon capturing a city, receive [3] times its [Culture] production as [Mana] immediately"
 
-	适用范围：单位
-
-:::
-::: details 从每次战斗中额外获得[amount]XP
-	示例："从每次战斗中额外获得[3]XP"
-
-	适用范围：全球，单位
+	适用范围：Global，Unit
 
 :::
-::: details 从战斗中获得的经验[relativeAmount]%
+::: details Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]
+	示例："Earn [3]% of killed [Wounded] unit's [Cost] as [Mana]"
+
+	适用范围：Global，Unit
+
+:::
+::: details May capture killed [mapUnitFilter] units
+	示例："May capture killed [Wounded] units"
+
+	适用范围：Unit
+
+:::
+::: details [amount] XP gained from combat
+	示例："[3] XP gained from combat"
+
+	适用范围：Global，Unit
+
+:::
+::: details [relativeAmount]% XP gained from combat
 	Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
-	示例："从战斗中获得的经验[+20]%"
+	示例："[+20]% XP gained from combat"
 
-	适用范围：全球，单位
-
-:::
-::: details 可通过战斗获得
-	适用范围：单位
+	适用范围：Global，Unit
 
 :::
-::: details [greatPerson]的招募速率[relativeAmount]%
-	示例："[Great General]的招募速率[+20]%"
-
-	适用范围：全球，单位
+::: details Can be earned through combat
+	适用范围：Unit
 
 :::
-::: details 对其他单位隐形
-	适用范围：单位
+::: details [greatPerson] is earned [relativeAmount]% faster
+	示例："[Great General] is earned [+20]% faster"
+
+	适用范围：Global，Unit
 
 :::
-::: details 对非相邻单位隐身
-	适用范围：单位
+::: details Invisible to others
+	适用范围：Unit
 
 :::
-::: details 能发现隐形的[mapUnitFilter]单位
-	示例："能发现隐形的[Wounded]单位"
-
-	适用范围：单位
+::: details Invisible to non-adjacent units
+	适用范围：Unit
 
 :::
-::: details 可在废墟中升级为[unit]
-	示例："可在废墟中升级为[Musketman]"
+::: details Can see invisible [mapUnitFilter] units
+	示例："Can see invisible [Wounded] units"
 
-	适用范围：单位
-
-:::
-::: details 可升级为[unit]
-	示例："可升级为[Musketman]"
-
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 攻击时摧毁地块改良
-	适用范围：单位
+::: details May upgrade to [unit] through ruins-like effects
+	示例："May upgrade to [Musketman] through ruins-like effects"
+
+	适用范围：Unit
 
 :::
-::: details 不可移动
+::: details Can upgrade to [unit]
+	示例："Can upgrade to [Musketman]"
+
+	适用范围：Unit
+
+:::
+::: details Destroys tile improvements when attacking
+	适用范围：Unit
+
+:::
+::: details Cannot move
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 在[terrainFilter]中拥有双倍移动力
-	示例："在[Fresh Water]中拥有双倍移动力"
-
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 进行移动力损耗计算时忽略所有影响
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 下水时不处于船运状态
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 可以穿过无法通行的地块
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 进行移动力损耗计算时忽略负面影响
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 忽视地块控制权
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 进行移动力损耗计算时强调崎岖地形的影响
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 可进入冰区
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 不能船运
-	适用范围：单位
-
-:::
-::: details 不能进入海洋地块
-	适用范围：单位
-
-:::
-::: details 可进入外国未开放边界的领土
-	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
-
-	适用范围：单位
-
-:::
-::: details 可进入外国未开放边界的领土，在外国领土结束回合时失去[amount]宗教力量
-	示例："可进入外国未开放边界的领土，在外国领土结束回合时失去[3]宗教力量"
+::: details Double movement in [terrainFilter]
+	示例："Double movement in [Fresh Water]"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 登陆时消耗[nonNegativeAmount]移动力
-	示例："登陆时消耗[3]移动力"
+::: details All tiles cost 1 movement
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details May travel on Water tiles without embarking
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details Can pass through impassable tiles
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details Ignores terrain cost
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details Ignores Zone of Control
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details Rough terrain penalty
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details Can enter ice tiles
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details Cannot embark
+	适用范围：Unit
+
+:::
+::: details Cannot enter ocean tiles
+	适用范围：Unit
+
+:::
+::: details May enter foreign tiles without open borders
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Unit
+
+:::
+::: details May enter foreign tiles without open borders, but loses [amount] religious strength each turn it ends there
+	示例："May enter foreign tiles without open borders, but loses [3] religious strength each turn it ends there"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：全球，单位
+	适用范围：Unit
 
 :::
-::: details 下水时消耗[nonNegativeAmount]行动力
-	示例："下水时消耗[3]行动力"
+::: details [nonNegativeAmount] Movement point cost to disembark
+	示例："[3] Movement point cost to disembark"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
-	适用范围：全球，单位
+	适用范围：Global，Unit
+
+:::
+::: details [nonNegativeAmount] Movement point cost to embark
+	示例："[3] Movement point cost to embark"
+
+	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
+
+	适用范围：Global，Unit
 
 :::
 ::: details Never appears as a Barbarian unit
 	此词条自动对用户隐藏。
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 宗教单位
-	适用范围：单位
+::: details Religious Unit
+	适用范围：Unit
 
 :::
-::: details 太空飞船部件
-	适用范围：建筑，单位
+::: details Spaceship part
+	适用范围：Building，Unit
 
 :::
-::: details 使其他文明的城市信仰你的宗教，甚至消灭其他宗教
-	适用范围：单位
+::: details Takes your religion over the one in their birth city
+	适用范围：Unit
 
 :::
-::: details [comment]类伟人
-	示例："[comment]类伟人"
+::: details Great Person - [comment]
+	示例："Great Person - [comment]"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
-::: details 是[comment]类伟人的一部分
+::: details Is part of Great Person group [comment]
 	Great people in the same group increase teach other's costs when gained. Gaining one will make all others in the same group cost more GPP.
 
-	示例："是[comment]类伟人的一部分"
+	示例："Is part of Great Person group [comment]"
 
-	适用范围：单位
+	适用范围：Unit
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -3157,24 +3157,24 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
 ::: details Shown while unbuilable
 	此词条自动对用户隐藏。
 
-	适用范围：建筑，单位
+	适用范围：Building，Unit
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 单位类别词条
+## UnitType uniques（单位类别词条）
 ::: details Will not be displayed in Civilopedia
 	Supports conditionals that need only a Game as context and nothing else.
 
@@ -3184,42 +3184,42 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 晋升项词条
-::: details 可用
+## Promotion uniques（晋升项词条）
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Not shown on world screen
 	此词条自动对用户隐藏。
 
-	适用范围：晋升项，资源
+	适用范围：Promotion，Resource
 
 :::
-::: details 这样做将消耗掉这次晋升机会
-	适用范围：晋升项
+::: details Doing so will consume this opportunity to choose a Promotion
+	适用范围：Promotion
 
 :::
-::: details 免费晋升
-	适用范围：晋升项
+::: details This Promotion is free
+	适用范围：Promotion
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -3227,7 +3227,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -3239,28 +3239,28 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 地形修正词条
+## Terrain uniques（地形修正词条）
 ::: details [stats]
 	示例："[+1 Gold, +2 Production]"
 
-	适用范围：全球，地形修正，地块改良
+	适用范围：Global，Terrain，Improvement
 
 :::
-::: details 视野[amount]
-	示例："视野[3]"
+::: details [amount] Sight
+	示例："[3] Sight"
 
-	适用范围：全球，单位，地形修正，地块改良
+	适用范围：Global，Unit，Terrain，Improvement
 
 :::
 ::: details Must be adjacent to [amount] [simpleTerrain] tiles
@@ -3268,15 +3268,15 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details Must be adjacent to [amount] to [amount2] [simpleTerrain] tiles
+::: details Must be adjacent to [amount] to [amount] [simpleTerrain] tiles
 	示例："Must be adjacent to [3] to [3] [Elevated] tiles"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Must not be on [amount] largest landmasses
@@ -3284,7 +3284,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
 ::: details Must be on [amount] largest landmasses
@@ -3292,23 +3292,23 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
-::: details Occurs on latitudes from [amount] to [amount2] percent of distance equator to pole
+::: details Occurs on latitudes from [amount] to [amount] percent of distance equator to pole
 	示例："Occurs on latitudes from [3] to [3] percent of distance equator to pole"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details Occurs in groups of [amount] to [amount2] tiles
+::: details Occurs in groups of [amount] to [amount] tiles
 	示例："Occurs in groups of [3] to [3] tiles"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Neighboring tiles will convert to [baseTerrain/terrainFeature]
@@ -3320,73 +3320,73 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 赠与首个发现的文明[stats]
-	示例："赠与首个发现的文明[+1 Gold, +2 Production]"
+::: details Grants [stats] to the first civilization to discover it
+	示例："Grants [+1 Gold, +2 Production] to the first civilization to discover it"
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 单位在此地形结束回合时将受到[amount]伤害
-	示例："单位在此地形结束回合时将受到[3]伤害"
+::: details Units ending their turn on this terrain take [amount] damage
+	示例："Units ending their turn on this terrain take [3] damage"
 
 	由于性能考虑，此词条会被缓存，回合内可能变化的条件可能不生效。
 
 	此词条不支持条件。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 向相邻的[mapUnitFilter]单位授予[promotion]([comment])
-	示例："向相邻的[Shock I]单位授予[comment]([Wounded])"
+::: details Grants [promotion] ([comment]) to adjacent [mapUnitFilter] units for the rest of the game
+	示例："Grants [Shock I] ([comment]) to adjacent [Wounded] units for the rest of the game"
 
-	适用范围：地形修正
-
-:::
-::: details 在此地形上建立的城市[amount]战斗力
-	示例："在此地形上建立的城市[3]战斗力"
-
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 在移除后一次性为最近的城市产出[stats]
-	示例："在移除后一次性为最近的城市产出[+1 Gold, +2 Production]"
+::: details [amount] Strength for cities built on this terrain
+	示例："[3] Strength for cities built on this terrain"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	此词条的效果可被 &lt;(受游戏进程影响，且至多到[relativeAmount]%)&gt;
-
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 植被
-	适用范围：地形修正，地块改良
+::: details Provides a one-time bonus of [stats] to the closest city when cut down
+	示例："Provides a one-time bonus of [+1 Gold, +2 Production] to the closest city when cut down"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	此词条的效果可被 &lt;(modified by game progress up to [relativeAmount]%)&gt;
+
+	适用范围：Terrain
 
 :::
-::: details 地块提供产量无需指定人口
-	适用范围：地形修正，地块改良
+::: details Vegetation
+	适用范围：Terrain，Improvement
 
 :::
-::: details 取消此地块的所有产出加成
-	适用范围：地形修正
+::: details Tile provides yield without assigned population
+	适用范围：Terrain，Improvement
 
 :::
-::: details 只有[improvementFilter]能被建造在此地块上
-	示例："只有[All Road]能被建造在此地块上"
-
-	适用范围：地形修正
+::: details Nullifies all other stats this tile provides
+	适用范围：Terrain
 
 :::
-::: details 可挡住来自同海拔地块的视线
-	适用范围：地形修正
+::: details Only [improvementFilter] improvements may be built on this tile
+	示例："Only [All Road] improvements may be built on this tile"
+
+	适用范围：Terrain
 
 :::
-::: details 计算单位的视野范围时按高程[amount]计算
-	示例："计算单位的视野范围时按高程[3]计算"
+::: details Blocks line-of-sight from tiles at same elevation
+	适用范围：Terrain
 
-	适用范围：地形修正
+:::
+::: details Has an elevation of [amount] for visibility calculations
+	示例："Has an elevation of [3] for visibility calculations"
+
+	适用范围：Terrain
 
 :::
 ::: details Always Fertility [amount] for Map Generation
@@ -3394,7 +3394,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details [amount] to Fertility for Map Generation
@@ -3402,37 +3402,37 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details A Region is formed with at least [amount]% [simpleTerrain] tiles, with priority [amount2]
+::: details A Region is formed with at least [amount]% [simpleTerrain] tiles, with priority [amount]
 	示例："A Region is formed with at least [3]% [Elevated] tiles, with priority [3]"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details A Region is formed with at least [amount]% [simpleTerrain] tiles and [simpleTerrain2] tiles, with priority [amount2]
+::: details A Region is formed with at least [amount]% [simpleTerrain] tiles and [simpleTerrain] tiles, with priority [amount]
 	示例："A Region is formed with at least [3]% [Elevated] tiles and [Elevated] tiles, with priority [3]"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details A Region can not contain more [simpleTerrain] tiles than [simpleTerrain2] tiles
+::: details A Region can not contain more [simpleTerrain] tiles than [simpleTerrain] tiles
 	示例："A Region can not contain more [Elevated] tiles than [Elevated] tiles"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Base Terrain on this tile is not counted for Region determination
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Starts in regions of this type receive an extra [resource]
@@ -3440,13 +3440,13 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Never receives any resources
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Becomes [terrainName] when adjacent to [terrainFilter]
@@ -3454,7 +3454,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Considered [terrainQuality] when determining start locations
@@ -3462,33 +3462,33 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Doesn't generate naturally
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
-::: details Occurs at temperature between [fraction] and [fraction2] and humidity between [fraction3] and [fraction4]
+::: details Occurs at temperature between [fraction] and [fraction] and humidity between [fraction] and [fraction]
 	示例："Occurs at temperature between [0.5] and [0.5] and humidity between [0.5] and [0.5]"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
 ::: details Occurs in chains at high elevations
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Occurs in groups around high elevations
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Every [amount] tiles with this terrain will receive a major deposit of a strategic resource.
@@ -3496,28 +3496,28 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 稀有地貌
-	适用范围：地形修正
+::: details Rare feature
+	适用范围：Terrain
 
 :::
-::: details 被核武器攻击时有[amount]%概率毁灭
-	示例："被核武器攻击时有[3]%概率毁灭"
+::: details [amount]% Chance to be destroyed by nukes
+	示例："[3]% Chance to be destroyed by nukes"
 
-	适用范围：地形修正
-
-:::
-::: details 淡水
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
-::: details 崎岖地形
-	适用范围：地形修正
+::: details Fresh water
+	适用范围：Terrain
 
 :::
-::: details 沿海
+::: details Rough terrain
+	适用范围：Terrain
+
+:::
+::: details Coastal Water
 	Marks water tiles as Coast - all other water tiles count as Ocean. These distinctions are relevant e.g. for map generator or the ability to navigate here.
 
 	Note that terrain filters do not recognize this distinction, filtering for "Coast" or "Ocean" will only look for a terrain of that name.
@@ -3526,13 +3526,13 @@ title: Unique 能力列表
 
 	A tile marked this way marks adjacent land tiles as "Coastal", so they fulfill the terrain filter, and cities built there can build ships, Harbor, etc.
 
-	适用范围：地形修正
+	适用范围：Terrain
 
 :::
 ::: details Excluded from map editor
 	此词条自动对用户隐藏。
 
-	适用范围：国家，地形修正，地块改良，资源
+	适用范围：Nation，Terrain，Improvement，Resource
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -3544,15 +3544,15 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
 ::: details Suppress warning [validationWarning]
@@ -3564,176 +3564,176 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型，地形修正，游戏速度，模组选项，元修饰
+	适用范围：Triggerable，Terrain，Speed，ModOptions，MetaModifier
 
 :::
-## 地块改良词条
+## Improvement uniques（地块改良词条）
 ::: details [stats]
 	示例："[+1 Gold, +2 Production]"
 
-	适用范围：全球，地形修正，地块改良
+	适用范围：Global，Terrain，Improvement
 
 :::
-::: details 消耗[amount]单位[resource]
-	示例："消耗[3]单位[Iron]"
+::: details Consumes [amount] [resource]
+	示例："Consumes [3] [Iron]"
 
-	适用范围：建筑，单位，地块改良
-
-:::
-::: details 获得[amount]单位[resource]
-	示例："获得[3]单位[Iron]"
-
-	适用范围：全球，追随者信仰，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 消耗[amount][stockpiledResource]
+::: details Provides [amount] [resource]
+	示例："Provides [3] [Iron]"
+
+	适用范围：Global，FollowerBelief，Improvement
+
+:::
+::: details Costs [amount] [stockpiledResource]
 	These resources are removed *when work begins* on the construction. Do not confuse with "costs [amount] [stockpiledResource]" (lowercase 'c'), the Unit Action Modifier.
 
-	示例："消耗[3][Mana]"
+	示例："Costs [3] [Mana]"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 不可建造或训练
+::: details Unbuildable
 	Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
 
-	适用范围：建筑，单位，地块改良
+	适用范围：Building，Unit，Improvement
 
 :::
-::: details 可用
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Must be next to [tileFilter]
 	示例："Must be next to [Farm]"
 
-	适用范围：建筑，地块改良
+	适用范围：Building，Improvement
 
 :::
 ::: details Obsolete with [tech]
 	示例："Obsolete with [Agriculture]"
 
-	适用范围：建筑，地块改良，资源
+	适用范围：Building，Improvement，Resource
 
 :::
-::: details 视野[amount]
-	示例："视野[3]"
+::: details [amount] Sight
+	示例："[3] Sight"
 
-	适用范围：全球，单位，地形修正，地块改良
-
-:::
-::: details 植被
-	适用范围：地形修正，地块改良
+	适用范围：Global，Unit，Terrain，Improvement
 
 :::
-::: details 地块提供产量无需指定人口
-	适用范围：地形修正，地块改良
+::: details Vegetation
+	适用范围：Terrain，Improvement
+
+:::
+::: details Tile provides yield without assigned population
+	适用范围：Terrain，Improvement
 
 :::
 ::: details Excluded from map editor
 	此词条自动对用户隐藏。
 
-	适用范围：国家，地形修正，地块改良，资源
+	适用范围：Nation，Terrain，Improvement，Resource
 
 :::
-::: details 也能建造在毗邻淡水的地块
-	适用范围：地块改良
+::: details Can also be built on tiles adjacent to fresh water
+	适用范围：Improvement
 
 :::
-::: details 使[tileFilter]地块[stats]
-	示例："使[+1 Gold, +2 Production]地块[Farm]"
+::: details [stats] from [tileFilter] tiles
+	示例："[+1 Gold, +2 Production] from [Farm] tiles"
 
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
 ::: details [stats] for each adjacent [tileFilter]
 	示例："[+1 Gold, +2 Production] for each adjacent [Farm]"
 
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 保底产出[stats]
-	示例："保底产出[+1 Gold, +2 Production]"
+::: details Ensures a minimum tile yield of [stats]
+	示例："Ensures a minimum tile yield of [+1 Gold, +2 Production]"
 
-	适用范围：地块改良
-
-:::
-::: details 可在你的国土外建造
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 可在与己方地块相邻的非己方地块上建造
-	适用范围：地块改良
+::: details Can be built outside your borders
+	适用范围：Improvement
 
 :::
-::: details 只能建在[tileFilter]地块上
-	示例："只能建在[Farm]地块上"
-
-	适用范围：地块改良
+::: details Can be built just outside your borders
+	适用范围：Improvement
 
 :::
-::: details 无法建在[tileFilter]地块上
-	示例："无法建在[Farm]地块上"
+::: details Can only be built on [tileFilter] tiles
+	示例："Can only be built on [Farm] tiles"
 
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 只能在可以获得资源的情况下建造
-	适用范围：地块改良
+::: details Cannot be built on [tileFilter] tiles
+	示例："Cannot be built on [Farm] tiles"
+
+	适用范围：Improvement
+
+:::
+::: details Can only be built to improve a resource
+	适用范围：Improvement
 
 :::
 ::: details Does not need removal of [terrainFeature]
 	示例："Does not need removal of [Hill]"
 
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 在建造时移除可移除地貌
-	适用范围：地块改良
+::: details Removes removable features when built
+	适用范围：Improvement
 
 :::
-::: details 提供[relativeAmount]%防御力加成
+::: details Gives a defensive bonus of [relativeAmount]%
 	Does not accept unit-based conditionals
 
-	示例："提供[+20]%防御力加成"
+	示例："Gives a defensive bonus of [+20]%"
 
-	适用范围：地块改良
-
-:::
-::: details 建在你的领土内时每回合扣除[amount][stat] 
-	示例："建在你的领土内时每回合扣除[3][Culture] "
-
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 每回合扣除[amount][stat] 
-	示例："每回合扣除[3][Culture] "
+::: details Costs [amount] [stat] per turn when in your territory
+	示例："Costs [3] [Culture] per turn when in your territory"
 
-	适用范围：地块改良
-
-:::
-::: details 相邻的敌方单位结束回合时受到[amount]伤害
-	示例："相邻的敌方单位结束回合时受到[3]伤害"
-
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 伟人改良
-	适用范围：地块改良
+::: details Costs [amount] [stat] per turn
+	示例："Costs [3] [Culture] per turn"
+
+	适用范围：Improvement
 
 :::
-::: details 有单位进入则提供随机奖励
-	适用范围：地块改良
+::: details Adjacent enemy units ending their turn take [amount] damage
+	示例："Adjacent enemy units ending their turn take [3] damage"
+
+	适用范围：Improvement
+
+:::
+::: details Great Improvement
+	适用范围：Improvement
+
+:::
+::: details Provides a random bonus when entered
+	适用范围：Improvement
 
 :::
 ::: details Marks a barbarian camp
@@ -3741,53 +3741,53 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 不可劫掠
-	适用范围：地块改良
+::: details Unpillagable
+	适用范围：Improvement
 
 :::
-::: details 劫掠该地块改良可获得约[stats]
-	示例："劫掠该地块改良可获得约[+1 Gold, +2 Production]"
+::: details Pillaging this improvement yields approximately [stats]
+	示例："Pillaging this improvement yields approximately [+1 Gold, +2 Production]"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	此词条的效果可被 &lt;(受游戏进程影响，且至多到[relativeAmount]%)&gt;
+	此词条的效果可被 &lt;(modified by game progress up to [relativeAmount]%)&gt;
 
-	适用范围：地块改良
-
-:::
-::: details 劫掠该地块改良可获得[stats]
-	示例："劫掠该地块改良可获得[+1 Gold, +2 Production]"
-
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
-
-	此词条的效果可被 &lt;(受游戏进程影响，且至多到[relativeAmount]%)&gt;
-
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
-::: details 劫掠后被摧毁
-	适用范围：地块改良
+::: details Pillaging this improvement yields [stats]
+	示例："Pillaging this improvement yields [+1 Gold, +2 Production]"
+
+	此词条的效果可被 &lt;(modified by game speed)&gt;
+
+	此词条的效果可被 &lt;(modified by game progress up to [relativeAmount]%)&gt;
+
+	适用范围：Improvement
 
 :::
-::: details 不可劫掠且不可摧毁
-	适用范围：地块改良
+::: details Destroyed when pillaged
+	适用范围：Improvement
 
 :::
-::: details 将不会自动交换单位
-	适用范围：地块改良
+::: details Irremovable
+	适用范围：Improvement
 
 :::
-::: details 改良此地块的[resourceFilter]资源
+::: details Will not be replaced by automated units
+	适用范围：Improvement
+
+:::
+::: details Improves [resourceFilter] resource in this tile
 	This is offered as an alternative to the improvedBy field of a resource. The result will be cached within the resource definition when loading a game, without knowledge about terrain, cities, civs, units or time. Therefore, most conditionals will not work, only those **not** dependent on game state.
 
-	示例："改良此地块的[Strategic]资源"
+	示例："Improves [Strategic] resource in this tile"
 
 	此词条不支持条件。
 
-	适用范围：地块改良
+	适用范围：Improvement
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -3799,22 +3799,22 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 资源词条
+## Resource uniques（资源词条）
 ::: details Obsolete with [tech]
 	示例："Obsolete with [Agriculture]"
 
-	适用范围：建筑，地块改良，资源
+	适用范围：Building，Improvement，Resource
 
 :::
 ::: details Must not be on [amount] largest landmasses
@@ -3822,7 +3822,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
 ::: details Must be on [amount] largest landmasses
@@ -3830,59 +3830,59 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
 ::: details Doesn't generate naturally
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
-::: details Occurs at temperature between [fraction] and [fraction2] and humidity between [fraction3] and [fraction4]
+::: details Occurs at temperature between [fraction] and [fraction] and humidity between [fraction] and [fraction]
 	示例："Occurs at temperature between [0.5] and [0.5] and humidity between [0.5] and [0.5]"
 
 	此词条自动对用户隐藏。
 
-	适用范围：地形修正，资源
+	适用范围：Terrain，Resource
 
 :::
 ::: details Excluded from map editor
 	此词条自动对用户隐藏。
 
-	适用范围：国家，地形修正，地块改良，资源
+	适用范围：Nation，Terrain，Improvement，Resource
 
 :::
-::: details [tileFilter]地块始终提供[amount]资源
-	示例："[Farm]地块始终提供[3]资源"
+::: details Deposits in [tileFilter] tiles always provide [amount] resources
+	示例："Deposits in [Farm] tiles always provide [3] resources"
 
-	适用范围：资源
-
-:::
-::: details 只能由商业城邦产出
-	适用范围：资源
+	适用范围：Resource
 
 :::
-::: details 具有可堆叠性
+::: details Can only be created by Mercantile City-States
+	适用范围：Resource
+
+:::
+::: details Stockpiled
 	This resource is accumulated each turn, rather than having a set of producers and consumers at a given moment.The current stockpiled amount can be affected with trigger uniques.
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
-::: details 城市级别资源
+::: details City-level resource
 	This resource is calculated on a per-city level rather than a per-civ level
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
-::: details 无法交易
-	适用范围：资源
+::: details Cannot be traded
+	适用范围：Resource
 
 :::
 ::: details Not shown on world screen
 	此词条自动对用户隐藏。
 
-	适用范围：晋升项，资源
+	适用范围：Promotion，Resource
 
 :::
 ::: details Generated with weight [amount]
@@ -3892,7 +3892,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
 ::: details Minor deposits generated with weight [amount]
@@ -3902,7 +3902,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
 ::: details Generated near City States with weight [amount]
@@ -3912,13 +3912,13 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
 ::: details Special placement during map generation
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
 ::: details Generated on every [amount] tiles
@@ -3926,11 +3926,11 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
-::: details 开启战略平衡选项时一定出现在出生点附近
-	适用范围：资源
+::: details Guaranteed with Strategic Balance resource option
+	适用范围：Resource
 
 :::
 ::: details AI will sell at [amount] Gold
@@ -3938,7 +3938,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
 ::: details AI will buy at [amount] Gold
@@ -3946,7 +3946,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：资源
+	适用范围：Resource
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -3958,40 +3958,40 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 遗迹词条
-::: details 可用
+## Ruins uniques（遗迹词条）
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 在遗迹中发现[unit]
-	示例："在遗迹中发现[Musketman]"
+::: details Free [unit] found in the ruins
+	示例："Free [Musketman] found in the ruins"
 
-	适用范围：遗迹
+	适用范围：Ruins
 
 :::
-::: details 从距离一个废墟[positiveAmount]格外随机选择一个的地块处，以[positiveAmount3]%的可能性揭示至多[positiveAmount2]格地块
-	示例："从距离一个废墟[3]格外随机选择一个的地块处，以[3]%的可能性揭示至多[3]格地块"
+::: details From a randomly chosen tile [positiveAmount] tiles away from the ruins, reveal tiles up to [positiveAmount] tiles away with [positiveAmount]% chance
+	示例："From a randomly chosen tile [3] tiles away from the ruins, reveal tiles up to [3] tiles away with [3]% chance"
 
-	适用范围：遗迹
+	适用范围：Ruins
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -4003,18 +4003,18 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 游戏速度词条
+## Speed uniques（游戏速度词条）
 ::: note
 
     速度词条将作为所选游戏速度的 GlobalUniques 的一部分
@@ -4029,15 +4029,15 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
 ::: details Suppress warning [validationWarning]
@@ -4049,10 +4049,10 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型，地形修正，游戏速度，模组选项，元修饰
+	适用范围：Triggerable，Terrain，Speed，ModOptions，MetaModifier
 
 :::
-## 难度词条
+## Difficulty uniques（难度词条）
 ::: note
 
     难度词条将作为所选游戏难度的 GlobalUniques 的一部分
@@ -4067,26 +4067,26 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
-
-:::
-## 城邦词条
-::: details 每经过约[positiveAmount]回合提供一个军事单位
-	示例："每经过约[3]回合提供一个军事单位"
-
-	适用范围：城邦
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details 提供一种独特的奢侈资源
-	适用范围：城邦
+## CityState uniques（城邦词条）
+::: details Provides military units every ≈[positiveAmount] turns
+	示例："Provides military units every ≈[3] turns"
+
+	适用范围：CityState
+
+:::
+::: details Provides a unique luxury
+	适用范围：CityState
 
 :::
 ::: details Start bias [terrainFilter]
@@ -4094,66 +4094,66 @@ title: Unique 能力列表
 
 	示例："Start bias [Fresh Water]"
 
-	适用范围：国家，城邦
+	适用范围：Nation，CityState
 
 :::
-## 模组选项词条
-::: details 暂不能改变外交关系
+## ModOptions uniques（模组选项词条）
+::: details Diplomatic relationships cannot change
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 可通过滑块将金币转换为科学值
+::: details Can convert gold to science with sliders
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 允许开局时城邦带有额外单位
+::: details Allow City States to spawn with additional units
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 可以用[positiveAmount]金币认识第三方文明
-	示例："可以用[3]金币认识第三方文明"
+::: details Can trade civilization introductions for [positiveAmount] Gold
+	示例："Can trade civilization introductions for [3] Gold"
 
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 禁用宗教
+::: details Disable religion
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 只能从起始时代开始游戏
+::: details Can only start games from the starting era
 	In this case, 'starting era' means the first defined Era in the entire ruleset.
 
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 允许摧毁首都
+::: details Allow raze capital
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 允许摧毁圣城
+::: details Allow raze holy city
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
 ::: details Allow cities to claim tiles
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
 ::: details City-states search for first city location
@@ -4161,7 +4161,7 @@ title: Unique 能力列表
 
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
 ::: details Suppress warning [validationWarning]
@@ -4173,83 +4173,83 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型，地形修正，游戏速度，模组选项，元修饰
+	适用范围：Triggerable，Terrain，Speed，ModOptions，MetaModifier
 
 :::
-::: details Mod与[modFilter]不兼容
+::: details Mod is incompatible with [modFilter]
 	Specifies that your Mod is incompatible with another. Always treated symmetrically, and cannot be overridden by the Mod you are declaring as incompatible.
 
-	示例："Mod与[DeCiv Redux]不兼容"
+	示例："Mod is incompatible with [DeCiv Redux]"
 
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details Mod 需要 [modFilter]
+::: details Mod requires [modFilter]
 	Specifies that your Extension Mod is only available if any other Mod matching the filter is active.
 
 	Multiple copies of this Unique cannot be used to specify alternatives, they work as 'and' logic. If you need alternates and wildcards can't filter them well enough, please open an issue.
 
-	示例："Mod 需要 [DeCiv Redux]"
+	示例："Mod requires [DeCiv Redux]"
 
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 只能用作永久视听Mod
+::: details Should only be used as permanent audiovisual mod
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 可作为永久视听Mod
+::: details Can be used as permanent audiovisual mod
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 不能用作永久视听Mod
+::: details Cannot be used as permanent audiovisual mod
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-::: details 模组预选地图：[comment]
+::: details Mod preselects map [comment]
 	Only meaningful for Mods containing several maps. When this mod is selected on the new game screen's custom maps mod dropdown, the named map will be selected on the map dropdown. Also disables selection by recently modified. Case insensitive.
 
-	示例："模组预选地图：[comment]"
+	示例："Mod preselects map [comment]"
 
 	此词条不支持条件。
 
-	适用范围：模组选项
+	适用范围：ModOptions
 
 :::
-## 事件词条
-::: details 可用
+## Event uniques（事件词条）
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-## 事件选择词条
-::: details 可用
+## EventChoice uniques（事件选择词条）
+::: details Only available
 	Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
-::: details 不可用
+::: details Unavailable
 	Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，单位，晋升项，地块改良，遗迹，事件，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -4257,7 +4257,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：科技，政策，创始人信仰，追随者信仰，建筑，晋升项，事件选择
+	适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Promotion，EventChoice
 
 :::
 ::: details Will not be displayed in Civilopedia
@@ -4269,111 +4269,111 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-::: details [comment]
+::: details Comment [comment]
 	Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
 
-	示例："[comment]"
+	示例："Comment [comment]"
 
-	适用范围：国家，科技，政策，创始人信仰，追随者信仰，建筑，单位，单位类别，晋升项，地形修正，地块改良，资源，遗迹，游戏速度，难度，事件选择
+	适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## 有前提的词条
+## Conditional uniques（有前提的词条）
 ::: note
 
     可添加到其他词条的修饰符，用于限制其生效时机
 :::
 
-::: details &lt;每[positiveAmount]回合&gt;
-	示例："&lt;每[3]回合&gt;"
+::: details &lt;every [positiveAmount] turns&gt;
+	示例："&lt;every [3] turns&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;[nonNegativeAmount]回合之前&gt;
-	示例："&lt;[3]回合之前&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;[nonNegativeAmount]回合之后&gt;
-	示例："&lt;[3]回合之后&gt;"
+::: details &lt;before turn number [nonNegativeAmount]&gt;
+	示例："&lt;before turn number [3]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;以[speed]速度游玩时&gt;
-	示例："&lt;以[Quick]速度游玩时&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在[difficulty]难度下&gt;
-	示例："&lt;在[Prince]难度下&gt;"
+::: details &lt;after turn number [nonNegativeAmount]&gt;
+	示例："&lt;after turn number [3]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在[difficulty]或更高的难度下&gt;
-	示例："&lt;在[Prince]或更高的难度下&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在[difficulty]或更低的难度下&gt;
-	示例："&lt;在[Prince]或更低的难度下&gt;"
+::: details &lt;on [speed] game speed&gt;
+	示例："&lt;on [Quick] game speed&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;若[victoryType]胜利方式可用&gt;
-	示例："&lt;若[Domination]胜利方式可用&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;若[victoryType]胜利方式禁用&gt;
-	示例："&lt;若[Domination]胜利方式禁用&gt;"
+::: details &lt;on [difficulty] difficulty&gt;
+	示例："&lt;on [Prince] difficulty&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;若启用宗教&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;若禁用宗教&gt;
-	适用范围：有前提的
+::: details &lt;on [difficulty] difficulty or higher&gt;
+	示例："&lt;on [Prince] difficulty or higher&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;若启用间谍&gt;
-	适用范围：有前提的
+::: details &lt;on [difficulty] difficulty or lower&gt;
+	示例："&lt;on [Prince] difficulty or lower&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;若禁用间谍&gt;
-	适用范围：有前提的
+::: details &lt;when [victoryType] Victory is enabled&gt;
+	示例："&lt;when [Domination] Victory is enabled&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;若启用核武器&gt;
-	适用范围：有前提的
+::: details &lt;when [victoryType] Victory is disabled&gt;
+	示例："&lt;when [Domination] Victory is disabled&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;若禁用核武器&gt;
-	适用范围：有前提的
+::: details &lt;when religion is enabled&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;有[nonNegativeAmount]%概率&gt;
-	示例："&lt;有[3]%概率&gt;"
+::: details &lt;when religion is disabled&gt;
+	适用范围：Conditional
 
-	适用范围：有前提的
+:::
+::: details &lt;when espionage is enabled&gt;
+	适用范围：Conditional
+
+:::
+::: details &lt;when espionage is disabled&gt;
+	适用范围：Conditional
+
+:::
+::: details &lt;when nuclear weapons are enabled&gt;
+	适用范围：Conditional
+
+:::
+::: details &lt;when nuclear weapons are disabled&gt;
+	适用范围：Conditional
+
+:::
+::: details &lt;with [nonNegativeAmount]% chance&gt;
+	示例："&lt;with [3]% chance&gt;"
+
+	适用范围：Conditional
 
 :::
 ::: details &lt;if tutorials are enabled&gt;
 	此词条自动对用户隐藏。
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
 ::: details &lt;if tutorial [comment] is completed&gt;
@@ -4381,821 +4381,821 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;令[civFilter]&gt;
-	示例："&lt;令[City-States]&gt;"
+::: details &lt;for [civFilter] Civilizations&gt;
+	示例："&lt;for [City-States] Civilizations&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;交战时&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;和平时&gt;
-	适用范围：有前提的
+::: details &lt;when at war&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;黄金时代期间&gt;
-	适用范围：有前提的
+::: details &lt;when not at war&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;非黄金时代期间&gt;
-	适用范围：有前提的
+::: details &lt;during a Golden Age&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;“我们爱戴领袖日”期间&gt;
-	适用范围：有前提的
+::: details &lt;when not in a Golden Age&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;处于快乐时&gt;
-	适用范围：有前提的
+::: details &lt;during We Love The King Day&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;处于[era]时&gt;
-	示例："&lt;处于[Ancient era]时&gt;"
-
-	适用范围：有前提的
+::: details &lt;while the empire is happy&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在[era]前&gt;
-	示例："&lt;在[Ancient era]前&gt;"
+::: details &lt;during the [era]&gt;
+	示例："&lt;during the [Ancient era]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;从[era]开始&gt;
-	示例："&lt;从[Ancient era]开始&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;若以[era]开始&gt;
-	示例："&lt;若以[Ancient era]开始&gt;"
+::: details &lt;before the [era]&gt;
+	示例："&lt;before the [Ancient era]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;若其他文明尚未研究这个科技&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;发现[techFilter]后&gt;
-	示例："&lt;发现[Agriculture]后&gt;"
+::: details &lt;starting from the [era]&gt;
+	示例："&lt;starting from the [Ancient era]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;发现[techFilter]前&gt;
-	示例："&lt;发现[Agriculture]前&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;研究[techFilter]期间&gt;
+::: details &lt;if starting in the [era]&gt;
+	示例："&lt;if starting in the [Ancient era]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;if no other Civilization has researched this&gt;
+	适用范围：Conditional
+
+:::
+::: details &lt;after discovering [techFilter]&gt;
+	示例："&lt;after discovering [Agriculture]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;before discovering [techFilter]&gt;
+	示例："&lt;before discovering [Agriculture]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;while researching [techFilter]&gt;
 	This condition is fulfilled while the technology is actively being researched (it is the one research points are added to)
 
-	示例："&lt;研究[Agriculture]期间&gt;"
+	示例："&lt;while researching [Agriculture]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;若没有其他文明推行此政策/信条&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;若还没有文明推行此[policy/belief]&gt;
-	示例："&lt;若还没有文明推行此[Oligarchy]&gt;"
-
-	适用范围：有前提的
+::: details &lt;if no other Civilization has adopted this&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在推行[policy/belief]后&gt;
-	示例："&lt;在推行[Oligarchy]后&gt;"
+::: details &lt;if no Civilization has adopted [policy/belief]&gt;
+	示例："&lt;if no Civilization has adopted [Oligarchy]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在推行[policy/belief]前&gt;
-	示例："&lt;在推行[Oligarchy]前&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在建立万神殿之后&gt;
-	适用范围：有前提的
+::: details &lt;after adopting [policy/belief]&gt;
+	示例："&lt;after adopting [Oligarchy]&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;在建立万神殿之前&gt;
-	适用范围：有前提的
+::: details &lt;before adopting [policy/belief]&gt;
+	示例："&lt;before adopting [Oligarchy]&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;在创立宗教之前&gt;
-	适用范围：有前提的
+::: details &lt;before founding a Pantheon&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在创立宗教之后&gt;
-	适用范围：有前提的
+::: details &lt;after founding a Pantheon&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在加强宗教信仰之前&gt;
-	适用范围：有前提的
+::: details &lt;before founding a religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在加强宗教信仰之后&gt;
-	适用范围：有前提的
+::: details &lt;after founding a religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在出现大先知后&gt;
-	适用范围：有前提的
+::: details &lt;before enhancing a religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;如果已建造[buildingFilter]&gt;
-	示例："&lt;如果已建造[Culture]&gt;"
-
-	适用范围：有前提的
+::: details &lt;after enhancing a religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;如果未建造[buildingFilter]&gt;
-	示例："&lt;如果未建造[Culture]&gt;"
-
-	适用范围：有前提的
+::: details &lt;after generating a Great Prophet&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;如果在所有[cityFilter]城市已建造[buildingFilter]&gt;
-	示例："&lt;如果在所有[Culture]城市已建造[in all cities]&gt;"
+::: details &lt;if [buildingFilter] is constructed&gt;
+	示例："&lt;if [Culture] is constructed&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;如果在至少[positiveAmount]个[cityFilter]城市已建造[buildingFilter]&gt;
-	示例："&lt;如果在至少[Culture]个[3]城市已建造[in all cities]&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;如果任何人建造了[buildingFilter]&gt;
-	示例："&lt;如果任何人建造了[Culture]&gt;"
+::: details &lt;if [buildingFilter] is not constructed&gt;
+	示例："&lt;if [Culture] is not constructed&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;如果还没有人建造过[buildingFilter]&gt;
-	示例："&lt;如果还没有人建造过[Culture]&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;拥有[resource]的&gt;
-	示例："&lt;拥有[Iron]的&gt;"
+::: details &lt;if [buildingFilter] is constructed in all [cityFilter] cities&gt;
+	示例："&lt;if [Culture] is constructed in all [in all cities] cities&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;未拥有[resource]的&gt;
-	示例："&lt;未拥有[Iron]的&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当[stat/resource]超过[amount]时&gt;
+::: details &lt;if [buildingFilter] is constructed in at least [positiveAmount] of [cityFilter] cities&gt;
+	示例："&lt;if [Culture] is constructed in at least [3] of [in all cities] cities&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;if [buildingFilter] is constructed by anybody&gt;
+	示例："&lt;if [Culture] is constructed by anybody&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;if [buildingFilter] is not constructed by anybody&gt;
+	示例："&lt;if [Culture] is not constructed by anybody&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;with [resource]&gt;
+	示例："&lt;with [Iron]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;without [resource]&gt;
+	示例："&lt;without [Iron]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;when above [amount] [stat/resource]&gt;
 	Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when above [amount] Happiness'
 
-	示例："&lt;当[3]超过[Culture]时&gt;"
+	示例："&lt;when above [3] [Culture]&gt;"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当[stat/resource]低于[amount]时&gt;
+::: details &lt;when below [amount] [stat/resource]&gt;
 	Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when below [amount] Happiness'
 
-	示例："&lt;当[3]低于[Culture]时&gt;"
+	示例："&lt;when below [3] [Culture]&gt;"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当[stat/resource]处在[amount]至[amount2]内时&gt;
+::: details &lt;when between [amount] and [amount] [stat/resource]&gt;
 	Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness. 'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
-	示例："&lt;当[3]处在[3]至[Culture]内时&gt;"
+	示例："&lt;when between [3] and [3] [Culture]&gt;"
 
-	此词条的效果可被 &lt;(受游戏速度影响)&gt;
+	此词条的效果可被 &lt;(modified by game speed)&gt;
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在这个城市中&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在[cityFilter]城市中&gt;
-	示例："&lt;在[in all cities]城市中&gt;"
-
-	适用范围：有前提的
+::: details &lt;in this city&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在连接至首都的城市中&gt;
-	适用范围：有前提的
+::: details &lt;in [cityFilter] cities&gt;
+	示例："&lt;in [in all cities] cities&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;在信奉[religionFilter]宗教的城市中&gt;
-	示例："&lt;在信奉[major]宗教的城市中&gt;"
-
-	适用范围：有前提的
+::: details &lt;in cities connected to the capital&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在不信奉[religionFilter]宗教的城市中&gt;
-	示例："&lt;在不信奉[major]宗教的城市中&gt;"
+::: details &lt;in cities with a [religionFilter] religion&gt;
+	示例："&lt;in cities with a [major] religion&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在存在主要宗教的城市中&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在存在强化信仰后的宗教的城市中&gt;
-	适用范围：有前提的
+::: details &lt;in cities not following a [religionFilter] religion&gt;
+	示例："&lt;in cities not following a [major] religion&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;在信仰我们宗教城市中&gt;
-	适用范围：有前提的
+::: details &lt;in cities with a major religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在建有[buildingFilter]的城市中&gt;
-	示例："&lt;在建有[Culture]的城市中&gt;"
-
-	适用范围：有前提的
+::: details &lt;in cities with an enhanced religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在未建造[buildingFilter]的城市中&gt;
-	示例："&lt;在未建造[Culture]的城市中&gt;"
-
-	适用范围：有前提的
+::: details &lt;in cities following our religion&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在至少有[positiveAmount][populationFilter]的城市中&gt;
-	示例："&lt;在至少有[3][Followers of this Religion]的城市中&gt;"
+::: details &lt;in cities with a [buildingFilter]&gt;
+	示例："&lt;in cities with a [Culture]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在有[nonNegativeAmount][populationFilter]的城市中&gt;
-	示例："&lt;在有[3][Followers of this Religion]的城市中&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在[amount]到[amount2][populationFilter]的城市中&gt;
+::: details &lt;in cities without a [buildingFilter]&gt;
+	示例："&lt;in cities without a [Culture]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;in cities with at least [positiveAmount] [populationFilter]&gt;
+	示例："&lt;in cities with at least [3] [Followers of this Religion]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;in cities with [nonNegativeAmount] [populationFilter]&gt;
+	示例："&lt;in cities with [3] [Followers of this Religion]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;in cities with between [amount] and [amount] [populationFilter]&gt;
 	'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
-	示例："&lt;在[3]到[3][Followers of this Religion]的城市中&gt;"
+	示例："&lt;in cities with between [3] and [3] [Followers of this Religion]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在少于[amount][populationFilter]的城市中&gt;
-	示例："&lt;在少于[3][Followers of this Religion]的城市中&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;如果城市有军队驻扎&gt;
-	适用范围：有前提的
+::: details &lt;in cities with less than [amount] [populationFilter]&gt;
+	示例："&lt;in cities with less than [3] [Followers of this Religion]&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;令[mapUnitFilter]单位&gt;
-	示例："&lt;令[Wounded]单位&gt;"
-
-	适用范围：有前提的
+::: details &lt;with a garrison&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;当处于[mapUnitFilter]状态&gt;
-	示例："&lt;当处于[Wounded]状态&gt;"
+::: details &lt;for [mapUnitFilter] units&gt;
+	示例："&lt;for [Wounded] units&gt;"
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;令拥有[promotion]的单位&gt;
+::: details &lt;when [mapUnitFilter]&gt;
+	示例："&lt;when [Wounded]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;for units with [promotion]&gt;
 	Also applies to units with temporary status
 
-	示例："&lt;令拥有[Shock I]的单位&gt;"
+	示例："&lt;for units with [Shock I]&gt;"
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;令没有[promotion]的单位&gt;
+::: details &lt;for units without [promotion]&gt;
 	Also applies to units with temporary status
 
-	示例："&lt;令没有[Shock I]的单位&gt;"
+	示例："&lt;for units without [Shock I]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;对战城市&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;对战[mapUnitFilter]单位&gt;
-	示例："&lt;对战[Wounded]单位&gt;"
+::: details &lt;vs cities&gt;
+	适用范围：Conditional
 
-	适用范围：有前提的
+:::
+::: details &lt;vs [mapUnitFilter] units&gt;
+	示例："&lt;vs [Wounded] units&gt;"
+
+	适用范围：Conditional
 
 :::
 ::: details &lt;vs [combatantFilter]&gt;
 	示例："&lt;vs [City]&gt;"
 
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当与拥有较你更多城市的文明作战时&gt;
-	适用范围：有前提的
+::: details &lt;when fighting units from a Civilization with more Cities than you&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;攻击时&gt;
-	适用范围：有前提的
+::: details &lt;when attacking&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;防御时&gt;
-	适用范围：有前提的
+::: details &lt;when defending&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在[tileFilter]地块上作战时&gt;
-	示例："&lt;在[Farm]地块上作战时&gt;"
+::: details &lt;when fighting in [tileFilter] tiles&gt;
+	示例："&lt;when fighting in [Farm] tiles&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在异国大陆上时&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当和[mapUnitFilter]单位相邻时&gt;
-	示例："&lt;当和[Wounded]单位相邻时&gt;"
-
-	适用范围：有前提的
+::: details &lt;on foreign continents&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;当超过[positiveAmount]生命值时&gt;
-	示例："&lt;当超过[3]生命值时&gt;"
+::: details &lt;when adjacent to a [mapUnitFilter] unit&gt;
+	示例："&lt;when adjacent to a [Wounded] unit&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;当低于[positiveAmount]生命值时&gt;
-	示例："&lt;当低于[3]生命值时&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当低于[positiveAmount]移动力时&gt;
-	示例："&lt;当低于[3]移动力时&gt;"
+::: details &lt;when above [positiveAmount] HP&gt;
+	示例："&lt;when above [3] HP&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;当高于[nonNegativeAmount]移动力时&gt;
-	示例："&lt;当高于[3]移动力时&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当未进行执行其他行动时&gt;
-	适用范围：有前提的
+::: details &lt;when below [positiveAmount] HP&gt;
+	示例："&lt;when below [3] HP&gt;"
+
+	适用范围：Conditional
 
 :::
-::: details &lt;当与[mapUnitFilter]单位叠加时 &gt;
-	示例："&lt;当与[Wounded]单位叠加时 &gt;"
+::: details &lt;when below [positiveAmount] movement&gt;
+	示例："&lt;when below [3] movement&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;当没有与[mapUnitFilter]单位叠加时 &gt;
-	示例："&lt;当没有与[Wounded]单位叠加时 &gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;当与[nonNegativeAmount2]到[nonNegativeAmount]个[tileFilter]地块相邻时&gt;
-	示例："&lt;当与[3]到[3]个[Farm]地块相邻时&gt;"
+::: details &lt;when above [nonNegativeAmount] movement&gt;
+	示例："&lt;when above [3] movement&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在[tileFilter]地块上&gt;
-	示例："&lt;在[Farm]地块上&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在非[tileFilter]地块上&gt;
-	示例："&lt;在非[Farm]地块上&gt;"
-
-	适用范围：有前提的
+::: details &lt;if it hasn't used other actions yet&gt;
+	适用范围：Conditional
 
 :::
-::: details &lt;在[tileFilter][positiveAmount]格范围内&gt;
-	示例："&lt;在[3][Farm]格范围内&gt;"
+::: details &lt;when stacked with a [mapUnitFilter] unit&gt;
+	示例："&lt;when stacked with a [Wounded] unit&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;在与[tileFilter]相邻的地块&gt;
-	示例："&lt;在与[Farm]相邻的地块&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;在与[tileFilter]不相邻的地块&gt;
-	示例："&lt;在与[Farm]不相邻的地块&gt;"
+::: details &lt;when not stacked with a [mapUnitFilter] unit&gt;
+	示例："&lt;when not stacked with a [Wounded] unit&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;海洋地图&gt;
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;[regionType]宗教中&gt;
-	示例："&lt;[Hybrid]宗教中&gt;"
+::: details &lt;with [nonNegativeAmount] to [nonNegativeAmount] neighboring [tileFilter] tiles&gt;
+	示例："&lt;with [3] to [3] neighboring [Farm] tiles&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;除[regionType]之外的的所有宗教中&gt;
-	示例："&lt;除[Hybrid]之外的的所有宗教中&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;[countable]等于[countable2]时&gt;
-	示例："&lt;[1000]等于[1000]时&gt;"
+::: details &lt;in [tileFilter] tiles&gt;
+	示例："&lt;in [Farm] tiles&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;[countable]不等于[countable2]时&gt;
-	示例："&lt;[1000]不等于[1000]时&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;[countable]大于[countable2]时&gt;
-	示例："&lt;[1000]大于[1000]时&gt;"
+::: details &lt;in tiles without [tileFilter]&gt;
+	示例："&lt;in tiles without [Farm]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;[countable]小于[countable2]时&gt;
-	示例："&lt;[1000]小于[1000]时&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;[countable]大于[countable2]且小于[countable3]时&gt;
+::: details &lt;within [positiveAmount] tiles of a [tileFilter]&gt;
+	示例："&lt;within [3] tiles of a [Farm]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;in tiles adjacent to [tileFilter] tiles&gt;
+	示例："&lt;in tiles adjacent to [Farm] tiles&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;in tiles not adjacent to [tileFilter] tiles&gt;
+	示例："&lt;in tiles not adjacent to [Farm] tiles&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;on water maps&gt;
+	适用范围：Conditional
+
+:::
+::: details &lt;in [regionType] Regions&gt;
+	示例："&lt;in [Hybrid] Regions&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;in all except [regionType] Regions&gt;
+	示例："&lt;in all except [Hybrid] Regions&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;when number of [countable] is equal to [countable]&gt;
+	示例："&lt;when number of [1000] is equal to [1000]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;when number of [countable] is different than [countable]&gt;
+	示例："&lt;when number of [1000] is different than [1000]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;when number of [countable] is more than [countable]&gt;
+	示例："&lt;when number of [1000] is more than [1000]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;when number of [countable] is less than [countable]&gt;
+	示例："&lt;when number of [1000] is less than [1000]&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;when number of [countable] is between [countable] and [countable]&gt;
 	'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
-	示例："&lt;[1000]大于[1000]且小于[1000]时&gt;"
+	示例："&lt;when number of [1000] is between [1000] and [1000]&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;当被[mapUnitFilter]单位搭载时 &gt;
-	示例："&lt;当被[Wounded]单位搭载时 &gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-::: details &lt;如果模组[modFilter]已启用&gt;
-	示例："&lt;如果模组[DeCiv Redux]已启用&gt;"
+::: details &lt;when carried by [mapUnitFilter] units&gt;
+	示例："&lt;when carried by [Wounded] units&gt;"
 
-	适用范围：有前提的
-
-:::
-::: details &lt;如果模组[modFilter]未启用&gt;
-	示例："&lt;如果模组[DeCiv Redux]未启用&gt;"
-
-	适用范围：有前提的
+	适用范围：Conditional
 
 :::
-## 触发条件词条
+::: details &lt;if [modFilter] is enabled&gt;
+	示例："&lt;if [DeCiv Redux] is enabled&gt;"
+
+	适用范围：Conditional
+
+:::
+::: details &lt;if [modFilter] is not enabled&gt;
+	示例："&lt;if [DeCiv Redux] is not enabled&gt;"
+
+	适用范围：Conditional
+
+:::
+## TriggerCondition uniques（触发条件词条）
 ::: note
 
     可添加到触发型词条的特殊条件，使它们在特定行动时激活。
 :::
 
-::: details &lt;一旦研究[techFilter]&gt;
-	示例："&lt;一旦研究[Agriculture]&gt;"
+::: details &lt;upon discovering [techFilter] technology&gt;
+	示例："&lt;upon discovering [Agriculture] technology&gt;"
 
-	适用范围：触发条件
-
-:::
-::: details &lt;一旦进入[era]&gt;
-	示例："&lt;一旦进入[Ancient era]&gt;"
-
-	适用范围：触发条件
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦进入新时代&gt;
-	适用范围：触发条件
+::: details &lt;upon entering the [era]&gt;
+	示例："&lt;upon entering the [Ancient era]&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦推行[policy/belief]&gt;
-	示例："&lt;一旦推行[Oligarchy]&gt;"
-
-	适用范围：触发条件
+::: details &lt;upon entering a new era&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦和[civFilter]文明宣战时&gt;
-	示例："&lt;一旦和[City-States]文明宣战时&gt;"
+::: details &lt;upon adopting [policy/belief]&gt;
+	示例："&lt;upon adopting [Oligarchy]&gt;"
 
-	适用范围：触发条件
-
-:::
-::: details &lt;一旦被[civFilter]文明宣战时&gt;
-	示例："&lt;一旦被[City-States]文明宣战时&gt;"
-
-	适用范围：触发条件
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦和[civFilter]文明交战时&gt;
-	示例："&lt;一旦和[City-States]文明交战时&gt;"
+::: details &lt;upon declaring war on [civFilter] Civilizations&gt;
+	示例："&lt;upon declaring war on [City-States] Civilizations&gt;"
 
-	适用范围：触发条件
-
-:::
-::: details &lt;一旦与[civFilter]文明达成停战协议时&gt;
-	示例："&lt;一旦与[City-States]文明达成停战协议时&gt;"
-
-	适用范围：触发条件
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦宣布友谊宣言&gt;
-	适用范围：触发条件
+::: details &lt;upon being declared war on by [civFilter] Civilizations&gt;
+	示例："&lt;upon being declared war on by [City-States] Civilizations&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦宣布共同防御条约&gt;
-	适用范围：触发条件
+::: details &lt;upon entering a war with [civFilter] Civilizations&gt;
+	示例："&lt;upon entering a war with [City-States] Civilizations&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦进入黄金时代&gt;
-	适用范围：触发条件
+::: details &lt;upon signing a peace treaty with [civFilter] Civilizations&gt;
+	示例："&lt;upon signing a peace treaty with [City-States] Civilizations&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦结束黄金时代&gt;
-	适用范围：触发条件
+::: details &lt;upon declaring friendship&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦占领城市&gt;
-	适用范围：触发条件，单位触发条件
+::: details &lt;upon declaring a defensive pact&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦失去城市&gt;
-	适用范围：触发条件
+::: details &lt;upon entering a Golden Age&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦建立城市&gt;
-	适用范围：触发条件
+::: details &lt;upon ending a Golden Age&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦修建[improvementFilter]&gt;
-	示例："&lt;一旦修建[All Road]&gt;"
-
-	适用范围：触发条件，单位触发条件
+::: details &lt;upon conquering a city&gt;
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;一旦发现自然奇观&gt;
-	适用范围：触发条件
+::: details &lt;upon losing a city&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦建造[buildingFilter]&gt;
-	示例："&lt;一旦建造[Culture]&gt;"
-
-	适用范围：触发条件
+::: details &lt;upon founding a city&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦[cityFilter]建造[buildingFilter]&gt;
-	示例："&lt;一旦[Culture]建造[in all cities]&gt;"
+::: details &lt;upon building a [improvementFilter] improvement&gt;
+	示例："&lt;upon building a [All Road] improvement&gt;"
 
-	适用范围：触发条件
-
-:::
-::: details &lt;一旦获得[baseUnitFilter]单位&gt;
-	示例："&lt;一旦获得[Melee]单位&gt;"
-
-	适用范围：触发条件
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;一旦失去[mapUnitFilter]单位时&gt;
-	示例："&lt;一旦失去[Wounded]单位时&gt;"
-
-	适用范围：触发条件
+::: details &lt;upon discovering a Natural Wonder&gt;
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦回合结束&gt;
-	适用范围：触发条件，单位触发条件
+::: details &lt;upon constructing [buildingFilter]&gt;
+	示例："&lt;upon constructing [Culture]&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦回合开始&gt;
-	适用范围：触发条件，单位触发条件
+::: details &lt;upon constructing [buildingFilter] [cityFilter]&gt;
+	示例："&lt;upon constructing [Culture] [in all cities]&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦创立万神殿&gt;
-	适用范围：触发条件
+::: details &lt;upon gaining a [baseUnitFilter] unit&gt;
+	示例："&lt;upon gaining a [Melee] unit&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦创立宗教&gt;
-	适用范围：触发条件
+::: details &lt;upon losing a [mapUnitFilter] unit&gt;
+	示例："&lt;upon losing a [Wounded] unit&gt;"
+
+	适用范围：TriggerCondition
 
 :::
-::: details &lt;一旦强化宗教&gt;
-	适用范围：触发条件
+::: details &lt;upon turn end&gt;
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;一旦消耗[mapUnitFilter]单位&gt;
-	示例："&lt;一旦消耗[Wounded]单位&gt;"
-
-	适用范围：触发条件
+::: details &lt;upon turn start&gt;
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-## 单位触发条件词条
+::: details &lt;upon founding a Pantheon&gt;
+	适用范围：TriggerCondition
+
+:::
+::: details &lt;upon founding a Religion&gt;
+	适用范围：TriggerCondition
+
+:::
+::: details &lt;upon enhancing a Religion&gt;
+	适用范围：TriggerCondition
+
+:::
+::: details &lt;upon expending a [mapUnitFilter] unit&gt;
+	示例："&lt;upon expending a [Wounded] unit&gt;"
+
+	适用范围：TriggerCondition
+
+:::
+## UnitTriggerCondition uniques（单位触发条件词条）
 ::: note
 
     可添加到单位触发型词条的特殊条件，使它们在特定行动时激活。
 :::
 
-::: details &lt;一旦占领城市&gt;
-	适用范围：触发条件，单位触发条件
+::: details &lt;upon conquering a city&gt;
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;一旦修建[improvementFilter]&gt;
-	示例："&lt;一旦修建[All Road]&gt;"
+::: details &lt;upon building a [improvementFilter] improvement&gt;
+	示例："&lt;upon building a [All Road] improvement&gt;"
 
-	适用范围：触发条件，单位触发条件
-
-:::
-::: details &lt;一旦回合结束&gt;
-	适用范围：触发条件，单位触发条件
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;一旦回合开始&gt;
-	适用范围：触发条件，单位触发条件
+::: details &lt;upon turn end&gt;
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;每次战斗&gt;
-	适用范围：单位触发条件
+::: details &lt;upon turn start&gt;
+	适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;一旦攻击[mapUnitFilter]单位&gt;
+::: details &lt;upon entering combat&gt;
+	适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon damaging a [mapUnitFilter] unit&gt;
 	Can apply triggers to to damaged unit by setting the first parameter to 'Target Unit'
 
-	示例："&lt;一旦攻击[Wounded]单位&gt;"
+	示例："&lt;upon damaging a [Wounded] unit&gt;"
 
-	适用范围：单位触发条件
-
-:::
-::: details &lt;一旦击败[mapUnitFilter]单位&gt;
-	示例："&lt;一旦击败[Wounded]单位&gt;"
-
-	适用范围：单位触发条件
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦死亡&gt;
-	适用范围：单位触发条件
+::: details &lt;upon defeating a [mapUnitFilter] unit&gt;
+	示例："&lt;upon defeating a [Wounded] unit&gt;"
+
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦晋升&gt;
-	适用范围：单位触发条件
+::: details &lt;upon being defeated&gt;
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦获得[promotion]&gt;
-	示例："&lt;一旦获得[Shock I]&gt;"
-
-	适用范围：单位触发条件
+::: details &lt;upon being promoted&gt;
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦失去[promotion]&gt;
-	示例："&lt;一旦失去[Shock I]&gt;"
+::: details &lt;upon gaining the [promotion] promotion&gt;
+	示例："&lt;upon gaining the [Shock I] promotion&gt;"
 
-	适用范围：单位触发条件
-
-:::
-::: details &lt;一旦获得[promotion]&gt;
-	示例："&lt;一旦获得[Shock I]&gt;"
-
-	适用范围：单位触发条件
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦失去[promotion]&gt;
-	示例："&lt;一旦失去[Shock I]&gt;"
+::: details &lt;upon losing the [promotion] promotion&gt;
+	示例："&lt;upon losing the [Shock I] promotion&gt;"
 
-	适用范围：单位触发条件
-
-:::
-::: details &lt;一旦在单次战斗中丢失至少[positiveAmount]HP&gt;
-	示例："&lt;一旦在单次战斗中丢失至少[3]HP&gt;"
-
-	适用范围：单位触发条件
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦在[tileFilter]地块上结束回合&gt;
-	示例："&lt;一旦在[Farm]地块上结束回合&gt;"
+::: details &lt;upon gaining the [promotion] status&gt;
+	示例："&lt;upon gaining the [Shock I] status&gt;"
 
-	适用范围：单位触发条件
-
-:::
-::: details &lt;一旦发现[tileFilter]地块&gt;
-	示例："&lt;一旦发现[Farm]地块&gt;"
-
-	适用范围：单位触发条件
+	适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;一旦踏入[tileFilter]&gt;
-	示例："&lt;一旦踏入[Farm]&gt;"
+::: details &lt;upon losing the [promotion] status&gt;
+	示例："&lt;upon losing the [Shock I] status&gt;"
 
-	适用范围：单位触发条件
+	适用范围：UnitTriggerCondition
 
 :::
-## 单位行为修饰词条
+::: details &lt;upon losing at least [positiveAmount] HP in a single attack&gt;
+	示例："&lt;upon losing at least [3] HP in a single attack&gt;"
+
+	适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon ending a turn in a [tileFilter] tile&gt;
+	示例："&lt;upon ending a turn in a [Farm] tile&gt;"
+
+	适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon discovering a [tileFilter] tile&gt;
+	示例："&lt;upon discovering a [Farm] tile&gt;"
+
+	适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon entering a [tileFilter] tile&gt;
+	示例："&lt;upon entering a [Farm] tile&gt;"
+
+	适用范围：UnitTriggerCondition
+
+:::
+## UnitActionModifier uniques（单位行为修饰词条）
 ::: note
 
     可作为条件添加到单位行动词条的修饰符
 :::
 
-::: details &lt;通过消耗此单位&gt;
-	适用范围：单位行为修饰
+::: details &lt;by consuming this unit&gt;
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;消耗[amount]移动力&gt;
+::: details &lt;for [amount] movement&gt;
 	Will consume up to [amount] of Movement to execute
 
-	示例："&lt;消耗[3]移动力&gt;"
+	示例："&lt;for [3] movement&gt;"
 
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;耗尽移动力&gt;
+::: details &lt;for all movement&gt;
 	Will consume all Movement to execute
 
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;消耗[nonNegativeAmount]移动力&gt;
+::: details &lt;requires [nonNegativeAmount] movement&gt;
 	Requires [nonNegativeAmount] of Movement to execute. Unit's Movement is rounded up
 
-	示例："&lt;消耗[3]移动力&gt;"
+	示例："&lt;requires [3] movement&gt;"
 
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;花费[stats]&gt;
+::: details &lt;costs [stats] stats&gt;
 	A positive Integer value will be subtracted from your stock. Food and Production will be removed from Closest City's current stock
 
-	示例："&lt;花费[+1 Gold, +2 Production]&gt;"
+	示例："&lt;costs [+1 Gold, +2 Production] stats&gt;"
 
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;消耗[amount]单位[stockpiledResource]&gt;
+::: details &lt;costs [amount] [stockpiledResource]&gt;
 	A positive Integer value will be subtracted from your stock. Do not confuse with "Costs [amount] [stockpiledResource]" (uppercase 'C') for Improvements, Buildings, and Units.
 
-	示例："&lt;消耗[3]单位[Mana]&gt;"
+	示例："&lt;costs [3] [Mana]&gt;"
 
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;移除[promotion]&gt;
+::: details &lt;removing the [promotion] promotion/status&gt;
 	Removes the promotion/status from the unit - this is not a cost, units will be able to activate the action even without the promotion/status. To limit, use &lt;with the [promotion] promotion&gt; conditional
 
-	示例："&lt;移除[Shock I]&gt;"
+	示例："&lt;removing the [Shock I] promotion/status&gt;"
 
-	适用范围：单位行为修饰
-
-:::
-::: details &lt;一次&gt;
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;[positiveAmount]次&gt;
-	示例："&lt;[3]次&gt;"
-
-	适用范围：单位行为修饰
+::: details &lt;once&gt;
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;额外[nonNegativeAmount]次&gt;
-	示例："&lt;额外[3]次&gt;"
+::: details &lt;[positiveAmount] times&gt;
+	示例："&lt;[3] times&gt;"
 
-	适用范围：单位行为修饰
+	适用范围：UnitActionModifier
 
 :::
-::: details &lt;在单位被消耗后&gt;
-	适用范围：单位行为修饰
+::: details &lt;[nonNegativeAmount] additional time(s)&gt;
+	示例："&lt;[3] additional time(s)&gt;"
+
+	适用范围：UnitActionModifier
+
+:::
+::: details &lt;after which this unit is consumed&gt;
+	适用范围：UnitActionModifier
 
 :::
 ::: details &lt;with [amount] priority&gt;
@@ -5205,21 +5205,21 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：单位行为修饰，元修饰
+	适用范围：UnitActionModifier，MetaModifier
 
 :::
-## 元修饰词条
+## MetaModifier uniques（元修饰词条）
 ::: note
 
     可添加到其他词条的修饰符，改变用户体验而非行为
 :::
 
-::: details &lt;持续[nonNegativeAmount]回合&gt;
+::: details &lt;for [nonNegativeAmount] turns&gt;
 	Turns this unique into a trigger, activating this unique as a *global* unique for a number of turns
 
-	示例："&lt;持续[3]回合&gt;"
+	示例："&lt;for [3] turns&gt;"
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
 ::: details &lt;with [amount] priority&gt;
@@ -5229,49 +5229,49 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：单位行为修饰，元修饰
+	适用范围：UnitActionModifier，MetaModifier
 
 :::
-::: details &lt;对玩家隐藏&gt;
-	适用范围：元修饰
+::: details &lt;hidden from users&gt;
+	适用范围：MetaModifier
 
 :::
-::: details &lt;每有1个[countable]&gt;
+::: details &lt;for every [countable]&gt;
 	Works for positive numbers only
 
-	示例："&lt;每有1个[1000]&gt;"
+	示例："&lt;for every [1000]&gt;"
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
-::: details &lt;每个相邻[tileFilter]&gt;
+::: details &lt;for every adjacent [tileFilter]&gt;
 	Works for positive numbers only
 
-	示例："&lt;每个相邻[Farm]&gt;"
+	示例："&lt;for every adjacent [Farm]&gt;"
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
-::: details &lt;每有[positiveAmount]个[countable]&gt;
+::: details &lt;for every [positiveAmount] [countable]&gt;
 	Works for positive numbers only
 
-	示例："&lt;每有[3]个[1000]&gt;"
+	示例："&lt;for every [3] [1000]&gt;"
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
-::: details &lt;(受游戏速度影响)&gt;
+::: details &lt;(modified by game speed)&gt;
 	Can only be applied to certain uniques, see details of each unique for specifics
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
-::: details &lt;(受游戏进程影响，且至多到[relativeAmount]%)&gt;
+::: details &lt;(modified by game progress up to [relativeAmount]%)&gt;
 	Can only be applied to certain uniques, see details of each unique for specifics
 
-	示例："&lt;(受游戏进程影响，且至多到[+20]%)&gt;"
+	示例："&lt;(modified by game progress up to [+20]%)&gt;"
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
 ::: details &lt;Civilopedia link [pediaLink]&gt;
@@ -5281,7 +5281,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：元修饰
+	适用范围：MetaModifier
 
 :::
 ::: details &lt;Suppress warning [validationWarning]&gt;
@@ -5293,7 +5293,7 @@ title: Unique 能力列表
 
 	此词条自动对用户隐藏。
 
-	适用范围：触发型，地形修正，游戏速度，模组选项，元修饰
+	适用范围：Triggerable，Terrain，Speed，ModOptions，MetaModifier
 
 :::
 

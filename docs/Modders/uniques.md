@@ -179,7 +179,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Triggerable
 
 :::
-::: details Gain [amount]-[amount2] [stat]
+::: details Gain [amount]-[amount] [stat]
 	Example: "Gain [3]-[3] [Culture]"
 
 	This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -327,7 +327,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Triggerable
 
 :::
-::: details Choose a music track for [param], [param2], [param3]
+::: details Choose a music track for [param], [param], [param]
 	Parameters are unchecked, strings not matching existing tracks or flags are ignored.
 
 	See [Context-sensitive music](Images-and-Audio.md#context-sensitive-music-overview)
@@ -505,7 +505,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Global, FollowerBelief
 
 :::
-::: details [stats] from [tileFilter] tiles without [tileFilter2] [cityFilter]
+::: details [stats] from [tileFilter] tiles without [tileFilter] [cityFilter]
 	Example: "[+1 Gold, +2 Production] from [Farm] tiles without [Farm] [in all cities]"
 
 	Applicable to: Global, FollowerBelief
@@ -943,7 +943,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Global
 
 :::
-::: details [stats] for discovering a Natural Wonder (bonus enhanced to [stats2] if first to discover it)
+::: details [stats] for discovering a Natural Wonder (bonus enhanced to [stats] if first to discover it)
 	Example: "[+1 Gold, +2 Production] for discovering a Natural Wonder (bonus enhanced to [+1 Gold, +2 Production] if first to discover it)"
 
 	Applicable to: Global
@@ -1680,7 +1680,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: FounderBelief
 
 :::
-::: details [relativeAmount]% [stat] from every follower, up to [relativeAmount2]%
+::: details [relativeAmount]% [stat] from every follower, up to [relativeAmount]%
 	Example: "[+20]% [Culture] from every follower, up to [+20]%"
 
 	Applicable to: FounderBelief, FollowerBelief
@@ -1768,7 +1768,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Global, FollowerBelief
 
 :::
-::: details [stats] from [tileFilter] tiles without [tileFilter2] [cityFilter]
+::: details [stats] from [tileFilter] tiles without [tileFilter] [cityFilter]
 	Example: "[+1 Gold, +2 Production] from [Farm] tiles without [Farm] [in all cities]"
 
 	Applicable to: Global, FollowerBelief
@@ -1818,7 +1818,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Global, FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat] from every follower, up to [relativeAmount2]%
+::: details [relativeAmount]% [stat] from every follower, up to [relativeAmount]%
 	Example: "[+20]% [Culture] from every follower, up to [+20]%"
 
 	Applicable to: FounderBelief, FollowerBelief
@@ -3264,7 +3264,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain
 
 :::
-::: details Must be adjacent to [amount] to [amount2] [simpleTerrain] tiles
+::: details Must be adjacent to [amount] to [amount] [simpleTerrain] tiles
 	Example: "Must be adjacent to [3] to [3] [Elevated] tiles"
 
 	This unique is automatically hidden from users.
@@ -3288,7 +3288,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain, Resource
 
 :::
-::: details Occurs on latitudes from [amount] to [amount2] percent of distance equator to pole
+::: details Occurs on latitudes from [amount] to [amount] percent of distance equator to pole
 	Example: "Occurs on latitudes from [3] to [3] percent of distance equator to pole"
 
 	This unique is automatically hidden from users.
@@ -3296,7 +3296,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain
 
 :::
-::: details Occurs in groups of [amount] to [amount2] tiles
+::: details Occurs in groups of [amount] to [amount] tiles
 	Example: "Occurs in groups of [3] to [3] tiles"
 
 	This unique is automatically hidden from users.
@@ -3398,7 +3398,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain
 
 :::
-::: details A Region is formed with at least [amount]% [simpleTerrain] tiles, with priority [amount2]
+::: details A Region is formed with at least [amount]% [simpleTerrain] tiles, with priority [amount]
 	Example: "A Region is formed with at least [3]% [Elevated] tiles, with priority [3]"
 
 	This unique is automatically hidden from users.
@@ -3406,7 +3406,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain
 
 :::
-::: details A Region is formed with at least [amount]% [simpleTerrain] tiles and [simpleTerrain2] tiles, with priority [amount2]
+::: details A Region is formed with at least [amount]% [simpleTerrain] tiles and [simpleTerrain] tiles, with priority [amount]
 	Example: "A Region is formed with at least [3]% [Elevated] tiles and [Elevated] tiles, with priority [3]"
 
 	This unique is automatically hidden from users.
@@ -3414,7 +3414,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain
 
 :::
-::: details A Region can not contain more [simpleTerrain] tiles than [simpleTerrain2] tiles
+::: details A Region can not contain more [simpleTerrain] tiles than [simpleTerrain] tiles
 	Example: "A Region can not contain more [Elevated] tiles than [Elevated] tiles"
 
 	This unique is automatically hidden from users.
@@ -3464,7 +3464,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain, Resource
 
 :::
-::: details Occurs at temperature between [fraction] and [fraction2] and humidity between [fraction3] and [fraction4]
+::: details Occurs at temperature between [fraction] and [fraction] and humidity between [fraction] and [fraction]
 	Example: "Occurs at temperature between [0.5] and [0.5] and humidity between [0.5] and [0.5]"
 
 	This unique is automatically hidden from users.
@@ -3832,7 +3832,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Terrain, Resource
 
 :::
-::: details Occurs at temperature between [fraction] and [fraction2] and humidity between [fraction3] and [fraction4]
+::: details Occurs at temperature between [fraction] and [fraction] and humidity between [fraction] and [fraction]
 	Example: "Occurs at temperature between [0.5] and [0.5] and humidity between [0.5] and [0.5]"
 
 	This unique is automatically hidden from users.
@@ -3981,7 +3981,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Ruins
 
 :::
-::: details From a randomly chosen tile [positiveAmount] tiles away from the ruins, reveal tiles up to [positiveAmount2] tiles away with [positiveAmount3]% chance
+::: details From a randomly chosen tile [positiveAmount] tiles away from the ruins, reveal tiles up to [positiveAmount] tiles away with [positiveAmount]% chance
 	Example: "From a randomly chosen tile [3] tiles away from the ruins, reveal tiles up to [3] tiles away with [3]% chance"
 
 	Applicable to: Ruins
@@ -4573,7 +4573,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [stat/resource]&gt;
+::: details &lt;when between [amount] and [amount] [stat/resource]&gt;
 	Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness. 'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
 	Example: "&lt;when between [3] and [3] [Culture]&gt;"
@@ -4645,7 +4645,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Conditional
 
 :::
-::: details &lt;in cities with between [amount] and [amount2] [populationFilter]&gt;
+::: details &lt;in cities with between [amount] and [amount] [populationFilter]&gt;
 	'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
 	Example: "&lt;in cities with between [3] and [3] [Followers of this Religion]&gt;"
@@ -4775,7 +4775,7 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Conditional
 
 :::
-::: details &lt;with [nonNegativeAmount] to [nonNegativeAmount2] neighboring [tileFilter] tiles&gt;
+::: details &lt;with [nonNegativeAmount] to [nonNegativeAmount] neighboring [tileFilter] tiles&gt;
 	Example: "&lt;with [3] to [3] neighboring [Farm] tiles&gt;"
 
 	Applicable to: Conditional
@@ -4827,31 +4827,31 @@ Simple unique parameters are explained by mouseover. Complex parameters are expl
 	Applicable to: Conditional
 
 :::
-::: details &lt;when number of [countable] is equal to [countable2]&gt;
+::: details &lt;when number of [countable] is equal to [countable]&gt;
 	Example: "&lt;when number of [1000] is equal to [1000]&gt;"
 
 	Applicable to: Conditional
 
 :::
-::: details &lt;when number of [countable] is different than [countable2]&gt;
+::: details &lt;when number of [countable] is different than [countable]&gt;
 	Example: "&lt;when number of [1000] is different than [1000]&gt;"
 
 	Applicable to: Conditional
 
 :::
-::: details &lt;when number of [countable] is more than [countable2]&gt;
+::: details &lt;when number of [countable] is more than [countable]&gt;
 	Example: "&lt;when number of [1000] is more than [1000]&gt;"
 
 	Applicable to: Conditional
 
 :::
-::: details &lt;when number of [countable] is less than [countable2]&gt;
+::: details &lt;when number of [countable] is less than [countable]&gt;
 	Example: "&lt;when number of [1000] is less than [1000]&gt;"
 
 	Applicable to: Conditional
 
 :::
-::: details &lt;when number of [countable] is between [countable2] and [countable3]&gt;
+::: details &lt;when number of [countable] is between [countable] and [countable]&gt;
 	'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
 	Example: "&lt;when number of [1000] is between [1000] and [1000]&gt;"

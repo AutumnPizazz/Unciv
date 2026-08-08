@@ -7,7 +7,6 @@ import com.unciv.models.ruleset.unique.UniqueParameterType
 import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
-import com.unciv.models.translations.getPlaceholderParameters
 import com.unciv.utils.Log
 import java.io.File
 
@@ -93,23 +92,6 @@ class UniqueDocsWriter {
             }
         }
 
-        /**
-         * The translation template key for a unique text: duplicate placeholders get numbered
-         * (e.g. `[amount] [amount]` -> `[amount1] [amount2]`), mirroring TranslationFileWriter.getTranslatable().
-         */
-        private fun translatableKey(text: String): String {
-            val newPlaceholders = ArrayList<String>()
-            for (placeholderText in text.getPlaceholderParameters()) {
-                if (placeholderText !in newPlaceholders) {
-                    newPlaceholders += placeholderText
-                } else {
-                    var i = 2
-                    while (placeholderText + i in newPlaceholders) i++
-                    newPlaceholders += placeholderText + i
-                }
-            }
-            return text.fillPlaceholders(*newPlaceholders.toTypedArray())
-        }
     }
 
     @Suppress("unused")  // was used in the past? 
@@ -204,13 +186,13 @@ class UniqueDocsWriter {
             lines += ""
             lines += "> 本列表由游戏代码自动生成，随版本保持最新。"
             lines += "> Uniques 概述可以在[这里](../Developers/Uniques.md)找到。"
-            lines += "> 简单的 Unique 参数通过悬浮提示说明，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。"
+            lines += "> 简单的 Unique 参数见文末参数表，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。"
         }
         lines += ""
 
         for ((targetType, uniqueTypes) in targetTypesToUniques) {
             if (uniqueTypes.isEmpty()) continue
-            lines += "## " + if (language == null) targetType.name + " uniques" else tr(targetType.name) + "词条"
+            lines += "## " + if (language == null) targetType.name + " uniques" else targetType.name + " uniques（" + tr(targetType.name) + "词条）"
 
             if (targetType.documentationString.isNotEmpty()) {
                 // VitePress admonition container (was mkdocs `!!! note ""`)
@@ -224,9 +206,10 @@ class UniqueDocsWriter {
             for (uniqueType in uniqueTypes) {
                 if (uniqueType.getDeprecationAnnotation() != null) continue
 
+                // unique 文本是模组 JSON 中的字面量（须与 UniqueType 逐字匹配才能生效），不可翻译
                 val uniqueText = if (targetType.modifierType != UniqueTarget.ModifierType.None)
-                    "&lt;${tr(translatableKey(uniqueType.text))}&gt;"
-                else tr(translatableKey(uniqueType.text))
+                    "&lt;${uniqueType.text}&gt;"
+                else uniqueType.text
                 // VitePress collapsable container (was mkdocs `??? example "..."`)
                 lines += "::: details " + uniqueText
                 // These blocks will join all indented lines that follow, they need an empty line followed by more indented lines to render one break.
@@ -241,9 +224,9 @@ class UniqueDocsWriter {
                     lines += "\t" + doc("Example: ") + "\"${uniqueText.fillPlaceholders(*paramExamples)}\"\n"
                 }
                 if (uniqueType.flags.contains(UniqueFlag.AcceptsSpeedModifier))
-                    lines += "\t" + doc("This unique's effect can be modified with ") + "&lt;${tr(translatableKey(UniqueType.ModifiedByGameSpeed.text))}&gt;\n"
+                    lines += "\t" + doc("This unique's effect can be modified with ") + "&lt;${UniqueType.ModifiedByGameSpeed.text}&gt;\n"
                 if (uniqueType.flags.contains(UniqueFlag.AcceptsGameProgressModifier))
-                    lines += "\t" + doc("This unique's effect can be modified with ") + "&lt;${tr(translatableKey(UniqueType.ModifiedByGameProgress.text))}&gt;\n"
+                    lines += "\t" + doc("This unique's effect can be modified with ") + "&lt;${UniqueType.ModifiedByGameProgress.text}&gt;\n"
                 if (uniqueType in MapUnitCache.UnitMovementUniques) {
                     lines += "\t" + doc("Due to performance considerations, this unique is cached, thus conditionals that may change within a turn may not work.") + "\n"
                 }
@@ -252,7 +235,7 @@ class UniqueDocsWriter {
                 if (uniqueType.flags.contains(UniqueFlag.HiddenToUsers))
                     lines += "\t" + doc("This unique is automatically hidden from users.") + "\n"
                 lines += "\t" + doc("Applicable to: ") + uniqueType.allTargets().sorted()
-                    .joinToString(if (language == null) ", " else "，") { tr(it.name) }
+                    .joinToString(if (language == null) ", " else "，") { it.name }
                 lines += ""
                 lines += ":::"
             }
