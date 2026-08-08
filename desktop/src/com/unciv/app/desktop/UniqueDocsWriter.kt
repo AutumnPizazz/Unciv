@@ -240,8 +240,12 @@ class UniqueDocsWriter {
                 lines += "::: details " + uniqueText
                 // These blocks join the following lines; an empty line separates paragraphs.
                 // The `escapeHtml` helper doubles newlines found in docDescription:
-                if (uniqueType.docDescription != null)
-                    lines += "${tr(uniqueType.docDescription!!).escapeHtml(0)}\n"
+                if (uniqueType.docDescription != null || uniqueType.docDescriptionZh != null) {
+                    val docDesc = if (language == "Simplified_Chinese")
+                        uniqueType.docDescriptionZh ?: uniqueType.docDescription
+                    else uniqueType.docDescription
+                    lines += "${docDesc!!.escapeHtml(0)}\n"
+                }
                 if (uniqueType.parameterTypeMap.isNotEmpty()) {
                     // This one will give examples for _each_ filter in a "tileFilter/specialist/buildingFilter" kind of parameter e.g. "Farm/Merchant/Library":
                     // `val paramExamples = uniqueType.parameterTypeMap.map { it.joinToString("/") { pt -> pt.docExample } }.toTypedArray()`
@@ -285,7 +289,10 @@ class UniqueDocsWriter {
             if (paramType.docDescription == null) continue
             val punctuation = if (paramType.docDescription!!.last().category == '.'.category) "" else "."
             // 多行 docDescription 在 markdown 表格中会撑破表格，换行替换为 <br>
-            val description = tr(paramType.docDescription!!).replace("\n", "<br>") + punctuation
+            val descText = if (language == "Simplified_Chinese")
+                paramType.docDescriptionZh ?: paramType.docDescription
+            else paramType.docDescription
+            val description = descText!!.replace("\n", "<br>") + punctuation
             lines += "| `" + paramType.parameterName + "` | " + description + " |"
         }
 

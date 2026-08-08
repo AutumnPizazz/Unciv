@@ -42,6 +42,7 @@ enum class UniqueParameterType(
     val parameterName: String,
     val docExample: String,
     val docDescription: String? = null,
+    val docDescriptionZh: String? = null,
     val displayName: String = parameterName,
     private val severityDefault: UniqueType.UniqueParameterErrorSeverity = UniqueType.UniqueParameterErrorSeverity.RulesetSpecific
 ) {
@@ -643,6 +644,10 @@ enum class UniqueParameterType(
             |Note that this must use the Mod name as Unciv displays it, not the Repository name.
             |There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused.
         """.trimMargin(),
+        docDescriptionZh = """|模组名，区分大小写，或首尾为星号的简单通配符过滤器，不区分大小写。
+|注意必须使用 Unciv 显示的模组名，而不是仓库名。
+|存在影响连字符及首尾空格的转换，请务必不要混淆。""".trimMargin(),
+        
         displayName = "Mod name filter",
         severityDefault = UniqueType.UniqueParameterErrorSeverity.RulesetInvariant
     ) {

@@ -17,7 +17,7 @@ title: Unique 能力列表
 :::
 
 ::: details Gain a free [buildingName] [cityFilter]
-Free buildings CANNOT be self-removing - this leads to an endless loop of trying to add the building
+免费建筑不能自我移除——这会导致尝试添加建筑的无限循环
 
 示例："Gain a free [Library] [in all cities]"
 
@@ -229,11 +229,11 @@ Free buildings CANNOT be self-removing - this leads to an endless loop of trying
 
 :::
 ::: details Triggers the following global alert: [comment]
-Supported on Policies and Technologies.
+支持用于政策和科技。
 
-For other targets, the generated Notification may not read nicely, and will likely not support translation. Reason: Your [comment] gets a generated introduction, other triggers usually notify _you_, not _others_, and that difference is currently handled by mapping text.
+对其他目标，生成的通知可能读起来不顺畅，且很可能不支持翻译。原因：你的 [comment] 会得到自动生成的引言，其他触发器通常通知_你_，而非_他人_，这一差异目前通过文本映射处理。
 
-Conditionals evaluate in the context of the civilization having the Unique, not the recipients of the alerts.
+条件在拥有该 unique 的文明上下文中求值，而非通知接收者。
 
 示例："Triggers the following global alert: [comment]"
 
@@ -275,7 +275,7 @@ Conditionals evaluate in the context of the civilization having the Unique, not 
 
 :::
 ::: details [mapUnitFilter] units gain the [promotion] promotion
-Works only with promotions that are valid for the unit's type - or for promotions that do not specify any.
+仅适用于对该单位类型有效的晋升——或未指定单位类型的晋升。
 
 示例："[Wounded] units gain the [Shock I] promotion"
 
@@ -317,7 +317,7 @@ Works only with promotions that are valid for the unit's type - or for promotion
 
 :::
 ::: details Play [comment] sound
-See [Images and Audio](Images-and-Audio.md#sounds) for a list of available sounds.
+可用声音列表见 [图像和音频](/zh/Modders/Images-and-Audio#sounds)。
 
 示例："Play [comment] sound"
 
@@ -335,15 +335,15 @@ See [Images and Audio](Images-and-Audio.md#sounds) for a list of available sound
 
 :::
 ::: details Choose a music track for [param], [param2], [param3]
-Parameters are unchecked, strings not matching existing tracks or flags are ignored.
+参数不校验，不匹配现有曲目或标志的字符串会被忽略。
 
-See [Context-sensitive music](Images-and-Audio.md#context-sensitive-music-overview)
+参见[情境音乐](/zh/Modders/Images-and-Audio#context-sensitive-music-overview)
 
-The first parameter is the track name prefix, e.g. a Civilization name or "this civ".
+第一个参数是曲目名前缀，例如文明名或 "this civ"。
 
-The second parameter is a list of zero or more suffixes, comma-separated, used to specify a "mood", like Peace, War, Ambient etc. First track that matches wins.
+第二个参数是零个或多个后缀的逗号分隔列表，用于指定 "mood"（氛围），如 Peace、War、Ambient 等。第一个匹配的曲目胜出。
 
-The third parameter is a list of zero or more flags: PrefixMustMatch, SuffixMustMatch, SlowFade, PlaySingle, PlayDefaultFile.
+第三个参数是零个或多个标志的列表：PrefixMustMatch, SuffixMustMatch, SlowFade, PlaySingle, PlayDefaultFile.
 
 示例："Choose a music track for [Unknown], [Unknown], [Unknown]"
 
@@ -425,7 +425,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ::: details [unitTriggerTarget] gains the [promotion] status for [positiveAmount] turn(s)
-Statuses are temporary promotions. They do not stack, and reapplying a specific status take the highest number - so reapplying a 3-turn on a 1-turn makes it 3, but doing the opposite will have no effect. Turns left on the status decrease at the *start of turn*, so bonuses applied for 1 turn are stll applied during other civ's turns.
+状态是临时晋升。它们不叠加，重新应用特定状态会取最大值——在 1 回合状态上重新应用 3 回合状态会变成 3，但反过来则无效。状态的剩余回合数在*回合开始时*减少，所以持续 1 回合的加成在其他文明的回合中仍然生效。
 
 示例："[This Unit] gains the [Shock I] status for [3] turn(s)"
 
@@ -481,7 +481,7 @@ Statuses are temporary promotions. They do not stack, and reapplying a specific 
 
 :::
 ::: details [stats] per [positiveAmount] social policies adopted
-Only works for civ-wide stats
+仅对全文明范围的产出生效
 
 示例："[+1 Gold, +2 Production] per [3] social policies adopted"
 
@@ -531,7 +531,7 @@ Only works for civ-wide stats
 
 :::
 ::: details [relativeAmount]% [stat]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% [Culture]"
 
@@ -539,7 +539,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% [stat] [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% [Culture] [in all cities]"
 
@@ -547,7 +547,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% [stat] from every [tileFilter/buildingFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% [Culture] from every [Farm]"
 
@@ -555,7 +555,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Yield from every [tileFilter/buildingFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Yield from every [Farm]"
 
@@ -587,7 +587,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Production when constructing [buildingFilter] buildings [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Production when constructing [Culture] buildings [in all cities]"
 
@@ -595,7 +595,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Production when constructing [baseUnitFilter] units [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Production when constructing [Melee] units [in all cities]"
 
@@ -603,7 +603,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Production when constructing [buildingFilter] wonders [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Production when constructing [Culture] wonders [in all cities]"
 
@@ -701,7 +701,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [amount]% Food is carried over after population increases [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[3]% Food is carried over after population increases [in all cities]"
 
@@ -803,7 +803,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [stat] cost of purchasing items in cities [relativeAmount]%
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[Culture] cost of purchasing items in cities [+20]%"
 
@@ -811,7 +811,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[Culture] cost of purchasing [Culture] buildings [+20]%"
 
@@ -819,7 +819,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[Culture] cost of purchasing [Melee] units [+20]%"
 
@@ -847,7 +847,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% maintenance on road & railroads
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% maintenance on road & railroads"
 
@@ -873,7 +873,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details Gain a free [buildingName] [cityFilter]
-Free buildings CANNOT be self-removing - this leads to an endless loop of trying to add the building
+免费建筑不能自我移除——这会导致尝试添加建筑的无限循环
 
 示例："Gain a free [Library] [in all cities]"
 
@@ -881,7 +881,7 @@ Free buildings CANNOT be self-removing - this leads to an endless loop of trying
 
 :::
 ::: details [relativeAmount]% maintenance cost for [buildingFilter] buildings [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% maintenance cost for [Culture] buildings [in all cities]"
 
@@ -901,7 +901,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Culture cost of natural border growth [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Culture cost of natural border growth [in all cities]"
 
@@ -909,7 +909,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Gold cost of acquiring tiles [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Gold cost of acquiring tiles [in all cities]"
 
@@ -923,7 +923,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Culture cost of adopting new Policies
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Culture cost of adopting new Policies"
 
@@ -937,7 +937,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Science cost of researching new Technologies
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Science cost of researching new Technologies"
 
@@ -1057,7 +1057,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% XP required for promotions
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% XP required for promotions"
 
@@ -1065,7 +1065,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% City Strength from defensive buildings
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% City Strength from defensive buildings"
 
@@ -1073,7 +1073,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Strength for cities
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Strength for cities"
 
@@ -1185,7 +1185,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Natural religion spread [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Natural religion spread [in all cities]"
 
@@ -1227,7 +1227,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details Spies in [cityFilter] cities act as though they have [relativeAmount] levels for [spyAction]
-Temporary effective rank change ([relativeAmount] added to rank, e.g. +1) for spies doing the given action in a matching city. Does not permanently level the spy. Stacks additively, capped by maxSpyRank.
+间谍在匹配城市执行指定行动时的临时有效等级变化（[relativeAmount] 加到等级上，如 +1）。不会永久提升间谍等级。按加法叠加，上限为 maxSpyRank。
 
 示例："Spies in [in all cities] cities act as though they have [+20] levels for [Counter-intelligence]"
 
@@ -1265,7 +1265,7 @@ Temporary effective rank change ([relativeAmount] added to rank, e.g. +1) for sp
 
 :::
 ::: details [relativeAmount]% Golden Age length
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Golden Age length"
 
@@ -1295,7 +1295,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Strength
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Strength"
 
@@ -1315,7 +1315,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% to Flank Attack bonuses
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% to Flank Attack bonuses"
 
@@ -1359,7 +1359,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Spread Religion Strength
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Spread Religion Strength"
 
@@ -1419,7 +1419,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% maintenance costs
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% maintenance costs"
 
@@ -1427,7 +1427,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Gold cost of upgrading
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Gold cost of upgrading"
 
@@ -1459,7 +1459,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% XP gained from combat
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% XP gained from combat"
 
@@ -1502,7 +1502,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details Start bias [terrainFilter]
-Same effect as a Nation startBias field entry. Merged with the startBias field and, for city-states, with matching uniques on their CityStateType. Conditionals run against GameInfo only during map generation / start placement (no Civilization — it may be only partially initialized). Do not use conditionals that require tiles, cities, or units.
+与 Nation 的 startBias 字段条目效果相同。与 startBias 字段合并；对城邦而言，还与其 CityStateType 上匹配的 unique 合并。条件仅在生成地图/放置起始位置时对 GameInfo 求值（没有 Civilization——它可能只被部分初始化）。不要使用需要地块、城市或单位的条件。
 
 示例："Start bias [Fresh Water]"
 
@@ -1528,11 +1528,11 @@ Same effect as a Nation startBias field entry. Merged with the startBias field a
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -1544,7 +1544,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -1585,13 +1585,13 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -1609,11 +1609,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -1621,7 +1621,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -1630,13 +1630,13 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 :::
 ## Policy uniques（政策词条）
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -1650,11 +1650,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -1662,7 +1662,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -1694,13 +1694,13 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -1714,11 +1714,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -1726,7 +1726,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -1794,7 +1794,7 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details [relativeAmount]% [stat]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% [Culture]"
 
@@ -1802,7 +1802,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% [stat] [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% [Culture] [in all cities]"
 
@@ -1810,7 +1810,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% [stat] from every [tileFilter/buildingFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% [Culture] from every [Farm]"
 
@@ -1818,7 +1818,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Yield from every [tileFilter/buildingFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Yield from every [Farm]"
 
@@ -1832,7 +1832,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Production when constructing [buildingFilter] buildings [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Production when constructing [Culture] buildings [in all cities]"
 
@@ -1840,7 +1840,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Production when constructing [baseUnitFilter] units [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Production when constructing [Melee] units [in all cities]"
 
@@ -1848,7 +1848,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Production when constructing [buildingFilter] wonders [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Production when constructing [Culture] wonders [in all cities]"
 
@@ -1868,7 +1868,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [amount]% Food is carried over after population increases [cityFilter]
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[3]% Food is carried over after population increases [in all cities]"
 
@@ -1936,7 +1936,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [stat] cost of purchasing items in cities [relativeAmount]%
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[Culture] cost of purchasing items in cities [+20]%"
 
@@ -1944,7 +1944,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[Culture] cost of purchasing [Culture] buildings [+20]%"
 
@@ -1952,7 +1952,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[Culture] cost of purchasing [Melee] units [+20]%"
 
@@ -1960,7 +1960,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% maintenance cost for [buildingFilter] buildings [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% maintenance cost for [Culture] buildings [in all cities]"
 
@@ -1968,7 +1968,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Culture cost of natural border growth [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Culture cost of natural border growth [in all cities]"
 
@@ -1976,7 +1976,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Gold cost of acquiring tiles [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Gold cost of acquiring tiles [in all cities]"
 
@@ -2008,7 +2008,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Strength for cities
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Strength for cities"
 
@@ -2022,7 +2022,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% Natural religion spread [cityFilter]
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Natural religion spread [in all cities]"
 
@@ -2036,13 +2036,13 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -2062,11 +2062,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -2074,7 +2074,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -2105,7 +2105,7 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Unbuildable
-Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
+阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买
 
 适用范围：Building，Unit，Improvement
 
@@ -2133,13 +2133,13 @@ Blocks from being built, possibly by conditional. However it can still appear in
 
 :::
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -2175,7 +2175,7 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details [amount]% production cost
-Intended to be used with conditionals to dynamically alter construction costs. Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+用于与条件配合，动态调整建造费用。$MULTIPLICATIVE_BONUS_EXPLANATION_ZH
 
 示例："[3]% production cost"
 
@@ -2183,7 +2183,7 @@ Intended to be used with conditionals to dynamically alter construction costs. M
 
 :::
 ::: details Can only be built
-Meant to be used together with conditionals, like "Can only be built &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also NOT block Upgrade and Transform actions. See also OnlyAvailable.
+用于与条件配合，如 "Can only be built &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。**不会**阻止升级（Upgrade）和转换（Transform）行动。另见 OnlyAvailable。
 
 适用范围：Building，Unit
 
@@ -2281,7 +2281,7 @@ When choosing to construct this building, the player must select a tile where th
 
 :::
 ::: details Hidden from city screen
-This building is hidden from the city details screen after construction. All stats continue to apply normally.
+建造后，此建筑从城市详情界面隐藏。所有产出照常生效。
 
 此词条自动对用户隐藏。
 
@@ -2289,7 +2289,7 @@ This building is hidden from the city details screen after construction. All sta
 
 :::
 ::: details Can be built [amount] times in each city
-Allows this building to be constructed multiple times in the same city. Using -1 allows unlimited times.
+允许此建筑在同一城市重复建造。使用 -1 表示不限次数。
 
 示例："Can be built [3] times in each city"
 
@@ -2297,7 +2297,7 @@ Allows this building to be constructed multiple times in the same city. Using -1
 
 :::
 ::: details Can carry [amount] extra [mapUnitFilter] units
-For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.
+对建筑，支持用 `Air` 作为 `mapUnitFilter` 以增加城市空中单位容量。
 
 示例："Can carry [3] extra [Wounded] units"
 
@@ -2321,11 +2321,11 @@ For buildings, supports using `Air` for `mapUnitFilter` to increase city air uni
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -2339,7 +2339,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -2383,7 +2383,7 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details Can transform to [unit]
-By default consumes all movement
+默认消耗全部移动力
 
 示例："Can transform to [Musketman]"
 
@@ -2447,7 +2447,7 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Unbuildable
-Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
+阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买
 
 适用范围：Building，Unit，Improvement
 
@@ -2475,13 +2475,13 @@ Blocks from being built, possibly by conditional. However it can still appear in
 
 :::
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -2517,7 +2517,7 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details [amount]% production cost
-Intended to be used with conditionals to dynamically alter construction costs. Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+用于与条件配合，动态调整建造费用。$MULTIPLICATIVE_BONUS_EXPLANATION_ZH
 
 示例："[3]% production cost"
 
@@ -2525,7 +2525,7 @@ Intended to be used with conditionals to dynamically alter construction costs. M
 
 :::
 ::: details Can only be built
-Meant to be used together with conditionals, like "Can only be built &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also NOT block Upgrade and Transform actions. See also OnlyAvailable.
+用于与条件配合，如 "Can only be built &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。**不会**阻止升级（Upgrade）和转换（Transform）行动。另见 OnlyAvailable。
 
 适用范围：Building，Unit
 
@@ -2593,7 +2593,7 @@ Meant to be used together with conditionals, like "Can only be built &lt;after a
 
 :::
 ::: details [relativeAmount]% Strength
-Multiple bonuses stack additively: +50% + +50% = +100%
+多个加成按加法叠加：+50% + +50% = +100%
 
 示例："[+20]% Strength"
 
@@ -2613,7 +2613,7 @@ Multiple bonuses stack additively: +50% + +50% = +100%
 
 :::
 ::: details [relativeAmount]% to Flank Attack bonuses
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% to Flank Attack bonuses"
 
@@ -2675,7 +2675,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Spread Religion Strength
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Spread Religion Strength"
 
@@ -2741,9 +2741,9 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles
-Performs an attack against every unit that matches the filter inside the radius including allied units or own units if not filtered out, dealing equal damage. Status effects and on-hit abilities apply to all affected units.
+对半径内匹配过滤器的所有单位发动攻击（包括未被过滤掉的盟军或己方单位），伤害均等。状态效果和命中能力作用于所有受影响单位。
 
-If both this and decreasing area attacks are present, only decreasing area attacks will be used.
+如果同时存在本效果和递减范围攻击，则只使用递减范围攻击。
 
 示例："Attacks also target [Wounded] units within [3] tiles"
 
@@ -2751,11 +2751,11 @@ If both this and decreasing area attacks are present, only decreasing area attac
 
 :::
 ::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance
-Performs an attack against every unit that matches the filter inside the radius with the damage decreasing with distance from the main target. Status effects and on-hit abilities apply.
+对半径内匹配过滤器的所有单位发动攻击，伤害随与主目标的距离递减。状态效果和命中能力生效。
 
-If both this and equal area attacks are present, only this will be used, also affects counter damage and damage from own area attacks.
+如果同时存在本效果和均等范围攻击，则只使用本效果；也影响反击伤害和自身范围攻击的伤害。
 
-Damage formula: Damage = (1 - (distance / radius)) * baseDamage
+伤害公式：伤害 = (1 - (距离 / 半径)) * 基础伤害
 
 示例："Attacks also target [Wounded] units within [3] tiles, with damage decreasing by distance"
 
@@ -2763,7 +2763,7 @@ Damage formula: Damage = (1 - (distance / radius)) * baseDamage
 
 :::
 ::: details Takes [relativeAmount]% damage from own area attacks
-This unit takes damage from its own area attacks when it is in range, 100 = 100% damage.
+此单位在范围内时承受自身范围攻击的伤害，100 = 100% 伤害。
 
 示例："Takes [+20]% damage from own area attacks"
 
@@ -2771,7 +2771,7 @@ This unit takes damage from its own area attacks when it is in range, 100 = 100%
 
 :::
 ::: details Takes [relativeAmount]% counter damage from each unit hit by its area attacks
-Only works for melee units, 100 = 100% damage, negative values work but are taken as positive.
+仅对近战单位生效，100 = 100% 伤害，负值可用但按正值处理。
 
 示例："Takes [+20]% counter damage from each unit hit by its area attacks"
 
@@ -2807,7 +2807,7 @@ Only works for melee units, 100 = 100% damage, negative values work but are take
 
 :::
 ::: details Destroys [cityFilter] cities instead of capturing
-The unit will destroy [cityFilter] cities instead of capturing them, also allows non-melee units to destroy cities.Capital cities (including city states) are immune to this effect.
+此单位将摧毁 [cityFilter] 城市而不是占领它们，也允许非近战单位摧毁城市。首都（包括城邦）对此效果免疫。
 
 示例："Destroys [in all cities] cities instead of capturing"
 
@@ -2875,7 +2875,7 @@ The unit will destroy [cityFilter] cities instead of capturing them, also allows
 
 :::
 ::: details Can carry [amount] extra [mapUnitFilter] units
-For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.
+对建筑，支持用 `Air` 作为 `mapUnitFilter` 以增加城市空中单位容量。
 
 示例："Can carry [3] extra [Wounded] units"
 
@@ -2929,7 +2929,7 @@ For buildings, supports using `Air` for `mapUnitFilter` to increase city air uni
 
 :::
 ::: details [relativeAmount]% maintenance costs
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% maintenance costs"
 
@@ -2937,7 +2937,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% Gold cost of upgrading
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% Gold cost of upgrading"
 
@@ -2975,7 +2975,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details [relativeAmount]% XP gained from combat
-Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
+多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
 示例："[+20]% XP gained from combat"
 
@@ -3141,7 +3141,7 @@ Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 :::
 ::: details Is part of Great Person group [comment]
-Great people in the same group increase teach other's costs when gained. Gaining one will make all others in the same group cost more GPP.
+同一组的伟人在获得时会使彼此的成本增加。获得一个后，同组的其他伟人将需要更多伟人点（GPP）。
 
 示例："Is part of Great Person group [comment]"
 
@@ -3149,11 +3149,11 @@ Great people in the same group increase teach other's costs when gained. Gaining
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -3167,7 +3167,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -3176,11 +3176,11 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 :::
 ## UnitType uniques（单位类别词条）
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -3188,7 +3188,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -3197,13 +3197,13 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 :::
 ## Promotion uniques（晋升项词条）
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -3231,11 +3231,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -3243,7 +3243,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -3312,9 +3312,9 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details Neighboring tiles will convert to [baseTerrain/terrainFeature]
-Supports conditionals that need only a Tile as context and nothing else, like `<with [n]% chance>`, and applies them per neighbor.
+支持只需要 Tile 作为上下文的条件（如 `<with [n]% chance>`），并按每个相邻地块应用。
 
-If your mod renames Coast or Lakes, do not use this with one of these as parameter, as the code preventing artifacts won't work.
+如果你的模组重命名了海岸或湖泊，请不要将其作为参数使用本效果，因为防止瑕疵的代码将无法工作。
 
 示例："Neighboring tiles will convert to [Grassland]"
 
@@ -3536,11 +3536,11 @@ A tile marked this way marks adjacent land tiles as "Coastal", so they fulfill t
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -3548,7 +3548,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -3597,19 +3597,19 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Unbuildable
-Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
+阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买
 
 适用范围：Building，Unit，Improvement
 
 :::
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -3703,7 +3703,7 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Gives a defensive bonus of [relativeAmount]%
-Does not accept unit-based conditionals
+不接受基于单位的条件
 
 示例："Gives a defensive bonus of [+20]%"
 
@@ -3737,7 +3737,7 @@ Does not accept unit-based conditionals
 
 :::
 ::: details Marks a barbarian camp
-When several barbarian camp improvements are available, each new camp chooses one randomly.
+当有多种野蛮人营地改良设施可用时，每个新营地随机选择一种。
 
 此词条自动对用户隐藏。
 
@@ -3781,7 +3781,7 @@ When several barbarian camp improvements are available, each new camp chooses on
 
 :::
 ::: details Improves [resourceFilter] resource in this tile
-This is offered as an alternative to the improvedBy field of a resource. The result will be cached within the resource definition when loading a game, without knowledge about terrain, cities, civs, units or time. Therefore, most conditionals will not work, only those **not** dependent on game state.
+作为资源 improvedBy 字段的替代方案提供。加载游戏时，结果会在资源定义内缓存，且不依赖地形、城市、文明、单位或时间信息。因此，大多数条件不会生效，只有**不**依赖游戏状态的条件可以。
 
 示例："Improves [Strategic] resource in this tile"
 
@@ -3791,11 +3791,11 @@ This is offered as an alternative to the improvedBy field of a resource. The res
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -3803,7 +3803,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -3864,13 +3864,13 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details Stockpiled
-This resource is accumulated each turn, rather than having a set of producers and consumers at a given moment.The current stockpiled amount can be affected with trigger uniques.
+此资源每回合累积，而不是在某一时刻有一组生产者和消费者。当前库存量可通过触发型 unique 影响。
 
 适用范围：Resource
 
 :::
 ::: details City-level resource
-This resource is calculated on a per-city level rather than a per-civ level
+此资源按城市级别计算，而非按文明级别
 
 适用范围：Resource
 
@@ -3886,7 +3886,7 @@ This resource is calculated on a per-city level rather than a per-civ level
 
 :::
 ::: details Generated with weight [amount]
-The probability for this resource to be chosen is (this resource weight) / (sum weight of all eligible resources). Resources without a unique are given weight `1`
+选择此资源的概率为（此资源权重）/（所有合格资源权重之和）。没有 unique 的资源权重为 `1`
 
 示例："Generated with weight [3]"
 
@@ -3896,7 +3896,7 @@ The probability for this resource to be chosen is (this resource weight) / (sum 
 
 :::
 ::: details Minor deposits generated with weight [amount]
-The probability for this resource to be chosen is (this resource weight) / (sum weight of all eligible resources). Resources without a unique are not generated as minor deposits.
+选择此资源的概率为（此资源权重）/（所有合格资源权重之和）。没有 unique 的资源不会作为小型矿藏生成。
 
 示例："Minor deposits generated with weight [3]"
 
@@ -3906,7 +3906,7 @@ The probability for this resource to be chosen is (this resource weight) / (sum 
 
 :::
 ::: details Generated near City States with weight [amount]
-The probability for this resource to be chosen is (this resource weight) / (sum weight of all eligible resources). Only assignable to luxuries, resources without a unique are given weight `1`
+选择此资源的概率为（此资源权重）/（所有合格资源权重之和）。只能分配给奢侈品，没有 unique 的资源权重为 `1`
 
 示例："Generated near City States with weight [3]"
 
@@ -3950,11 +3950,11 @@ The probability for this resource to be chosen is (this resource weight) / (sum 
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -3962,7 +3962,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -3971,13 +3971,13 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 :::
 ## Ruins uniques（遗迹词条）
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -3995,11 +3995,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -4007,7 +4007,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -4021,11 +4021,11 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 :::
 
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -4033,7 +4033,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -4059,11 +4059,11 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 :::
 
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -4071,7 +4071,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -4090,7 +4090,7 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details Start bias [terrainFilter]
-Same effect as a Nation startBias field entry. Merged with the startBias field and, for city-states, with matching uniques on their CityStateType. Conditionals run against GameInfo only during map generation / start placement (no Civilization — it may be only partially initialized). Do not use conditionals that require tiles, cities, or units.
+与 Nation 的 startBias 字段条目效果相同。与 startBias 字段合并；对城邦而言，还与其 CityStateType 上匹配的 unique 合并。条件仅在生成地图/放置起始位置时对 GameInfo 求值（没有 Civilization——它可能只被部分初始化）。不要使用需要地块、城市或单位的条件。
 
 示例："Start bias [Fresh Water]"
 
@@ -4131,7 +4131,7 @@ Same effect as a Nation startBias field entry. Merged with the startBias field a
 
 :::
 ::: details Can only start games from the starting era
-In this case, 'starting era' means the first defined Era in the entire ruleset.
+在这种情况下，'starting era'（开始时代）指整个规则集中定义的第一个时代。
 
 此词条不支持条件。
 
@@ -4177,7 +4177,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ::: details Mod is incompatible with [modFilter]
-Specifies that your Mod is incompatible with another. Always treated symmetrically, and cannot be overridden by the Mod you are declaring as incompatible.
+指定你的模组与另一个模组不兼容。始终对称处理，且不能被声明为不兼容的模组覆盖。
 
 示例："Mod is incompatible with [DeCiv Redux]"
 
@@ -4187,9 +4187,9 @@ Specifies that your Mod is incompatible with another. Always treated symmetrical
 
 :::
 ::: details Mod requires [modFilter]
-Specifies that your Extension Mod is only available if any other Mod matching the filter is active.
+指定你的扩展模组仅在匹配过滤器的其他模组激活时可用。
 
-Multiple copies of this Unique cannot be used to specify alternatives, they work as 'and' logic. If you need alternates and wildcards can't filter them well enough, please open an issue.
+此 unique 的多个副本不能用于指定替代项，它们按 'and' 逻辑工作。如果你需要替代项而通配符无法很好过滤，请提交 issue。
 
 示例："Mod requires [DeCiv Redux]"
 
@@ -4217,7 +4217,7 @@ Multiple copies of this Unique cannot be used to specify alternatives, they work
 
 :::
 ::: details Mod preselects map [comment]
-Only meaningful for Mods containing several maps. When this mod is selected on the new game screen's custom maps mod dropdown, the named map will be selected on the map dropdown. Also disables selection by recently modified. Case insensitive.
+仅对包含多张地图的模组有意义。当此模组在新建游戏界面的自定义地图模组下拉框中被选中时，命名地图将在地图下拉框中被选中。同时禁用按最近修改排序的选择。不区分大小写。
 
 示例："Mod preselects map [comment]"
 
@@ -4228,26 +4228,26 @@ Only meaningful for Mods containing several maps. When this mod is selected on t
 :::
 ## Event uniques（事件词条）
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ## EventChoice uniques（事件选择词条）
 ::: details Only available
-Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
 :::
 ::: details Unavailable
-Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
 适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
 
@@ -4261,11 +4261,11 @@ Meant to be used together with conditionals, like "Unavailable &lt;after generat
 
 :::
 ::: details Will not be displayed in Civilopedia
-Supports conditionals that need only a Game as context and nothing else.
+支持只需要 Game 作为上下文的条件。
 
-Most conditionals require at least a Civilization and will **not** work.
+大多数条件至少需要一个 Civilization，因此**不**会生效。
 
-Note that when Civilopedia runs from main menu, conditionals will be ignored.
+注意：从主菜单运行文明百科时，条件将被忽略。
 
 此词条自动对用户隐藏。
 
@@ -4273,7 +4273,7 @@ Note that when Civilopedia runs from main menu, conditionals will be ignored.
 
 :::
 ::: details Comment [comment]
-Allows displaying arbitrary text in a Unique listing. Only the text within the '[]' brackets will be displayed, the rest serves to allow Ruleset validation to recognize the intent.
+允许在 unique 列表中显示任意文本。只有 '[]' 方括号内的文本会显示，其余部分用于让规则集校验识别意图。
 
 示例："Comment [comment]"
 
@@ -4455,7 +4455,7 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 
 :::
 ::: details &lt;while researching [techFilter]&gt;
-This condition is fulfilled while the technology is actively being researched (it is the one research points are added to)
+当科技正在被积极研究时（即研究点被投入的科技）满足此条件
 
 示例："while researching [Agriculture]"
 
@@ -4561,7 +4561,7 @@ This condition is fulfilled while the technology is actively being researched (i
 
 :::
 ::: details &lt;when above [amount] [stat/resource]&gt;
-Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when above [amount] Happiness'
+Stats 指累积产出，而非每回合产出。因此不支持笑脸——请使用 'when above [amount] Happiness'
 
 示例："when above [3] [Culture]"
 
@@ -4571,7 +4571,7 @@ Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not sup
 
 :::
 ::: details &lt;when below [amount] [stat/resource]&gt;
-Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when below [amount] Happiness'
+Stats 指累积产出，而非每回合产出。因此不支持笑脸——请使用 'when below [amount] Happiness'
 
 示例："when below [3] [Culture]"
 
@@ -4581,7 +4581,7 @@ Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not sup
 
 :::
 ::: details &lt;when between [amount] and [amount2] [stat/resource]&gt;
-Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness. 'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
+Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between'（之间）是包含边界的——所以 'between 1 and 5' 包含 1 和 5。
 
 示例："when between [3] and [3] [Culture]"
 
@@ -4653,7 +4653,7 @@ Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not sup
 
 :::
 ::: details &lt;in cities with between [amount] and [amount2] [populationFilter]&gt;
-'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
+'Between'（之间）是包含边界的——所以 'between 1 and 5' 包含 1 和 5。
 
 示例："in cities with between [3] and [3] [Followers of this Religion]"
 
@@ -4683,7 +4683,7 @@ Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not sup
 
 :::
 ::: details &lt;for units with [promotion]&gt;
-Also applies to units with temporary status
+也适用于带有临时状态的单位
 
 示例："for units with [Shock I]"
 
@@ -4691,7 +4691,7 @@ Also applies to units with temporary status
 
 :::
 ::: details &lt;for units without [promotion]&gt;
-Also applies to units with temporary status
+也适用于带有临时状态的单位
 
 示例："for units without [Shock I]"
 
@@ -4859,7 +4859,7 @@ Also applies to units with temporary status
 
 :::
 ::: details &lt;when number of [countable] is between [countable2] and [countable3]&gt;
-'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
+'Between'（之间）是包含边界的——所以 'between 1 and 5' 包含 1 和 5。
 
 示例："when number of [1000] is between [1000] and [1000]"
 
@@ -5053,7 +5053,7 @@ Also applies to units with temporary status
 
 :::
 ::: details &lt;upon damaging a [mapUnitFilter] unit&gt;
-Can apply triggers to to damaged unit by setting the first parameter to 'Target Unit'
+将第一个参数设为 'Target Unit' 即可对受损单位应用触发效果
 
 示例："upon damaging a [Wounded] unit"
 
@@ -5133,7 +5133,7 @@ Can apply triggers to to damaged unit by setting the first parameter to 'Target 
 
 :::
 ::: details &lt;for [amount] movement&gt;
-Will consume up to [amount] of Movement to execute
+执行时最多消耗 [amount] 移动力
 
 示例："for [3] movement"
 
@@ -5141,13 +5141,13 @@ Will consume up to [amount] of Movement to execute
 
 :::
 ::: details &lt;for all movement&gt;
-Will consume all Movement to execute
+执行时消耗全部移动力
 
 适用范围：UnitActionModifier
 
 :::
 ::: details &lt;requires [nonNegativeAmount] movement&gt;
-Requires [nonNegativeAmount] of Movement to execute. Unit's Movement is rounded up
+执行需要 [nonNegativeAmount] 移动力。单位的移动力向上取整
 
 示例："requires [3] movement"
 
@@ -5155,7 +5155,7 @@ Requires [nonNegativeAmount] of Movement to execute. Unit's Movement is rounded 
 
 :::
 ::: details &lt;costs [stats] stats&gt;
-A positive Integer value will be subtracted from your stock. Food and Production will be removed from Closest City's current stock
+正整数将从你的库存中扣除。食物和产能将从最近城市的当前库存中移除
 
 示例："costs [+1 Gold, +2 Production] stats"
 
@@ -5163,7 +5163,7 @@ A positive Integer value will be subtracted from your stock. Food and Production
 
 :::
 ::: details &lt;costs [amount] [stockpiledResource]&gt;
-A positive Integer value will be subtracted from your stock. Do not confuse with "Costs [amount] [stockpiledResource]" (uppercase 'C') for Improvements, Buildings, and Units.
+正整数将从你的库存中扣除。不要与改良设施、建筑和单位上的 "Costs [amount] [stockpiledResource]"（大写 'C'）混淆。
 
 示例："costs [3] [Mana]"
 
@@ -5171,7 +5171,7 @@ A positive Integer value will be subtracted from your stock. Do not confuse with
 
 :::
 ::: details &lt;removing the [promotion] promotion/status&gt;
-Removes the promotion/status from the unit - this is not a cost, units will be able to activate the action even without the promotion/status. To limit, use &lt;with the [promotion] promotion&gt; conditional
+从单位移除该晋升/状态——这不是代价，即使没有该晋升/状态，单位也能激活此行动。如需限制，请使用 &lt;with the [promotion] promotion&gt; 条件
 
 示例："removing the [Shock I] promotion/status"
 
@@ -5199,7 +5199,7 @@ Removes the promotion/status from the unit - this is not a cost, units will be a
 
 :::
 ::: details &lt;with [amount] priority&gt;
-How often this action is used, a higher value means more often and that it should be on an earlier page. 100 is very frequent, 50 is somewhat frequent, less than 25 is press one time for multi-turn movement. A Rare case is &gt; 100 if a button is something like add in capital, promote or something, we need to inform the player that taking the action is an option.
+此行动的使用频率，值越高表示越常用，且应放在更靠前的页面。100 表示非常频繁，50 表示比较频繁，小于 25 表示多回合移动时按一次。如果按钮像是添加到首都、晋升之类，&gt; 100 也是可能的——我们需要告知玩家采取行动是一个选项。
 
 示例："with [3] priority"
 
@@ -5215,7 +5215,7 @@ How often this action is used, a higher value means more often and that it shoul
 :::
 
 ::: details &lt;for [nonNegativeAmount] turns&gt;
-Turns this unique into a trigger, activating this unique as a *global* unique for a number of turns
+将此 unique 变为触发器，作为*全局* unique 激活一定回合数
 
 示例："for [3] turns"
 
@@ -5223,7 +5223,7 @@ Turns this unique into a trigger, activating this unique as a *global* unique fo
 
 :::
 ::: details &lt;with [amount] priority&gt;
-How often this action is used, a higher value means more often and that it should be on an earlier page. 100 is very frequent, 50 is somewhat frequent, less than 25 is press one time for multi-turn movement. A Rare case is &gt; 100 if a button is something like add in capital, promote or something, we need to inform the player that taking the action is an option.
+此行动的使用频率，值越高表示越常用，且应放在更靠前的页面。100 表示非常频繁，50 表示比较频繁，小于 25 表示多回合移动时按一次。如果按钮像是添加到首都、晋升之类，&gt; 100 也是可能的——我们需要告知玩家采取行动是一个选项。
 
 示例："with [3] priority"
 
@@ -5237,7 +5237,7 @@ How often this action is used, a higher value means more often and that it shoul
 
 :::
 ::: details &lt;for every [countable]&gt;
-Works for positive numbers only
+仅适用于正数
 
 示例："for every [1000]"
 
@@ -5245,7 +5245,7 @@ Works for positive numbers only
 
 :::
 ::: details &lt;for every adjacent [tileFilter]&gt;
-Works for positive numbers only
+仅适用于正数
 
 示例："for every adjacent [Farm]"
 
@@ -5253,7 +5253,7 @@ Works for positive numbers only
 
 :::
 ::: details &lt;for every [positiveAmount] [countable]&gt;
-Works for positive numbers only
+仅适用于正数
 
 示例："for every [3] [1000]"
 
@@ -5261,13 +5261,13 @@ Works for positive numbers only
 
 :::
 ::: details &lt;(modified by game speed)&gt;
-Can only be applied to certain uniques, see details of each unique for specifics
+只能应用于特定 unique，具体见每个 unique 的详细说明
 
 适用范围：MetaModifier
 
 :::
 ::: details &lt;(modified by game progress up to [relativeAmount]%)&gt;
-Can only be applied to certain uniques, see details of each unique for specifics
+只能应用于特定 unique，具体见每个 unique 的详细说明
 
 示例："(modified by game progress up to [+20]%)"
 
@@ -5275,7 +5275,7 @@ Can only be applied to certain uniques, see details of each unique for specifics
 
 :::
 ::: details &lt;Civilopedia link [pediaLink]&gt;
-Allows linking a unique to any Civilopedia page when it is listed in Civilopedia normally. This overrides automatic links to objects in the unique's parameters.
+允许 unique 在文明百科中正常列出时链接到任意文明百科页面。这会覆盖对 unique 参数中对象的自动链接。
 
 示例："Civilopedia link [Units/Settler]"
 
@@ -5314,14 +5314,14 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `era` | The name of any era. |
 | `eraFilter` | The name of an era, `any era`, `Starting Era`, `pre-[era]`, `post-[era]`. |
 | `event` | The name of any event. |
-| `foundingOrEnhancing` | `founding` or `enhancing`. |
+| `foundingOrEnhancing` | Prophet Action Filters. |
 | `fraction` | Indicates a fractional number, which can be negative. Also accepts Countable expressions. |
 | `improvementName` | The name of any improvement excluding 'Cancel improvement order' |
-| `leaderTitle` | Provides a leader title that includes the leader's name in parameters. |
+| `leaderTitle` | Leader Title |
 | `luaFunction` | A Lua function reference in the form [modName:]functionName. |
-| `modFilter` | A Mod name, case-sensitive _or_ a simple wildcard filter beginning and ending in an Asterisk, case-insensitive.<br>Note that this must use the Mod name as Unciv displays it, not the Repository name.<br>There is a conversion affecting dashes and leading/trailing blanks. Please make sure not to get confused. |
+| `modFilter` | 模组名，区分大小写，或首尾为星号的简单通配符过滤器，不区分大小写。<br>注意必须使用 Unciv 显示的模组名，而不是仓库名。<br>存在影响连字符及首尾空格的转换，请务必不要混淆。 |
 | `nonNegativeAmount` | This indicates a non-negative whole number, larger than or equal to zero, a '+' sign is optional. Also accepts Countable expressions. |
-| `pediaLink` | A Civilopedia link in the form category/entry. |
+| `pediaLink` | Unique Specials. |
 | `policy` | The name of any policy. |
 | `policyFilter` | The name of any policy, a filtering Unique, any branch (matching only the branch itself), a branch name with " Completed" appended (matches if the branch is completed), or a policy branch as `[branchName] branch` (matching all policies in that branch). |
 | `positiveAmount` | This indicates a positive whole number, larger than zero, a '+' sign is optional. Also accepts Countable expressions. |
@@ -5338,9 +5338,9 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `stockpiledResource` | The name of any stockpiled resource. |
 | `tech` | The name of any tech. |
 | `terrainFeature` | The name of any terrain that is a terrain feature according to the json file. |
-| `tileFilter` | Anything that can be used either in an improvementFilter or in a terrainFilter can be used here, plus 'unimproved' |
+| `tileFilter` | Tile Filters |
 | `unitNameGroup` | The name of a unit name group found in UnitNameGroups.json, or one of their unique tags. |
 | `unitTriggerTarget` | `This Unit` or `Target Unit`. |
-| `unitType` | Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type, or a multi-filter of these. |
-| `validationWarning` | Suppresses one specific Ruleset validation warning. This can specify the full text verbatim including correct upper/lower case, or it can be a wildcard case-insensitive simple pattern starting and ending in an asterisk ('*'). If the suppression unique is used within an object or as modifier (not ModOptions), the wildcard symbols can be omitted, as selectivity is better due to the limited scope. |
+| `unitType` | Unit Type Filters. |
+| `validationWarning` | Mod-check warning |
 | `victoryType` | The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names. |
