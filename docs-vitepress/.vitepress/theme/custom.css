@@ -551,3 +551,9 @@ html {
 .custom-block.note code {
   background-color: var(--vp-custom-block-code-bg);
 }
+
+/* 允许选中 details summary 文本（VitePress 默认 user-select: none，无法复制 unique 语句） */
+.custom-block.details summary,
+.vp-doc summary {
+  user-select: text;
+}

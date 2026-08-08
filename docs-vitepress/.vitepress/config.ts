@@ -52,6 +52,22 @@ export default defineConfig({
           return '</div>\n'
         },
       })
+      // 覆盖内置 details 容器：summary 中注入 CopyButton 组件（一键复制标题文本，
+      // 模组作者需要复制 unique 语句；VitePress 默认 summary 不可选中）。
+      md.use(container, 'details', {
+        render(tokens, idx) {
+          const title = tokens[idx].info.trim().replace(/^details\s*/, '')
+          if (tokens[idx].nesting === 1) {
+            const escaped = title
+              .replace(/&/g, '&amp;')
+              .replace(/"/g, '&quot;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+            return `<details class="details custom-block"><summary>${title}<CopyButton text="${escaped}" /></summary>\n`
+          }
+          return '</details>\n'
+        },
+      })
     }
   },
 
