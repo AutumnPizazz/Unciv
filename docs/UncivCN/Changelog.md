@@ -2,6 +2,11 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+## v4.21.5.3 (build 1244)
+
+- Fixed CI test failures: 13 translation templates were missing the trailing space (breaking `TranslationTests`); test mods `testMOD` / `testMapScript` are now tracked in the repo (previously git-ignored, which broke Lua-script and merge-action tests in CI), with `testMOD/jsons/Buildings.json` added
+- Deploy workflow no longer posts release announcements to Discord (GitHub Release upload kept)
+
 ## v4.21.5.2 (build 1243)
 
 - Official docs site launched: a brand-new VitePress site (replacing mkdocs) with full-text Chinese search, one-click EN/CN switching, and one-click copy on unique listings

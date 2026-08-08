@@ -8,6 +8,11 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
+## v4.21.5.3（build 1244）
+
+- 修复 CI 测试失败：13 行翻译模板缺末尾空格（TranslationTests 挂掉）；测试模组 testMOD / testMapScript 此前被 .gitignore 忽略，导致 CI 上 Lua 脚本与合并动作测试大量失败，现已纳入版本库并补充 testMOD/jsons/Buildings.json
+- Deploy 工作流不再向 Discord 推送发布通知（GitHub Release 上传保留）
+
 ## v4.21.5.2（build 1243）
 
 - 官方文档站上线：全新 VitePress 文档站（替换 mkdocs），支持中文全文搜索、中英文一键切换、unique 列表一键复制
