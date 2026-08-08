@@ -198,7 +198,7 @@ To clarify: When your Mod is distributed via github, including these in the Mod 
 However, when a Mod is distributed _without_ a github repository, these values can and _should_ be set by the author in the distributed `ModOptions.json`.
 
 ::: note
-    As an alternative to the `*ToRemove` lists, you can use [Merge Actions](6-MergeActions.md) with `"action": "REMOVE"` directly in the corresponding JSON file (e.g. `{ "name": "Scout", "_mergeAction": { "action": "REMOVE" } }` in `Units.json`). This keeps the removal declaration alongside the data it relates to, and also supports conditions (`"if"`). Both methods are supported and can be used together.
+As an alternative to the `*ToRemove` lists, you can use [Merge Actions](6-MergeActions.md) with `"action": "REMOVE"` directly in the corresponding JSON file (e.g. `{ "name": "Scout", "_mergeAction": { "action": "REMOVE" } }` in `Units.json`). This keeps the removal declaration alongside the data it relates to, and also supports conditions (`"if"`). Both methods are supported and can be used together.
 
 :::
 ### ModConstants

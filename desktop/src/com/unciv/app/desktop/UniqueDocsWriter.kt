@@ -7,6 +7,7 @@ import com.unciv.models.ruleset.unique.UniqueParameterType
 import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
+import com.unciv.models.translations.getPlaceholderParameters
 import com.unciv.utils.Log
 import java.io.File
 
@@ -100,6 +101,25 @@ class UniqueDocsWriter {
     /** Create the anchor-navigation part to append to a link for a given header */
     fun toLink(string: String): String {
         return "#" + string.split(' ').joinToString("-") { it.lowercase() }
+    }
+
+    /**
+     * The translation template key for a unique text: duplicate placeholders get numbered
+     * (e.g. `[amount] [amount]` -> `[amount1] [amount2]`), mirroring TranslationFileWriter.getTranslatable().
+     * Shown in docs so readers can tell repeated parameters apart.
+     */
+    private fun translatableKey(text: String): String {
+        val newPlaceholders = ArrayList<String>()
+        for (placeholderText in text.getPlaceholderParameters()) {
+            if (placeholderText !in newPlaceholders) {
+                newPlaceholders += placeholderText
+            } else {
+                var i = 2
+                while (placeholderText + i in newPlaceholders) i++
+                newPlaceholders += placeholderText + i
+            }
+        }
+        return text.fillPlaceholders(*newPlaceholders.toTypedArray())
     }
 
     // Thanks https://github.com/ktorio/ktor/blob/d89d41ef6dc91479e6c13c25eb306abc15040b8e/ktor-utils/common/src/io/ktor/util/Text.kt#L7-L28
@@ -200,7 +220,7 @@ class UniqueDocsWriter {
                 // VitePress admonition container (was mkdocs `!!! note ""`)
                 lines += "::: note"
                 lines += ""
-                lines += "    " + doc(targetType.documentationString)
+                lines += doc(targetType.documentationString)
                 lines += ":::"
                 lines += ""
             }
@@ -208,35 +228,40 @@ class UniqueDocsWriter {
             for (uniqueType in uniqueTypes) {
                 if (uniqueType.getDeprecationAnnotation() != null) continue
 
-                // unique 文本是模组 JSON 中的字面量（须与 UniqueType 逐字匹配才能生效），不可翻译
+                // unique 文本是模组 JSON 中的字面量（须与 UniqueType 逐字匹配才能生效），不可翻译。
+                // 但同名参数需编号化显示（[amount] [amount] -> [amount1] [amount2]），
+                // 与翻译模板 getTranslatable() 的形式一致，避免读者困惑。
                 val uniqueText = if (targetType.modifierType != UniqueTarget.ModifierType.None)
-                    "&lt;${uniqueType.text}&gt;"
-                else uniqueType.text
-                // VitePress collapsable container (was mkdocs `??? example "..."`)
+                    "&lt;${translatableKey(uniqueType.text)}&gt;"
+                else translatableKey(uniqueType.text)
+                // VitePress collapsable container (was mkdocs `??? example "..."`).
+                // 注意：容器内容**不能缩进**（4 空格/tab 会被 markdown 当作代码块渲染为 pre），
+                // 与 mkdocs admonition 的缩进要求相反。
                 lines += "::: details " + uniqueText
-                // These blocks will join all indented lines that follow, they need an empty line followed by more indented lines to render one break.
-                // Thus, all optional lines up to "Applicable" get an extra `\n`, and the `escapeHtml` helper doubles newlines found in docDescription:
+                // These blocks join the following lines; an empty line separates paragraphs.
+                // The `escapeHtml` helper doubles newlines found in docDescription:
                 if (uniqueType.docDescription != null)
-                    lines += "\t${tr(uniqueType.docDescription!!).escapeHtml(1)}\n"
+                    lines += "${tr(uniqueType.docDescription!!).escapeHtml(0)}\n"
                 if (uniqueType.parameterTypeMap.isNotEmpty()) {
                     // This one will give examples for _each_ filter in a "tileFilter/specialist/buildingFilter" kind of parameter e.g. "Farm/Merchant/Library":
                     // `val paramExamples = uniqueType.parameterTypeMap.map { it.joinToString("/") { pt -> pt.docExample } }.toTypedArray()`
                     // Might confuse modders to think "/" can go into the _actual_ unique and mean "or", so better show just one ("Farm" in the example above):
                     val paramExamples = uniqueType.parameterTypeMap.map { it.first().docExample }.toTypedArray()
-                    lines += "\t" + doc("Example: ") + "\"${uniqueText.fillPlaceholders(*paramExamples)}\"\n"
+                    // 示例用原始文本填充（可直接复制到模组 JSON）
+                    lines += doc("Example: ") + "\"${uniqueType.text.fillPlaceholders(*paramExamples)}\"\n"
                 }
                 if (uniqueType.flags.contains(UniqueFlag.AcceptsSpeedModifier))
-                    lines += "\t" + doc("This unique's effect can be modified with ") + "&lt;${UniqueType.ModifiedByGameSpeed.text}&gt;\n"
+                    lines += doc("This unique's effect can be modified with ") + "&lt;${UniqueType.ModifiedByGameSpeed.text}&gt;\n"
                 if (uniqueType.flags.contains(UniqueFlag.AcceptsGameProgressModifier))
-                    lines += "\t" + doc("This unique's effect can be modified with ") + "&lt;${UniqueType.ModifiedByGameProgress.text}&gt;\n"
+                    lines += doc("This unique's effect can be modified with ") + "&lt;${UniqueType.ModifiedByGameProgress.text}&gt;\n"
                 if (uniqueType in MapUnitCache.UnitMovementUniques) {
-                    lines += "\t" + doc("Due to performance considerations, this unique is cached, thus conditionals that may change within a turn may not work.") + "\n"
+                    lines += doc("Due to performance considerations, this unique is cached, thus conditionals that may change within a turn may not work.") + "\n"
                 }
                 if (uniqueType.flags.contains(UniqueFlag.NoConditionals))
-                    lines += "\t" + doc("This unique does not support conditionals.") + "\n"
+                    lines += doc("This unique does not support conditionals.") + "\n"
                 if (uniqueType.flags.contains(UniqueFlag.HiddenToUsers))
-                    lines += "\t" + doc("This unique is automatically hidden from users.") + "\n"
-                lines += "\t" + doc("Applicable to: ") + uniqueType.allTargets().sorted()
+                    lines += doc("This unique is automatically hidden from users.") + "\n"
+                lines += doc("Applicable to: ") + uniqueType.allTargets().sorted()
                     .joinToString(if (language == null) ", " else "，") { it.name }
                 lines += ""
                 lines += ":::"

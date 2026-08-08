@@ -37,8 +37,8 @@ Congrats, your Civ is now fully playable!
 
 ::: note
 
-    You currently won't see any images from this mod, since it has no texture atlas - see [here](Images-and-Audio.md#images-and-the-texture-atlas) for more details
-    If you're on Desktop, you can restart Unciv to generate this atlas and see the images
+You currently won't see any images from this mod, since it has no texture atlas - see [here](Images-and-Audio.md#images-and-the-texture-atlas) for more details
+If you're on Desktop, you can restart Unciv to generate this atlas and see the images
 
 :::
 But this nation's abilities are exactly those of the base mod. To make it truly unique, we'll need to change some Uniques ;)

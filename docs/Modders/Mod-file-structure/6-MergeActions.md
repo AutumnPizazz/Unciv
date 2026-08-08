@@ -170,7 +170,7 @@ A control block is a JSON object containing only `_mergeAction` with `"then"` an
 ```
 
 ::: note
-    If a JSON file contains **only** control blocks (no regular objects), the outermost control block must include a `"name"` field as a placeholder, otherwise the mod manager will reject the file. This name is purely for validation and does not create a game object.
+If a JSON file contains **only** control blocks (no regular objects), the outermost control block must include a `"name"` field as a placeholder, otherwise the mod manager will reject the file. This name is purely for validation and does not create a game object.
 :::
 
 The `"else"` branch is optional — many scenarios only need conditional execution:
