@@ -81,9 +81,9 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: UncivJar
+          name: UncivCNJar
           path: |
-            desktop/build/libs/Unciv.jar
+            desktop/build/libs/UncivCN.jar
 
       - name: Upload linux files
         continue-on-error: true
@@ -138,48 +138,15 @@ jobs:
             sleep 5
           done
 
-      - name: Sign AAB for Google Play upload
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: android/build/outputs/bundle/release
-          signingKeyBase64: ${{ secrets.BUNDLE_SIGNING_KEY_BASE64 }}
-          alias: ${{ secrets.BUNDLE_SIGNING_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.BUNDLE_SIGNING_KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.BUNDLE_SIGNING_KEY_PASSWORD }}
+      # UncivCN 分支的安装包签名在本地完成（见 python_tool/UncivCN-release，
+      # 使用本地 release.jks），此处仅构建未签名 APK 供下载。
+      # 上游的 CI 签名（BUNDLE_SIGNING_KEY_*）与 Google Play 上传已移除。
 
-      - name: Upload AAB to google play
-        uses: r0adkll/upload-google-play@v1.1.3
-        continue-on-error: true
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON  }}
-          packageName: com.unciv.app
-          releaseFiles: android/build/outputs/bundle/release/Unciv-release.aab
-          track: production
-          whatsNewDirectory: whatsNewDirectory
-
-
-      - name: Sign APK for Github upload
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: android/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.BUNDLE_SIGNING_KEY_BASE64 }}
-          alias: ${{ secrets.BUNDLE_SIGNING_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.BUNDLE_SIGNING_KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.BUNDLE_SIGNING_KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-
-      - name: Move APK to deploy folder
-        shell: bash
-        run: |
-          mv android/build/outputs/apk/release/Unciv-release-unsigned-signed.apk Unciv-signed.apk
-
-      - name: Upload APK
+      - name: Upload APK (unsigned)
         uses: actions/upload-artifact@v4
         with:
-          name: UncivAPK
-          path: Unciv-signed.apk
+          name: UncivCNAPK
+          path: android/build/outputs/apk/release/UncivCN-release-unsigned.apk
 
 
   packr-build:
@@ -200,7 +167,7 @@ jobs:
         uses: actions/download-artifact@v4
         # See 'Upload JAR' step in 'build' job
         with:
-          name: UncivJar
+          name: UncivCNJar
 
       - name: Display structure of downloaded files
         run: ls -R
@@ -208,7 +175,7 @@ jobs:
       - name: Packr build
         run: |
           mkdir -p desktop/build/libs
-          mv Unciv.jar desktop/build/libs
+          mv UncivCN.jar desktop/build/libs
 
           wget -q -O packr-all-4.0.0.jar https://github.com/libgdx/packr/releases/download/4.0.0/packr-all-4.0.0.jar
 
@@ -221,10 +188,10 @@ jobs:
       - name: Upload packed zips
         uses: actions/upload-artifact@v4
         with:
-          name: UncivDeploymentZips
+          name: UncivCNDeploymentZips
           path: |
-            deploy/Unciv-Windows64.zip
-            deploy/Unciv-Linux64.zip
+            deploy/UncivCN-Windows64.zip
+            deploy/UncivCN-Linux64.zip
 
   build-msi:
     continue-on-error: true
@@ -237,7 +204,7 @@ jobs:
       - name: Download packed zips
         uses: actions/download-artifact@v4
         with:
-          name: UncivDeploymentZips
+          name: UncivCNDeploymentZips
       
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
@@ -245,7 +212,7 @@ jobs:
       - name: Unzip unciv file
         run: | 
           mkdir .github/workflows/wix-msi-files
-          tar -xf Unciv-Windows64.zip -C .github/workflows/wix-msi-files
+          tar -xf UncivCN-Windows64.zip -C .github/workflows/wix-msi-files
           dir .github/workflows/wix-msi-files
         
       - name: Install WiX
@@ -265,31 +232,9 @@ jobs:
       - name: Upload MSI
         uses: actions/upload-artifact@v4
         with:
-          name: Unciv-MSI
-          path: .github/workflows/Unciv.msi
+          name: UncivCN-MSI
+          path: .github/workflows/UncivCN.msi
           if-no-files-found: error
-
-  upload-to-itch:
-    runs-on: ubuntu-latest
-    needs: [packr-build]
-    continue-on-error: true
-    steps:
-
-      - name: Download packed zips
-        uses: actions/download-artifact@v4
-        with:
-          name: UncivDeploymentZips
-
-      - name: Upload to itch.io
-        env:
-          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-        run: |
-          wget -q -O butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
-          unzip butler.zip
-          chmod +x butler
-
-          ./butler push Unciv-Linux64.zip yairm210/unciv:Linux64     --userversion ${{ github.ref_name }}
-          ./butler push Unciv-Windows64.zip yairm210/unciv:Windows64 --userversion ${{ github.ref_name }}
 
   upload-github-release-and-post-to-discord:
     needs: [get-release-body, android-build, packr-build, build-msi]
@@ -302,13 +247,13 @@ jobs:
       - name: consolidate deploy folder
         run: |
           mkdir deploy
-          mv UncivJar/Unciv.jar deploy
+          mv UncivCNJar/UncivCN.jar deploy
           mv UncivLinuxFiles/linuxFilesForJar.zip deploy
-          mv UncivDeploymentZips/Unciv-Windows64.zip deploy
-          mv UncivDeploymentZips/Unciv-Linux64.zip deploy
-          mv UncivAPK/Unciv-signed.apk deploy
+          mv UncivCNDeploymentZips/UncivCN-Windows64.zip deploy
+          mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy
+          mv UncivCNAPK/UncivCN-release-unsigned.apk deploy
           mv UncivServer/UncivServer.jar deploy
-          [ -d "Unciv-MSI" ] && mv Unciv-MSI/Unciv.msi deploy || true
+          [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy || true
 
       - name: Check if this is a real release or a test version, for Github release
         id: check-version-tag
@@ -347,48 +292,3 @@ jobs:
             *${{ github.ref_name }} rolling out!*
 
             ${{needs.get-release-body.outputs.release_body}}
-
-  AUR-update:
-    continue-on-error: true
-    runs-on: ubuntu-latest
-    needs: [get-release-body, upload-github-release-and-post-to-discord]
-    steps:
-
-      - name: Get AUR PKGBUILD
-        run: |
-          curl --silent --retry 3 --retry-delay 5 --output PKGBUILD 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=unciv-bin'
-          sed -E -e "s#(_pkgver=).*#\1${{ github.ref_name }}#" -e "s#(pkgrel=).*#\10#" -i PKGBUILD
-
-      - name: Publish AUR package
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
-        with:
-          pkgname: unciv-bin
-          pkgbuild: ./PKGBUILD
-          commit_username: ${{ secrets.AUR_COMMIT_USERNAME }}
-          commit_email: ${{ secrets.AUR_COMMIT_EMAIL }}
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: |
-            Update to ${{ github.ref_name }}
-
-            ${{needs.get-release-body.outputs.release_body}}
-          ssh_keyscan_types: rsa
-          updpkgsums: true
-          allow_empty_commits: false
-          
-  brew-update:
-    continue-on-error: true
-    runs-on: ubuntu-latest
-    needs: [ get-release-body, upload-github-release-and-post-to-discord ]
-    steps:
-      - name: Update Homebrew formula
-        continue-on-error: true
-        uses: mislav/bump-homebrew-formula-action@v4
-        with:
-          formula-name: unciv
-          download-url: https://github.com/yairm210/Unciv/releases/download/${{ github.ref_name }}/Unciv.jar
-          commit-message: |
-            unciv {{version}}
-
-            Created by `brew bump`
-        env:
-          COMMITTER_TOKEN: ${{ secrets.ACTIONS_ACCESS_TOKEN }}

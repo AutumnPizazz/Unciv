@@ -35,7 +35,7 @@ android {
         versionCode = BuildConfig.appCodeNumber
         versionName = BuildConfig.appVersion
 
-        base.archivesName.set("Unciv")
+        base.archivesName.set("UncivCN")
     }
 
     // necessary for Android Work lib

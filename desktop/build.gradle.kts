@@ -143,7 +143,7 @@ for (platform in Platform.values()) {
             val command = "java -jar $rootDir/packr-all-4.0.0.jar" +
                     " --platform $platformNameForPackrCmd" +
                     " --jdk $jdkFile" +
-                    " --executable Unciv" +
+                    " --executable UncivCN" +
                     " --classpath $jarFile" +
                     " --mainclass $mainClassName" +
                     " --vmargs Xmx4G " +
