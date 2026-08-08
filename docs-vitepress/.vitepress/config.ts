@@ -28,6 +28,15 @@ export default defineConfig({
     ['meta', { name: 'og:description', content: 'UncivCN - open source Civ V remake documentation' }],
   ],
 
+  // 顶层 themeConfig：localSearch 的 provider 必须在此声明（构建期常量
+  // __VP_LOCAL_SEARCH__ 只读取顶层 themeConfig.search，locale 级配置不会生效）；
+  // 各 locale 的 search.translations（按钮/弹窗文案）在 locale themeConfig 中覆盖。
+  themeConfig: {
+    search: {
+      provider: 'local',
+    },
+  },
+
   // srcDir 位于 docs-vitepress 之外（../docs），md 编译产物中的 vue 导入
   // 会从 md 所在目录向上查找 node_modules 而失败，这里显式指回本工程依赖。
   vite: {
