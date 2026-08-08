@@ -17,6 +17,7 @@ import com.unciv.logic.map.MapGeneratedMainType
 import com.unciv.logic.multiplayer.Multiplayer
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.models.metadata.BaseRuleset
+import com.unciv.models.metadata.GameSetupClipboard
 import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.metadata.Player
 import com.unciv.models.ruleset.Ruleset
@@ -119,6 +120,55 @@ class NewGameScreen(
         startGameButton.onClick(this::startGameAvoidANRs)
         horizontalGroup.addActor(startGameButton)
         pickerPane.rightSideButton.remove()
+    }
+
+    /** Export the current game setup to the clipboard as base64 text. */
+    fun exportGameSetupToClipboard() {
+        try {
+            Gdx.app.clipboard.contents = GameSetupClipboard.encode(gameSetupInfo)
+            ToastPopup("Game setup copied to clipboard!".tr(), this)
+        } catch (ex: Exception) {
+            Log.error("Could not copy game setup to clipboard", ex)
+            ToastPopup("Could not copy game setup to clipboard!".tr(), this)
+        }
+    }
+
+    /** Read a game setup exported to the clipboard and apply it to this screen. */
+    fun importGameSetupFromClipboard() {
+        val clipboardContents = Gdx.app.clipboard.contents?.trim().orEmpty()
+        if (clipboardContents.isEmpty()) {
+            ToastPopup("Clipboard is empty!".tr(), this)
+            return
+        }
+        val importedSetup = try {
+            GameSetupClipboard.decode(clipboardContents)
+        } catch (ex: Exception) {
+            ToastPopup("Could not parse game setup from clipboard!".tr(), this)
+            return
+        }
+        applyImportedGameSetup(importedSetup)
+    }
+
+    private fun applyImportedGameSetup(importedSetup: GameSetupInfo) {
+        // Copy into the existing instances - the option tables hold references to them.
+        // This also restores the online multiplayer player IDs.
+        GameSetupClipboard.copyValuesInto(gameSetupInfo, importedSetup)
+        // Map files are not serializable - the player has to pick the map file again
+        gameSetupInfo.mapFile = null
+        val importedGodMode = gameSetupInfo.gameParameters.godMode
+
+        // Load the imported ruleset (base ruleset + mods); on invalid mods this resets the
+        // parameters to defaults and shows a toast, mirroring the manual mod selection flow
+        tryUpdateRuleset(updateUI = true)
+
+        // Rebuild all option tables and the map type specific area
+        mapOptionsTable.refreshAfterSetupImport()
+        updateTables()
+
+        // updateOnMapTypeChange resets godMode - restore the imported value
+        gameSetupInfo.gameParameters.godMode = importedGodMode
+
+        ToastPopup("Game setup loaded from clipboard!".tr(), this)
     }
 
     private fun startGameAvoidANRs(){

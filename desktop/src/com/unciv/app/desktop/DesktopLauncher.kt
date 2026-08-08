@@ -34,7 +34,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
 
-internal object DesktopLauncher {
+object DesktopLauncher {
 
     @JvmStatic
     fun main(arg: Array<String>) {
