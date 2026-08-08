@@ -104,6 +104,8 @@ VitePress 文档站（`docs-vitepress/`）。**中英完全双向对应**：`doc
 
 - 其余文档人工维护。翻译原则：**JSON 字面量不翻译**——unique 文本、参数名、Countables 文本/示例必须保留英文原文（游戏按文本逐字匹配枚举才能生效）；`docDescription` 定义处必须同时写 `docDescriptionZh`（**禁止在生成器里维护大翻译映射表**）；生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）随源码维护。
 
+- **更新日志写哪里**：UncivCN 发版/合入上游后，更新 `docs/{,zh/}UncivCN/Changelog.md`（中英两版同步，版本号规则见 Coding-standards 第 4 节）；上游更新日志的中文翻译写在 `docs/{,zh/}Community/Upstream-changelog.md`。
+
 - **VitePress 配置坑（均已踩过）**：
   - 容器内容**禁止缩进**（4 空格/tab = 代码块 `<pre>`，不换行撑破屏幕）
   - `::: note` 非内置类型，需在 config.ts 注册 markdown-it-container（无标题）
