@@ -236,6 +236,7 @@ export default defineConfig({
               { text: '新特性', link: '/zh/UncivCN/新特性' },
               { text: '更新日志', link: '/zh/UncivCN/更新日志' },
               { text: '与上游差异', link: '/zh/UncivCN/与上游差异' },
+              { text: '代码规范', link: '/zh/UncivCN/代码规范' },
               { text: '轮询联机', link: '/zh/UncivCN/轮询联机' },
               { text: 'Unciv 原版更新日志', link: '/zh/UncivCN/Unciv原版更新日志' },
               {

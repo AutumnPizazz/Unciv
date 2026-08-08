@@ -84,7 +84,16 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 
 VitePress 文档站（`docs-vitepress/`）：英文区 = `docs/`（上游原样复用），中文区 = `docs/zh/`（英文翻译镜像，同一路径即对应翻译；独有内容只放 `docs/zh/UncivCN/`）。
 
-**自动生成文档只许改生成器源码后运行 `./gradlew desktop:generateDocs`，严禁人工编辑产物**：
+**遇到以下情况，必须先读取 `docs/zh/UncivCN/代码规范.md`（分支工程规范，含全部踩坑教训）：**
+
+- 修改 `docs/`、`docs-vitepress/` 下任何文档或工程文件（含新增/移动/重命名页面）
+- 修改文档生成器：`UniqueDocsWriter` / `MergeActionDocsWriter` / `UiElementDocsWriter`，或运行 `./gradlew desktop:generateDocs`
+- 新增或修改 `UniqueType` / `UniqueParameterType` 定义（尤其 `docDescription` / `docDescriptionZh`）
+- 涉及翻译、unique 文本、JSON 字面量或参数说明的任何改动
+
+核心要点（详见规范文档）：
+
+- **自动生成文档只许改生成器源码后运行 `./gradlew desktop:generateDocs`，严禁人工编辑产物**：
 
 | 产物 | 生成器 |
 |---|---|
@@ -93,7 +102,7 @@ VitePress 文档站（`docs-vitepress/`）：英文区 = `docs/`（上游原样�
 | `docs/Modders/Mod-file-structure/6-MergeActions.md` | `MergeActionDocsWriter`（整体重写） |
 | `docs/{,zh/}Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter`（marker 区间） |
 
-其余文档人工维护。翻译原则：**JSON 字面量不翻译**——unique 文本、参数名、Countables 文本/示例必须保留英文原文（游戏按文本逐字匹配枚举才能生效）；生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）随源码维护。
+- 其余文档人工维护。翻译原则：**JSON 字面量不翻译**——unique 文本、参数名、Countables 文本/示例必须保留英文原文（游戏按文本逐字匹配枚举才能生效）；`docDescription` 定义处必须同时写 `docDescriptionZh`；生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）随源码维护。
 
 本地预览：双击 `docs-vitepress/build.bat`（构建 / 打开现有 / 重建重启三选一，服务器空闲 5 分钟自动退出）。
 
