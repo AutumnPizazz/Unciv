@@ -9,6 +9,8 @@ on:
     tags: [ '*.*.*' ]
   pull_request:
     branches: [ "master" ]
+  # UncivCN: allow manual re-runs (e.g. after a transient build failure)
+  workflow_dispatch:
 
 env:
   # Use docker.io for Docker Hub if empty
