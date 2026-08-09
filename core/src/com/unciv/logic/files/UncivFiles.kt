@@ -132,8 +132,8 @@ class UncivFiles(
         }
 
         val allFiles = localFiles + externalFiles
-        // Filter out companion notes files (e.g., "MyGame_notes")
-        val filtered = allFiles.filter { !it.name().endsWith("_notes") }
+        // Filter out companion notes files (legacy "MyGame_notes" and current "notes_<gameId>")
+        val filtered = allFiles.filter { !it.name().endsWith("_notes") && !it.name().startsWith("notes_") }
 
         debug("Local files: %s, external files: %s",
             { localFiles.joinToString(prefix = "[", postfix = "]", transform = { it.file().absolutePath }) },
@@ -146,8 +146,17 @@ class UncivFiles(
      * @throws SecurityException when delete access was denied
      */
     fun deleteSave(gameName: String): Boolean {
-        UnitNotesManager.deleteNotesFile(gameName)
-        return deleteSave(getSave(gameName))
+        // Notes are keyed by gameId since 4.21.6.1 - read it from the save preview if possible;
+        // also clean up the legacy "<saveName>_notes" naming.
+        val gameFile = getSave(gameName)
+        try {
+            val preview = loadGamePreviewFromFile(gameFile)
+            UnitNotesManager.deleteNotesFile(preview.gameId)
+        } catch (_: Exception) {
+            // Old or corrupt save without readable preview: skip gameId-based cleanup
+        }
+        UnitNotesManager.deleteLegacyNotesFile(gameName)
+        return deleteSave(gameFile)
     }
 
     /**
