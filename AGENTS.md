@@ -88,7 +88,7 @@ VitePress 文档站（`docs-vitepress/`），**中英完全双向对应**（文�
 
 - 生成器产物（uniques.md / Unique-parameters.md / 6-MergeActions.md / Creating-a-UI-skin.md 的 marker 区）**只改生成器源码再 `./gradlew desktop:generateDocs`，严禁人工编辑**；生成器清单见 Coding-standards 第 2 节
 - 翻译：**JSON 字面量不翻译**（unique 文本/参数名/Countables 必须英文原文）；`docDescription` 同处写 `docDescriptionZh`，禁止生成器内大映射表
-- 更新日志：发版后更新 `docs/{,zh/}UncivCN/Changelog.md`（中英同步）；上游日志翻译在 `docs/{,zh/}Community/Upstream-changelog.md`
+- 更新日志：任何改动合入时同步在中英 `docs/{,zh/}UncivCN/Changelog.md` 顶部的「未发布」小节各加一行，发版时整合为新版本条目（详见 Coding-standards 第 5 节）；上游日志翻译在 `docs/{,zh/}Community/Upstream-changelog.md`
 - VitePress 坑：容器内容**禁止缩进**（=代码块撑破屏幕）；`::: note` 需自定义注册；localSearch `provider` 必须在顶层 themeConfig；locale key 用 `root`/`zh` 不带斜杠；srcDir 在工程外需 vue alias + buildEnd 复制 public；bat 必须 CRLF
 - 预览：双击 `docs-vitepress/build.bat`（构建/打开/重建三选一，空闲 5 分钟自动退出）
 
@@ -101,7 +101,8 @@ VitePress 文档站（`docs-vitepress/`），**中英完全双向对应**（文�
 
 ## 其他注意事项
 
-- 版本号定义在 `buildSrc/src/com/unciv/build/BuildConfig.kt`，语义化版本，变更记录在 `changelog.md`
+- 对于 git 提交：用户授权提交时（如明确说“提交”），允许自行参照历史提交风格组织提交标题与正文（subject + body）并执行提交，无需再询问提交信息；一个提交一个主题，提交粒度参照历史提交拆分
+- 版本号定义在 `buildSrc/src/main/kotlin/BuildConfig.kt`，语义化版本，变更记录在 `changelog.md`
 - Android 构建需 `local.properties`（`sdk.dir`）或 `ANDROID_HOME` 环境变量
 - Android Studio 需将 Kotlin 连续缩进设为 4 空格
 - 核心代码必须兼容所有平台；游戏逻辑主要在主线程执行，异步操作需谨慎
