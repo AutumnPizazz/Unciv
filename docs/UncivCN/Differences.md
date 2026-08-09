@@ -18,7 +18,7 @@
 | Save compatibility | No isolation | **version isolation** (old clients can't load new saves) |
 | Bundled mods | None | 4.21.0.1 bundled UCCC; reverted in 4.21.5.1 — no mods bundled anymore |
 | Localization | Multilingual | + full Simplified Chinese localization (incl. Unique translations) |
-| Game content | Upstream | Always tracks the latest upstream (currently based on 4.21.5) |
+| Game content | Upstream | Always tracks the latest upstream (currently based on 4.21.6) |
 
 ## Notes
 

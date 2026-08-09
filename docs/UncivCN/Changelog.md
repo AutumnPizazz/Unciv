@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+## v4.21.6.1 (build 1245)
+
 - Fixed notes leaking across saves: notes are now keyed by gameId ("notes_<gameId>") instead of the save file name - one game shares notes through manual/auto saves and save-as copies, different games are strictly isolated (the shared "Autosave" name previously leaked notes between games, and unsaved new games lost theirs); legacy "<saveName>_notes" files are migrated on first load, save deletion cleans up both namings, and the save list filters the new naming
 - Map/unit pins UX overhaul: mobile long-press and desktop Alt+click edit notes without any mode toggle (plain clicks are never hijacked; the legacy toggles remain as an alternative); note bubbles truncated to 8 chars with tap-to-view-full-note popup (Edit/Delete); tile-notes toggle now uses a star icon, both toggles got desktop tooltips
 - Fixed map/unit pin window localization: added the missing Simplified Chinese translations for the note UI strings ("Add note for tile", "Note for [unitName]", "Note for", "Notes", "Show unit/tile notes") - they were showing in English
