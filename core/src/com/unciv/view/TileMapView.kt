@@ -12,7 +12,12 @@ class TileMapView(private val tileMap: TileMap,
                   /** Null in map editor */ private val viewer: Civilization?,
                   val spectatorMode: Boolean = false,
                   val gameView: GameView? = null) {
-    @Cache private val tileViews: Array<TileView?> by lazy { arrayOfNulls(tileMap.tileList.size) }
+    @Cache private val tileViews: Array<TileView?> by lazy {
+        // [TileView.forSingleTile] may wrap a real game tile (whose zeroBasedIndex can be large)
+        // in a 1-tile map - size the array by the highest index as well, or getTile() would crash.
+        val maxIndex = tileMap.tileList.maxOfOrNull { it.zeroBasedIndex } ?: -1
+        arrayOfNulls(maxOf(tileMap.tileList.size, maxIndex + 1))
+    }
 
     @Readonly fun getTile(tile: Tile): TileView {
         val idx = tile.zeroBasedIndex

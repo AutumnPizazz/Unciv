@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Fixed crash when opening the map pin editor on a tile: the tile texture preview used TileMapView sized by tile count, which overflowed for real game tiles with a non-zero index (now sized by highest index too, with regression tests)
 - Map pin editor popup: removed the tile coordinates from the title and replaced the placeholder icon with a live preview of the selected tile's texture set (terrain/resources/improvements/rivers)
 - Aligned bundled base rulesets (Vanilla / Gods & Kings) with upstream: removed the CN-only "Allow cities to claim tiles" from the G&K ModOptions (tile-claim is now opt-in via mod ModOptions) and the CN-only Great General 8-turn Golden Age unique (upstream #13308)
 - Fixed new-game screen: setting world size to Custom and toggling symmetry repeatedly stacked duplicate radius/width/height input rows (the hexagonal/rectangular size tables were rebuilt without clearing)
