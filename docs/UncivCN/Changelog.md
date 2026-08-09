@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Fixed missing Simplified Chinese translations for CN-specific UI strings (47 missing + 10 empty entries): clipboard game-setup copy/paste, polling multiplayer (polling interval, refresh, online players, turn timers), mirrored-map symmetry modes, auto-lock, map-pin note labels, save-reload RNG variance, Countables, Boreal/Spiral map types and more - they were showing in English
 ## v4.21.6.1 (build 1245)
 
 - Fixed notes leaking across saves: notes are now keyed by gameId ("notes_{gameId}") instead of the save file name - one game shares notes through manual/auto saves and save-as copies, different games are strictly isolated (the shared "Autosave" name previously leaked notes between games, and unsaved new games lost theirs); legacy "{saveName}_notes" files are migrated on first load, save deletion cleans up both namings, and the save list filters the new naming
