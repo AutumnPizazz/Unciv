@@ -15,6 +15,7 @@ import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.EventChoice
 import com.unciv.models.ruleset.IRulesetObject
+import com.unciv.models.ruleset.ModVersionRange
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.RulesetFile
@@ -101,6 +102,7 @@ open class RulesetValidator protected constructor(
         val lines = RulesetErrorList(ruleset)
 
         addModOptionsErrors(lines)
+        addVersionRequirementWarnings(lines)
         addGlobalUniqueErrors(lines)
 
         addUnitErrors(lines)
@@ -283,6 +285,51 @@ open class RulesetValidator protected constructor(
             }
 
             uniqueValidator.checkUniques(improvement, lines, reportRulesetSpecificErrors, tryFixUnknownUniques)
+        }
+    }
+
+    /**
+     * Warns about mod version requirements (game version range and dependency mods),
+     * based on the current game version and the mods in this (combined) ruleset.
+     *
+     * When the ruleset is a single mod checked standalone (no [Ruleset.mods]),
+     * only the game version requirement is checked - there is no mod context for dependencies.
+     */
+    private fun addVersionRequirementWarnings(lines: RulesetErrorList) {
+        val modsToCheck = if (ruleset.mods.isEmpty()) listOf(ruleset)
+            else ruleset.mods.mapNotNull { RulesetCache[it] }
+
+        // Dependency checks need a mod combination context: skip them when a single mod is
+        // checked standalone (no Ruleset.mods), otherwise every declared dependency would
+        // report as "not loaded".
+        val loadedModVersions = if (ruleset.mods.isEmpty()) emptyMap()
+            else modsToCheck.filter { it.modOptions.modVersion.isNotBlank() }
+                .associate { it.name to it.modOptions.modVersion }
+
+        for (mod in modsToCheck) {
+            val modOptions = mod.modOptions
+
+            modOptions.getGameVersionWarning(UncivGame.VERSION.text)?.let {
+                lines.add(it, RulesetErrorSeverity.Warning, sourceObject = modOptions)
+            }
+
+            for (dependency in modOptions.getUnsatisfiedDependencies(loadedModVersions)) {
+                val loadedVersion = loadedModVersions[dependency.name]
+                val text = when {
+                    loadedVersion == null ->
+                        "Mod '[modName]' requires mod '[dependencyName]', which is not loaded"
+                            .replace("[modName]", "[${mod.name}]").replace("[dependencyName]", "[${dependency.name}]")
+                    ModVersionRange.parse(dependency.version) == null ->
+                        "Invalid version requirement '[version]' in mod '[modName]'"
+                            .replace("[version]", "[${dependency.version}]").replace("[modName]", "[${mod.name}]")
+                    else ->
+                        "Mod '[modName]' requires mod '[dependencyName]' version [version], current version is [current]"
+                            .replace("[modName]", "[${mod.name}]").replace("[dependencyName]", "[${dependency.name}]")
+                            .replace("[version]", "[${dependency.version}]")
+                            .replace("[current]", "[$loadedVersion]")
+                }
+                lines.add(text, RulesetErrorSeverity.Warning, sourceObject = modOptions)
+            }
         }
     }
 

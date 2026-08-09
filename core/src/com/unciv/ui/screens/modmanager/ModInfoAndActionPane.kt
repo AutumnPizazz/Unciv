@@ -1,6 +1,7 @@
 package com.unciv.ui.screens.modmanager
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -68,6 +69,17 @@ internal class ModInfoAndActionPane : Table() {
             modName, modOptions.modUrl, modOptions.defaultBranch,
             modOptions.lastUpdated, modOptions.author, modOptions.modSize
         )
+        addVersionInfo(modOptions.modVersion, modOptions.getGameVersionWarning(UncivGame.VERSION.text))
+    }
+
+    /** Adds the mod version and, when the current game version is outside the declared range, a warning line */
+    private fun addVersionInfo(modVersion: String, gameVersionWarning: String?) {
+        add("Version: [$modVersion]".toLabel()).row()
+        if (gameVersionWarning != null) {
+            val warningLabel = gameVersionWarning.toLabel()
+            warningLabel.color = Color.YELLOW
+            add(warningLabel).row()
+        }
     }
 
     private fun update(

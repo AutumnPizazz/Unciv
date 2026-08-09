@@ -508,15 +508,8 @@ class Ruleset {
     }
 
     private fun compareVersions(a: String, b: String): Int {
-        val aParts = a.split(".").map { it.toIntOrNull() ?: 0 }
-        val bParts = b.split(".").map { it.toIntOrNull() ?: 0 }
-        val maxLen = maxOf(aParts.size, bParts.size)
-        for (i in 0 until maxLen) {
-            val aVal = aParts.getOrElse(i) { 0 }
-            val bVal = bParts.getOrElse(i) { 0 }
-            if (aVal != bVal) return aVal.compareTo(bVal)
-        }
-        return 0
+        // 委托给 ModVersion：支持 n.n.n / n.n.n.n / -patchN 后缀
+        return ModVersion.parseOrDefault(a).compareTo(ModVersion.parseOrDefault(b))
     }
 
     private fun evaluateCountCheck(check: JsonValue, count: Int): Boolean {

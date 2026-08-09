@@ -18,7 +18,9 @@ class ModUIData private constructor(
     val ruleset: Ruleset? = null,
     val repo: GithubAPI.Repo? = null,
     var isVisual: Boolean = false,
-    var hasUpdate: Boolean = false
+    var hasUpdate: Boolean = false,
+    /** True when the current game version is outside the mod's declared [gameVersionRange] */
+    var hasVersionWarning: Boolean = false
 ) {
     // For deserialization from cache file 
     constructor():this("","")

@@ -66,6 +66,15 @@ Also adds several new Countables parameter types and Amount-compatible Countable
 
 Tutorial: [Merge Actions](/Modders/Mod-file-structure/6-MergeActions).
 
+## Mod version requirements (4.21.6.1)
+
+Mods can declare a version and compatibility requirements in `ModOptions.json`, checked with warnings only (never blocking):
+- `modVersion`: `n.n.n`, defaults to `0.0.1`, shown in the mod manager
+- `gameVersionRange`: game versions this mod applies to, `min~max` (inclusive, `n.n.n.n` with optional `-patchN` suffixes, either side may be omitted); empty = all versions
+- `modDependencies`: dependency mods with exact or ranged version requirements; unsatisfied dependencies or versions produce warnings
+
+Warnings appear in the mod manager (warning mark + info pane), in the new-game mod selection, and in the mod checker (Options → Locate mod errors).
+
 ## History: bundled UCCC mod (4.21.0.1 → reverted in 4.21.5.1)
 
 4.21.0.1 shipped with the UCCC mod bundled in the game; since 4.21.5.1 the game no longer bundles any mods — download mods separately.

@@ -195,6 +195,31 @@ title: 其他 JSON 文件
 为了澄清：当你的模组通过 github 分发时，在模组仓库中包含这些没有任何影响。
 但是，当模组在_没有_ github 仓库的情况下分发时，这些值可以_应该_由作者在分发的 `ModOptions.json` 中设置。
 
+### 版本要求（UncivCN）
+
+模组可以声明版本号与兼容性要求，使用时会被以警告（不阻止）方式检查：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| modVersion | String | 0.0.1 | 模组版本号，格式 `n.n.n`；显示在模组管理器中，并用于依赖版本检查 |
+| gameVersionRange | String | 空 | 该模组可应用的游戏版本范围，格式 `min~max`（闭区间，`n.n.n.n` 可带 `-patchN` 后缀，任一侧可省略）；空 = 全版本可用 |
+| modDependencies | List | 空 | 依赖模组列表，每项为对象 `{ "name": ..., "version": ... }`；`version` 为精确版本或 `min~max` 范围，空 = 任意版本 |
+
+示例：
+
+```json
+{
+  "modVersion": "1.2.3",
+  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modDependencies": [
+    { "name": "UCCC", "version": "1.0.0~2.0.0" },
+    { "name": "MyOtherMod", "version": "3.0.0" }
+  ]
+}
+```
+
+当当前游戏版本超出 `gameVersionRange`，或依赖模组缺失、版本不匹配时，模组管理器（警告标记 + 信息面板）、新建游戏模组选择和模组检查器会显示警告——模组仍可使用。
+
 ### ModConstants
 
 存储在 ModOptions.constants 中，这是 Unciv 内部使用的常量集合。

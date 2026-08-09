@@ -197,6 +197,31 @@ The values normally set automatically from github metadata are:
 To clarify: When your Mod is distributed via github, including these in the Mod repo has no effect.
 However, when a Mod is distributed _without_ a github repository, these values can and _should_ be set by the author in the distributed `ModOptions.json`.
 
+### Version requirements (UncivCN)
+
+Mods can declare a version and compatibility requirements, which are checked with warnings (never blocking) when the mod is used:
+
+| Attribute       | Type   | Default | Notes                                                                                                                                                 |
+|-----------------|--------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| modVersion      | String | 0.0.1   | Mod version in `n.n.n` format; shown in the mod manager and used for dependency version checks                                                         |
+| gameVersionRange| String | empty   | Game versions this mod applies to, as `min~max` (inclusive, `n.n.n.n` with optional `-patchN` suffixes; either side may be omitted); empty = all versions |
+| modDependencies | List   | empty   | Dependency mods, each an object `{ "name": ..., "version": ... }`; `version` is an exact version or a `min~max` range, empty = any version          |
+
+Example:
+
+```json
+{
+  "modVersion": "1.2.3",
+  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modDependencies": [
+    { "name": "UCCC", "version": "1.0.0~2.0.0" },
+    { "name": "MyOtherMod", "version": "3.0.0" }
+  ]
+}
+```
+
+When the current game version is outside `gameVersionRange`, or a dependency mod is missing or its version does not match, the mod manager (warning mark + info pane), the new-game mod selection and the mod checker show a warning - the mod stays usable.
+
 ::: note
 As an alternative to the `*ToRemove` lists, you can use [Merge Actions](6-MergeActions.md) with `"action": "REMOVE"` directly in the corresponding JSON file (e.g. `{ "name": "Scout", "_mergeAction": { "action": "REMOVE" } }` in `Units.json`). This keeps the removal declaration alongside the data it relates to, and also supports conditions (`"if"`). Both methods are supported and can be used together.
 

@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- New: mod version requirements in `ModOptions.json` — `modVersion` (n.n.n, default 0.0.1), `gameVersionRange` (min~max, empty = all versions) and `modDependencies` (exact or ranged version requirements); unsatisfied requirements show warnings in the mod manager, new-game mod selection and mod checker, never blocking
 - Fixed dead links across the docs site: 14 broken `](`-corrupted links in the Chinese UncivCN pages, plus ~250 wrong heading anchors (VitePress slug format) in the Modders docs (both EN and ZH, incl. the doc generators `UniqueType.kt` / `Countables.kt` / `UniqueDocsWriter` / `MergeActionDocsWriter`); verified against a fresh VitePress build
 - Merged upstream 4.21.6: CPU performance improvements (city baseline computed once, ~20% faster next-turn in some saves), AI workers consider future adjacencies for improvements, visually indicate failed MP upload, nation-colored chat names, OneTimeGainStat re-parameterized to `[civWideStat]` with a modding warning, test runner overhaul (see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))
 - Fixed the docs site showing unstyled text under the custom domain: site artifacts are now deployed to the `Unciv/` subdirectory with a root redirect page

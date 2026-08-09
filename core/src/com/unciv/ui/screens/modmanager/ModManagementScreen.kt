@@ -551,6 +551,8 @@ class ModManagementScreen private constructor(
         // 'permanent audiovisual' will still be valid - re-evaluate here or remove the setting in the delete code.
         val isVisual = game.settings.visualMods.contains(modName)
         val newModUIData = ModUIData(ruleset, isVisual)
+        newModUIData.hasVersionWarning =
+            ruleset.modOptions.getGameVersionWarning(UncivGame.VERSION.text) != null
         installedModInfo[modName] = newModUIData
         // The ModUIData in the actual button is now out of sync, but can be indexed using the new instance
         modButtons[newModUIData]?.run {

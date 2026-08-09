@@ -68,6 +68,8 @@ internal class ModDecoratedButton(private var modInfo: ModUIData) : Table() {
         private val visualImage: Image = ImageGetter.getImage("UnitPromotionIcons/Scouting")
         /** image indicating _online mod has been updated_ */
         private val hasUpdateImage: Image = ImageGetter.getImage("OtherIcons/ModUpdate")
+        /** image indicating _current game version outside the mod's declared version range_ */
+        private val hasVersionWarningImage: Image = ImageGetter.getImage("OtherIcons/ExclamationMark")
 
         init {
             defaults().size(20f).align(Align.topLeft)
@@ -77,6 +79,7 @@ internal class ModDecoratedButton(private var modInfo: ModUIData) : Table() {
             clear()
             if (modInfo.isVisual) add(visualImage).row()
             if (modInfo.hasUpdate) add(hasUpdateImage).row()
+            if (modInfo.hasVersionWarning) add(hasVersionWarningImage).row()
             pack()
         }
 
