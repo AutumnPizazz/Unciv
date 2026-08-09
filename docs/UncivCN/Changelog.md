@@ -8,6 +8,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 - Fixed duplicate `/Unciv` prefix in the navbar logo path
 - In-game version display is now synced automatically from `BuildConfig.kt` to `UncivGame.kt` at build time (previously a manual release could forget this and ship a stale in-game version)
 - Slimmed down `AGENTS.md` to behavior rules only; development reference (build commands, project structure, game state model, assets) moved into Coding-standards, which is now the engineering handbook (bilingual)
+- Added upstream-merge convention: resolve merge conflicts with upstream master yourself and fully integrate its features; when upstream and CN implement the same feature differently, ask the user which implementation to adopt
 
 ## v4.21.5.3 (build 1244)
 

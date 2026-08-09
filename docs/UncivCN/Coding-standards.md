@@ -116,6 +116,7 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 
 - **Version** = upstream version + CN sub-version (e.g. upstream 4.21.5 → UncivCN 4.21.5.1; the same upstream version may get `.1`/`.2`/`.3`…, e.g. 4.20.8.1 → 4.20.8.4; the sub-version restarts at `.1` after merging a new upstream), defined in `buildSrc/src/main/kotlin/BuildConfig.kt`
 - **Additive changes**: new features must not change upstream behavior; with options off the game behaves like upstream
+- **Upstream merges**: regularly merge new code from the upstream master into the UncivCN branch and resolve merge conflicts yourself, making sure upstream features are fully integrated (never dropped because of conflicts). If upstream and the CN branch implemented the same feature differently, ask the user which implementation to adopt before continuing.
 - **Doc mirroring**: `docs/zh/` mirrors the English section one-to-one (same path = the translation); Chinese-only content lives only in `docs/zh/UncivCN/` and `docs/zh/Community/`
 - **Chinese as first-class**: new UI strings must go into the translation templates; new unique explanations must ship with Chinese
 

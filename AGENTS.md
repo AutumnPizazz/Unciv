@@ -31,6 +31,11 @@
 - 生成器产物只改生成器源码再 `./gradlew desktop:generateDocs`，严禁人工编辑（清单见 Coding-standards 第五节）
 - VitePress 踩坑与预览方式见 Coding-standards 第四节
 
+## 合并上游
+
+- 定期将母仓库（master）的新代码合并进 UncivCN 分支，自行解决合并冲突，确保母仓库新特性完整接入
+- 母仓库与 CN 分支对类似功能实现方式不同时，先向用户提问决定采纳哪一方的实现，再继续
+
 ## 其他
 
 - 任何改动合入时，同步在中英 Changelog（`docs/{,zh/}UncivCN/Changelog.md`）顶部「未发布」小节各加一行（详见 Coding-standards 第八节）
