@@ -41,7 +41,7 @@ fun TileNotePopup(
 }
 
 /** Renders the tile's texture set (terrain, resources, improvements, rivers) as a preview icon */
-private fun Tile.getTileGroupIcon(size: Float = 80f): Group {
+internal fun Tile.getTileGroupIcon(size: Float = 80f): Group {
     setTerrainTransients()
     return TileGroup(
         TileView.forSingleTile(this),

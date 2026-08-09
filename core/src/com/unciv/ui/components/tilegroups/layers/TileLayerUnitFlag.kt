@@ -4,17 +4,23 @@ import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
+import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.files.UnitNotesManager
 import com.unciv.view.CivView
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.translations.tr
+import com.unciv.ui.components.extensions.surroundWithCircle
 import com.unciv.ui.components.extensions.toLabel
+import com.unciv.ui.components.input.onClickSuppressive
 import com.unciv.ui.components.tilegroups.TileGroup
 import com.unciv.ui.components.widgets.UnitIconGroup
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.screens.basescreen.BaseScreen
+import com.unciv.ui.screens.pickerscreens.NoteViewPopup
+import com.unciv.ui.screens.pickerscreens.UnitNotePopup
+import com.unciv.ui.screens.worldscreen.WorldScreen
 
 /** The unit flag is the symbol that appears behind the map unit - circle regularly, shield when defending, etc */
 class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, size) {
@@ -65,7 +71,8 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
 
             // Show note bubble below unit when toggle is enabled
             if (UncivGame.Current.settings.showUnitNotes && tileGroup.tile.tileMap.hasGameInfo()) {
-                val note = UnitNotesManager.getNote(tileGroup.tile.tileMap.gameInfo, unit)
+                val gameInfo = tileGroup.tile.tileMap.gameInfo
+                val note = UnitNotesManager.getNote(gameInfo, unit)
                 if (note != null) {
                     val bubble = createNoteBubble(note, 10)
                     bubble.setPosition(
@@ -73,6 +80,20 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
                         -bubble.height - 4f
                     )
                     newIcon.addActor(bubble)
+                    // Tapping a truncated bubble shows the full note (mobile has no hover)
+                    bubble.onClickSuppressive {
+                        val worldScreen = UncivGame.Current.screen as? WorldScreen ?: return@onClickSuppressive
+                        NoteViewPopup(
+                            screen = worldScreen,
+                            note = note,
+                            icon = ImageGetter.getUnitIcon(unit.baseUnit).surroundWithCircle(60f),
+                            onEdit = { UnitNotePopup(worldScreen, unit, gameInfo) {} },
+                            onDelete = {
+                                UnitNotesManager.deleteNote(gameInfo, unit)
+                                GUI.setUpdateWorldOnNextRender()
+                            }
+                        )
+                    }
                 }
             }
 

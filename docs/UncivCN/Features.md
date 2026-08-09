@@ -24,6 +24,13 @@ Two independent toggles on the world screen, left of the minimap in the bottom-r
 - **Unit pin**: when enabled, click any unit (including foreign units) to attach a note, shown right below the unit's figure; click again to edit or delete; a picker appears when multiple units share a tile
 - **Map pin**: click any tile (including empty ones) to attach a note, shown on the tile with priority over food/production/gold icons
 
+**Editing notes (4.21.6.1)** - no mode switch needed, normal clicking is never hijacked:
+- Mobile: long-press a tile / unit to edit its note (when no unit is selected; with a selected unit long-press still moves it, as before)
+- Desktop: Alt+click a tile / unit to edit its note
+- The toggles remain as an alternative: when enabled, plain clicks edit notes (legacy behavior)
+
+**Display (4.21.6.1)**: note bubbles are truncated to 8 characters so they never cover the map; tapping a bubble shows the full note with Edit / Delete actions (mobile has no hover). The tile-notes toggle now uses a star icon, and both toggles show tooltips on desktop.
+
 Notes are stored in the `{saveName}_notes` file.
 
 ## Tile claim (pre-upstream, continuously maintained)

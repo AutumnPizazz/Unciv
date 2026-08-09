@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Map/unit pins UX overhaul: mobile long-press and desktop Alt+click edit notes without any mode toggle (plain clicks are never hijacked; the legacy toggles remain as an alternative); note bubbles truncated to 8 chars with tap-to-view-full-note popup (Edit/Delete); tile-notes toggle now uses a star icon, both toggles got desktop tooltips
 - Fixed map/unit pin window localization: added the missing Simplified Chinese translations for the note UI strings ("Add note for tile", "Note for [unitName]", "Note for", "Notes", "Show unit/tile notes") - they were showing in English
 - Fixed crash when opening the map pin editor on a tile: the tile texture preview used TileMapView sized by tile count, which overflowed for real game tiles with a non-zero index (now sized by highest index too, with regression tests)
 - Map pin editor popup: removed the tile coordinates from the title and replaced the placeholder icon with a live preview of the selected tile's texture set (terrain/resources/improvements/rivers)

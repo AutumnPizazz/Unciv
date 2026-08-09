@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.Align
 import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
+import com.unciv.ui.components.UncivTooltip.Companion.addTooltip
 import com.unciv.ui.components.extensions.addInTable
 import com.unciv.ui.components.input.onActivation
 import com.unciv.ui.components.input.onClick
@@ -64,13 +65,13 @@ class MinimapHolder(val mapHolder: WorldMapHolder) : Table() {
         "OtherIcons/Pencil",
         getter = { UncivGame.Current.settings.showUnitNotes },
         setter = { UncivGame.Current.settings.showUnitNotes = it }
-    )
+    ).apply { addTooltip("Show unit notes") }
     /** Button, next to the minimap, to toggle tile notes display (map pins). */
     val tileNotesImageButton = MapOverlayToggleButton(
-        "OtherIcons/ExclamationMark",
+        "OtherIcons/Star",
         getter = { UncivGame.Current.settings.showTileNotes },
         setter = { UncivGame.Current.settings.showTileNotes = it }
-    )
+    ).apply { addTooltip("Show tile notes") }
     val buttons = listOf(
         movementsImageButton,
         yieldImageButton,

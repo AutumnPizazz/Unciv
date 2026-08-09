@@ -26,6 +26,7 @@ import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.MapArrowType
 import com.unciv.ui.components.MiscArrowTypes
 import com.unciv.ui.components.extensions.center
+import com.unciv.ui.components.extensions.isAltKeyPressed
 import com.unciv.ui.components.extensions.isShiftKeyPressed
 import com.unciv.ui.components.extensions.surroundWithCircle
 import com.unciv.ui.components.input.*
@@ -37,6 +38,8 @@ import com.unciv.ui.components.tilegroups.citybutton.CityButton
 import com.unciv.ui.components.widgets.UnitIconGroup
 import com.unciv.ui.components.widgets.ZoomableScrollPane
 import com.unciv.ui.screens.basescreen.UncivStage
+import com.unciv.ui.screens.pickerscreens.TileNotePopup
+import com.unciv.ui.screens.pickerscreens.UnitNotePopup
 import com.unciv.ui.screens.worldscreen.UndoHandler.Companion.recordUndoCheckpoint
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.ui.screens.worldscreen.bottombar.BattleTableHelpers.battleAnimationDeferred
@@ -119,13 +122,19 @@ class WorldMapHolder(
                 val child = tileGroupMap.hit(x, y, true) ?: return
 
                 if (child is CityButton) { // the city button can be below the tilegroup, since it moves down when first clicked
+                    // Alt+click (desktop) edits the note for the city center tile
+                    if (button == 0 && Gdx.input.isAltKeyPressed() && editNoteAt(child.cityView.getCenterTile())) return
                     onTileClicked(child.cityView.getCenterTile())
                     return
                 }
                 if (child is WorldTileGroup) {
                     Concurrency.runOnGLThread("Sound") { SoundPlayer.play(UncivSound.Click) }
 
-                    if (button == 0) onTileClicked(child.tile) // Regular click
+                    if (button == 0) {
+                        // Alt+click (desktop) edits the note instead of selecting
+                        if (Gdx.input.isAltKeyPressed() && editNoteAt(child.tile)) return
+                        onTileClicked(child.tile) // Regular click
+                    }
                     else if (button == 1) { // Right button click = move unit to tile
                         if (!UncivGame.Current.settings.longTapMove) return
                         val unit = worldScreen.bottomUnitTable.selectedUnit
@@ -140,22 +149,42 @@ class WorldMapHolder(
                 // See #10050 - when a tap discards its actor or ascendants, Gdx can't cancel the longpress timer
                 if (actor.stage == null) return false
 
-                if (!UncivGame.Current.settings.longTapMove) return false
                 val unit = worldScreen.bottomUnitTable.selectedUnit
-                    ?: return false
-                if (Gdx.app.type != Application.ApplicationType.Android) return false
+                if (UncivGame.Current.settings.longTapMove && unit != null && Gdx.app.type == Application.ApplicationType.Android) {
+                    val child = tileGroupMap.hit(x, y, true) ?: return false
+                    if (child !is WorldTileGroup) return false
 
-                val child = tileGroupMap.hit(x, y, true) ?: return false
-                if (child !is WorldTileGroup) return false
-
-                Concurrency.run("WorldScreenClick") {
-                    onTileRightClicked(unit, child.tile)
+                    Concurrency.run("WorldScreenClick") {
+                        onTileRightClicked(unit, child.tile)
+                    }
+                    return true
                 }
-                return true
+
+                // Long-press without a selected unit (or longTapMove off) edits the note - primary mobile entry
+                val child = tileGroupMap.hit(x, y, true) ?: return false
+                val tile = when (child) {
+                    is CityButton -> child.cityView.getCenterTile()
+                    is WorldTileGroup -> child.tile
+                    else -> return false
+                }
+                return editNoteAt(tile)
             }
         }
 
         tileGroupMap.addListener(listener)
+    }
+
+    /**
+     * Opens the note editor for [tile]: unit note when a visible unit is on it (Civ 5 selection order),
+     * tile note otherwise. Returns true when handled.
+     */
+    private fun editNoteAt(tile: Tile): Boolean {
+        val gameInfo = worldScreen.gameInfo ?: return false
+        if (!tile.isVisible(worldScreen.viewingCiv)) return false
+        val unit = tile.militaryUnit ?: tile.civilianUnit
+        if (unit != null) UnitNotePopup(worldScreen, unit, gameInfo) {}
+        else TileNotePopup(worldScreen, tile, gameInfo) {}
+        return true
     }
 
     fun onTileClicked(tile: Tile) {

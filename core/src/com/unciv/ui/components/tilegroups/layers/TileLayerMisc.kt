@@ -6,17 +6,28 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
+import com.unciv.Constants
+import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.view.CivView
 import com.unciv.logic.map.HexMath
+import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.tile.Tile
 import com.unciv.logic.map.toHexCoord
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.*
 import com.unciv.ui.components.extensions.*
+import com.unciv.ui.components.fonts.Fonts
+import com.unciv.ui.screens.basescreen.BaseScreen
+import com.unciv.ui.screens.pickerscreens.NoteViewPopup
+import com.unciv.ui.screens.pickerscreens.TileNotePopup
+import com.unciv.ui.screens.pickerscreens.getTileGroupIcon
+import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.ui.components.input.onClick
+import com.unciv.ui.components.input.onClickSuppressive
 import com.unciv.ui.components.input.onDoubleClick
 import com.unciv.ui.components.tilegroups.CityTileGroup
 import com.unciv.ui.components.tilegroups.TileGroup
@@ -44,10 +55,21 @@ private class MapArrow(val targetTile: Tile, val arrowType: MapArrowType, val st
     }
 }
 
-/** 创建便签气泡：半透明深色底 + 白色文字，用于地图钉和单位钉显示 */
-internal fun createNoteBubble(text: String, fontSize: Int): Group {
-    val label = text.toLabel(Color.WHITE, fontSize)
-    label.setAlignment(Align.center)
+/** 创建便签气泡：半透明深色底 + 白色文字，用于地图钉和单位钉显示。
+ *  长文本截断为 [maxChars] 字符以免遮挡地图，完整内容由调用方点击查看。
+ *  返回的 Group 可点击（touchable=childrenOnly）。 */
+internal fun createNoteBubble(text: String, fontSize: Int, maxChars: Int = 8): Group {
+    // Notes are user content - display them verbatim, never translate
+    val displayText = if (text.length > maxChars) text.take(maxChars) + "…" else text
+    var labelStyle = BaseScreen.skin.get(Label.LabelStyle::class.java)
+    if (fontSize != Constants.defaultFontSize) {
+        labelStyle = Label.LabelStyle(labelStyle)
+        labelStyle.font = Fonts.font
+    }
+    val label = Label(displayText, labelStyle).apply {
+        setFontScale(fontSize / Fonts.ORIGINAL_FONT_SIZE)
+        setAlignment(Align.center)
+    }
 
     // 半透明黑色背景（白点拉伸着色）
     val bg = ImageGetter.getDot(Color(0f, 0f, 0f, 0.55f))
@@ -59,7 +81,7 @@ internal fun createNoteBubble(text: String, fontSize: Int): Group {
     }
 
     val group = Group().apply {
-        touchable = Touchable.disabled
+        touchable = Touchable.childrenOnly
     }
     bg.setSize(container.width + 4f, container.height + 2f)
     group.addActor(bg)
@@ -519,6 +541,21 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
             tileY + tileGroup.height * 0.55f
         )
         addOwnedActor(bubble)
+        // Tapping a truncated bubble shows the full note (mobile has no hover)
+        bubble.onClickSuppressive {
+            val worldScreen = UncivGame.Current.screen as? WorldScreen ?: return@onClickSuppressive
+            val tile = tileGroup.tile
+            NoteViewPopup(
+                screen = worldScreen,
+                note = noteText,
+                icon = tile.getTileGroupIcon(60f),
+                onEdit = { TileNotePopup(worldScreen, tile, worldScreen.gameInfo) {} },
+                onDelete = {
+                    UnitNotesManager.deleteTileNote(worldScreen.gameInfo, tile.position.x, tile.position.y)
+                    GUI.setUpdateWorldOnNextRender()
+                }
+            )
+        }
         tileNoteLabel = bubble
     }
 
