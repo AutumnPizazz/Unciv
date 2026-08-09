@@ -10,6 +10,8 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 文档：Coding-standards 新增发版检查清单与踩坑经验（tag 推送、文档站本地验证、禁止裸尖括号、Maven Central 403、Unciv.jar 旧名残留、continue-on-error 掩盖失败、CN 词条翻译完整性）
+
 ## v4.21.6.3（build 1247）
 
 - 修复 Docker 构建：Dockerfile 复制的 `Unciv.jar` 在 CN 分支实际产物名为 `UncivCN.jar`（改名后镜像构建一直失败）

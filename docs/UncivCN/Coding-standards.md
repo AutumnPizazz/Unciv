@@ -128,6 +128,24 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 - **Release tag**: the MSI installer version comes from the git tag (`github.ref_name`, 4-segment form like `4.21.5.3`); every release must push a tag matching the version to trigger the Deploy workflow.
 - **Upstream changelog pages**: the English page `docs/Community/Upstream-changelog.md` embeds the full repo-root `changelog.md` at build time (the `upstream-changelog` container in `docs-vitepress/.vitepress/config.ts`), so it stays current automatically after every upstream merge — never maintain an English copy by hand. The Chinese page `docs/zh/Community/Upstream-changelog.md` is **human-translated only, no embedded English**: it covers recent versions (may lag) and links to the EN page for the full history; backfill translations gradually, newest versions first.
 
+### Release checklist & lessons learned (from the 4.21.6.x series)
+
+Before releasing, check off:
+- [ ] Version bump in `buildSrc/src/main/kotlin/BuildConfig.kt` (`appVersion` + `appCodeNumber` +1); after a build, confirm `syncGameVersion` mirrored it into `UncivGame.kt` (`VERSION = Version("x.y.z.n", NNNN)`)
+- [ ] Changelog: move the whole Unreleased section into the new version entry (both EN and ZH), wording unchanged
+- [ ] Version references: the current-version line in `docs/{,zh/}UncivCN/index.md`
+- [ ] Local verification: `./gradlew tests:test` **and** `cd docs-vitepress && npm run docs:build` (skipping the latter only surfaces docs failures in CI after the release)
+- [ ] Push both the branch **and the tag separately** (`git push origin <branch>` + `git push origin <tag>`); the Deploy workflow triggers on tags only — pushing the branch alone does not release
+
+After releasing, verify GitHub Release asset completeness: `UncivCN-<version>.Apk`, `.jar`, `Windows64.zip`, `Linux64.zip`, `UncivServer-<version>.jar`, `.msi`.
+
+Lessons learned:
+- **No bare angle brackets in markdown**: `<gameId>` is parsed by VitePress/Vue as an unclosed HTML tag (`Element is missing end tag`) and breaks the docs build — use `{gameId}` or `&lt;...&gt;`
+- **Maven Central 403** (`Could not GET ... 403 Forbidden`): intermittent rate limiting on GitHub runners — re-run the failed job, no code change needed
+- **Stale hardcoded names after the app rename**: search for old names (e.g. Dockerfile's `Unciv.jar`, `Unciv-Linux64.zip`) — CN artifacts are all `UncivCN.*`
+- **`continue-on-error` jobs hide failures**: e.g. `build-msi` (wix defaults to naming the output after the source file, `unciv.msi`, while the upload path expects `UncivCN.msi`) — always verify the Release assets
+- **New strings of CN-only features must get `Simplified_Chinese.properties` translations in the same change**: otherwise Chinese players see English (consider adding a CI check later)
+
 ## 9. Mods & assets
 
 - Mods live in `android/assets/mods/` and extend the ruleset via JSON

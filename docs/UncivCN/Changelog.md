@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Docs: added a release checklist and lessons-learned section (tag push, docs build verification, no bare angle brackets, Maven Central 403, stale Unciv.jar names, continue-on-error jobs, CN translation completeness) to Coding-standards
+
 ## v4.21.6.3 (build 1247)
 
 - Fixed Docker build: Dockerfile copied `Unciv.jar` while the CN build produces `UncivCN.jar` (failing the image build since the app rename)

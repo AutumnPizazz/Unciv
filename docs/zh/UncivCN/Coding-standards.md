@@ -167,6 +167,33 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
   中文页 `docs/zh/Community/Upstream-changelog.md` **只放人工翻译、不嵌入英文**，
   覆盖最近版本（允许滞后）并链接英文页看完整历史，翻译从最新版本往前补翻。
 
+### 发版检查清单与踩坑经验（4.21.6.x 系列总结）
+
+发版前逐项核对：
+- [ ] 版本号：`buildSrc/src/main/kotlin/BuildConfig.kt`（`appVersion` + `appCodeNumber`+1），
+      `syncGameVersion` 自动同步 `UncivGame.kt`，构建后确认 `VERSION = Version("x.y.z.n", NNNN)`
+- [ ] 更新日志：Unreleased 整体移入新版本条目（中英两份），措辞不变
+- [ ] 版本引用：`docs/{,zh/}UncivCN/index.md` 的当前版本行
+- [ ] 本地验证：`./gradlew tests:test` **与** `cd docs-vitepress && npm run docs:build`
+      （后者漏跑会导致 CI 的 docs 构建在发版后才发现问题）
+- [ ] 推送：分支与 **tag 分开推送**（`git push origin <分支>` + `git push origin <tag>`）；
+      Deploy 工作流由 tag 触发，只推分支不会发版
+
+发版后核对 GitHub Release 资产完整性：`UncivCN-<版本>.Apk`、`.jar`、
+`Windows64.zip`、`Linux64.zip`、`UncivServer-<版本>.jar`、`.msi`。
+
+踩坑经验：
+- **md 文档禁止裸尖括号**：`<gameId>` 之类会被 VitePress/Vue 编译器当作未闭合 HTML
+  标签（`Element is missing end tag`）导致 docs 构建失败；用 `{gameId}` 或 `&lt;...&gt;`
+- **Maven Central 403**（`Could not GET ... 403 Forbidden`）：GitHub runner 偶发
+  速率限制，重跑失败 job 即可，不必改代码
+- **appName 改名后遗症**：搜索硬编码旧名（如 Dockerfile 的 `Unciv.jar`、
+  `Unciv-Linux64.zip`）——CN 分支产物统一为 `UncivCN.*`
+- **`continue-on-error` 的 job 会掩盖失败**：如 `build-msi`（wix 默认按源文件名输出
+  `unciv.msi` 而上传路径是 `UncivCN.msi`）——发版后必须核对 Release 资产
+- **CN 自研功能的新词条必须同步补 `Simplified_Chinese.properties` 翻译**：
+  template 加词条不补中文，中文玩家界面即显示英文（可考虑后续加 CI 检查）
+
 ## 九、Mod 与资源
 
 - Mod 位于 `android/assets/mods/`，通过 JSON 扩展规则集
