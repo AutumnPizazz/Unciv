@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 修复开图界面：世界大小设为自定义后反复切换对称性会堆积重复的半径/宽度/高度输入行（六边形/矩形尺寸表重建时未清空）
 - 新特性：`ModOptions.json` 模组版本要求——`modVersion`（n.n.n，不填默认 0.0.1）、`gameVersionRange`（min~max，不填默认全版本可用）、`modDependencies`（精确或范围版本要求）；不满足时在模组管理器、新建游戏模组选择与模组检查器中显示警告，不阻止使用
 - 修复文档站死链接：中文 UncivCN 页面 14 处 `](` 损坏链接，以及 Modders 文档（中英，含 `UniqueType.kt` / `Countables.kt` / `UniqueDocsWriter` / `MergeActionDocsWriter` 生成器）约 250 处标题锚点错误（VitePress slug 格式）；已用全新 VitePress 构建产物逐链接验证
 - 合并上游 4.21.6：CPU 性能优化（城市基线只算一次，部分存档下一回合提速约 20%）、AI 工人考虑未来的相邻加成、多人上传失败视觉提示、聊天昵称显示文明颜色、OneTimeGainStat 参数改为 `[civWideStat]` 并对非文明级产出给出 modding 警告、测试运行器重构（详见上游 [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md)）

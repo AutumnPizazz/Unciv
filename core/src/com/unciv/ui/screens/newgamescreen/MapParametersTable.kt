@@ -260,6 +260,8 @@ class MapParametersTable(
     }
 
     private fun addHexagonalSizeTable() {
+        // update() rebuilds this table on every call - clear it first to avoid accumulating rows
+        hexagonalSizeTable.clear()
         val defaultRadius = mapParameters.mapSize.radius
         customMapSizeRadius = UncivTextField.Integer("Radius", defaultRadius)
         customMapSizeRadius.onChange {
@@ -287,6 +289,8 @@ class MapParametersTable(
     }
 
     private fun addRectangularSizeTable() {
+        // update() rebuilds this table on every call - clear it first to avoid accumulating rows
+        rectangularSizeTable.clear()
         val defaultWidth = mapParameters.mapSize.width
         customMapWidth = UncivTextField.Integer("Width", defaultWidth)
         val defaultHeight = mapParameters.mapSize.height
