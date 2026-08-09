@@ -4,6 +4,11 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+## v4.21.6.3 (build 1247)
+
+- Fixed Docker build: Dockerfile copied `Unciv.jar` while the CN build produces `UncivCN.jar` (failing the image build since the app rename)
+- Fixed MSI release: `wix build` default output is `unciv.msi` (named after the source file) but the upload expected `UncivCN.msi` - the `build-msi` job had `continue-on-error: true`, so releases never contained an MSI; now the output name is explicit
+
 ## v4.21.6.2 (build 1246)
 
 - Fixed missing Simplified Chinese translations for CN-specific UI strings (47 missing + 10 empty entries): clipboard game-setup copy/paste, polling multiplayer (polling interval, refresh, online players, turn timers), mirrored-map symmetry modes, auto-lock, map-pin note labels, save-reload RNG variance, Countables, Boreal/Spiral map types and more - they were showing in English

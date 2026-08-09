@@ -10,6 +10,11 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+## v4.21.6.3（build 1247）
+
+- 修复 Docker 构建：Dockerfile 复制的 `Unciv.jar` 在 CN 分支实际产物名为 `UncivCN.jar`（改名后镜像构建一直失败）
+- 修复 MSI 发布：`wix build` 默认按源文件名输出 `unciv.msi`，而上传路径是 `UncivCN.msi`；`build-msi` job 带 `continue-on-error: true`，历次 Release 从未包含 MSI——现在显式指定输出文件名
+
 ## v4.21.6.2（build 1246）
 
 - 修复 CN 自研功能词条缺失简体中文翻译（47 个缺失 + 10 个空翻译）：剪贴板复制/粘贴游戏设置、轮询联机（轮询间隔、刷新、在线玩家、回合计时）、镜像地图对称模式、自动锁定、地图钉笔记、读档随机数变动、Countables、寒带/螺旋地图类型等——此前显示为英文
