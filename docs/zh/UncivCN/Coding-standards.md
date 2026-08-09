@@ -4,10 +4,65 @@ title: 代码规范
 
 # 代码规范（UncivCN 分支）
 
-> **本文件是 UncivCN 分支的工程规范汇总，全部条目均来自实际踩坑教训。**
+> **本文件是 UncivCN 分支的工程手册：开发参考（构建 / 项目结构 / 状态模型 / 资源）+ 工程规范，全部条目均来自实际踩坑教训。**
 > 修改文档、文档生成器、unique 定义或翻译相关代码前，**必须先通读本文**。
 
-## 一、文档站维护（VitePress vs 上游 mkdocs）
+## 一、构建与运行
+
+```bash
+./gradlew desktop:run                                # 运行桌面版（主要开发流程）
+./gradlew :tests:test                                # 运行全部测试
+./gradlew :tests:test --tests "com.unciv.testing.BasicTests"   # 单个测试类
+./gradlew desktop:dist                               # 构建 JAR → desktop/build/libs/Unciv.jar
+./gradlew server:run                                 # 运行服务器
+./gradlew server:dist                                # → server/build/libs/UncivServer.jar
+java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
+  --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt 检查（警告）
+```
+
+技术栈：Kotlin 2.1.21 · Gradle 8.11.1 · LibGDX 1.14.0 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+
+从零上手（环境准备、IDE 配置）见 [Building-Locally](../Developers/Building-Locally)。
+
+## 二、项目结构
+
+| 模块 | 职责 |
+|---|---|
+| `core/` | 99% 的游戏代码：逻辑、模型、UI、序列化、规则集。纯 Kotlin，不依赖平台 |
+| `desktop/` | 桌面启动器与平台功能（JNA 通知、Discord RPC） |
+| `android/` | Android 启动器；`android/assets/` 为各平台共享资源（图片、JSON、翻译） |
+| `server/` | 多人服务器（Ktor + WebSocket），独立打包 |
+| `tests/` | JUnit 4 + Mockito 单元测试 |
+
+关键包（`core/src/com/unciv/`）：
+
+| 包 | 用途 |
+|---|---|
+| `models/ruleset/` | 规则集类：Nation、Building、BaseUnit、Technology、Policy 等 |
+| `logic/civilization/` | CivilizationInfo 及各管理器（科技/政策/外交） |
+| `logic/city/` | CityInfo、城市建造/产出/人口 |
+| `logic/map/` | TileMap、TileInfo、寻路（BFS、AStar） |
+| `logic/map/mapunit/` | 地图上的单位实例 |
+| `logic/battle/` | 战斗结算 |
+| `logic/automation/` | AI 与自动化逻辑（工人自动化、下一回合流程） |
+| `logic/trade/` | 贸易路线与交易 |
+| `ui/screens/wordlscreen/` | 主游戏界面（大部分游玩时间所在） |
+| `ui/screens/cityscreen/` | 城市管理界面 |
+| `ui/screens/pickerscreens/` | 科技/政策/晋升选择界面 |
+| `ui/popups/` | 模态弹窗 |
+| `json/` | JSON 序列化配置、UncivJson |
+
+更详细的类关系见 [Project-structure-and-major-classes](../Developers/Project-structure-and-major-classes)。
+
+## 三、游戏状态与回合流程
+
+`GameInfo` 是序列化根节点：内含 `List<CivilizationInfo>`（玩家，各有 `List<CityInfo>`）、`TileMap`（`List<TileInfo>`，可含 `MapUnit`）、`RuleSet`（**不序列化**，从 `android/assets/jsons/` 加载）。每个状态对象持有 `@Transient` 父引用，树可双向遍历。
+
+每回合**先克隆 GameInfo 再在新副本上处理**——保证 UI 线程安全与多人联机确定性（整包收发状态）。
+
+序列化细节见 [Saved-games-and-transients](../Developers/Saved-games-and-transients)。
+
+## 四、文档站维护（VitePress vs 上游 mkdocs）
 
 UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs：不支持中文搜索）；
 上游仍用 mkdocs。两者语法不兼容，维护时务必注意以下**踩坑记录**：
@@ -33,7 +88,7 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 5. **参数表多行说明**：docDescription 含换行时会撑破 markdown 表格，生成器已将其
    替换为 `<br>`，手工维护表格时同样处理。
 
-## 二、自动生成文档清单
+## 五、自动生成文档清单
 
 | 产物 | 生成器 | 维护方式 |
 |---|---|---|
@@ -53,22 +108,33 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 本地预览：双击 `docs-vitepress/build.bat`（构建 / 打开现有 / 重建重启三选一，
 服务器空闲 5 分钟自动退出）。
 
-## 三、unique 与翻译规范
+## 六、unique 与翻译规范
 
-1. **docDescriptionZh 与 docDescription 同处定义**：新增或修改 `UniqueType` /
+1. **词条来源**：所有用户可见字符串必须可翻译，词条来源有三：
+   - JSON 资源（`android/assets/jsons/`）— 由 `TranslationFileWriter` 自动收集
+   - Unique 系统 — `UniqueType` / `UniqueParameterType` 自动生成词条
+   - 手动模板 — Kotlin 中的 UI 字符串手动加入 `android/assets/jsons/translations/template.properties`
+2. **占位符规则**：
+   - `[]`：标签与内容都翻译（如 `[amount] gold`）；**禁止空 `[]`**，用有意义的标签
+     （`[amount]`、`[city]` 等），一句话多个占位符必须用不同标签
+   - `{}`：内容翻译，周围文字原样
+   - 可翻译文本中不能出现 `[]`、`{}`、`<>`，改用 `()`
+   - 测试 `allTranslationsHaveNoExtraPlaceholders` 与 `allTranslationsHaveCorrectPlaceholders`
+     校验占位符一致性
+3. **docDescriptionZh 与 docDescription 同处定义**：新增或修改 `UniqueType` /
    `UniqueParameterType` 的 `docDescription` 时，**必须同时**写 `docDescriptionZh`
    （中文说明），文档生成器自动读取；缺中文时回退英文。禁止在生成器里维护
    大翻译映射表。
-2. **JSON 字面量不翻译**（见写作铁律 2）：unique 文本、参数名、Countables 的
+4. **JSON 字面量不翻译**（见写作铁律 2）：unique 文本、参数名、Countables 的
    文本/示例是模组 JSON 字面量，保持英文原文；只翻译说明性文字。
-3. **翻译接口分流**：
+5. **翻译接口分流**：
    - 游戏内显示字符串 → 翻译模板（`template.properties` / `Simplified_Chinese.properties`）
    - 纯文档字符串（`docDescription`、UniqueTarget 文档说明、Countables 说明）→
      源码字段（`docDescriptionZh`）或生成器内置翻译（`docsSentence` / `countablesTranslate`）
-4. **唯一标识一致性**：翻译 key 用 `getTranslatable()`（重复占位符编号化），
+6. **唯一标识一致性**：翻译 key 用 `getTranslatable()`（重复占位符编号化），
    文档标题展示编号化形式，但示例永远用原始文本。
 
-## 四、分支规范
+## 七、分支规范
 
 - **版本号** = 上游版本 + CN 子版本号（如上游 4.21.5 → UncivCN 4.21.5.1；同一上游版本可发 `.1`/`.2`/`.3`…，如 4.20.8.1 → 4.20.8.4；跟进新上游后子版本号从 `.1` 重新开始），
   定义在 `buildSrc/src/main/kotlin/BuildConfig.kt`
@@ -77,7 +143,7 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
   中文独有内容只放 `docs/zh/UncivCN/`
 - **中文一等公民**：新 UI 字符串必须进翻译模板；新 unique 说明必须同时提供中文
 
-## 五、更新日志与发版流程
+## 八、更新日志与发版流程
 
 - **微小更新也记日志**：任何非发版改动（功能 / 修复 / CI / 文档站）合入分支时，
   必须在同一提交里同步在中英两份更新日志
@@ -97,6 +163,21 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
   `upstream-changelog` 容器），merge 上游后自动保持最新，禁止手动维护英文副本；
   中文页 `docs/zh/Community/Upstream-changelog.md` **只放人工翻译、不嵌入英文**，
   覆盖最近版本（允许滞后）并链接英文页看完整历史，翻译从最新版本往前补翻。
+
+## 九、Mod 与资源
+
+- Mod 位于 `android/assets/mods/`，通过 JSON 扩展规则集
+- 图集 `Icons.atlas`、`NationIcons.atlas` 等及音效位于 `android/assets/`（`sounds/` 子目录）
+- 规则集 JSON 位于 `android/assets/jsons/`
+- IDE 中将 `android/assets/SaveFiles/` 与 `android/assets/mods/` 标记为 Excluded
+
+## 十、其他注意事项
+
+- 版本号定义在 `buildSrc/src/main/kotlin/BuildConfig.kt`，语义化版本，变更记录在 `changelog.md`
+- Android 构建需 `local.properties`（`sdk.dir`）或 `ANDROID_HOME` 环境变量
+- Android Studio 需将 Kotlin 连续缩进设为 4 空格
+- 核心代码必须兼容所有平台；游戏逻辑主要在主线程执行，异步操作需谨慎
+- 修改规则集相关代码时考虑 Mod 兼容性
 
 ## 相关文档
 
