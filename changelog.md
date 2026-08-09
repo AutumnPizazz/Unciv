@@ -1,3 +1,17 @@
+## 4.21.6
+
+CPU performance improvements
+
+Disallow XP ruin rewards for civilian units in base rulesets
+
+AI: workers take into account future adjacencies for improvements - By EmperorPinguin
+
+Visually indicate failed MP upload - By cy-elec
+
+Chat: nation-colored names, white body - By Fanfblrik
+
+modding: Warn when OneTimeGainStat is used with a non-civ-wide stat (food/production) - By mvanhorn
+
 ## 4.21.5
 
 By SomeTroglodyte:

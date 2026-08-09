@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 合并上游 4.21.6：CPU 性能优化（城市基线只算一次，部分存档下一回合提速约 20%）、AI 工人考虑未来的相邻加成、多人上传失败视觉提示、聊天昵称显示文明颜色、OneTimeGainStat 参数改为 `[civWideStat]` 并对非文明级产出给出 modding 警告、测试运行器重构（详见上游 [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md)）
 - 修复自定义域名下文档站无样式：站点产物部署到 `Unciv/` 子目录并加根跳转页
 - 修复导航栏 logo 路径重复 `/Unciv` 前缀
 - 游戏内版本号改为构建时自动从 `BuildConfig.kt` 同步到 `UncivGame.kt`（此前手动发版容易漏同步，导致游戏内显示的版本号滞后）

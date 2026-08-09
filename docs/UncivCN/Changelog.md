@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Merged upstream 4.21.6: CPU performance improvements (city baseline computed once, ~20% faster next-turn in some saves), AI workers consider future adjacencies for improvements, visually indicate failed MP upload, nation-colored chat names, OneTimeGainStat re-parameterized to `[civWideStat]` with a modding warning, test runner overhaul (see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))
 - Fixed the docs site showing unstyled text under the custom domain: site artifacts are now deployed to the `Unciv/` subdirectory with a root redirect page
 - Fixed duplicate `/Unciv` prefix in the navbar logo path
 - In-game version display is now synced automatically from `BuildConfig.kt` to `UncivGame.kt` at build time (previously a manual release could forget this and ship a stale in-game version)

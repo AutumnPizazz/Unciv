@@ -171,16 +171,16 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Gain [amount] [stat]
-Example: "Gain [3] [Culture]"
+::: details Gain [amount] [civWideStat]
+Example: "Gain [3] [Gold]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
 
 Applicable to: Triggerable
 
 :::
-::: details Gain [amount]-[amount2] [stat]
-Example: "Gain [3]-[3] [Culture]"
+::: details Gain [amount]-[amount2] [civWideStat]
+Example: "Gain [3]-[3] [Gold]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
 

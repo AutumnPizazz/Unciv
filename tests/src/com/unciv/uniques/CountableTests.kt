@@ -14,7 +14,7 @@ import com.unciv.models.ruleset.validation.UniqueValidator
 import com.unciv.models.stats.Stat
 import com.unciv.models.translations.getPlaceholderParameters
 import com.unciv.models.translations.getPlaceholderText
-import com.unciv.testing.GdxTestRunner
+import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import com.unciv.testing.runTestParcours
 import java.lang.reflect.Modifier
@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 
 internal annotation class CoversCountable(vararg val countable: Countables)
 
-@RunWith(GdxTestRunner::class)
+@RunWith(BaseTestRunner::class)
 class CountableTests {
     //region Helpers
     private lateinit var game: TestGame

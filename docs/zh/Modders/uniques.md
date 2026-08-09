@@ -178,16 +178,16 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Gain [amount] [stat]
-示例："Gain [3] [Culture]"
+::: details Gain [amount] [civWideStat]
+示例："Gain [3] [Gold]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
 
 适用范围：Triggerable
 
 :::
-::: details Gain [amount]-[amount2] [stat]
-示例："Gain [3]-[3] [Culture]"
+::: details Gain [amount]-[amount2] [civWideStat]
+示例："Gain [3]-[3] [Gold]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
 
