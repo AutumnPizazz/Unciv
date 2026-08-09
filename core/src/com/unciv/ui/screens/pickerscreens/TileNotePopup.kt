@@ -1,13 +1,16 @@
 package com.unciv.ui.screens.pickerscreens
 
+import com.badlogic.gdx.scenes.scene2d.Group
+import com.unciv.UncivGame
 import com.unciv.logic.GameInfo
 import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.translations.tr
-import com.unciv.ui.components.extensions.surroundWithCircle
-import com.unciv.ui.images.ImageGetter
+import com.unciv.ui.components.tilegroups.TileGroup
+import com.unciv.ui.components.tilegroups.TileSetStrings
 import com.unciv.ui.popups.AskTextPopup
 import com.unciv.ui.screens.worldscreen.WorldScreen
+import com.unciv.view.TileView
 
 /** Popup for editing a tile note (map pin) */
 fun TileNotePopup(
@@ -16,14 +19,12 @@ fun TileNotePopup(
     gameInfo: GameInfo,
     onComplete: () -> Unit
 ) {
-    val tilePos = "${tile.position.x},${tile.position.y}"
     val existingNote = UnitNotesManager.getTileNote(gameInfo, tile.position.x, tile.position.y)
-    val label = "Add note for tile".tr() + " ($tilePos)"
 
     AskTextPopup(
         screen = worldScreen,
-        label = label,
-        icon = ImageGetter.getImage("OtherIcons/ExclamationMark").surroundWithCircle(80f),
+        label = "Add note for tile".tr(),
+        icon = tile.getTileGroupIcon(),
         defaultText = existingNote ?: "",
         maxLength = 64,
         actionOnOk = { note ->
@@ -37,4 +38,18 @@ fun TileNotePopup(
             onComplete()
         }
     ).open()
+}
+
+/** Renders the tile's texture set (terrain, resources, improvements, rivers) as a preview icon */
+private fun Tile.getTileGroupIcon(size: Float = 80f): Group {
+    setTerrainTransients()
+    return TileGroup(
+        TileView.forSingleTile(this),
+        TileSetStrings(ruleset, UncivGame.Current.settings),
+        size * 36f / 54f  // TileGroup normally spills out of its bounding box
+    ).apply {
+        isForceVisible = true
+        isForMapEditorIcon = true
+        update()
+    }
 }

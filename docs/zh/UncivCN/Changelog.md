@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 地图钉编辑弹窗：标题去掉地块坐标，左侧占位图标改为选中地块的材质包实时预览（地形/资源/改良/河流贴图）
 - 内置基础规则集（Vanilla / Gods & Kings）与上游对齐：移除 G&K ModOptions 中 CN 独有的 "Allow cities to claim tiles"（tile-claim 改为模组通过 ModOptions 自行声明启用）与 CN 独有的大军事家 8 回合黄金时代 unique（上游 #13308 已移除）
 - 修复开图界面：世界大小设为自定义后反复切换对称性会堆积重复的半径/宽度/高度输入行（六边形/矩形尺寸表重建时未清空）
 - 新特性：`ModOptions.json` 模组版本要求——`modVersion`（n.n.n，不填默认 0.0.1）、`gameVersionRange`（min~max，不填默认全版本可用）、`modDependencies`（精确或范围版本要求）；不满足时在模组管理器、新建游戏模组选择与模组检查器中显示警告，不阻止使用
