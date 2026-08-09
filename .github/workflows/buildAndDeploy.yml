@@ -253,7 +253,7 @@ jobs:
           if [[ "$UNCIV_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             UNCIV_VERSION="$UNCIV_VERSION.0"
           fi
-          UNCIV_VERSION=$UNCIV_VERSION wix build .github/workflows/unciv.wxs
+          UNCIV_VERSION=$UNCIV_VERSION wix build .github/workflows/unciv.wxs -o .github/workflows/UncivCN.msi
 
 
       - name: Show folders
