@@ -2,6 +2,12 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+## Unreleased
+
+- Fixed the docs site showing unstyled text under the custom domain: site artifacts are now deployed to the `Unciv/` subdirectory with a root redirect page
+- Fixed duplicate `/Unciv` prefix in the navbar logo path
+- In-game version display is now synced automatically from `BuildConfig.kt` to `UncivGame.kt` at build time (previously a manual release could forget this and ship a stale in-game version)
+
 ## v4.21.5.3 (build 1244)
 
 - Fixed CI test failures: 13 translation templates were missing the trailing space (breaking `TranslationTests`); test mods `testMOD` / `testMapScript` are now tracked in the repo (previously git-ignored, which broke Lua-script and merge-action tests in CI), with `testMOD/jsons/Buildings.json` added
@@ -15,7 +21,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 - Unique documentation now in Chinese: new `docDescriptionZh` mechanism — modders can read Chinese explanations of uniques on the docs site
 - Build & release pipeline adapted: local APK signing (zipalign + apksigner V3), artifacts named UncivCN; new signing regression CI
 
-## v4.21.5.1 (build 1242) — current
+## v4.21.5.1 (build 1242)
 
 
 - Merged upstream 4.21.5 (AI gold/war logic fixes, CPU performance improvements, city-state start optimizations, etc.; see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))

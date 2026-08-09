@@ -8,6 +8,12 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
+## 未发布（Unreleased）
+
+- 修复自定义域名下文档站无样式：站点产物部署到 `Unciv/` 子目录并加根跳转页
+- 修复导航栏 logo 路径重复 `/Unciv` 前缀
+- 游戏内版本号改为构建时自动从 `BuildConfig.kt` 同步到 `UncivGame.kt`（此前手动发版容易漏同步，导致游戏内显示的版本号滞后）
+
 ## v4.21.5.3（build 1244）
 
 - 修复 CI 测试失败：13 行翻译模板缺末尾空格（TranslationTests 挂掉）；测试模组 testMOD / testMapScript 此前被 .gitignore 忽略，导致 CI 上 Lua 脚本与合并动作测试大量失败，现已纳入版本库并补充 testMOD/jsons/Buildings.json
@@ -21,7 +27,7 @@ title: UncivCN 更新日志
 - unique 说明文档中文化：新增 docDescriptionZh 机制，模组制作者可在文档站查看中文 unique 说明
 - 构建与发布流程适配：APK 签名本地化（zipalign + apksigner V3）、产物命名 UncivCN；新增签名回归 CI
 
-## v4.21.5.1（build 1242）— 当前版本
+## v4.21.5.1（build 1242）
 
 
 - 合并上游 4.21.5（AI 金币/战争逻辑修复、CPU 性能优化、城市邦开局优化等，详见上游 [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md)）

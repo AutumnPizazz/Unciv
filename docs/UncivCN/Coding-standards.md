@@ -55,6 +55,13 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 - **Doc mirroring**: `docs/zh/` mirrors the English section one-to-one (same path = the translation); Chinese-only content lives only in `docs/zh/UncivCN/` and `docs/zh/Community/`
 - **Chinese as first-class**: new UI strings must go into the translation templates; new unique explanations must ship with Chinese
 
+## 5. Changelog & release process
+
+- **Log every change, not just releases**: any non-release change (feature / bugfix / CI / docs site) merged into the branch must add one line to the **Unreleased** section at the top of both `docs/UncivCN/Changelog.md` and `docs/zh/UncivCN/Changelog.md`, in the same commit as the change itself. Entries only accumulate there until the next release.
+- **Consolidate on release**: when releasing, move the whole Unreleased section into the new version entry (`## vX.Y.Z.N (build NNNN)`), keeping the same wording, then empty the Unreleased section.
+- **Version bump**: only edit `buildSrc/src/main/kotlin/BuildConfig.kt` (`appVersion` + `appCodeNumber` +1). The `syncGameVersion` Gradle task runs before every core build and automatically mirrors the values into the `AUTOMATICALLY GENERATED VERSION DATA` region of `UncivGame.kt` (the in-game version display) — never hand-edit that region.
+- **Release tag**: the MSI installer version comes from the git tag (`github.ref_name`, 4-segment form like `4.21.5.3`); every release must push a tag matching the version to trigger the Deploy workflow.
+
 ## Related
 
 - [Differences vs upstream](./Differences)

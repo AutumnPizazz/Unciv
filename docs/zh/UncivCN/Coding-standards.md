@@ -77,6 +77,22 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
   中文独有内容只放 `docs/zh/UncivCN/`
 - **中文一等公民**：新 UI 字符串必须进翻译模板；新 unique 说明必须同时提供中文
 
+## 五、更新日志与发版流程
+
+- **微小更新也记日志**：任何非发版改动（功能 / 修复 / CI / 文档站）合入分支时，
+  必须在同一提交里同步在中英两份更新日志
+  （`docs/UncivCN/Changelog.md` 与 `docs/zh/UncivCN/Changelog.md`）
+  顶部的「未发布（Unreleased）」小节各加一行；条目只积累，发版前不删除。
+- **发版整合**：发版时把「未发布」小节整体移入新版本条目
+  （`## vX.Y.Z.N（build NNNN）`），措辞保持不变，然后清空「未发布」小节。
+- **版本号提升**：只改 `buildSrc/src/main/kotlin/BuildConfig.kt` 的
+  `appVersion` 与 `appCodeNumber`（+1）；每次构建 core 前 `syncGameVersion`
+  任务会自动把版本号镜像到 `UncivGame.kt` 的
+  `AUTOMATICALLY GENERATED VERSION DATA` 区域（游戏内显示版本号），
+  禁止手工改该区域。
+- **发版标签**：MSI 安装包版本号取自 git tag（`github.ref_name`，
+  4 段式如 `4.21.5.3`）；每次发版必须推送与版本号一致的 tag 触发 Deploy 工作流。
+
 ## 相关文档
 
 - [与上游差异（游戏内容对照）./Differences)
