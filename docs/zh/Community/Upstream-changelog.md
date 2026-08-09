@@ -4,14 +4,10 @@ title: Unciv 原版更新日志
 
 ## Unciv 原版更新日志
 
-本文为 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md) 的中文翻译。
-
-- 「最近版本翻译」区：人工维护，尽量跟上最新版本，可能滞后
-- 「英文原文（自动同步）」区：构建时自动嵌入仓库根目录 `changelog.md` 全文（uncivbot 自动生成，merge 上游时自动更新），始终最新；翻译进度滞后时可先看原文
+本文为 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md) 的中文翻译，人工维护，覆盖近期版本（可能滞后于上游最新版）。
+完整英文原文（自动同步，始终最新）请查看[英文原版更新日志页](/Community/Upstream-changelog)或仓库根目录 `changelog.md`。
 
 ---
-
-## 最近版本翻译
 
 ## 4.21.5
 
@@ -412,15 +408,5 @@ By unciv-loof:
 ---
 
 ::: tip 更多版本
-以上仅收录近期版本（4.19.10 起）。完整历史版本请参见 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)。
-:::
-
----
-
-## 英文原文（自动同步，始终最新）
-
-> 以下内容构建时自动嵌入仓库根目录 `changelog.md` 全文，与上游同步更新，无需人工维护。
-
-::: upstream-changelog
-
+以上为已翻译的近期版本。完整历史版本（英文原文，自动同步）请查看[英文原版更新日志页](/Community/Upstream-changelog)或 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)。
 :::
