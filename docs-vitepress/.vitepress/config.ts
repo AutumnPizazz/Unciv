@@ -98,7 +98,7 @@ export default defineConfig({
       title: 'UncivCN Docs',
       description: 'UncivCN - open source Civ V remake documentation',
       themeConfig: {
-        logo: '/Unciv/Icon.png',
+        logo: '/Icon.png',
         // 语言切换器：列出全部 locale（themeConfig.locales 存在时显示）
         locales: {
           root: { label: 'English' },
@@ -269,7 +269,7 @@ export default defineConfig({
       title: 'UncivCN 文档',
       description: 'UncivCN - 开源策略游戏 Unciv 的中文文档站',
       themeConfig: {
-        logo: '/Unciv/Icon.png',
+        logo: '/Icon.png',
         // 语言切换器：列出全部 locale（themeConfig.locales 存在时显示）
         locales: {
           root: { label: 'English' },
