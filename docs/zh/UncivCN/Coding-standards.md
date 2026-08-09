@@ -92,11 +92,11 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
   禁止手工改该区域。
 - **发版标签**：MSI 安装包版本号取自 git tag（`github.ref_name`，
   4 段式如 `4.21.5.3`）；每次发版必须推送与版本号一致的 tag 触发 Deploy 工作流。
-- **上游日志页**：`docs/zh/Community/Upstream-changelog.md` 的「英文原文
-  （自动同步）」区在构建时自动嵌入仓库根目录 `changelog.md` 全文
-  （见 `docs-vitepress/.vitepress/config.ts` 的 `upstream-changelog` 容器），
-  merge 上游后自动保持最新，禁止手动维护英文原文副本；
-  「最近版本翻译」区人工渐进维护，允许滞后，从最新版本往前补翻。
+- **上游日志页**：英文页 `docs/Community/Upstream-changelog.md` 构建时自动嵌入
+  仓库根目录 `changelog.md` 全文（见 `docs-vitepress/.vitepress/config.ts` 的
+  `upstream-changelog` 容器），merge 上游后自动保持最新，禁止手动维护英文副本；
+  中文页 `docs/zh/Community/Upstream-changelog.md` **只放人工翻译、不嵌入英文**，
+  覆盖最近版本（允许滞后）并链接英文页看完整历史，翻译从最新版本往前补翻。
 
 ## 相关文档
 
