@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+## v4.21.6.2 (build 1246)
+
 - Fixed missing Simplified Chinese translations for CN-specific UI strings (47 missing + 10 empty entries): clipboard game-setup copy/paste, polling multiplayer (polling interval, refresh, online players, turn timers), mirrored-map symmetry modes, auto-lock, map-pin note labels, save-reload RNG variance, Countables, Boreal/Spiral map types and more - they were showing in English
 ## v4.21.6.1 (build 1245)
 

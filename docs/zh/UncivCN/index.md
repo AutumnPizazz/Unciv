@@ -11,7 +11,7 @@ title: UncivCN 分支介绍
 
 - 上游仓库：https://github.com/yairm210/Unciv
 - UncivCN 仓库：https://github.com/AutumnPizazz/Unciv
-- 当前版本：**4.21.6.1**（基于上游 4.21.6）
+- 当前版本：**4.21.6.2**（基于上游 4.21.6）
 
 ## 与上游的关系
 
