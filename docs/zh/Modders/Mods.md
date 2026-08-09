@@ -44,6 +44,18 @@ title: 模组总览
 
 这是通过在你的 [modOptions 文件](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)中添加 `"isBaseRuleset":true` 配置来完成的，[像这样](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json)。
 
+**版本要求（UncivCN）**——可以在 `ModOptions.json` 中声明模组版本号、可应用的游戏版本范围、以及依赖模组的版本要求：
+
+```json
+{
+  "modVersion": "1.2.3",
+  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modDependencies": [ { "name": "UCCC", "version": "1.0.0~2.0.0" } ]
+}
+```
+
+不满足要求只会产生警告（从不阻止模组使用）。详见[版本要求](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#版本要求-uncivcn)。
+
 ## 视听组件
 
 除了更改规则 - 或者甚至不这样做 - 模组可以覆盖现有的图形或声音，或添加音乐曲目。有关详细信息，请参阅[视听模组](/zh/Modders/Images-and-Audio)。

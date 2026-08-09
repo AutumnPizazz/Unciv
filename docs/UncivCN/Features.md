@@ -75,6 +75,9 @@ Mods can declare a version and compatibility requirements in `ModOptions.json`, 
 
 Warnings appear in the mod manager (warning mark + info pane), in the new-game mod selection, and in the mod checker (Options → Locate mod errors).
 
+For players: a warning just means the mod may not work as intended on the current game version or with the currently loaded mods - the mod stays usable.
+Mod authors: full reference with version format details and examples in [ModOptions.json version requirements](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#version-requirements-uncivcn).
+
 ## History: bundled UCCC mod (4.21.0.1 → reverted in 4.21.5.1)
 
 4.21.0.1 shipped with the UCCC mod bundled in the game; since 4.21.5.1 the game no longer bundles any mods — download mods separately.

@@ -220,7 +220,29 @@ Example:
 }
 ```
 
-When the current game version is outside `gameVersionRange`, or a dependency mod is missing or its version does not match, the mod manager (warning mark + info pane), the new-game mod selection and the mod checker show a warning - the mod stays usable.
+#### When are warnings shown?
+
+- **Game version**: when the current game version is outside `gameVersionRange`, e.g. the mod declares `4.21.5.1~4.21.6.3` and the player runs 4.21.7 — the mod manager shows a warning mark next to the mod and a yellow warning line in the info pane, the new-game mod selection shows a toast, and the mod checker (Options → Locate mod errors) lists the warning.
+- **Dependencies**: when a dependency mod is not loaded at all, or its `modVersion` does not match the declared requirement.
+- **Invalid declarations**: typos in the version or range format are also reported, so authors notice and fix them.
+
+In all cases the mod stays usable - warnings never block anything.
+
+#### Version format details
+
+- Any number of dot-separated numeric segments is accepted (`1`, `1.2`, `1.2.3`, `4.21.5.3`), though `n.n.n` is recommended for `modVersion`.
+- An optional `-patchN` suffix is supported and compares as an extra segment: `4.21.5.3` &lt; `4.21.5.3-patch1` &lt; `4.21.5.3-patch2` &lt; `4.21.6`.
+- Shorter versions compare as if padded with zeros: `1.2` == `1.2.0`.
+- Prefer a range (`1.0.0~2.0.0`) when any version within a span is fine (e.g. dependency mods that update often); use an exact version (`3.0.0`) when a specific version is required.
+
+#### Relation to the `ModRequires` / `ModIncompatibleWith` uniques
+
+Unciv already has declarative mod compatibility uniques (`ModRequires`, `ModIncompatibleWith`): when they are not satisfied, the mod is **not selectable** in the mod selection. The version requirements above are a softer, UncivCN-specific layer: unsatisfied requirements only produce **warnings**. Use `ModRequires` to say "this mod needs another mod to function", and `modDependencies` to also pin the required versions.
+
+#### Good practice
+
+- Bump `modVersion` on every release, so dependency version checks stay meaningful.
+- Only declare `gameVersionRange` when the mod really depends on a specific game version (e.g. it uses a new feature); leaving it empty means all versions are supported.
 
 ::: note
 As an alternative to the `*ToRemove` lists, you can use [Merge Actions](6-MergeActions.md) with `"action": "REMOVE"` directly in the corresponding JSON file (e.g. `{ "name": "Scout", "_mergeAction": { "action": "REMOVE" } }` in `Units.json`). This keeps the removal declaration alongside the data it relates to, and also supports conditions (`"if"`). Both methods are supported and can be used together.

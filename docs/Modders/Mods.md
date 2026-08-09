@@ -40,6 +40,18 @@ In order to remove objects from the game, you'll need to create a ModOptions fil
 
 This is done by adding a `"isBaseRuleset":true` configuration to your [modOptions file](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json), [like so](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json).
 
+**Version requirements (UncivCN)** — you can declare a mod version, the game versions it applies to, and required dependency versions in `ModOptions.json`:
+
+```json
+{
+  "modVersion": "1.2.3",
+  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modDependencies": [ { "name": "UCCC", "version": "1.0.0~2.0.0" } ]
+}
+```
+
+Unsatisfied requirements only produce warnings (never block the mod). See [Version requirements](Mod-file-structure/5-Miscellaneous-JSON-files.md#version-requirements-uncivcn) for details.
+
 ## Audiovisual components
 
 In addition to changing the rules - or even without doing so - mods can override existing graphics or sounds, or add music tracks. For details, see [Audiovisual Mods](Images-and-Audio.md).
