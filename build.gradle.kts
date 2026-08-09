@@ -1,4 +1,5 @@
 import com.unciv.build.BuildConfig.appVersion
+import com.unciv.build.SyncGameVersionTask
 import java.util.Properties
 
 buildscript {
@@ -35,6 +36,12 @@ plugins {
     kotlin("plugin.serialization") version kotlinVersion
     alias(libs.plugins.detekt)
     alias(libs.plugins.purity)
+}
+
+// 把 BuildConfig.kt 的版本号同步到 UncivGame.kt（游戏内显示），见 SyncGameVersionTask
+val syncGameVersion by tasks.registering(SyncGameVersionTask::class) {
+    group = "build"
+    description = "Sync app version from BuildConfig.kt into UncivGame.kt (in-game version display)"
 }
 
 // Kludge to get the correct string notation for a gdx native (':' _after_ version seems beyond toml)
@@ -178,6 +185,11 @@ project(":core") {
     apply(plugin = "kotlin")
     // Serialization features (especially JSON for multiplayer apiV2)
     apply(plugin = "kotlinx-serialization")
+
+    // 编译前先同步游戏内版本号（UncivGame.kt），保证任何平台构建都拿到最新版本
+    tasks.named("compileKotlin") {
+        dependsOn(rootProject.tasks.named("syncGameVersion"))
+    }
 
     dependencies {
         "implementation"(rootProject.libs.gdx)
