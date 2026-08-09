@@ -33,6 +33,7 @@ title: UncivCN 新特性
 ## 地块归属 tile-claim（4.21.0 合并上游前自研，持续维护）
 
 城市可对周边地块宣称归属（Claim）并交换地块，相关功能随上游演进持续适配。
+自 4.21.6.1 起，内置基础规则集（Vanilla / Gods & Kings）不再默认启用该特性——由模组通过 ModOptions 的 `"Allow cities to claim tiles"` unique 自行声明启用（如 CoeHarMod）。
 
 ## 人口自动锁定按钮（4.21.0.1）
 

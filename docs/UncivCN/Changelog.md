@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Aligned bundled base rulesets (Vanilla / Gods & Kings) with upstream: removed the CN-only "Allow cities to claim tiles" from the G&K ModOptions (tile-claim is now opt-in via mod ModOptions) and the CN-only Great General 8-turn Golden Age unique (upstream #13308)
 - Fixed new-game screen: setting world size to Custom and toggling symmetry repeatedly stacked duplicate radius/width/height input rows (the hexagonal/rectangular size tables were rebuilt without clearing)
 - New: mod version requirements in `ModOptions.json` — `modVersion` (n.n.n, default 0.0.1), `gameVersionRange` (min~max, empty = all versions) and `modDependencies` (exact or ranged version requirements); unsatisfied requirements show warnings in the mod manager, new-game mod selection and mod checker, never blocking
 - Fixed dead links across the docs site: 14 broken `](`-corrupted links in the Chinese UncivCN pages, plus ~250 wrong heading anchors (VitePress slug format) in the Modders docs (both EN and ZH, incl. the doc generators `UniqueType.kt` / `Countables.kt` / `UniqueDocsWriter` / `MergeActionDocsWriter`); verified against a fresh VitePress build

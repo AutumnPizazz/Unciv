@@ -29,6 +29,7 @@ Notes are stored in the `{saveName}_notes` file.
 ## Tile claim (pre-upstream, continuously maintained)
 
 Cities can claim nearby tiles and swap tiles; the feature keeps adapting as upstream evolves.
+Since 4.21.6.1 the bundled base rulesets (Vanilla / Gods & Kings) no longer enable it by default - a mod opts in via the `"Allow cities to claim tiles"` ModOptions unique (e.g. CoeHarMod).
 
 ## Auto-lock citizens button (4.21.0.1)
 
