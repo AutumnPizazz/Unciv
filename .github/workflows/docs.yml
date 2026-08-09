@@ -51,9 +51,35 @@ jobs:
         working-directory: docs-vitepress
 
       # 4. 部署到 gh-pages 分支
+      #    自定义域名 club.unciv.cn 会把站点映射到根路径，而 VitePress 的
+      #    base=/Unciv/（资源路径 /Unciv/assets/...）。因此把构建产物整体
+      #    放入 gh-pages 的 Unciv/ 子目录，根目录放跳转页：
+      #      club.unciv.cn/Unciv/               → 直接访问站点（资源路径完全匹配）
+      #      club.unciv.cn/                     → meta refresh 跳到 /Unciv/
+      #      autumnpizazz.github.io/Unciv/      → 映射到分支根 → 同样跳到 /Unciv/
       #    仓库 Settings → Pages：Deploy from a branch → gh-pages → / (root)
+      - name: Prepare deploy directory (site under /Unciv/, root redirect)
+        run: |
+          mkdir -p deploy/Unciv
+          cp -a docs-vitepress/.vitepress/dist/. deploy/Unciv/
+          # 显式写入 CNAME，防止部署后自定义域名失效
+          echo "club.unciv.cn" > deploy/CNAME
+          cat > deploy/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=/Unciv/">
+            <title>UncivCN Docs</title>
+          </head>
+          <body>
+            <p>正在跳转到 <a href="/Unciv/">UncivCN 文档站</a>…</p>
+          </body>
+          </html>
+          EOF
+          cp deploy/index.html deploy/404.html
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: docs-vitepress/.vitepress/dist
+          publish_dir: deploy
