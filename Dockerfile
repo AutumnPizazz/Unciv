@@ -37,7 +37,7 @@ RUN chmod +x ./gradlew && ./gradlew desktop:classes && \
 FROM accetto/ubuntu-vnc-xfce-opengl-g3 AS run
 WORKDIR /home/headless/Desktop/
 COPY --chown=1001:1001 --from=build /src/deploy/* /usr/
-COPY --chown=1001:1001 --from=build /src/desktop/build/libs/Unciv.jar /usr/share/Unciv/Unciv.jar
+COPY --chown=1001:1001 --from=build /src/desktop/build/libs/UncivCN.jar /usr/share/Unciv/Unciv.jar
 COPY --chown=1001:1001 --chmod=0755 --from=build /src/desktop/linuxFilesForJar/* /home/headless/Desktop/
 USER 1001
 CMD [ "/home/headless/Desktop/Unciv.sh" ]
