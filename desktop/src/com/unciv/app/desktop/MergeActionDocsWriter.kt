@@ -106,7 +106,7 @@ Whether the target exists or not, the final result is exactly this object.
 
 ### REMOVE — delete an object
 
-Semantically replaces the `*ToRemove` lists in [ModOptions.json](5-Miscellaneous-JSON-files.md#modoptionsjson).
+Semantically replaces the `*ToRemove` lists in [ModOptions.json](5-Miscellaneous-JSON-files.md#modoptions-json).
 The operation is declared in the same file as the data, keeping related concerns together.
 
 ```json

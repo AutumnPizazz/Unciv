@@ -314,7 +314,7 @@ class UniqueDocsWriter {
         if (text.startsWith("Stat name ("))  // dynamic: contains Stat enum names (literals)
             return "统计名称（" + text.removePrefix("Stat name (").removeSuffix(")") + "）"
         if (text.startsWith("Resource name - From [TileResources.json]("))
-            return "资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson)"
+            return "资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json)"
         return when (text) {
             "Integer constant - any positive or negative integer number" -> "整数常量 - 任何正整数或负整数"
             "Number of turns played" -> "已进行的回合数"

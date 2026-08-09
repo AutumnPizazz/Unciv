@@ -15,7 +15,7 @@ title: 单位相关 JSON 文件
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | name | String | 必需 | |
-| unitType | String | 必需 | 单位的类型。必须在 [UnitTypes.json](#unittypesjson) 中 |
+| unitType | String | 必需 | 单位的类型。必须在 [UnitTypes.json](#unittypes-json) 中 |
 | cost | Integer | -1 | 建造此单位所需的生产力。所需的生产力始终为正数 |
 | movement | Integer | 0 | 单位拥有的移动点数 |
 | strength | Integer | 0 | 单位的近战攻击和防御力量。如果此值和 rangedStrength 被省略或为 0，则单位为民用 |
@@ -23,18 +23,18 @@ title: 单位相关 JSON 文件
 | religiousStrength | Integer | 0 | 单位的宗教攻击和防御力量 |
 | range | Integer | 2 | 可以进行远程攻击的范围 |
 | interceptRange | Integer | 0 | 在此范围内攻击的空中单位将被拦截 |
-| requiredTech | String | none | 建造此单位所需的技术。必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techsjson) 中 |
-| obsoleteTech | String | none | 研究此技术后，将无法建造该单位。必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techsjson) 中 |
-| requiredResource | String | none | 建造此单位时消耗的资源。必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson) 中 |
-| upgradesTo | String | none | 当此单位可用时可以升级到的单位。必须在 [Units.json](#unitsjson) 中 |
-| replaces | String | none | 如果此单位是某个国家独有的，则这是它替换的单位。必须在 [Units.json](#unitsjson) 中 |
-| uniqueTo | String | none | 此单位独有的国家。必须在 [Nations.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nationsjson) 中 |
+| requiredTech | String | none | 建造此单位所需的技术。必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techs-json) 中 |
+| obsoleteTech | String | none | 研究此技术后，将无法建造该单位。必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techs-json) 中 |
+| requiredResource | String | none | 建造此单位时消耗的资源。必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json) 中 |
+| upgradesTo | String | none | 当此单位可用时可以升级到的单位。必须在 [Units.json](#units-json) 中 |
+| replaces | String | none | 如果此单位是某个国家独有的，则这是它替换的单位。必须在 [Units.json](#units-json) 中 |
+| uniqueTo | String | none | 此单位独有的国家。必须在 [Nations.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nations-json) 中 |
 | hurryCostModifier | Integer | 0 | 如果此单位用金币购买，其价格增加此百分比 |
-| promotions | List of Strings | 空 | 单位在建造时自动获得的所有晋升列表。每个晋升必须在 [UnitPromotions.json](#unitpromotionsjson) 中 |
+| promotions | List of Strings | 空 | 单位在建造时自动获得的所有晋升列表。每个晋升必须在 [UnitPromotions.json](#unitpromotions-json) 中 |
 | uniques | List of Strings | 空 | 此单位具有的[独特能力](/zh/Modders/uniques)列表 |
 | replacementTextForUniques | String | none | 如果提供，则显示此内容而不是 uniques 列表。可用于更好的格式化。 |
 | attackSound | String | none | 单位攻击时播放的声音，如果还没有以单位名称命名的声音。对于可能的值，请参阅 [声音](/zh/Modders/Images-and-Audio#声音) |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 ## UnitPromotions.json
 
@@ -54,9 +54,9 @@ title: 单位相关 JSON 文件
 | prerequisites | List of Strings | 空 | 先决晋升 |
 | column | Integer | 可选 | 确定在晋升选择器屏幕上的放置顺序。名称是历史性的，这些坐标不再直接控制放置。没有坐标的晋升确保最后放置。（...） |
 | row | Integer | 可选 | …在没有坐标的基础模组中，没有先决条件的晋升按字母顺序排序并从上到下放置，屏幕的其余部分将逻辑地构建依赖关系。如果你的模组有"Heal instantly"，建议使用 row=0 将其放在顶部 |
-| unitTypes | List of Strings | 空 | 此晋升适用的单位类型，如 [UnitTypes.json](#unittypesjson) 中所指定 |
+| unitTypes | List of Strings | 空 | 此晋升适用的单位类型，如 [UnitTypes.json](#unittypes-json) 中所指定 |
 | uniques | List of Strings | 空 | 此晋升授予单位的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 | innerColor | List | 空 | *图标*的颜色 |
 | outerColor | List | 空 | *背景*的颜色 |
 
@@ -75,7 +75,7 @@ Civilian、Melee、Ranged、Scout、Mounted、Armor、Siege、WaterCivilian、Wa
 | name | String | 必需 | |
 | movementType | Enum | 必需 | 单位移动的域。允许的值："Water"、"Land"、"Air" |
 | uniques | List of String | none | 此晋升授予此类型单位的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 ## UnitNameGroups.json
 
@@ -89,5 +89,5 @@ Civilian、Melee、Ranged、Scout、Mounted、Armor、Siege、WaterCivilian、Wa
 |------|------|--------|------|
 | name | String | 必需 | 单位名称组的唯一名称（例如：Scientist） |
 | names | List of String | 必需 | 可以应用于组的名称列表（例如：Alan Turing） |
-| uniques | List of String | none | 在创建时应用于单位的[可触发独特能力](/zh/Modders/uniques#triggerable-uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| uniques | List of String | none | 在创建时应用于单位的[可触发独特能力](/zh/Modders/uniques#triggerable-uniques-触发型词条)列表 |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |

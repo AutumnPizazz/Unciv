@@ -12,35 +12,35 @@ title: 概述
 
 - [JSON 文件总览](#json-文件总览)
 - [文明相关 JSON 文件](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files)
-  - [Beliefs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefsjson)
-  - [Buildings.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#buildingsjson)
-  - [CityStateTypes.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#citystatetypesjson)
-  - [Nations.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nationsjson)
-  - [Policies.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policiesjson)
-  - [Quests.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#questsjson)
-  - [Religions.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#religionsjson)
-  - [Specialists.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#specialistsjson)
-  - [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techsjson)
+  - [Beliefs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefs-json)
+  - [Buildings.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#buildings-json)
+  - [CityStateTypes.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#citystatetypes-json)
+  - [Nations.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nations-json)
+  - [Policies.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policies-json)
+  - [Quests.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#quests-json)
+  - [Religions.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#religions-json)
+  - [Specialists.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#specialists-json)
+  - [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techs-json)
 - [地图相关 JSON 文件](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files)
-  - [Terrains.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#terrainsjson)
-  - [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson)
-  - [TileImprovements.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileimprovementsjson)
-  - [Ruins.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#ruinsjson)
-  - [地形集专用 json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#地形集专用-json)
+  - [Terrains.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#terrains-json)
+  - [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json)
+  - [TileImprovements.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileimprovements-json)
+  - [Ruins.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#ruins-json)
+  - [地形集专用 json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#地形集特定-json)
 - [单位相关 JSON 文件](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files)
-  - [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson)
-  - [UnitPromotions.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitpromotionsjson)
-  - [UnitTypes.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unittypesjson)
-  - [UnitNameGroups.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitnamegroupsjson)
+  - [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#units-json)
+  - [UnitPromotions.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitpromotions-json)
+  - [UnitTypes.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unittypes-json)
+  - [UnitNameGroups.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitnamegroups-json)
 - [其他 JSON 文件](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files)
-  - [Difficulties.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#difficultiesjson)
-  - [Eras.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#erasjson)
-  - [ModOptions.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson)
-  - [GlobalUniques.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#globaluniquesjson)
-  - [Speeds.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#speedsjson)
-  - [Tutorials.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#tutorialsjson)
-  - [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypesjson)
-- [统计](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#统计)
+  - [Difficulties.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#difficulties-json)
+  - [Eras.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#eras-json)
+  - [ModOptions.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)
+  - [GlobalUniques.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#globaluniques-json)
+  - [Speeds.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#speeds-json)
+  - [Tutorials.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#tutorials-json)
+  - [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypes-json)
+- [统计](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#统计数据)
 - [声音](/zh/Modders/Images-and-Audio#声音)
 - [Civilopedia 文本](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本)
 
@@ -98,29 +98,29 @@ title: 概述
 
 | 文件 | 允许为空？ | 默认/回退 |
 |------|-----------|----------|
-| [Beliefs](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefsjson) | 是 | 无 |
-| [Buildings](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#buildingsjson) | 否 | 无 |
-| [CityStateTypes](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#citystatetypesjson) | 否 | 原版 |
-| [Difficulties](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#difficultiesjson) | 否 | 原版 |
-| [Eras](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#erasjson) | 否 | 无 |
-| [GlobalUniques](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#globaluniquesjson) | 是 | 原版 |
-| [ModOptions](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson) | 是 | 下载时生成 |
-| [Nations](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nationsjson) | 否 | 无 |
-| [Policies](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policiesjson) | 是 | 无 |
-| [Quests](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#questsjson) | 是 | 无 |
-| [Religions](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#religionsjson) | 是 | 无 |
-| [Ruins](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#ruinsjson) | 是 | 原版 |
-| [Specialists](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#specialistsjson) | 是 | 无 |
-| [Speeds](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#speedsjson) | 否 | 原版 |
-| [Techs](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techsjson) | 是 | 无 |
-| [Terrains](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#terrainsjson) | 否 | 无 |
-| [TileImprovements](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileimprovementsjson) | 是 | 无 |
-| [TileResources](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson) | 是 | 无 |
-| [Tutorials](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#tutorialsjson) | 是 | 内置始终显示 |
-| [UnitPromotions](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitpromotionsjson) | 是 | 无 |
-| [Units](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitsjson) | 否 | 无 |
-| [UnitTypes](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unittypesjson) | 否 | 原版 |
-| [VictoryTypes](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypesjson) | 否 | 原版 |
+| [Beliefs](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefs-json) | 是 | 无 |
+| [Buildings](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#buildings-json) | 否 | 无 |
+| [CityStateTypes](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#citystatetypes-json) | 否 | 原版 |
+| [Difficulties](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#difficulties-json) | 否 | 原版 |
+| [Eras](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#eras-json) | 否 | 无 |
+| [GlobalUniques](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#globaluniques-json) | 是 | 原版 |
+| [ModOptions](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json) | 是 | 下载时生成 |
+| [Nations](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nations-json) | 否 | 无 |
+| [Policies](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policies-json) | 是 | 无 |
+| [Quests](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#quests-json) | 是 | 无 |
+| [Religions](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#religions-json) | 是 | 无 |
+| [Ruins](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#ruins-json) | 是 | 原版 |
+| [Specialists](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#specialists-json) | 是 | 无 |
+| [Speeds](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#speeds-json) | 否 | 原版 |
+| [Techs](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techs-json) | 是 | 无 |
+| [Terrains](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#terrains-json) | 否 | 无 |
+| [TileImprovements](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileimprovements-json) | 是 | 无 |
+| [TileResources](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json) | 是 | 无 |
+| [Tutorials](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#tutorials-json) | 是 | 内置始终显示 |
+| [UnitPromotions](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unitpromotions-json) | 是 | 无 |
+| [Units](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#units-json) | 否 | 无 |
+| [UnitTypes](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files#unittypes-json) | 否 | 原版 |
+| [VictoryTypes](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypes-json) | 否 | 原版 |
 
 * 模组加载永远不会因缺少文件而失败，它们首先默认为空。然后仅对基础规则集应用上述回退。该步骤之后的不一致性将由模组检查器报告。
 * GlobalUniques 有一个在文件缺失时使用的回退。因此，模组可以通过包含空内容（`{}`）来有意定义没有回退。
@@ -137,7 +137,7 @@ title: 概述
 
 示例：建筑上的 `"uniques":["[+1 Gold] <with a garrison>"]` - 与 `"gold":1` 属性的作用几乎相同，除了它仅在城市有驻军时适用。在此示例中，`[]` 和 `with a garrison` 是 Unciv 用于查找两个 Uniques 的键，一个是效果（类型为 `Stats`），一个是条件（类型为 `ConditionalWhenGarrisoned`）。
 
-Unciv 中有实现的所有 Unique"类型"都会自动记录在 [Uniques](/zh/Modders/uniques)中。请注意，该文件完全是从源代码结构生成的。还要注意 [条件](/zh/Modders/uniques#条件-uniques)和 [触发条件](/zh/Modders/uniques#触发条件-uniques) 的单独章节。
+Unciv 中有实现的所有 Unique"类型"都会自动记录在 [Uniques](/zh/Modders/uniques)中。请注意，该文件完全是从源代码结构生成的。还要注意 [条件](/zh/Modders/uniques#conditional-uniques-有前提的词条)和 [触发条件](/zh/Modders/uniques#triggercondition-uniques-触发条件词条) 的单独章节。
 与这些条目中的任何一个都不对应的 Uniques（逐字包括大小写！）被称为"无类型"，将没有**直接**效果，并可能导致"规则集验证器"显示警告（请参阅选项选项卡"定位模组错误"，它在开始新游戏时也会运行）。
 "无类型"Uniques 的合法用途是它们作为可以在**过滤器**中其他地方识别的标记（示例：原版规则集中的"Aircraft"用作[单位过滤器](/zh/Modders/Unique-parameters#baseunitfilter)）。
 此用途被"规则集验证器"识别，并且不会被标记为无效 - 但过滤 Unique 必须也**不使用占位符或条件**才能通过测试。

@@ -88,7 +88,7 @@ In that case only graphics and audio will be active, the rule changes will be ig
 Note that this feature includes graphics or sounds from the selected mod in _all_ games, even those started before installing the mod.
 Repeat: In case of a mod bringing both changed rules and audiovisuals, the 'permanent' feature will include only the media on all games, to use the rules you will still need to select the mod for a new game.
 
-Note that the Mod author can (and often should) control whether the checkbox appears using [ModOptions](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptionsjson) [uniques](uniques.md#modoptions-uniques).
+Note that the Mod author can (and often should) control whether the checkbox appears using [ModOptions](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json) [uniques](uniques.md#modoptions-uniques).
 
 ## Override built-in graphics
 
@@ -214,19 +214,19 @@ Available `<entityType>Portraits/` include:
 
 ### Adding icons for Unit Types
 
-The Unit Types as defined in [UnitTypes.json](Mod-file-structure/4-Unit-related-JSON-files.md#unittypesjson) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named '`Images/UnitTypeIcons/<UnitType>.png`'.
+The Unit Types as defined in [UnitTypes.json](Mod-file-structure/4-Unit-related-JSON-files.md#unittypes-json) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named '`Images/UnitTypeIcons/<UnitType>.png`'.
 (while you're at it, you may override the default icon for the Unit Type _category header_ - it's 'UnitTypes.png' in the same folder, or the icons used for the movement domains - 'DomainLand', 'DomainWater', 'DomainAir')
 
 ### Adding icons for Beliefs
 
-The individual Beliefs - as opposed to Belief types, as defined in [Beliefs.json](Mod-file-structure/2-Civilization-related-JSON-files.md#beliefsjson) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named '`Images/ReligionIcons/<Belief>.png`'.
+The individual Beliefs - as opposed to Belief types, as defined in [Beliefs.json](Mod-file-structure/2-Civilization-related-JSON-files.md#beliefs-json) have no icons in the base game, but Civilopedia can decorate their entries if you supply images named '`Images/ReligionIcons/<Belief>.png`'.
 Civilopedia falls back to the icon for the Belief type - as you can see in the base game, but individual icons have precedence if they exist.
 
 ### Adding Victory illustrations
 
 You can enable pictures for each of the Victories, illustrating their progress. That could be a Spaceship under construction, showing the parts you've added, or cultural progress as you complete Policy branches. They will be shown on a new tab of the Victory Screen.
 
-For this, you need to create a number of images. In the following, `<>` denote names as they appear in [VictoryTypes.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#victorytypesjson), untranslated, and these file names (like any other in Unciv) are case-sensitive. All files are optional, except Background as noted:
+For this, you need to create a number of images. In the following, `<>` denote names as they appear in [VictoryTypes.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#victorytypes-json), untranslated, and these file names (like any other in Unciv) are case-sensitive. All files are optional, except Background as noted:
 
 * `VictoryIllustrations/<name>/Background.png` - this determines overall dimensions, the others must not exceed its size and should ideally have identical size. Mandatory, if this file is missing, no illustrations will be shown for this Victory Type.
 * `VictoryIllustrations/<name>/Won.png` - shown if _you_ (the viewing player) won this Victory.
@@ -313,7 +313,7 @@ Legend:
 
 ## Supply Leader Voices
 
-Sound files named from a Nation name and the corresponding text message's [field name](Mod-file-structure/2-Civilization-related-JSON-files.md#nationsjson),
+Sound files named from a Nation name and the corresponding text message's [field name](Mod-file-structure/2-Civilization-related-JSON-files.md#nations-json),
 placed in a mod's `voices` folder, will play whenever that message is displayed. Nation name and message name must be joined with a dot '.', for example `voices/Zulu.defeated.ogg`.
 
 Leader voice audio clips will be streamed, not cached, so they are allowed to be long - however, if another Leader voice or a city ambient sound needs to be played, they will be cut off without fade-out

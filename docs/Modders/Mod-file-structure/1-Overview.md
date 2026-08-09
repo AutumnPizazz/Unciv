@@ -8,34 +8,34 @@ The JSON files that make up mods can have many different fields, and as not all 
 
 -   [General Overview of JSON files](#general-overview-of-json-files)
 -   [Civilization-related JSON files](2-Civilization-related-JSON-files.md)
-    -   [Beliefs.json](2-Civilization-related-JSON-files.md#beliefsjson)
-    -   [Buildings.json](2-Civilization-related-JSON-files.md#buildingsjson)
-    -   [CityStateTypes.json](2-Civilization-related-JSON-files.md#citystatetypesjson)
-    -   [Nations.json](2-Civilization-related-JSON-files.md#nationsjson)
-    -   [Policies.json](2-Civilization-related-JSON-files.md#policiesjson)
-    -   [Quests.json](2-Civilization-related-JSON-files.md#questsjson)
-    -   [Religions.json](2-Civilization-related-JSON-files.md#religionsjson)
-    -   [Specialists.json](2-Civilization-related-JSON-files.md#specialistsjson)
-    -   [Techs.json](2-Civilization-related-JSON-files.md#techsjson)
+    -   [Beliefs.json](2-Civilization-related-JSON-files.md#beliefs-json)
+    -   [Buildings.json](2-Civilization-related-JSON-files.md#buildings-json)
+    -   [CityStateTypes.json](2-Civilization-related-JSON-files.md#citystatetypes-json)
+    -   [Nations.json](2-Civilization-related-JSON-files.md#nations-json)
+    -   [Policies.json](2-Civilization-related-JSON-files.md#policies-json)
+    -   [Quests.json](2-Civilization-related-JSON-files.md#quests-json)
+    -   [Religions.json](2-Civilization-related-JSON-files.md#religions-json)
+    -   [Specialists.json](2-Civilization-related-JSON-files.md#specialists-json)
+    -   [Techs.json](2-Civilization-related-JSON-files.md#techs-json)
 -   [Map-related JSON files](3-Map-related-JSON-files.md)
-    -   [Terrains.json](3-Map-related-JSON-files.md#terrainsjson)
-    -   [TileResources.json](3-Map-related-JSON-files.md#tileresourcesjson)
-    -   [TileImprovements.json](3-Map-related-JSON-files.md#tileimprovementsjson)
-    -   [Ruins.json](3-Map-related-JSON-files.md#ruinsjson)
+    -   [Terrains.json](3-Map-related-JSON-files.md#terrains-json)
+    -   [TileResources.json](3-Map-related-JSON-files.md#tileresources-json)
+    -   [TileImprovements.json](3-Map-related-JSON-files.md#tileimprovements-json)
+    -   [Ruins.json](3-Map-related-JSON-files.md#ruins-json)
     -   [Tileset-specific json](3-Map-related-JSON-files.md#tileset-specific-json)
 -   [Unit-related JSON files](4-Unit-related-JSON-files.md)
-    -   [Units.json](4-Unit-related-JSON-files.md#unitsjson)
-    -   [UnitPromotions.json](4-Unit-related-JSON-files.md#unitpromotionsjson)
-    -   [UnitTypes.json](4-Unit-related-JSON-files.md#unittypesjson)
-    -   [UnitNameGroups.json](4-Unit-related-JSON-files.md#unitnamegroupsjson)
+    -   [Units.json](4-Unit-related-JSON-files.md#units-json)
+    -   [UnitPromotions.json](4-Unit-related-JSON-files.md#unitpromotions-json)
+    -   [UnitTypes.json](4-Unit-related-JSON-files.md#unittypes-json)
+    -   [UnitNameGroups.json](4-Unit-related-JSON-files.md#unitnamegroups-json)
 -   [Miscellaneous JSON files](5-Miscellaneous-JSON-files.md)
-    - [Difficulties.json](5-Miscellaneous-JSON-files.md#difficultiesjson)
-    - [Eras.json](5-Miscellaneous-JSON-files.md#erasjson)
-    - [ModOptions.json](5-Miscellaneous-JSON-files.md#modoptionsjson)
-    - [GlobalUniques.json](5-Miscellaneous-JSON-files.md#globaluniquesjson)
-    - [Speeds.json](5-Miscellaneous-JSON-files.md#speedsjson)
-    - [Tutorials.json](5-Miscellaneous-JSON-files.md#tutorialsjson)
-    - [VictoryTypes.json](5-Miscellaneous-JSON-files.md#victorytypesjson)
+    - [Difficulties.json](5-Miscellaneous-JSON-files.md#difficulties-json)
+    - [Eras.json](5-Miscellaneous-JSON-files.md#eras-json)
+    - [ModOptions.json](5-Miscellaneous-JSON-files.md#modoptions-json)
+    - [GlobalUniques.json](5-Miscellaneous-JSON-files.md#globaluniques-json)
+    - [Speeds.json](5-Miscellaneous-JSON-files.md#speeds-json)
+    - [Tutorials.json](5-Miscellaneous-JSON-files.md#tutorials-json)
+    - [VictoryTypes.json](5-Miscellaneous-JSON-files.md#victorytypes-json)
 -   [Merge Actions](6-MergeActions.md)
     - [Operation Types](6-MergeActions.md#operation-types)
     - [Conditions](6-MergeActions.md#conditions)
@@ -98,29 +98,29 @@ Base ruleset mods must be "complete" by themselves, but that does not mean they 
 
 | File                                                                      | Empty allowed? | Default/fallback         |
 |---------------------------------------------------------------------------|----------------|--------------------------|
-| [Beliefs](2-Civilization-related-JSON-files.md#beliefsjson)               | yes            | none                     |
-| [Buildings](2-Civilization-related-JSON-files.md#buildingsjson)           | no             | none                     |
-| [CityStateTypes](2-Civilization-related-JSON-files.md#citystatetypesjson) | no             | vanilla                  |
-| [Difficulties](5-Miscellaneous-JSON-files.md#difficultiesjson)            | no             | vanilla                  |
-| [Eras](5-Miscellaneous-JSON-files.md#erasjson)                            | no             | none                     |
-| [GlobalUniques](5-Miscellaneous-JSON-files.md#globaluniquesjson)          | yes            | vanilla                  |
-| [ModOptions](5-Miscellaneous-JSON-files.md#modoptionsjson)                | yes            | generated on download    |
-| [Nations](2-Civilization-related-JSON-files.md#nationsjson)               | no             | none                     |
-| [Policies](2-Civilization-related-JSON-files.md#policiesjson)             | yes            | none                     |
-| [Quests](2-Civilization-related-JSON-files.md#questsjson)                 | yes            | none                     |
-| [Religions](2-Civilization-related-JSON-files.md#religionsjson)           | yes            | none                     |
-| [Ruins](3-Map-related-JSON-files.md#ruinsjson)                            | yes            | vanilla                  |
-| [Specialists](2-Civilization-related-JSON-files.md#specialistsjson)       | yes            | none                     |
-| [Speeds](5-Miscellaneous-JSON-files.md#speedsjson)                        | no             | vanilla                  |
-| [Techs](2-Civilization-related-JSON-files.md#techsjson)                   | yes            | none                     |
-| [Terrains](3-Map-related-JSON-files.md#terrainsjson)                      | no             | none                     |
-| [TileImprovements](3-Map-related-JSON-files.md#tileimprovementsjson)      | yes            | none                     |
-| [TileResources](3-Map-related-JSON-files.md#tileresourcesjson)            | yes            | none                     |
-| [Tutorials](5-Miscellaneous-JSON-files.md#tutorialsjson)                  | yes            | builtin always displayed |
-| [UnitPromotions](4-Unit-related-JSON-files.md#unitpromotionsjson)         | yes            | none                     |
-| [Units](4-Unit-related-JSON-files.md#unitsjson)                           | no             | none                     |
-| [UnitTypes](4-Unit-related-JSON-files.md#unittypesjson)                   | no             | vanilla                  |
-| [VictoryTypes](5-Miscellaneous-JSON-files.md#victorytypesjson)            | no             | vanilla                  |
+| [Beliefs](2-Civilization-related-JSON-files.md#beliefs-json)               | yes            | none                     |
+| [Buildings](2-Civilization-related-JSON-files.md#buildings-json)           | no             | none                     |
+| [CityStateTypes](2-Civilization-related-JSON-files.md#citystatetypes-json) | no             | vanilla                  |
+| [Difficulties](5-Miscellaneous-JSON-files.md#difficulties-json)            | no             | vanilla                  |
+| [Eras](5-Miscellaneous-JSON-files.md#eras-json)                            | no             | none                     |
+| [GlobalUniques](5-Miscellaneous-JSON-files.md#globaluniques-json)          | yes            | vanilla                  |
+| [ModOptions](5-Miscellaneous-JSON-files.md#modoptions-json)                | yes            | generated on download    |
+| [Nations](2-Civilization-related-JSON-files.md#nations-json)               | no             | none                     |
+| [Policies](2-Civilization-related-JSON-files.md#policies-json)             | yes            | none                     |
+| [Quests](2-Civilization-related-JSON-files.md#quests-json)                 | yes            | none                     |
+| [Religions](2-Civilization-related-JSON-files.md#religions-json)           | yes            | none                     |
+| [Ruins](3-Map-related-JSON-files.md#ruins-json)                            | yes            | vanilla                  |
+| [Specialists](2-Civilization-related-JSON-files.md#specialists-json)       | yes            | none                     |
+| [Speeds](5-Miscellaneous-JSON-files.md#speeds-json)                        | no             | vanilla                  |
+| [Techs](2-Civilization-related-JSON-files.md#techs-json)                   | yes            | none                     |
+| [Terrains](3-Map-related-JSON-files.md#terrains-json)                      | no             | none                     |
+| [TileImprovements](3-Map-related-JSON-files.md#tileimprovements-json)      | yes            | none                     |
+| [TileResources](3-Map-related-JSON-files.md#tileresources-json)            | yes            | none                     |
+| [Tutorials](5-Miscellaneous-JSON-files.md#tutorials-json)                  | yes            | builtin always displayed |
+| [UnitPromotions](4-Unit-related-JSON-files.md#unitpromotions-json)         | yes            | none                     |
+| [Units](4-Unit-related-JSON-files.md#units-json)                           | no             | none                     |
+| [UnitTypes](4-Unit-related-JSON-files.md#unittypes-json)                   | no             | vanilla                  |
+| [VictoryTypes](5-Miscellaneous-JSON-files.md#victorytypes-json)            | no             | vanilla                  |
 
 * Mod loading never fails due to missing files, they default to empty at first. Then the fallbacks mentioned above are applied for base rulesets only. Inconsistencies after that step would be reported by the Mod checker.
 * GlobalUniques has a fallback used when the file is missing. Therefore, a mod can intentionally define there are none by including one with empty content (`{}`).

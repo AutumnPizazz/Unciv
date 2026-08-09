@@ -31,12 +31,12 @@ Each building has the following structure:
 | maintenance                                           | Integer         | 0        | Maintenance cost of the building                                                                                                                                                                                             |
 | isWonder                                              | Boolean         | false    | Whether this building is a global wonder                                                                                                                                                                                     |
 | isNationalWonder                                      | Boolean         | false    | Whether this building is a national wonder                                                                                                                                                                                   |
-| requiredBuilding                                      | String          | none     | A building that has to be built before this building can be built. Must be in [Buildings.json](#buildingsjson)                                                                                                               |
-| requiredTech                                          | String          | none     | The tech that should be researched before this building may be built. Must be in [Techs.json](#techsjson)                                                                                                                    |
-| requiredResource                                      | String          | none     | The resource that is consumed when building this building. Must be in [TileResources.json](3-Map-related-JSON-files.md#tileresourcesjson)                                                                                    |
-| requiredNearbyImprovedResources                       | List of Strings | empty    | The building can only be built if any of the resources in this list are within the borders of this city and have been improved. Each resource must be in [TileResources.json](3-Map-related-JSON-files.md#tileresourcesjson) |
-| replaces                                              | String          | none     | The name of a building that should be replaced by this building. Must be in [Buildings.json](#buildingsjson)                                                                                                                 |
-| uniqueTo                                              | String          | none     | If supplied, only the nation with this name can build this building. Must be in [Nations.json](#nationsjson)                                                                                                                 |
+| requiredBuilding                                      | String          | none     | A building that has to be built before this building can be built. Must be in [Buildings.json](#buildings-json)                                                                                                               |
+| requiredTech                                          | String          | none     | The tech that should be researched before this building may be built. Must be in [Techs.json](#techs-json)                                                                                                                    |
+| requiredResource                                      | String          | none     | The resource that is consumed when building this building. Must be in [TileResources.json](3-Map-related-JSON-files.md#tileresources-json)                                                                                    |
+| requiredNearbyImprovedResources                       | List of Strings | empty    | The building can only be built if any of the resources in this list are within the borders of this city and have been improved. Each resource must be in [TileResources.json](3-Map-related-JSON-files.md#tileresources-json) |
+| replaces                                              | String          | none     | The name of a building that should be replaced by this building. Must be in [Buildings.json](#buildings-json)                                                                                                                 |
+| uniqueTo                                              | String          | none     | If supplied, only the nation with this name can build this building. Must be in [Nations.json](#nations-json)                                                                                                                 |
 | cityStrength                                          | Integer         | 0        | Strength bonus the city in which this building is built receives                                                                                                                                                             |
 | cityHealth                                            | Integer         | 0        | Health bonus the city in which this building is built receives                                                                                                                                                               |
 | hurryCostModifier                                     | Integer         | 0        | When this building is bought using gold or faith, the price is increased by this much percent                                                                                                                                |
@@ -45,7 +45,7 @@ Each building has the following structure:
 | replacementTextForUniques                             | String          | none     | If provided, this string will be shown instead of all of the uniques                                                                                                                                                         |
 | percentStatBonus                                      | Object          | none     | Percentual bonus for stats provided by the building. Same format as [specialized stats](3-Map-related-JSON-files.md#specialized-stats) (numbers are in percent. i.e. `[30]` represents 30% __bonus__ to a stat)              |
 | greatPersonPoints                                     | Object          | none     | Great person points by this building generated per turn. Valid keys are the names of units (Great Scientist, Warrior, etc.), valid values are Integers                                                                       |
-| specialistSlots                                       | Object          | none     | Specialist slots provided by this building. Valid keys are the names of specialists (as defined in [Specialists.json](#specialistsjson)), valid values are Integers, the amount of slots provided for this specialist        |
+| specialistSlots                                       | Object          | none     | Specialist slots provided by this building. Valid keys are the names of specialists (as defined in [Specialists.json](#specialists-json)), valid values are Integers, the amount of slots provided for this specialist        |
 | civilopediaText                                       | List            | empty    | See [civilopediaText chapter](5-Miscellaneous-JSON-files.md#civilopedia-text)                                                                                                                                                |
 
 ## Nations.json
@@ -61,11 +61,11 @@ Each nation has the following structure:
 | name                    | String                                                              | Required |                                                                                                                                                 |
 | leaderName              | String                                                              | none     | Omit only for city states! If you want LeaderPortraits, the image file names must match exactly, including case                                 |
 | style                   | String                                                              | none     | Modifier appended to pixel unit image names                                                                                                     |
-| cityStateType           | String                                                              | none     | Distinguishes major civilizations from city states (must be in [CityStateTypes.json](#citystatetypesjson))                                      |
+| cityStateType           | String                                                              | none     | Distinguishes major civilizations from city states (must be in [CityStateTypes.json](#citystatetypes-json))                                      |
 | startBias               | List of strings                                                     | empty    | Zero or more of: [terrainFilter](../Unique-parameters.md#terrainfilter) or "Avoid [terrainFilter]". Also merged with `Start bias [terrainFilter]` uniques on the nation and (for city-states) on their CityStateType. [^S] |
-| preferredVictoryType    | String                                                              | Neutral  | The victory type major civilizations will pursue (need not be specified in [VictoryTypes.json](5-Miscellaneous-JSON-files.md#victorytypesjson)) |
+| preferredVictoryType    | String                                                              | Neutral  | The victory type major civilizations will pursue (need not be specified in [VictoryTypes.json](5-Miscellaneous-JSON-files.md#victorytypes-json)) |
 | personality             | String                                                              | none     | The name of the personality specified in [Personalities.json](#personalitiesjson) [^P]                                                          |
-| favoredReligion         | String                                                              | none     | The religion major civilization will choose if available when founding a religion. Must be in [Religions.json](#religionsjson)                  |
+| favoredReligion         | String                                                              | none     | The religion major civilization will choose if available when founding a religion. Must be in [Religions.json](#religions-json)                  |
 | startIntroPart1         | String                                                              | none     | Introductory blurb shown to Player on game start... [^V]                                                                                        |
 | startIntroPart2         | String                                                              | none     | ... second paragraph. ___NO___ "TBD"!!! Leave empty to skip that alert.                                                                         |
 | declaringWar            | String                                                              | none     | Another greeting, voice hook supported [^V]                                                                                                     |
@@ -119,7 +119,7 @@ Each personality has the following structure:
 | Attribute                                                                                                                           | Type   | Default  | Notes                                                                                                                                           |
 |-------------------------------------------------------------------------------------------------------------------------------------|--------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------|
 | name                                                                                                                                | String | Required |                                                                                                                                                 |
-| preferredVictoryType                                                                                                                | String | Neutral  | The victory type major civilizations will pursue (need not be specified in [VictoryTypes.json](5-Miscellaneous-JSON-files.md#victorytypesjson)) |
+| preferredVictoryType                                                                                                                | String | Neutral  | The victory type major civilizations will pursue (need not be specified in [VictoryTypes.json](5-Miscellaneous-JSON-files.md#victorytypes-json)) |
 | [`<stats>`](3-Map-related-JSON-files.md#general-stat), [`<behaviors>`](2-Civilization-related-JSON-files.md#personality-behaviours) | Float  | 5        | Amount of focus on the stat the computer player will have. Typically ranges from 0 (no focus) to 10 (double focus)                              |
 | priorities                                                                                                                          | Object | none     | Priorities for each policy branch [^B]                                                                                                          |
 | uniques                                                                                                                             | List   | empty    | List of [unique abilities](../uniques.md) this personality has                                                                                  |
@@ -198,7 +198,7 @@ Each policy branch has the following structure:
 | Attribute  | Type   | Default  | Notes                                                                                                                                               |
 |------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | name       | String | Required |                                                                                                                                                     |
-| era        | String | Required | Unlocking era as defined in [Eras.json](5-Miscellaneous-JSON-files.md#erasjson)                                                                     |
+| era        | String | Required | Unlocking era as defined in [Eras.json](5-Miscellaneous-JSON-files.md#eras-json)                                                                     |
 | priorities | Object | none     | Priorities for each victory type, [see here](#branch-priorities)                                                                                    |
 | uniques    | List   | empty    | List of [unique abilities](../uniques.md) this policy branch grants upon adopting it                                                                |
 | civilopediaText | List | empty | See [civilopediaText chapter](5-Miscellaneous-JSON-files.md#civilopedia-text) |
@@ -261,7 +261,7 @@ Each quest has the following structure:
 | influence              | Float   | 40         | Influence reward gained on quest completion                                                                                                                                             |
 | duration               | Integer | 0          | Maximum number of turns to complete the quest. If 0, there is no turn limit                                                                                                             |
 | minimumCivs            | Integer | 1          | Minimum number of Civs needed to start the quest. It is meaningful only for type = Global                                                                                               |
-| weightForCityStateType | Object  | none       | Relative weight multiplier to this quest for each [city state type](#citystatetypesjson) or city state personality (Friendly, Neutral, Hostile, Irrational), [see below](#quest-weight) |
+| weightForCityStateType | Object  | none       | Relative weight multiplier to this quest for each [city state type](#citystatetypes-json) or city state personality (Friendly, Neutral, Hostile, Irrational), [see below](#quest-weight) |
 
 ### Quest name
 
@@ -294,7 +294,7 @@ are as follows:
 
 The "weightForCityStateType" object determines the quest's weight multiplier. When a city state
 initiates a quest, the initial weight is 1, and it is multiplied by values based
-on [city state type](#citystatetypesjson) and personality (Friendly, Neutral, Hostile, Irrational).
+on [city state type](#citystatetypes-json) and personality (Friendly, Neutral, Hostile, Irrational).
 The AI then randomly selects a quest based on the final weighted values.
 
 The object maps city state type and personality to the weight multipliers for the city state using
@@ -317,7 +317,7 @@ quest with weight 1.
 [Link to original](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/Civ%20V%20-%20Gods%20&%20Kings/Religions.json)
 
 This is just a list of Strings specifying all predefined religion names. Corresponding icons must
-exist, that's all to it. After all, they're just containers for [beliefs](#beliefsjson).
+exist, that's all to it. After all, they're just containers for [beliefs](#beliefs-json).
 
 ## Specialists.json
 
@@ -348,7 +348,7 @@ Each tech column has the following structure:
 | Attribute    | Type    | Default  | Notes                                                                                                                                    |
 |--------------|---------|----------|------------------------------------------------------------------------------------------------------------------------------------------|
 | columnNumber | Integer | Required | Horizontal placement in the Tech Tree                                                                                                    |
-| era          | String  | Required | Determines era reached after researching any technologies in this column. Must be in [Eras.json](5-Miscellaneous-JSON-files.md#erasjson) |
+| era          | String  | Required | Determines era reached after researching any technologies in this column. Must be in [Eras.json](5-Miscellaneous-JSON-files.md#eras-json) |
 | techCost     | Integer | 0        | Default cost of the techs in this column                                                                                                 |
 | buildingCost | Integer | Required | Default cost of buildings requiring this tech                                                                                            |
 | wonderCost   | Integer | Required | Default cost of wonders requiring this tech                                                                                              |

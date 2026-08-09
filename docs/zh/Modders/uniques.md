@@ -317,7 +317,7 @@ title: Unique 能力列表
 
 :::
 ::: details Play [comment] sound
-可用声音列表见 [图像和音频](/zh/Modders/Images-and-Audio#sounds)。
+可用声音列表见 [图像和音频](/zh/Modders/Images-and-Audio#声音)。
 
 示例："Play [comment] sound"
 
@@ -337,7 +337,7 @@ title: Unique 能力列表
 ::: details Choose a music track for [param], [param2], [param3]
 参数不校验，不匹配现有曲目或标志的字符串会被忽略。
 
-参见[情境音乐](/zh/Modders/Images-and-Audio#context-sensitive-music-overview)
+参见[情境音乐](/zh/Modders/Images-and-Audio#上下文敏感的音乐-概述)
 
 第一个参数是曲目名前缀，例如文明名或 "this civ"。
 

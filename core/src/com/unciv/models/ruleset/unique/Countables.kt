@@ -382,7 +382,7 @@ enum class Countables(
         override val example: String = "[Desert] Tiles"
     },
     TileResources {
-        override val documentationHeader = "Resource name - From [TileResources.json](Mod-file-structure/3-Map-related-JSON-files.md#tileresourcesjson)"
+        override val documentationHeader = "Resource name - From [TileResources.json](Mod-file-structure/3-Map-related-JSON-files.md#tileresources-json)"
         override val documentationStrings = listOf(
             "Can be city stats or civilization stats, depending on where the unique is used",
             "For example: If a unique is placed on a building, then the retrieved resources will be of the city. If placed on a policy, they will be of the civilization.",

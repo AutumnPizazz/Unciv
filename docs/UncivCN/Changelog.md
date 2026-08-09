@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Fixed dead links across the docs site: 14 broken `](`-corrupted links in the Chinese UncivCN pages, plus ~250 wrong heading anchors (VitePress slug format) in the Modders docs (both EN and ZH, incl. the doc generators `UniqueType.kt` / `Countables.kt` / `UniqueDocsWriter` / `MergeActionDocsWriter`); verified against a fresh VitePress build
 - Merged upstream 4.21.6: CPU performance improvements (city baseline computed once, ~20% faster next-turn in some saves), AI workers consider future adjacencies for improvements, visually indicate failed MP upload, nation-colored chat names, OneTimeGainStat re-parameterized to `[civWideStat]` with a modding warning, test runner overhaul (see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))
 - Fixed the docs site showing unstyled text under the custom domain: site artifacts are now deployed to the `Unciv/` subdirectory with a root redirect page
 - Fixed duplicate `/Unciv` prefix in the navbar logo path
@@ -49,7 +50,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## v4.20.17.2 (2026-07-12)
 
-- New unit pins / map pins features (see [Features](./Features#unit-pins--map-pins-420172))
+- New unit pins / map pins features (see [Features](./Features#unit-pins-map-pins-4-20-17-2))
 - Lifted the radius parity restriction for rotationally symmetric maps
 - Disabling the civ-score panel also disables the experimental stats panel
 - Save version isolation (old clients can't load new saves)

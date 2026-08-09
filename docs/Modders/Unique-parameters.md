@@ -46,7 +46,7 @@ Allowed values:
 
 ## nationFilter
 
-Allows filtering for specific nations. Used by [ModOptions.nationsToRemove](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptionsjson).
+Allows filtering for specific nations. Used by [ModOptions.nationsToRemove](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json).
 
 Allowed values:
 
@@ -287,7 +287,7 @@ Allowed values:
 
 ## technologyFilter
 
-At the moment only implemented for [ModOptions.techsToRemove](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptionsjson).
+At the moment only implemented for [ModOptions.techsToRemove](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json).
 
 Allowed values:
 
@@ -437,7 +437,7 @@ Allowed values:
     - Example: `Only available <when number of [Owned [Farm] Tiles] is more than [0]>`
 -   `[tileFilter] Tiles`
     - Example: `Only available <when number of [[Desert] Tiles] is more than [0]>`
--   Resource name - From [TileResources.json](Mod-file-structure/3-Map-related-JSON-files.md#tileresourcesjson)
+-   Resource name - From [TileResources.json](Mod-file-structure/3-Map-related-JSON-files.md#tileresources-json)
     - Example: `Only available <when number of [Iron] is more than [0]>`
     - Can be city stats or civilization stats, depending on where the unique is used
     - For example: If a unique is placed on a building, then the retrieved resources will be of the city. If placed on a policy, they will be of the civilization.

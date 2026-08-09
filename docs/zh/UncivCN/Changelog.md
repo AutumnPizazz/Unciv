@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 修复文档站死链接：中文 UncivCN 页面 14 处 `](` 损坏链接，以及 Modders 文档（中英，含 `UniqueType.kt` / `Countables.kt` / `UniqueDocsWriter` / `MergeActionDocsWriter` 生成器）约 250 处标题锚点错误（VitePress slug 格式）；已用全新 VitePress 构建产物逐链接验证
 - 合并上游 4.21.6：CPU 性能优化（城市基线只算一次，部分存档下一回合提速约 20%）、AI 工人考虑未来的相邻加成、多人上传失败视觉提示、聊天昵称显示文明颜色、OneTimeGainStat 参数改为 `[civWideStat]` 并对非文明级产出给出 modding 警告、测试运行器重构（详见上游 [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md)）
 - 修复自定义域名下文档站无样式：站点产物部署到 `Unciv/` 子目录并加根跳转页
 - 修复导航栏 logo 路径重复 `/Unciv` 前缀
@@ -55,7 +56,7 @@ title: UncivCN 更新日志
 
 ## v4.20.17.2（2026.7.12）
 
-- 新增单位钉、地图钉功能（详见 [新特性./Features#单位钉--地图钉420172)）
+- 新增单位钉、地图钉功能（详见 [新特性](./Features#单位钉-地图钉-4-20-17-2)）
 - 取消旋转对称地图对半径的奇偶限制
 - 禁用文明积分面板时同步禁用实验性统计面板
 - 实现游戏版本兼容性隔离（旧版无法加载新版存档）
@@ -84,7 +85,7 @@ title: UncivCN 更新日志
 
 ## v4.20.8.1（2026.5.21）
 
-- 重磅更新！新增 [轮询联机功能./Polling-multiplayer)
+- 重磅更新！新增 [轮询联机功能](./Polling-multiplayer)
 
 ## v4.20.7.4（2026.5.19）
 

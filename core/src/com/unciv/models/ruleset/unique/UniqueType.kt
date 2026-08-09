@@ -27,7 +27,7 @@ private val CHOOSE_MUSIC_DOCSTRING get() = (
 
 private val CHOOSE_MUSIC_DOCSTRING_ZH get() = (
     """|参数不校验，不匹配现有曲目或标志的字符串会被忽略。
-|参见[情境音乐](/zh/Modders/Images-and-Audio#context-sensitive-music-overview)
+|参见[情境音乐](/zh/Modders/Images-and-Audio#上下文敏感的音乐-概述)
 |第一个参数是曲目名前缀，例如文明名或 "this civ"。
 |第二个参数是零个或多个后缀的逗号分隔列表，用于指定 "mood"（氛围），如 Peace、War、Ambient 等。第一个匹配的曲目胜出。
 |第三个参数是零个或多个标志的列表：""" + MusicTrackChooserFlags.entries.joinToString(postfix = ".") { it.name }
@@ -989,7 +989,7 @@ enum class UniqueType(
     TriggerLuaFunction("Trigger the function [luaFunction] with [comment]", UniqueTarget.Triggerable),
     MarkTutorialComplete("Mark tutorial [comment] complete", UniqueTarget.Triggerable, flags = UniqueFlag.setOfHiddenNoConditionals),
     PlaySound("Play [comment] sound", UniqueTarget.Triggerable, flags = UniqueFlag.setOfHiddenToUsers,
-        docDescription = "See [Images and Audio](Images-and-Audio.md#sounds) for a list of available sounds.", docDescriptionZh = "可用声音列表见 [图像和音频](/zh/Modders/Images-and-Audio#sounds)。"),
+        docDescription = "See [Images and Audio](Images-and-Audio.md#sounds) for a list of available sounds.", docDescriptionZh = "可用声音列表见 [图像和音频](/zh/Modders/Images-and-Audio#声音)。"),
     GetLeaderTitle("Get the leader title of [leaderTitle]", UniqueTarget.Triggerable, flags = UniqueFlag.setOfHiddenToUsers),
     ChooseMusic("Choose a music track for [param], [param], [param]", UniqueTarget.Triggerable, flags = UniqueFlag.setOfHiddenToUsers,
         docDescription = CHOOSE_MUSIC_DOCSTRING, docDescriptionZh = CHOOSE_MUSIC_DOCSTRING_ZH),

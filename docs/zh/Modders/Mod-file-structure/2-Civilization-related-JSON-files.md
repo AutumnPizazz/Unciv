@@ -17,7 +17,7 @@ title: 文明相关 JSON 文件
 | name | String | 必需 | |
 | type | Enum | 必需 | 信仰类型。值必须是 Pantheon、Founder、Follower 或 Enhancer |
 | uniques | List of Strings | 空 | 此信仰为其追随城市添加的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 ## Buildings.json
 
@@ -35,12 +35,12 @@ title: 文明相关 JSON 文件
 | maintenance | Integer | 0 | 建筑的维护费用 |
 | isWonder | Boolean | false | 此建筑是否为全球奇观 |
 | isNationalWonder | Boolean | false | 此建筑是否为国家奇观 |
-| requiredBuilding | String | none | 在建造此建筑之前必须建造的建筑。必须在 [Buildings.json](#buildingsjson) 中 |
-| requiredTech | String | none | 在建造此建筑之前必须研究的科技。必须在 [Techs.json](#techsjson) 中 |
-| requiredResource | String | none | 建造此建筑时消耗的资源。必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson) 中 |
-| requiredNearbyImprovedResources | List of Strings | 空 | 仅当此列表中的任何资源位于此城市的边界内并已改进时，才能建造此建筑。每个资源必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson) 中 |
-| replaces | String | none | 应被此建筑替换的建筑的名称。必须在 [Buildings.json](#buildingsjson) 中 |
-| uniqueTo | String | none | 如果提供，则只有具有此名称的文明可以建造此建筑。必须在 [Nations.json](#nationsjson) 中 |
+| requiredBuilding | String | none | 在建造此建筑之前必须建造的建筑。必须在 [Buildings.json](#buildings-json) 中 |
+| requiredTech | String | none | 在建造此建筑之前必须研究的科技。必须在 [Techs.json](#techs-json) 中 |
+| requiredResource | String | none | 建造此建筑时消耗的资源。必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json) 中 |
+| requiredNearbyImprovedResources | List of Strings | 空 | 仅当此列表中的任何资源位于此城市的边界内并已改进时，才能建造此建筑。每个资源必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json) 中 |
+| replaces | String | none | 应被此建筑替换的建筑的名称。必须在 [Buildings.json](#buildings-json) 中 |
+| uniqueTo | String | none | 如果提供，则只有具有此名称的文明可以建造此建筑。必须在 [Nations.json](#nations-json) 中 |
 | cityStrength | Integer | 0 | 建造此建筑的城市获得的战斗力加成 |
 | cityHealth | Integer | 0 | 建造此建筑的城市获得的生命值加成 |
 | hurryCostModifier | Integer | 0 | 当使用金币或信仰购买此建筑时，价格增加此百分比 |
@@ -49,8 +49,8 @@ title: 文明相关 JSON 文件
 | replacementTextForUniques | String | none | 如果提供，则显示此字符串而不是所有 uniques |
 | percentStatBonus | Object | none | 建筑提供的统计数据的百分比加成。格式与[专业统计数据](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#专业统计数据)相同（数字为百分比。例如，`[30]` 表示统计数据加成 30%） |
 | greatPersonPoints | Object | none | 此建筑每回合产生的伟人点数。有效键是单位名称（Great Scientist、Warrior 等），有效值是整数 |
-| specialistSlots | Object | none | 此建筑提供的专家槽位。有效键是专家名称（在 [Specialists.json](#specialistsjson) 中定义），有效值是整数，为此专家提供的槽位数 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| specialistSlots | Object | none | 此建筑提供的专家槽位。有效键是专家名称（在 [Specialists.json](#specialists-json) 中定义），有效值是整数，为此专家提供的槽位数 |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 ## Nations.json
 
@@ -65,11 +65,11 @@ title: 文明相关 JSON 文件
 | name | String | 必需 | |
 | leaderName | String | none | 仅城邦可以省略！如果你想要领袖头像，图像文件名必须完全匹配，包括大小写 |
 | style | String | none | 附加到像素单位图像名称的修饰符 |
-| cityStateType | String | none | 区分主要文明和城邦（必须在 [CityStateTypes.json](#citystatetypesjson) 中） |
+| cityStateType | String | none | 区分主要文明和城邦（必须在 [CityStateTypes.json](#citystatetypes-json) 中） |
 | startBias | List of strings | 空 | 以下的一个或多个：[terrainFilter](/zh/Modders/Unique-parameters#terrainfilter) 或 "Avoid [terrainFilter]"。[^S] |
-| preferredVictoryType | String | Neutral | 主要文明将追求的胜利类型（无需在 [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypesjson) 中指定） |
+| preferredVictoryType | String | Neutral | 主要文明将追求的胜利类型（无需在 [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypes-json) 中指定） |
 | personality | String | none | 在 [Personalities.json](#personalitiesjson) 中指定的个性的名称 |
-| favoredReligion | String | none | 主要文明在创立宗教时（如果可用）将选择的宗教。必须在 [Religions.json](#religionsjson) 中 |
+| favoredReligion | String | none | 主要文明在创立宗教时（如果可用）将选择的宗教。必须在 [Religions.json](#religions-json) 中 |
 | startIntroPart1 | String | none | 游戏开始时向玩家显示的介绍性文字...[^V] |
 | startIntroPart2 | String | none | ...第二段。___不要___使用"TBD"！！！留空以跳过该警报。 |
 | declaringWar | String | none | 另一个问候，支持语音挂钩 [^V] |
@@ -87,7 +87,7 @@ title: 文明相关 JSON 文件
 | uniqueText | String | none | "uniques"的替换文本。如果为空，则单独列出 uniques |
 | uniques | List | 空 | 此文明具有的[独特能力](/zh/Modders/uniques)列表 |
 | cities | List | 空 | 按顺序用于新建立城市的城市名称。主要文明和城邦必需 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 [^S]: "Coast"偏好（_除非_与"Avoid"结合）被转换为对沿海地块、湖泊旁地块、河流地块或近河地块的复杂测试，并且这些文明首先被处理。在这种情况下，将忽略其他 startBias 条目。
 其他正面（没有"Avoid"）的 startBias 接下来被处理。多个正面偏好被视为相等，但不会获得"回退"。
@@ -109,11 +109,11 @@ title: 文明相关 JSON 文件
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | name | String | 必需 | |
-| preferredVictoryType | String | Neutral | 主要文明将追求的胜利类型（无需在 [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypesjson) 中指定） |
+| preferredVictoryType | String | Neutral | 主要文明将追求的胜利类型（无需在 [VictoryTypes.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#victorytypes-json) 中指定） |
 | [`<stats>`](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#一般统计), [`<behaviors>`](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#个性行为) | Float | 5 | 计算机玩家对统计数据的关注程度。通常范围从 0（不关注）到 10（双倍关注） |
 | priorities | Object | none | 每个政策分支的优先级 [^B] |
 | uniques | List | 空 | 此个性具有的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 [^B]: 类似于 [政策优先级](#分支优先级) "priorities"对象定义主要文明的 AI 对政策分支的优先级。AI 为其首选胜利类型选择编号最高的政策分支。如果两个或更多候选分支具有相同的优先级，AI 在候选分支中随机选择一个。
 
@@ -178,10 +178,10 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | name | String | 必需 | |
-| era | String | 必需 | 解锁时代，如 [Eras.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#erasjson) 中定义 |
+| era | String | 必需 | 解锁时代，如 [Eras.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#eras-json) 中定义 |
 | priorities | Object | none | 每个胜利类型的优先级，[请参阅此处](#分支优先级) |
 | uniques | List | 空 | 采用此政策分支时授予的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 | policies | List | 空 | [成员政策](#成员政策结构)和[分支'完成者'](#分支完成者结构)列表 - 注意 {} 和 [] 的嵌套 |
 
 #### 成员政策结构
@@ -193,7 +193,7 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 | column | Integer | 必需 | UI 中的放置，每个单位大约是图标大小的一半 |
 | requires | List | 空 | 先决政策名称列表 |
 | uniques | List | 空 | 采用此政策成员时授予的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 #### 分支完成者结构
 
@@ -201,7 +201,7 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 |------|------|--------|------|
 | name | String | 必需 | |
 | uniques | List | 空 | 采用分支中所有政策成员时授予的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
 
 ### 分支优先级
 
@@ -237,7 +237,7 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 | influence | Float | 40 | 任务完成时获得的影响力奖励 |
 | duration | Integer | 0 | 完成任务的最大回合数。如果为 0，则没有回合限制 |
 | minimumCivs | Integer | 1 | 开始任务所需的最少文明数。仅对 type = Global 有意义 |
-| weightForCityStateType | Object | none | 对每个[城邦类型](#citystatetypesjson)或城邦个性（Friendly、Neutral、Hostile、Irrational）的此任务的相对权重乘数，[请参阅下文](#任务权重) |
+| weightForCityStateType | Object | none | 对每个[城邦类型](#citystatetypes-json)或城邦个性（Friendly、Neutral、Hostile、Irrational）的此任务的相对权重乘数，[请参阅下文](#任务权重) |
 
 ### 任务名称
 
@@ -265,7 +265,7 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 
 ### 任务权重
 
-"weightForCityStateType"对象确定任务的权重乘数。当城邦发起任务时，初始权重为 1，并根据[城邦类型](#citystatetypesjson)和个性（Friendly、Neutral、Hostile、Irrational）乘以值。然后 AI 根据最终加权值随机选择一个任务。
+"weightForCityStateType"对象确定任务的权重乘数。当城邦发起任务时，初始权重为 1，并根据[城邦类型](#citystatetypes-json)和个性（Friendly、Neutral、Hostile、Irrational）乘以值。然后 AI 根据最终加权值随机选择一个任务。
 
 该对象使用字符串到浮点数将城邦类型和个性映射到城邦的权重乘数。如果未找到首选胜利类型，则默认乘数为 1。
 
@@ -283,7 +283,7 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 
 [链接到原始文件](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/Civ%20V%20-%20Gods%20&%20Kings/Religions.json)
 
-这只是一个字符串列表，指定所有预定义的宗教名称。必须存在相应的图标，仅此而已。毕竟，它们只是[信仰](#beliefsjson)的容器。
+这只是一个字符串列表，指定所有预定义的宗教名称。必须存在相应的图标，仅此而已。毕竟，它们只是[信仰](#beliefs-json)的容器。
 
 ## Specialists.json
 
@@ -313,7 +313,7 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | columnNumber | Integer | 必需 | 科技树中的水平放置 |
-| era | String | 必需 | 确定研究此列中任何科技后达到的时代。必须在 [Eras.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#erasjson) 中 |
+| era | String | 必需 | 确定研究此列中任何科技后达到的时代。必须在 [Eras.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#eras-json) 中 |
 | techCost | Integer | 0 | 此列中科技的默认成本 |
 | buildingCost | Integer | 必需 | 需要此科技的建筑的默认成本 |
 | wonderCost | Integer | 必需 | 需要此科技的奇观的默认成本 |
@@ -329,4 +329,4 @@ Cultured、Maritime、Mercantile、Militaristic、Religious。
 | prerequisites | List of Strings | 空 | 此科技的先决科技名称列表。仅需要直接先决科技 |
 | quote | String | none | 玩家研究此科技时呈现的一个好故事 |
 | uniques | List of Strings | 空 | 此科技授予的[独特能力](/zh/Modders/uniques)列表 |
-| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-text) |
+| civilopediaText | List | 空 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |

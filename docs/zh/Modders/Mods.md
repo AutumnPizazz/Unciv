@@ -42,7 +42,7 @@ title: 模组总览
 
 **基础规则集模组**是"从头开始"的模组 - 所有原始对象都被删除，只使用相关模组的对象。
 
-这是通过在你的 [modOptions 文件](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson)中添加 `"isBaseRuleset":true` 配置来完成的，[像这样](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json)。
+这是通过在你的 [modOptions 文件](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)中添加 `"isBaseRuleset":true` 配置来完成的，[像这样](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json)。
 
 ## 视听组件
 

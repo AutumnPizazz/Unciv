@@ -50,7 +50,7 @@ Civilopedia 中复杂过滤器的显示可能会变得不可读。如果是这�
 
 ## nationFilter
 
-允许过滤特定的文明。由 [ModOptions.nationsToRemove](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson)使用。
+允许过滤特定的文明。由 [ModOptions.nationsToRemove](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)使用。
 
 允许的值：
 
@@ -289,7 +289,7 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
 
 ## technologyFilter
 
-目前仅针对 [ModOptions.techsToRemove](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptionsjson)实现。
+目前仅针对 [ModOptions.techsToRemove](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)实现。
 
 允许的值：
 
@@ -440,7 +440,7 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 示例：`Only available <when number of [Owned [Farm] Tiles] is more than [0]>`
 -   `[tileFilter] Tiles`
     - 示例：`Only available <when number of [[Desert] Tiles] is more than [0]>`
--   资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresourcesjson)
+-   资源名称 - 来自 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json)
     - 示例：`Only available <when number of [Iron] is more than [0]>`
     - 可以是城市统计或文明统计，取决于 unique 在何处使用
     - 例如：如果 unique 放在建筑上，获取的资源属于城市；如果放在政策上，则属于文明。

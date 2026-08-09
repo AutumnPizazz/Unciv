@@ -44,9 +44,9 @@ Each improvement has the following structure:
 | Attribute            | Type            | Default  | Notes                                                                                                                                                                                  |
 |----------------------|-----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | name                 | String          | Required | [^A]                                                                                                                                                                                   |
-| terrainsCanBeBuiltOn | List of Strings | empty    | Terrains that this improvement can be built on [^B]. Removable terrain features will need to be removed before building an improvement [^C]. Must be in [Terrains.json](#terrainsjson) |
+| terrainsCanBeBuiltOn | List of Strings | empty    | Terrains that this improvement can be built on [^B]. Removable terrain features will need to be removed before building an improvement [^C]. Must be in [Terrains.json](#terrains-json) |
 | techRequired         | String          | none     | The name of the technology required to build this improvement                                                                                                                          |
-| replaces             | String          | none     | The name of a improvement that should be replaced by this improvement. Must be in [TileImprovements.json](#tileimprovementsjson)                                                       |
+| replaces             | String          | none     | The name of a improvement that should be replaced by this improvement. Must be in [TileImprovements.json](#tileimprovements-json)                                                       |
 | uniqueTo             | String          | none     | The name of the nation this improvement is unique for                                                                                                                                  |
 | [`<stats>`](#stats)  | Integer         | 0        | Per-turn bonus yield for the tile                                                                                                                                                      |
 | turnsToBuild         | Integer         | -1       | Number of turns a worker spends building this. If -1, the improvement is unbuildable [^D]. If 0, the improvement is always built in one turn                                           |
@@ -55,7 +55,7 @@ Each improvement has the following structure:
 | civilopediaText      | List            | empty    | See [civilopediaText chapter](5-Miscellaneous-JSON-files.md#civilopedia-text)                                                                                                          |
 
 [^A]: Special improvements: Road, Railroad, Remove \*, Cancel improvement order, City ruins, City center, Barbarian encampment - these have special meanings hardcoded to their names.
-[^B]: Improvements with an empty `terrainsCanBeBuiltOn` list and positive `turnsToBuild` value can only be built on [resources](#tileresourcesjson) with `improvedBy` or `improvement` that contains the corresponding improvement.
+[^B]: Improvements with an empty `terrainsCanBeBuiltOn` list and positive `turnsToBuild` value can only be built on [resources](#tileresources-json) with `improvedBy` or `improvement` that contains the corresponding improvement.
 [^C]: The removal of terrain features is optional if the feature is named in `terrainsCanBeBuiltOn` _or_ the unique `Does not need removal of [tileFilter]` is used (e.g. Camp allowed by resource).
 [^D]: They can still be created with the UnitAction unique `Can instantly construct a [improvementFilter] improvement`.
 
@@ -75,12 +75,12 @@ Each resource has the following structure:
 |----------------------|-----------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | name                 | String          | Required |                                                                                                                                             |
 | resourceType         | Enum            | Bonus    | Bonus, Luxury or Strategic                                                                                                                  |
-| terrainsCanBeFoundOn | List of Strings | empty    | Terrains that this resource can be found on. Must be in [Terrains.json](#terrainsjson)                                                      |
+| terrainsCanBeFoundOn | List of Strings | empty    | Terrains that this resource can be found on. Must be in [Terrains.json](#terrains-json)                                                      |
 | [`<stats>`](#stats)  | Integer         | 0        | Per-turn bonus yield for the tile                                                                                                           |
 | improvementStats     | Object          | none     | The additional yield when improved, see [specialized stats](3-Map-related-JSON-files.md#specialized-stats)                                  |
 | revealedBy           | String          | none     | The technology name required to see, work and improve this resource                                                                         |
-| improvedBy           | List of strings | empty    | The improvements required for obtaining this resource. Must be in [TileImprovements.json](#tileimprovementsjson)                            |
-| improvement          | String          | none     | The improvement required to obtain this resource. Must be in [TileImprovements.json](#tileimprovementsjson) (redundant due to `improvedBy`) |
+| improvedBy           | List of strings | empty    | The improvements required for obtaining this resource. Must be in [TileImprovements.json](#tileimprovements-json)                            |
+| improvement          | String          | none     | The improvement required to obtain this resource. Must be in [TileImprovements.json](#tileimprovements-json) (redundant due to `improvedBy`) |
 | unique               | List of Strings | empty    | List of [unique abilities](../uniques.md) this resource has                                                                                 |
 | civilopediaText      | List            | empty    | See [civilopediaText chapter](5-Miscellaneous-JSON-files.md#civilopedia-text)                                                               |
 

@@ -53,7 +53,7 @@ title: UncivCN 新特性
 - 创建游戏时勾选 Online Multiplayer 后可选 Polling interval（Off / 5s / 10s / 15s / 20s / 30s）
 - 可查看其他玩家的在线状态（4.20.8.4）
 
-完整机制见 [轮询联机机制./Polling-multiplayer)。
+完整机制见 [轮询联机机制](./Polling-multiplayer)。
 
 ## 默认服务器（4.21.0.1）
 

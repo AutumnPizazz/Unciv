@@ -38,7 +38,7 @@ In order to remove objects from the game, you'll need to create a ModOptions fil
 
 **Base Ruleset Mods** are mods that 'start from scratch' - ALL the original objects are removed, and only the objects of the mod in question are used.
 
-This is done by adding a `"isBaseRuleset":true` configuration to your [modOptions file](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptionsjson), [like so](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json).
+This is done by adding a `"isBaseRuleset":true` configuration to your [modOptions file](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json), [like so](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json).
 
 ## Audiovisual components
 
