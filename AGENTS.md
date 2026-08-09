@@ -88,7 +88,7 @@ VitePress 文档站（`docs-vitepress/`），**中英完全双向对应**（文�
 
 - 生成器产物（uniques.md / Unique-parameters.md / 6-MergeActions.md / Creating-a-UI-skin.md 的 marker 区）**只改生成器源码再 `./gradlew desktop:generateDocs`，严禁人工编辑**；生成器清单见 Coding-standards 第 2 节
 - 翻译：**JSON 字面量不翻译**（unique 文本/参数名/Countables 必须英文原文）；`docDescription` 同处写 `docDescriptionZh`，禁止生成器内大映射表
-- 更新日志：任何改动合入时同步在中英 `docs/{,zh/}UncivCN/Changelog.md` 顶部的「未发布」小节各加一行，发版时整合为新版本条目（详见 Coding-standards 第 5 节）；上游日志翻译在 `docs/{,zh/}Community/Upstream-changelog.md`
+- 更新日志：任何改动合入时同步在中英 `docs/{,zh/}UncivCN/Changelog.md` 顶部的「未发布」小节各加一行，发版时整合为新版本条目（详见 Coding-standards 第 5 节）；上游日志中文页 `docs/zh/Community/Upstream-changelog.md` 的「英文原文」区构建时自动嵌入根目录 `changelog.md`（永远最新），只需渐进维护「最近版本翻译」区
 - VitePress 坑：容器内容**禁止缩进**（=代码块撑破屏幕）；`::: note` 需自定义注册；localSearch `provider` 必须在顶层 themeConfig；locale key 用 `root`/`zh` 不带斜杠；srcDir 在工程外需 vue alias + buildEnd 复制 public；bat 必须 CRLF
 - 预览：双击 `docs-vitepress/build.bat`（构建/打开/重建三选一，空闲 5 分钟自动退出）
 
