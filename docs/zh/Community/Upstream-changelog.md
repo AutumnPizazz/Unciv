@@ -4,9 +4,79 @@ title: Unciv 原版更新日志
 
 ## Unciv 原版更新日志
 
-本文为 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md) 的中文翻译。仅收录近期版本，完整历史请参见英文原文。
+本文为 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md) 的中文翻译。
+
+- 「最近版本翻译」区：人工维护，尽量跟上最新版本，可能滞后
+- 「英文原文（自动同步）」区：构建时自动嵌入仓库根目录 `changelog.md` 全文（uncivbot 自动生成，merge 上游时自动更新），始终最新；翻译进度滞后时可先看原文
 
 ---
+
+## 最近版本翻译
+
+## 4.21.5
+
+- 修复控制台删除文明不召回间谍 — By SomeTroglodyte
+- 语音音量滑块实时生效 — By SomeTroglodyte
+- 单独自动化的单位可以获得晋升 — By SomeTroglodyte
+- 修复城市迷你统计面板数值取整 — By JPBergsma（新贡献者！）
+- 修复军事单位赠礼通知位置 — By Angais
+- 修复开放边境视野优先级 — By Angais
+- AI 优化建筑金币支出逻辑 — By EmperorPinguin
+- 防止购买接近完工的建筑 — By EmperorPinguin
+
+## 4.21.4
+
+- 地图卡顿与地图生成延迟的 CPU 性能优化
+- 性能：科技选择界面 FPS 提升 — By shwwwa
+- 修复城邦多疑概率计算 — By Angais
+- 修复参战惩罚计算 — By Angais
+- 修复两个 AI 评估 bug：WLTKD 奢侈品优先级反转、防御同盟盟友错用文明 — By WhoIsJohannes
+- 修复两个 AI 太空竞赛 bug：太空资源储备失效、战争推进覆盖部分内容 — By WhoIsJohannes
+- 城邦默认在出生地建立第一座城（可用 unique 关闭）— By Fanfblrik
+- 新增出生地偏向 unique（通过 CityStateType uniques 实现 Maritime Coast）— By Fanfblrik
+- 规则集校验器：警告潜在的无限循环（免费建筑 → 移除建筑）— By SomeTroglodyte
+- 「从 URL 下载模组」允许填写指定 commit 链接 — By SomeTroglodyte
+
+## 4.21.3
+
+- 修复杰内大清真寺在工业时代之前不生效
+- 解放城邦时不再清空城邦关系 — By Fanfblrik
+- 人口统计排名冻结为回合开始快照 — By Fanfblrik
+- 修复：多人上传不再导致改良设施提前升级 — By cy-elec
+- AI 改进：并行移民、扩张解锁、研究协议、防御同盟护卫 — By WhoIsJohannes
+- CPU 性能优化 — By WhoIsJohannes
+- 修复「单位损失时」触发器在新单位无法放置时触发 — By SomeTroglodyte
+- 允许对 `UniqueType.HiddenFromCivilopedia` 使用有限条件 — By SomeTroglodyte
+- 捕获从自定义位置加载的异常 — By SomeTroglodyte
+- 修复地块信息「需要科技」行 — By SomeTroglodyte
+
+## 4.21.2
+
+- 建筑禁用改为按城市/游戏生效，而非客户端全局 — By unciv-loof
+- 用自由音效替换 -NC 音效 — By Wuzzy2
+- 地块新增 `[Resource]`（感谢 Robloach）— By chenxing61
+- 实现祖鲁伊姆皮（Impi）额外远程攻击 unique — By O-spin
+- 模组检查器定位 `<for every [resource]>` 中循环的城市级资源 countable — By mvanhorn
+- 模组管理器界面新增直接检查模组的按钮 — By SomeTroglodyte
+- 政治总览「毛线球」改版 — By SomeTroglodyte
+- 新城市总览列：多数宗教 — By SomeTroglodyte
+- 允许像素单位美术选项与模组 extraImages 单位共存 — By SomeTroglodyte
+- 无野蛮人游戏忽略 OneTimeRebel 与 OneTimeAmountRebels 触发器 — By SomeTroglodyte
+- 修复 RekMod 摩艾石像可在带资源的水地块建造 — By SomeTroglodyte
+- 美化城邦外交页面（当城邦有大量保护者时）— By SomeTroglodyte
+
+## 4.21.1
+
+- 修复囤积资源交易未实际转移
+- 性格的建造权重 unique — By SomeTroglodyte
+- 修复平地地图无冰生成 — By SomeTroglodyte
+- 修复地图通知地块选择 — By Angais
+- 修复外部关闭时的选项清理 — By Angais
+- 用兼容性更广的字符替换箭头 Unicode 字符 — By cy-elec
+- 修复失去生命值的 uniques 缺少完整战斗上下文 — By SeventhM
+- 为 mapunit 实现「other」参数 — By O-spin
+- 修复强制辞职银行更新反转 — By L3odr0id
+- 清理许可信息 — By Wuzzy2
 
 ## 4.21.0
 - 文明百科中显示领袖个性特征 — By SomeTroglodyte
@@ -343,4 +413,14 @@ By unciv-loof:
 
 ::: tip 更多版本
 以上仅收录近期版本（4.19.10 起）。完整历史版本请参见 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)。
+:::
+
+---
+
+## 英文原文（自动同步，始终最新）
+
+> 以下内容构建时自动嵌入仓库根目录 `changelog.md` 全文，与上游同步更新，无需人工维护。
+
+::: upstream-changelog
+
 :::
