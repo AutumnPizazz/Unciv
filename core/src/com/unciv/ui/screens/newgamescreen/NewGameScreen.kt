@@ -121,31 +121,14 @@ class NewGameScreen(
             val saveLoadRow = HorizontalGroup().padBottom(5f).space(10f)
             saveLoadRow.addActor(saveSetupButton)
             saveLoadRow.addActor(loadSetupButton)
-            rightSideGroup.addActorAt(0, saveLoadRow)    // above "Reset to defaults" / "Start game!"
+            rightSideGroup.addActorAt(0, saveLoadRow)    // above "Start game!"
             rightSideGroup.addActorAt(0, copyPasteRow)   // top row
         } else {
-            // Wide screens: copy/paste and save/load sit to the left of "Reset to defaults" / "Start game!"
+            // Wide screens: copy/paste and save/load sit to the left of "Start game!"
             horizontalGroup.addActor(copySetupButton)
             horizontalGroup.addActor(pasteSetupButton)
             horizontalGroup.addActor(saveSetupButton)
             horizontalGroup.addActor(loadSetupButton)
-        }
-
-        if (UncivGame.Current.settings.lastGameSetup != null) {
-            val resetToDefaultsButton = "Reset to defaults".toTextButton()
-            resetToDefaultsButton.onClick {
-                ConfirmPopup(
-                    this,
-                    "Are you sure you want to reset all game options to defaults?",
-                    "Reset to defaults",
-                ) {
-                    val gameSetupInfo = GameSetupInfo().apply {
-                        gameParameters.espionageEnabled = true
-                    }
-                    game.replaceCurrentScreen(NewGameScreen(gameSetupInfo))
-                }.open(true)
-            }
-            horizontalGroup.addActor(resetToDefaultsButton)
         }
 
         val startGameButton = "Start game!".toTextButton().apply { color = Color.GREEN }        
@@ -204,15 +187,21 @@ class NewGameScreen(
     /** Show a picker of the saved game setups to load or delete. */
     private fun showLoadSetupPopup() {
         val setups = GameSetupSaver.listSetups()
-        if (setups.isEmpty()) {
-            ToastPopup("No saved game setups found!".tr(), this)
-            return
-        }
         val popup = Popup(this)
         popup.add("Load saved setup".toLabel(fontSize = Constants.headingFontSize)).row()
 
         val listTable = Table()
         listTable.defaults().pad(2f)
+
+        // Built-in default setup, always offered and never deletable - replaces the "Reset to defaults" button
+        val defaultButton = "Default setup".toTextButton()
+        defaultButton.onClick {
+            popup.close()
+            resetToDefaultSetup()
+        }
+        listTable.add(defaultButton).growX()
+        listTable.row()
+
         for (setup in setups) {
             val nameButton = setup.nameWithoutExtension().toTextButton()
             nameButton.onClick {
@@ -241,19 +230,32 @@ class NewGameScreen(
         popup.open()
     }
 
+    /** Apply the built-in default setup - same behavior as the old "Reset to defaults" button. */
+    private fun resetToDefaultSetup() {
+        ConfirmPopup(
+            this,
+            "Are you sure you want to reset all game options to defaults?",
+            "Reset to defaults",
+        ) {
+            applyImportedGameSetup(
+                GameSetupInfo().apply { gameParameters.espionageEnabled = true },
+                successToast = "Game setup loaded!"
+            )
+        }.open(true)
+    }
+
     /** Load a saved game setup from a slot and apply it to this screen. */
     private fun loadSavedSetup(setup: FileHandle) {
         try {
             val setupText = setup.readString(Charsets.UTF_8.name())
-            applyImportedGameSetup(GameSetupClipboard.decode(setupText))
-            ToastPopup("Game setup loaded!".tr(), this)
+            applyImportedGameSetup(GameSetupClipboard.decode(setupText), successToast = "Game setup loaded!")
         } catch (ex: Exception) {
             Log.error("Could not load game setup", ex)
             ToastPopup("Could not load game setup!".tr(), this)
         }
     }
 
-    private fun applyImportedGameSetup(importedSetup: GameSetupInfo) {
+    private fun applyImportedGameSetup(importedSetup: GameSetupInfo, successToast: String = "Game setup loaded from clipboard!") {
         // Copy into the existing instances - the option tables hold references to them.
         // This also restores the online multiplayer player IDs.
         GameSetupClipboard.copyValuesInto(gameSetupInfo, importedSetup)
@@ -272,7 +274,7 @@ class NewGameScreen(
         // updateOnMapTypeChange resets godMode - restore the imported value
         gameSetupInfo.gameParameters.godMode = importedGodMode
 
-        ToastPopup("Game setup loaded from clipboard!".tr(), this)
+        ToastPopup(successToast.tr(), this)
     }
 
     private fun startGameAvoidANRs(){
