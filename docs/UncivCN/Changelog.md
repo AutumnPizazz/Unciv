@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Added "Save current setup" / "Load saved setup" buttons on the new-game screen, right of the clipboard buttons: the setup is stored in named slots under SaveFiles/GameSetup (same format as the clipboard export) and a picker popup loads or deletes slots; on narrow screens the buttons get their own row between the clipboard row and the Start button row
 - Moved the copy/paste game-setup-to-clipboard buttons on the new-game screen from the top-left (top of the Game Options column) to the bottom-right next to "Start game!" - same row on wide screens, their own row above it on narrow screens to avoid overflowing the bottom bar
 - Docs: added a release checklist and lessons-learned section (tag push, docs build verification, no bare angle brackets, Maven Central 403, stale Unciv.jar names, continue-on-error jobs, CN translation completeness) to Coding-standards
 

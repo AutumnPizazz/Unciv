@@ -1,8 +1,10 @@
 package com.unciv.ui.screens.newgamescreen
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.GameInfo
@@ -12,7 +14,9 @@ import com.unciv.logic.UncivShowableException
 import com.unciv.logic.civilization.AlertType
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.PlayerType
+import com.unciv.logic.files.GameSetupSaver
 import com.unciv.logic.files.MapSaver
+import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.MapGeneratedMainType
 import com.unciv.logic.multiplayer.Multiplayer
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
@@ -36,6 +40,7 @@ import com.unciv.ui.components.input.onActivation
 import com.unciv.ui.components.input.onClick
 import com.unciv.ui.components.widgets.ExpanderTab
 import com.unciv.ui.images.ImageGetter
+import com.unciv.ui.popups.AskTextPopup
 import com.unciv.ui.popups.ConfirmPopup
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
@@ -99,21 +104,31 @@ class NewGameScreen(
         val horizontalGroup = HorizontalGroup().padBottom(5f).space(10f)
         rightSideGroup.addActorAt(0, horizontalGroup)
 
-        // Export/import the complete setup to/from the clipboard (base64)
+        // Export/import the complete setup to/from the clipboard (base64), and save/load it to named slots
         val copySetupButton = "Copy game setup to clipboard".toTextButton()
         val pasteSetupButton = "Paste game setup from clipboard".toTextButton()
+        val saveSetupButton = "Save current setup".toTextButton()
+        val loadSetupButton = "Load saved setup".toTextButton()
         copySetupButton.onClick(this::exportGameSetupToClipboard)
         pasteSetupButton.onClick(this::importGameSetupFromClipboard)
+        saveSetupButton.onClick(this::saveCurrentSetup)
+        loadSetupButton.onClick(this::showLoadSetupPopup)
         if (isPortrait) {
-            // Narrow screens get their own row above the Start button - the long button texts would overflow otherwise
-            val clipboardGroup = HorizontalGroup().padBottom(5f).space(10f)
-            clipboardGroup.addActor(copySetupButton)
-            clipboardGroup.addActor(pasteSetupButton)
-            rightSideGroup.addActorAt(0, clipboardGroup)
+            // Narrow screens get one row per button pair - the long button texts would overflow otherwise
+            val copyPasteRow = HorizontalGroup().padBottom(5f).space(10f)
+            copyPasteRow.addActor(copySetupButton)
+            copyPasteRow.addActor(pasteSetupButton)
+            val saveLoadRow = HorizontalGroup().padBottom(5f).space(10f)
+            saveLoadRow.addActor(saveSetupButton)
+            saveLoadRow.addActor(loadSetupButton)
+            rightSideGroup.addActorAt(0, saveLoadRow)    // above "Reset to defaults" / "Start game!"
+            rightSideGroup.addActorAt(0, copyPasteRow)   // top row
         } else {
-            // Wide screens: copy/paste sit to the left of "Reset to defaults" / "Start game!"
+            // Wide screens: copy/paste and save/load sit to the left of "Reset to defaults" / "Start game!"
             horizontalGroup.addActor(copySetupButton)
             horizontalGroup.addActor(pasteSetupButton)
+            horizontalGroup.addActor(saveSetupButton)
+            horizontalGroup.addActor(loadSetupButton)
         }
 
         if (UncivGame.Current.settings.lastGameSetup != null) {
@@ -164,6 +179,78 @@ class NewGameScreen(
             return
         }
         applyImportedGameSetup(importedSetup)
+    }
+
+    /** Save the current game setup to a named slot. */
+    private fun saveCurrentSetup() {
+        AskTextPopup(
+            this,
+            label = "Enter a name for the saved game setup".tr(),
+            errorText = "Invalid setup name!".tr(),
+            maxLength = 32,
+            validate = { UncivFiles.isValidFileName(it) },
+            actionOnOk = { name ->
+                try {
+                    GameSetupSaver.save(GameSetupClipboard.encode(gameSetupInfo), name)
+                    ToastPopup("Game setup saved!".tr(), this)
+                } catch (ex: Exception) {
+                    Log.error("Could not save game setup", ex)
+                    ToastPopup("Could not save game setup!".tr(), this)
+                }
+            }
+        ).open()
+    }
+
+    /** Show a picker of the saved game setups to load or delete. */
+    private fun showLoadSetupPopup() {
+        val setups = GameSetupSaver.listSetups()
+        if (setups.isEmpty()) {
+            ToastPopup("No saved game setups found!".tr(), this)
+            return
+        }
+        val popup = Popup(this)
+        popup.add("Load saved setup".toLabel(fontSize = Constants.headingFontSize)).row()
+
+        val listTable = Table()
+        listTable.defaults().pad(2f)
+        for (setup in setups) {
+            val nameButton = setup.nameWithoutExtension().toTextButton()
+            nameButton.onClick {
+                loadSavedSetup(setup)
+                popup.close()
+            }
+            listTable.add(nameButton).growX()
+            val deleteButton = "Delete".toTextButton()
+            deleteButton.onClick {
+                popup.close()
+                ConfirmPopup(
+                    this,
+                    "Delete saved setup [setupName]?".tr().replace("[setupName]", setup.nameWithoutExtension()),
+                    "Delete",
+                ) {
+                    GameSetupSaver.delete(setup)
+                    ToastPopup("Game setup deleted!".tr(), this)
+                    showLoadSetupPopup()
+                }.open(true)
+            }
+            listTable.add(deleteButton)
+            listTable.row()
+        }
+        popup.add(ScrollPane(listTable).apply { setOverscroll(false, false) }).growX().maxHeight(stage.height / 3).row()
+        popup.addCloseButton()
+        popup.open()
+    }
+
+    /** Load a saved game setup from a slot and apply it to this screen. */
+    private fun loadSavedSetup(setup: FileHandle) {
+        try {
+            val setupText = setup.readString(Charsets.UTF_8.name())
+            applyImportedGameSetup(GameSetupClipboard.decode(setupText))
+            ToastPopup("Game setup loaded!".tr(), this)
+        } catch (ex: Exception) {
+            Log.error("Could not load game setup", ex)
+            ToastPopup("Could not load game setup!".tr(), this)
+        }
     }
 
     private fun applyImportedGameSetup(importedSetup: GameSetupInfo) {
