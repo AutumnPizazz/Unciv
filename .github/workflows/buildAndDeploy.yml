@@ -317,6 +317,8 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: deploy/*
           tag: ${{ github.ref }}
+          # Release title = plain version number (e.g. "4.21.6.4"), nothing longer
+          name: ${{ github.ref_name }}
           prerelease: ${{ steps.check-version-tag.outputs.real_release != 'true' }}
           overwrite: true
           file_glob: true

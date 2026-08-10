@@ -10,6 +10,8 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- CI：GitHub Release 标题改为显式使用纯版本号（如 4.21.6.4），不再使用上传动作自动填充的冗长名称
+
 ## v4.21.6.4（build 1248）
 
 - CI：修复 GitHub Release 说明文本为空——现在按发布 tag 从 CN 中英文更新日志（docs/UncivCN + docs/zh/UncivCN）提取对应版本小节，中英双语写入 Release 说明（此前 CN 四段式版本号在上游 changelog.md 中不存在，导致正文为空）

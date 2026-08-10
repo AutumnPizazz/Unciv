@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- CI: GitHub Release title is now set explicitly to the plain version number (e.g. "4.21.6.4") instead of whatever the upload action auto-filled
+
 ## v4.21.6.4 (build 1248)
 
 - CI: GitHub Release notes now contain the release's changelog in both English and Chinese - the deploy workflow pulls the matching version section from the CN changelogs (docs/UncivCN + docs/zh/UncivCN) instead of the upstream changelog.md, which has no 4-part CN version tags (previously the Release description was empty)
