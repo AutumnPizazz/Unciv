@@ -21,29 +21,45 @@ jobs:
 
     outputs:
       release_body: ${{ steps.read_release.outputs.release_body }}
+      release_body_zh: ${{ steps.read_release.outputs.release_body_zh }}
+      whatsnew: ${{ steps.read_release.outputs.whatsnew }}
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Read release.md and use it as a body of new release. This will fail for patch releases, since they have no readme.
-        continue-on-error: true
+      - name: Read release notes from CN changelogs (EN + ZH), fall back to upstream changelog.md
         id: read_release
         shell: bash
         run: |
-          ## To test this in Windows PS:  cat .\changelog.md | wsl grep -Pzo --color '\\#{2}.3.15.7[^\\#]*?\\#{2}' | wsl head -n -2
-          r=$(grep -Pzo '\#{2}.${{ github.ref_name }}[^\#]*\#' changelog.md)  # grep to get only our release
-          # We replace all quotes in the readme with single quotes, so the whatsnew directory echo doesn't crash us
-          # Also backticks because that's interpreted as substitution apparently :|
-          r=$(echo "$r" | tr '"' "'" | tr '`' "'" | head -n -2 | tail -n +3)
+          ## UncivCN tags are 4-part (e.g. 4.21.6.3) and only exist in docs/UncivCN/Changelog.md
+          ## and docs/zh/UncivCN/Changelog.md (titles carry a "v" prefix, hence the v?)
+          TAG=${{ github.ref_name }}
+
+          ## English: CN changelog first, upstream changelog.md as fallback
+          en=$(grep -Pzo '\#{2}.v?'"$TAG"'[^\#]*\#{2}' docs/UncivCN/Changelog.md || \
+               grep -Pzo '\#{2}.v?'"$TAG"'[^\#]*\#{2}' changelog.md || true)
+          ## Chinese: CN zh changelog
+          zh=$(grep -Pzo '\#{2}.v?'"$TAG"'[^\#]*\#{2}' docs/zh/UncivCN/Changelog.md || true)
+
+          ## Drop the section header line and the trailing "##" matched by the pattern
+          en=$(echo "$en" | head -n -2 | tail -n +3)
+          zh=$(echo "$zh" | head -n -2 | tail -n +3)
+          ## whatsnew needs a safe single-file version: no quotes or backticks
+          whatsnew=$(echo "$en" | tr '"' "'" | tr '`' "'")
 
           ## See https://trstringer.com/github-actions-multiline-strings/
 
-          echo "--- Set variable manually in github env ---"
+          echo "--- Set variables manually in github env ---"
 
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$r" >> $GITHUB_OUTPUT
+          echo "$en" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
+          echo "release_body_zh<<EOF" >> $GITHUB_OUTPUT
+          echo "$zh" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "whatsnew<<EOF" >> $GITHUB_OUTPUT
+          echo "$whatsnew" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   build-jar:
     runs-on: ubuntu-latest
@@ -127,7 +143,7 @@ jobs:
         shell: bash
         run: |
           mkdir whatsNewDirectory
-          body="${{needs.get-release-body.outputs.release_body}}"
+          body="${{needs.get-release-body.outputs.whatsnew}}"
           while [ ${#body} -gt 500 ]; do
             body="${body%$'\n'*}"
           done
@@ -310,3 +326,5 @@ jobs:
             ## ${{ github.ref_name }}
 
             ${{needs.get-release-body.outputs.release_body}}
+
+            ${{needs.get-release-body.outputs.release_body_zh}}
