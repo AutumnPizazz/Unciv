@@ -9,6 +9,7 @@ import com.unciv.logic.UncivKtor
 import com.unciv.logic.github.Github.CountingInputStream.Companion.create
 import com.unciv.logic.github.Github.repoNameToFolderName
 import com.unciv.logic.github.GithubAPI.fetchReleaseZip
+import com.unciv.logic.github.GithubAPI.proxify
 import com.unciv.models.ruleset.ModOptions
 import com.unciv.utils.Concurrency
 import io.ktor.client.statement.*
@@ -140,7 +141,7 @@ object Github {
                 return@runBlocking listOf(
                     async { GithubAPI.fetchPreviewImageOrNull(modUrl, defaultBranch, "jpg") },
                     async { GithubAPI.fetchPreviewImageOrNull(modUrl, defaultBranch, "png") },
-                    async { avatarUrl?.let { UncivKtor.getOrNull(it) } }
+                    async { avatarUrl?.let { UncivKtor.getOrNull(proxify(it)) } }
                 ).awaitAll()
                     // automatically falls back to last succeeding response
                     .firstNotNullOf { it }
@@ -268,7 +269,7 @@ object Github {
     private fun trySaveAvatarAsPreview(modFolder: FileHandle, repo: GithubAPI.Repo) {
         val avatarUrl = tryGetMissingAvatar(repo) ?: return
         Concurrency.run("Save avatar") {
-            val response = UncivKtor.getOrNull(avatarUrl) ?: return@run
+            val response = UncivKtor.getOrNull(proxify(avatarUrl)) ?: return@run
             if (!response.status.isSuccess()) return@run
             // looking for 0xFFD8 or 0x89504E47 in the body bytes works too, but kotlin's embarrassing bytes & literals support makes that ugly
             val type = response.headers[HttpHeaders.ContentType] ?: return@run

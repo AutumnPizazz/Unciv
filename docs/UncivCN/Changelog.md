@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Mod management: added a "Mod download source" setting (Options → Advanced) so players with restricted access to github.com (e.g. in mainland China) can route the mod list, preview images and downloads through public GitHub proxy mirrors (gh-proxy.com / ghfast.top / ghproxy.net, or any custom prefix); when loading the mod list fails on the official source, the game offers a one-click switch to a mirror and retries automatically; new guide page "Installing mods from mainland China"
 - Removed the "Reset to defaults" button on the new-game screen: the load-setup picker now always offers a built-in, non-deletable "Default setup" entry that restores the exact same default options (with the same confirmation dialog)
 - Added "Save current setup" / "Load saved setup" buttons on the new-game screen, right of the clipboard buttons: the setup is stored in named slots under SaveFiles/GameSetup (same format as the clipboard export) and a picker popup loads or deletes slots; on narrow screens the buttons get their own row between the clipboard row and the Start button row
 - Moved the copy/paste game-setup-to-clipboard buttons on the new-game screen from the top-left (top of the Game Options column) to the bottom-right next to "Start game!" - same row on wide screens, their own row above it on narrow screens to avoid overflowing the bottom bar

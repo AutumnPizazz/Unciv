@@ -9,10 +9,13 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.ui.Cell
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.unciv.Constants
 import com.unciv.GUI
 import com.unciv.UncivGame
+import com.unciv.logic.github.GithubAPI
 import com.unciv.logic.map.HexCoord
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSettings
@@ -42,6 +45,7 @@ import com.unciv.ui.components.widgets.UncivTextField
 import com.unciv.ui.components.widgets.WrappableLabel
 import com.unciv.ui.popups.ConfirmPopup
 import com.unciv.ui.popups.Popup
+import com.unciv.ui.popups.ToastPopup
 import com.unciv.utils.Concurrency
 import com.unciv.utils.Display
 import com.unciv.utils.isRunFromJar
@@ -67,6 +71,10 @@ internal class AdvancedTab(
     optionsPopup: OptionsPopup
 ): OptionsPopupTab(optionsPopup) {
     override fun lateInitialize() {
+        addModDownloadSource()
+
+        addSeparator()
+
         addAutosaveField()
         addSelectBox("Turns between autosaves", settings::turnsBetweenAutosaves, listOf(1,2,5,10,20,50,100,1000))
 
@@ -101,6 +109,37 @@ internal class AdvancedTab(
         addScreenhotGeneration()
 
         super.lateInitialize()
+    }
+
+    private var customPrefixRow: Table? = null
+
+    /** Lets players with restricted access to github.com switch the mod download source to a mirror/proxy */
+    private fun addModDownloadSource() {
+        addEnumAsStringSelectBox(
+            "Mod download source",
+            settings::modDownloadSource,
+            GithubAPI.ModDownloadSource.entries
+        ) { newValue ->
+            customPrefixRow?.isVisible = newValue == GithubAPI.ModDownloadSource.Custom.name
+        }
+
+        val prefixTextField = UncivTextField("https://gh-proxy.com/", settings.customModDownloadPrefix)
+        prefixTextField.maxLength = 300
+        val prefixButton = "Enter".toTextButton()
+        prefixButton.isEnabled = false
+        prefixTextField.onChange { prefixButton.isEnabled = prefixTextField.text.isNotBlank() }
+        prefixButton.onClick {
+            settings.customModDownloadPrefix = prefixTextField.text.trim()
+            ToastPopup("Custom download prefix saved", stage)
+        }
+
+        customPrefixRow = Table().apply {
+            add("Custom download prefix".toLabel()).left()
+            add(prefixTextField).padLeft(5f)
+            add(prefixButton).padLeft(5f)
+        }
+        add(customPrefixRow).minWidth(rightWidgetMinWidth).right().row()
+        customPrefixRow?.isVisible = settings.modDownloadSource == GithubAPI.ModDownloadSource.Custom.name
     }
 
     private fun addCutoutCheckbox() {

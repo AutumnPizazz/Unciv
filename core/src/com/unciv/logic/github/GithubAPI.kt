@@ -7,12 +7,14 @@ import com.unciv.json.json
 import com.unciv.logic.UncivKtor
 import com.unciv.logic.UncivShowableException
 import com.unciv.logic.github.Github.repoNameToFolderName
+import com.unciv.models.translations.tr
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.delay
+import yairm210.purity.annotations.Immutable
 import yairm210.purity.annotations.Pure
 import yairm210.purity.annotations.Readonly
 import java.util.zip.ZipException
@@ -65,12 +67,75 @@ object GithubAPI {
 
     private val client = UncivKtor.client.config {
         defaultRequest {
-            url(baseUrl)
             header("X-GitHub-Api-Version", "2022-11-28")
             header(HttpHeaders.Accept, "application/vnd.github+json")
             userAgent(UncivGame.getUserAgent("Github"))
             if (bearerToken.isNotBlank()) bearerAuth(bearerToken)
         }
+    }
+
+    /**
+     * Where to fetch GitHub data (mod list, preview images, archives) from.
+     *
+     * Players with restricted access to github.com (e.g. in mainland China) can switch to a
+     * public GitHub proxy/mirror - entries only prepend their [urlPrefix] to GitHub-hosted URLs,
+     * so direct downloads from other hosts (e.g. Gitee) are never affected.
+     * The active source is stored in `GameSettings.modDownloadSource`.
+     */
+    enum class ModDownloadSource(val displayName: String, val urlPrefix: String) {
+        Official("GitHub (official)", ""),
+        GhProxyCom("gh-proxy.com", "https://gh-proxy.com/"),
+        GhFastTop("ghfast.top", "https://ghfast.top/"),
+        GhProxyNet("ghproxy.net", "https://ghproxy.net/"),
+        Custom("Custom", "");  // urlPrefix comes from GameSettings.customModDownloadPrefix
+
+        override fun toString() = displayName.tr()  // for direct use in a SelectBox
+
+        companion object {
+            @Readonly
+            fun fromStoredName(name: String) = entries.firstOrNull { it.name == name } ?: Official
+
+            /** The URL prefix to prepend to GitHub URLs; empty for the official source */
+            @Readonly
+            fun getActiveUrlPrefix(): String {
+                val settings = UncivGame.Current.settings
+                val source = fromStoredName(settings.modDownloadSource)
+                return when (source) {
+                    Official -> ""
+                    Custom -> {
+                        val trimmed = settings.customModDownloadPrefix.trim().trimEnd('/')
+                        if (trimmed.isEmpty()) "" else "$trimmed/"
+                    }
+                    else -> source.urlPrefix
+                }
+            }
+        }
+    }
+
+    /** Hosts proxied by [ModDownloadSource] - anything else (e.g. Gitee) passes through unchanged */
+    @Immutable
+    private val githubHosts = listOf(
+        "https://github.com/",
+        "https://raw.githubusercontent.com/",
+        "https://avatars.githubusercontent.com/",
+        "https://api.github.com/",
+        "https://codeload.github.com/",
+        "https://gist.githubusercontent.com/",
+        "https://objects.githubusercontent.com/",
+        "https://github.githubassets.com/",
+    )
+
+    /**
+     * Prepend the active download source's prefix to GitHub-hosted URLs; other URLs pass through unchanged.
+     *
+     * Example with `https://gh-proxy.com/`: `https://github.com/a/b/archive/...zip`
+     * becomes `https://gh-proxy.com/https://github.com/a/b/archive/...zip`.
+     */
+    @Readonly
+    fun proxify(url: String): String {
+        val prefix = ModDownloadSource.getActiveUrlPrefix()
+        if (prefix.isEmpty()) return url
+        return if (githubHosts.any { url.startsWith(it) }) prefix + url else url
     }
 
     /**
@@ -115,7 +180,7 @@ object GithubAPI {
     /** Format a URL to query a repo tree - to calculate actual size */
     // It's hard to see in the doc this not only accepts a commit SHA, but either branch (used here) or tag names too
     internal suspend fun Repo.fetchReleaseZip() = request {
-        url("/repos/$full_name/git/trees/$default_branch")
+        url(proxify("$baseUrl/repos/$full_name/git/trees/$default_branch"))
         parameter("recursive", "true")
     }
 
@@ -137,13 +202,13 @@ object GithubAPI {
 
     suspend fun fetchGithubReposWithTopic(search: String, page: Int, amountPerPage: Int) =
         paginatedRequest(page, amountPerPage) {
-            url("/search/repositories")
+            url(proxify("$baseUrl/search/repositories"))
             parameter("sort", "stars")
             parameter("q", "$search topic:unciv-mod fork:true")
         }
 
     suspend fun fetchGithubTopics() = request {
-        url("/search/topics")
+        url(proxify("$baseUrl/search/topics"))
         parameter("sort", "name")
         parameter("order", "asc")
 
@@ -154,16 +219,22 @@ object GithubAPI {
     }
 
     suspend fun fetchSingleRepo(owner: String, repoName: String) =
-        request { url("/repos/$owner/$repoName") }
+        request { url(proxify("$baseUrl/repos/$owner/$repoName")) }
 
     suspend fun fetchSingleRepoOwner(owner: String) =
-        request { url("/users/$owner") }
+        request { url(proxify("$baseUrl/users/$owner")) }
 
     /**
-     * We are not using KtorGithubAPI here because the URL provided is not an API URL
+     * We are not using KtorGithubAPI here because the URL provided is not an API URL.
+     * The host is replaced with `raw.githubusercontent.com` first, then the active
+     * download source prefix is applied (see [proxify]).
      */
     suspend fun fetchPreviewImageOrNull(modUrl: String, branch: String, ext: String) =
-        UncivKtor.getOrNull("$modUrl/$branch/preview.${ext}") { host = "raw.githubusercontent.com" }
+        UncivKtor.getOrNull(proxify("$modUrl/$branch/preview.${ext}".toRawGithubUrl()))
+
+    /** Replace the URL's host with `raw.githubusercontent.com`, keeping the path */
+    private val rawHostRegex = Regex("""^https?://[^/]+""")
+    private fun String.toRawGithubUrl() = replace(rawHostRegex, "https://raw.githubusercontent.com")
 
     //endregion
     //region responses
@@ -429,7 +500,7 @@ object GithubAPI {
 
         // Thanks to: https://stackoverflow.com/a/74328603/10585461
         UncivKtor.client.prepareRequest {
-            url(zipUrl)
+            url(proxify(zipUrl))
             timeout { requestTimeoutMillis = Long.MAX_VALUE }
             if (updateProgressPercent != null) onDownload(::reportProgress)
         }.execute { resp ->

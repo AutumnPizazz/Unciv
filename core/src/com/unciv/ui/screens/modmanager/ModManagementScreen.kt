@@ -285,6 +285,29 @@ class ModManagementScreen private constructor(
 
     private fun reloadOnlineMods() = tryDownloadPage(1)
 
+    /** When the mod list fails to load, offer players with restricted access to github.com
+     *  (e.g. in mainland China) a one-click switch to a mirror download source.
+     *  Must be called on the GL thread. */
+    private fun suggestSwitchingDownloadSource() {
+        val source = GithubAPI.ModDownloadSource.fromStoredName(game.settings.modDownloadSource)
+        if (source != GithubAPI.ModDownloadSource.Official) {
+            ToastPopup(
+                "Could not download mod list. If this keeps happening, switch the Mod download source in Options - Advanced.".tr(),
+                this
+            )
+            return
+        }
+        ConfirmPopup(
+            stage,
+            "Could not download mod list - github.com may be unreachable from your network. Switch to a mirror download source and try again?".tr(),
+            "Switch download source"
+        ) {
+            game.settings.modDownloadSource = GithubAPI.ModDownloadSource.GhProxyCom.name
+            game.settings.save()
+            reloadOnlineMods()
+        }.open(true)
+    }
+
     /** background worker: querying GitHub for Mods (repos with 'unciv-mod' in its topics)
      *
      *  calls itself for the next page of search results
@@ -296,6 +319,7 @@ class ModManagementScreen private constructor(
                 repoSearch = Github.tryGetGithubReposWithTopic(pageNum, amountPerPage)
             } catch (ex: Exception) {
                 Log.error("Could not download mod list", ex)
+                launchOnGLThread { suggestSwitchingDownloadSource() }
                 runningSearchJob = null
                 return@run
             }

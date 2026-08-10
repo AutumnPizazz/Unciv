@@ -225,6 +225,7 @@ export default defineConfig({
               { text: 'Differences vs upstream', link: '/UncivCN/Differences' },
               { text: 'Coding standards', link: '/UncivCN/Coding-standards' },
               { text: 'Polling multiplayer', link: '/UncivCN/Polling-multiplayer' },
+              { text: 'Installing mods from mainland China', link: '/UncivCN/Mod-download-in-China' },
             ],
           },
           {
@@ -318,6 +319,7 @@ export default defineConfig({
               { text: '与上游差异', link: '/zh/UncivCN/Differences' },
               { text: '代码规范', link: '/zh/UncivCN/Coding-standards' },
               { text: '轮询联机', link: '/zh/UncivCN/Polling-multiplayer' },
+              { text: '国内玩家模组安装指南', link: '/zh/UncivCN/Mod-download-in-China' },
             ],
           },
           {

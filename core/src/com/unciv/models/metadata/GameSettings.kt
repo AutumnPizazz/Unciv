@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.Base64Coder
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.multiplayer.FriendList
+import com.unciv.logic.github.GithubAPI.ModDownloadSource
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.models.UncivSound
 import com.unciv.models.metadata.GameSettings.WindowState.Companion.minimumHeight
@@ -150,6 +151,11 @@ class GameSettings {
     var maxAutosavesStored = 10
     var turnsBetweenAutosaves = 1
     var allowRandomVariance = false
+
+    /** Mod download source - name of a [ModDownloadSource] entry; "Custom" uses [customModDownloadPrefix] */
+    var modDownloadSource: String = ModDownloadSource.Official.name
+    /** Custom URL prefix used when [modDownloadSource] is Custom, e.g. "https://gh-proxy.com/" */
+    var customModDownloadPrefix = ""
 
     @Readonly
     internal fun isRandomVarianceEnabled(isOnlineMultiplayer: Boolean) =
