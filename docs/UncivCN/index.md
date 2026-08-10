@@ -6,7 +6,7 @@
 
 - Upstream repository: https://github.com/yairm210/Unciv
 - UncivCN repository: https://github.com/AutumnPizazz/Unciv
-- Current version: **4.21.6.3** (based on upstream 4.21.6)
+- Current version: **4.21.6.4** (based on upstream 4.21.6)
 
 ## Relationship with upstream
 

@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+## v4.21.6.4 (build 1248)
+
 - CI: GitHub Release notes now contain the release's changelog in both English and Chinese - the deploy workflow pulls the matching version section from the CN changelogs (docs/UncivCN + docs/zh/UncivCN) instead of the upstream changelog.md, which has no 4-part CN version tags (previously the Release description was empty)
 - Mod management: added a "Mod download source" setting (Options → Advanced) so players with restricted access to github.com (e.g. in mainland China) can route the mod list, preview images and downloads through public GitHub proxy mirrors (gh-proxy.com / ghfast.top / ghproxy.net, or any custom prefix); when loading the mod list fails on the official source, the game offers a one-click switch to a mirror and retries automatically; new guide page "Installing mods from mainland China"
 - Removed the "Reset to defaults" button on the new-game screen: the load-setup picker now always offers a built-in, non-deletable "Default setup" entry that restores the exact same default options (with the same confirmation dialog)
