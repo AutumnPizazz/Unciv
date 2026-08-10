@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 新建游戏页的剪贴板复制/粘贴按钮从左上角（游戏选项列顶部）移到右下角"开始游戏"旁：宽屏与开始游戏同一行、位于其左侧；窄屏单独一行放在开始游戏上方，避免撑破底部栏
 - 文档：Coding-standards 新增发版检查清单与踩坑经验（tag 推送、文档站本地验证、禁止裸尖括号、Maven Central 403、Unciv.jar 旧名残留、continue-on-error 掩盖失败、CN 词条翻译完整性）
 
 ## v4.21.6.3（build 1247）

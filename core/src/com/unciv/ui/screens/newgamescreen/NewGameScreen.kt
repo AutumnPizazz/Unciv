@@ -99,6 +99,23 @@ class NewGameScreen(
         val horizontalGroup = HorizontalGroup().padBottom(5f).space(10f)
         rightSideGroup.addActorAt(0, horizontalGroup)
 
+        // Export/import the complete setup to/from the clipboard (base64)
+        val copySetupButton = "Copy game setup to clipboard".toTextButton()
+        val pasteSetupButton = "Paste game setup from clipboard".toTextButton()
+        copySetupButton.onClick(this::exportGameSetupToClipboard)
+        pasteSetupButton.onClick(this::importGameSetupFromClipboard)
+        if (isPortrait) {
+            // Narrow screens get their own row above the Start button - the long button texts would overflow otherwise
+            val clipboardGroup = HorizontalGroup().padBottom(5f).space(10f)
+            clipboardGroup.addActor(copySetupButton)
+            clipboardGroup.addActor(pasteSetupButton)
+            rightSideGroup.addActorAt(0, clipboardGroup)
+        } else {
+            // Wide screens: copy/paste sit to the left of "Reset to defaults" / "Start game!"
+            horizontalGroup.addActor(copySetupButton)
+            horizontalGroup.addActor(pasteSetupButton)
+        }
+
         if (UncivGame.Current.settings.lastGameSetup != null) {
             val resetToDefaultsButton = "Reset to defaults".toTextButton()
             resetToDefaultsButton.onClick {

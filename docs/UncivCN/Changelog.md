@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Moved the copy/paste game-setup-to-clipboard buttons on the new-game screen from the top-left (top of the Game Options column) to the bottom-right next to "Start game!" - same row on wide screens, their own row above it on narrow screens to avoid overflowing the bottom bar
 - Docs: added a release checklist and lessons-learned section (tag push, docs build verification, no bare angle brackets, Maven Central 403, stale Unciv.jar names, continue-on-error jobs, CN translation completeness) to Coding-standards
 
 ## v4.21.6.3 (build 1247)

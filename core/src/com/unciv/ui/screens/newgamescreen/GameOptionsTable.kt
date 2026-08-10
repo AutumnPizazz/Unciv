@@ -84,17 +84,6 @@ class GameOptionsTable(
     fun update() {
         clear()
 
-        // Export/import the complete setup to/from the clipboard (base64)
-        add(Table().apply {
-            defaults().pad(5f)
-            val copyButton = "Copy game setup to clipboard".toTextButton()
-            val pasteButton = "Paste game setup from clipboard".toTextButton()
-            copyButton.onClick { (previousScreen as? NewGameScreen)?.exportGameSetupToClipboard() }
-            pasteButton.onClick { (previousScreen as? NewGameScreen)?.importGameSetupFromClipboard() }
-            add(copyButton).growX()
-            add(pasteButton).growX()
-        }).colspan(2).fillX().padTop(5f).row()
-
         // Mods may have changed (e.g. custom map selection)
         modCheckboxes.updateSelection()
         val newBaseRulesetHash = gameParameters.baseRuleset.hashCode()
