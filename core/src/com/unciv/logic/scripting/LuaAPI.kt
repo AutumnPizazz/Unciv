@@ -768,7 +768,9 @@ object LuaAPI {
             LuaValue.NIL
         })
         t.registerApi("city", "sellBuilding", luaFunction { args ->
-            city.sellBuilding(args.arg(1).tojstring())
+            val building = city.civ.gameInfo.ruleset.buildings[args.arg(1).tojstring()]
+            if (building != null && city.cityConstructions.containsBuildingOrEquivalent(building.name))
+                city.sellBuilding(building)
             LuaValue.NIL
         })
 

@@ -252,6 +252,28 @@ class LuaScriptTests {
     }
 
     @Test
+    fun luaConditionalRecursionIsCutOff() {
+        // Circular Lua conditions (A calls evaluateConditional on B, B on A) must not
+        // overflow the JVM stack - they evaluate to false past the depth limit.
+        loadLuaScriptToMod("recMod", "rec.lua", """
+            function loopA(ctx)
+                return ctx.evaluateConditional("if [recMod:loopB] returns true")
+            end
+            function loopB(ctx)
+                return ctx.evaluateConditional("if [recMod:loopA] returns true")
+            end
+        """.trimIndent())
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val state = GameContext(civ, city)
+        val unique = Unique("[+1 Production] <if [recMod:loopA] returns true>")
+        val result = Conditionals.conditionalApplies(
+            null, unique.getModifiers(UniqueType.ConditionalLuaCheck)[0], state
+        )
+        Assert.assertFalse("circular Lua conditions must evaluate to false, not crash", result)
+    }
+
+    @Test
     fun extendedApiTestsPass() {
         val civ = testGame.addCiv(isPlayer = true)
         val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))

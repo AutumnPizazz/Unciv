@@ -4877,6 +4877,14 @@ Example: "if [DeCiv Redux] is not enabled"
 Applicable to: Conditional
 
 :::
+::: details &lt;if [luaFunction] returns true&gt;
+Evaluates a Lua function from a loaded mod as a condition; the function receives the usual ctx table (civ/city/unit/tile/game/parameter...) and must return true for the condition to apply. The function should be a pure query - conditionals are evaluated very frequently, so keep it cheap and side-effect-free. Missing functions are reported by the mod checker.
+
+Example: "if [myMod:myFunction] returns true"
+
+Applicable to: Conditional
+
+:::
 ## TriggerCondition uniques
 ::: note
 
@@ -4925,6 +4933,14 @@ Applicable to: TriggerCondition
 :::
 ::: details &lt;upon signing a peace treaty with [civFilter] Civilizations&gt;
 Example: "upon signing a peace treaty with [City-States] Civilizations"
+
+Applicable to: TriggerCondition
+
+:::
+::: details &lt;upon completing a trade with [civFilter] Civilizations&gt;
+Triggers when this civ completes a trade (accepted by either side) with a matching civilization. Note: this fires on every accepted trade, including AI auto-accepted ones and open-borders deals made during conquest.
+
+Example: "upon completing a trade with [City-States] Civilizations"
 
 Applicable to: TriggerCondition
 

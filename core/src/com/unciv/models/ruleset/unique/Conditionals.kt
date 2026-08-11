@@ -24,20 +24,37 @@ object Conditionals {
      * evaluated very often (and each call carries Lua interop overhead). Missing functions simply
      * evaluate to false; the mod checker reports them at load time.
      */
+    /**
+     * Max nesting depth for Lua conditions. A Lua condition function may call
+     * [LuaAPI]'s `ctx.evaluateConditional` (or trigger other uniques) which can in turn evaluate
+     * another Lua condition - a mod author writing a circular reference (`if [a]` -> calls
+     * `if [b]` -> calls `if [a]`) would otherwise recurse until the JVM throws
+     * StackOverflowError, which [LuaScriptManager.callFunction] (catching Exception only) cannot
+     * contain. Exceeding the depth simply evaluates to false.
+     */
+    private val luaConditionDepth = ThreadLocal.withInitial { 0 }
+
     @Readonly @Suppress("purity") // running mod-provided code is inherently effectful - documented above
     private fun checkLuaCondition(conditional: Unique, state: GameContext): Boolean {
-        val civInfo = state.relevantCiv ?: return false
-        val (modName, functionName) = LuaScriptManager.parseLuaRef(conditional.params[0])
-        val (foundMod, luaFunc) = LuaScriptManager.getFunction(modName, functionName)
-            ?: return false
-        val ctx = LuaAPI.buildContext(
-            civInfo, state.relevantCity, state.relevantUnit, state.relevantTile,
-            "", state, foundMod
-        )
-        var result = false
-        LuaScriptManager.callFunction(luaFunc, ctx, civInfo, functionName,
-            onSuccess = { result = it }, modName = foundMod)
-        return result
+        val depth = luaConditionDepth.get()
+        if (depth > 8) return false
+        luaConditionDepth.set(depth + 1)
+        try {
+            val civInfo = state.relevantCiv ?: return false
+            val (modName, functionName) = LuaScriptManager.parseLuaRef(conditional.params[0])
+            val (foundMod, luaFunc) = LuaScriptManager.getFunction(modName, functionName)
+                ?: return false
+            val ctx = LuaAPI.buildContext(
+                civInfo, state.relevantCity, state.relevantUnit, state.relevantTile,
+                "", state, foundMod
+            )
+            var result = false
+            LuaScriptManager.callFunction(luaFunc, ctx, civInfo, functionName,
+                onSuccess = { result = it }, modName = foundMod)
+            return result
+        } finally {
+            luaConditionDepth.set(depth)
+        }
     }
 
     @Readonly @Suppress("purity") // hashcode... requires a think

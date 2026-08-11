@@ -94,7 +94,12 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
         generatedMapOptionsTable.update()
         randomMapOptionsTable.update()
 
-        val desiredType = mapParameters.type.takeIf { it in getMapTypes() } ?: MapGeneratedMainType.generated
+        // An imported setup may reference a Lua map script - restore the Lua Generated type then.
+        val luaScriptsAvailable = LuaScriptManager.getMapScripts(newGameScreen.ruleset).isNotEmpty()
+        val desiredType = when {
+            mapParameters.type == MapType.scripted && luaScriptsAvailable -> MapGeneratedMainType.luaGenerated
+            else -> mapParameters.type.takeIf { it in getMapTypes() } ?: MapGeneratedMainType.generated
+        }
         val oldSelection = mapTypeSelectBox.selected.value
         // setSelected fires a change event (and thus updateOnMapTypeChange) only if the selection actually changed
         mapTypeSelectBox.setSelected(desiredType)

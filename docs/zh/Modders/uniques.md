@@ -4884,6 +4884,14 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
+::: details &lt;if [luaFunction] returns true&gt;
+将已加载模组中的 Lua 函数作为条件求值；函数收到常规 ctx 表（civ/city/unit/tile/game/parameter…），返回 true 时条件成立。函数应为纯查询——条件会被频繁求值，请保持廉价且无副作用。缺失函数由模组检查器报告。
+
+示例："if [myMod:myFunction] returns true"
+
+适用范围：Conditional
+
+:::
 ## TriggerCondition uniques（触发条件词条）
 ::: note
 
@@ -4932,6 +4940,14 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 :::
 ::: details &lt;upon signing a peace treaty with [civFilter] Civilizations&gt;
 示例："upon signing a peace treaty with [City-States] Civilizations"
+
+适用范围：TriggerCondition
+
+:::
+::: details &lt;upon completing a trade with [civFilter] Civilizations&gt;
+当本文明与匹配的文明完成一笔交易（任意一方接受）时触发。注意：所有被接受的交易都会触发，包括 AI 自动接受与征服时签订的开放边界协议。
+
+示例："upon completing a trade with [City-States] Civilizations"
 
 适用范围：TriggerCondition
 

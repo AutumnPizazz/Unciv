@@ -176,6 +176,37 @@ class LuaApiRobustnessTests {
     }
 
     @Test
+    fun staticCheckerCatchesMapScriptTypos() {
+        // The static checker must also cover the map-script API (ctx.map / ctx.params / ctx.size / ctx.bounds)
+        val tempDir = java.nio.file.Files.createTempDirectory("luaMapCheck")
+        val scriptsDir = tempDir.resolve("scripts")
+        java.nio.file.Files.createDirectories(scriptsDir)
+        scriptsDir.resolve("map.lua").writeText("""
+            function GenerateMap(ctx)
+                ctx.map.getTilee(0, 0)      -- typo: getTile
+                ctx.params.elevaton          -- typo: elevationExponent
+                ctx.map.getTile(0, 0)       -- valid
+                ctx.params.size.width        -- valid property chain
+                return true
+            end
+        """.trimIndent())
+
+        val errors = LuaModStaticChecker.checkApiUsage(
+            com.badlogic.gdx.Gdx.files.absolute(tempDir.toAbsolutePath().toString() + "/scripts")
+        )
+        val messages = errors.map { it.message }
+        org.junit.Assert.assertTrue(
+            "Map-script typos must be flagged, got: $messages",
+            messages.any { it.contains("ctx.map.getTilee") } && messages.any { it.contains("ctx.params.elevaton") }
+        )
+        org.junit.Assert.assertTrue(
+            "Valid map-script calls must not be flagged, got: $messages",
+            messages.none { it.contains("ctx.map.getTile(0, 0)") || it.contains("ctx.params.size.width") }
+        )
+        java.nio.file.Files.walk(tempDir).sorted(Comparator.reverseOrder()).forEach { java.nio.file.Files.delete(it) }
+    }
+
+    @Test
     fun testModScriptsPassStaticCheck() {
         // The bundled testMOD scripts must be clean - keeps the checker honest about false positives
         val testModDir = sequenceOf(

@@ -159,6 +159,9 @@ class MapParametersTable(
 
     internal fun generateExampleMap() {
         cancelBackgroundJobs()
+        // Lua map scripts generate the map themselves - the Kotlin MapGenerator has no
+        // "Scripted" branch, so a preview would silently show a wrong (normally generated) map.
+        if (mapGeneratedMainType == MapGeneratedMainType.luaGenerated) return
         val generation = ++exampleMapGeneration
         val ruleset = if (previousScreen is NewGameScreen) previousScreen.ruleset.clone() else RulesetCache.getVanillaRuleset()
         val mapParametersForExample =

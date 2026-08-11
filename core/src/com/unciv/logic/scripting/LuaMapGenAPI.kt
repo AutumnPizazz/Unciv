@@ -20,6 +20,36 @@ import kotlin.math.sqrt
 
 object LuaMapGenAPI {
 
+    /**
+     * Static catalog of every API name exposed per map-script context table - consumed by the CLI
+     * mod checker (mod-ci / --check-mod), which has no running game. Kept in sync with the runtime
+     * registration in [buildMapGenContext]/[buildMapTable]/[buildMapGenTileTable]/[buildParamsTable]
+     * by a test (LuaMapGenAPITests.mapGenApiCatalogMatchesRuntimeRegistration).
+     */
+    val mapGenApiCatalog: Map<String, Set<String>> = mapOf(
+        "ctx" to setOf("params", "seed", "perlin", "random", "randomInt", "map", "log"),
+        "params" to setOf("name", "type", "shape", "worldWrap", "mirroring", "symmetryMode", "size", "bounds",
+            "waterThreshold", "temperatureintensity", "temperatureShift", "vegetationRichness",
+            "rareFeaturesRichness", "resourceRichness", "elevationExponent", "tilesPerBiomeArea",
+            "maxCoastExtension", "noRuins", "noNaturalWonders", "mapResources", "strategicBalance",
+            "legendaryStart", "mods", "baseRuleset"),
+        "size" to setOf("name", "radius", "width", "height"),
+        "bounds" to setOf("minX", "minY", "maxX", "maxY"),
+        "map" to setOf("getWidth", "getHeight", "getRadius", "getShape", "isWrapped", "getTile", "getAllTiles",
+            "assignContinents", "addStartingLocation", "getStartingLocations", "clearStartingLocations",
+            "setTransients", "normalizeTiles", "floodFill", "generateClimate", "spreadCoasts",
+            "generateMountains", "generateRivers", "generateIce", "convertTerrains",
+            "normalizeStartPlot", "distributeLuxuries", "distributeStrategics", "strategicBalanceStarts"),
+        "tile" to setOf("position", "getX", "getY", "baseTerrain", "isLand", "isWater", "isCoast",
+            "isHill", "isMountain", "isImpassable", "hasTerrainFeature", "getTerrainFeatures",
+            "temperature", "setTemperature", "getTemperature", "humidity", "setHumidity", "getHumidity",
+            "getLatitude", "getLongitude", "getContinent", "hasResource", "resourceName", "resourceAmount",
+            "hasImprovement", "improvementName", "isRiver", "isNaturalWonder", "isAdjacentToFreshWater",
+            "getBaseYield", "getNeighbors", "getTilesInDistance", "setTerrain", "addTerrainFeature",
+            "removeTerrainFeature", "removeAllTerrainFeatures", "setResource", "removeResource",
+            "setImprovement", "removeImprovement", "setRoad", "setRailroad", "removeRoad", "setNaturalWonder"),
+    )
+
     private fun LuaValue.safeToInt(): Int {
         val d = this.todouble()
         if (d.isNaN() || d.isInfinite()) {

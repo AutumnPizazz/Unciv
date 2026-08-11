@@ -10,8 +10,10 @@ import com.badlogic.gdx.files.FileHandle
  */
 object LuaModStaticChecker {
 
-    /** Pattern for direct API access: ctx.<owner>.<method> - catches typos in method names. */
-    private val apiCallRegex = Regex("""ctx\.(civ|city|unit|tile|game|store|parameter)\s*\.\s*([A-Za-z_]\w*)""")
+    /** Pattern for direct API access: ctx.<owner>.<method> - catches typos in method names.
+     *  Covers both the in-game context (civ/city/unit/tile/game/store) and the map-script
+     *  context (params/size/bounds/map; `tile` is shared, see checkApiUsage for the union). */
+    private val apiCallRegex = Regex("""ctx\.(civ|city|unit|tile|game|store|parameter|params|size|bounds|map)\s*\.\s*([A-Za-z_]\w*)""")
 
     /**
      * Scans every `.lua` file under [scriptsDir] for direct calls to unknown
@@ -41,11 +43,14 @@ object LuaModStaticChecker {
                     val method = match.groupValues[2]
                     val known = when (owner) {
                         "parameter" -> true // ctx.parameter is a plain string field
-                        else -> LuaAPI.apiCatalog[owner]?.contains(method) == true
+                        // Map-script and in-game contexts share `tile` with different API sets;
+                        // check against the union so neither context produces false positives.
+                        else -> (LuaAPI.apiCatalog[owner].orEmpty()
+                            + LuaMapGenAPI.mapGenApiCatalog[owner].orEmpty()).contains(method)
                     }
                     if (!known) {
                         val hint = if (owner == "parameter") "ctx.parameter is a value, not a table"
-                        else "unknown API - did you mean one of: ${suggestSimilar(method, LuaAPI.apiCatalog[owner].orEmpty())}"
+                        else "unknown API - did you mean one of: ${suggestSimilar(method, LuaAPI.apiCatalog[owner].orEmpty() + LuaMapGenAPI.mapGenApiCatalog[owner].orEmpty())}"
                         errors.add(LuaScriptError(
                             "", file.name(), LuaScriptErrorSeverity.WARNING,
                             "Lua script '${file.name()}' line ${index + 1}: ctx.$owner.$method - $hint",

@@ -17,6 +17,7 @@ import kotlin.math.abs
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaFunction
+import com.badlogic.gdx.Gdx
 
 @RunWith(GdxTestRunner::class)
 class LuaMapGenAPITests {
@@ -1518,6 +1519,45 @@ class LuaMapGenAPITests {
             ctx.map.normalizeTiles()
             return true
         """.trimIndent())
+    }
+    // endregion
+
+    // region Catalog sync
+
+    @Test
+    fun mapGenApiCatalogMatchesRuntimeRegistration() {
+        // Every API the engine registers on the map-script context tables must be listed in the
+        // static catalog consumed by the CLI mod checker - otherwise mod-ci misses typos.
+        // Locate the repo root by walking up from the bundled testMOD (android/assets/mods/testMOD)
+        val testModFile = Gdx.files.internal("mods/testMOD").file().canonicalFile
+        val repoRoot = testModFile.parentFile!!.parentFile!!.parentFile!!.parentFile!!
+        val apiSource = java.nio.file.Files.readString(
+            repoRoot.toPath().resolve("core/src/com/unciv/logic/scripting/LuaMapGenAPI.kt")
+        )
+
+        val registered = Regex("""\w+\.set\("([A-Za-z]+)"\s*,""")
+            .findAll(apiSource)
+            .map { it.groupValues[1] }
+            .toSet()
+        Assert.assertTrue("no APIs extracted from LuaMapGenAPI.kt", registered.size > 30)
+
+        // All registered names must appear somewhere in the catalog (any table - the catalog
+        // groups them by owner but a plain name check is enough to catch omissions).
+        // `nation`/`x`/`y` are fields of the getStartingLocations() result table, not APIs.
+        val resultTableFields = setOf("nation", "x", "y")
+        val catalogNames = LuaMapGenAPI.mapGenApiCatalog.values.flatten().toSet()
+        val missing = registered - catalogNames - resultTableFields
+        Assert.assertTrue(
+            "mapGenApiCatalog is missing: ${missing.sorted().joinToString(", ")}",
+            missing.isEmpty()
+        )
+
+        // And every catalog name must actually be registered (catches renamed/removed APIs).
+        val stale = catalogNames - registered - setOf("position")
+        Assert.assertTrue(
+            "mapGenApiCatalog lists unregistered names: ${stale.sorted().joinToString(", ")}",
+            stale.isEmpty()
+        )
     }
     // endregion
 }
