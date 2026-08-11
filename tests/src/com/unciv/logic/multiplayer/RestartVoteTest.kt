@@ -97,4 +97,71 @@ class RestartVoteTest {
         vote.votes["a"] = false
         assertEquals(false, vote.votes["a"])
     }
+
+    @Test
+    fun twoPlayerGameNeedsOneYesToPass() {
+        val vote = newVote(timeoutMinutes = 60)
+        vote.votes["a"] = true // b never votes
+        assertTrue(vote.trySettle(now = 60 * 60_000L, aliveHumanPlayerIds = setOf("a", "b")))
+        assertTrue(vote.result!!) // 1 yes + 1 default = 2 >= ceil(2/2) = 1
+    }
+
+    @Test
+    fun timeoutOfZeroSettlesImmediately() {
+        val vote = newVote(timeoutMinutes = 0)
+        vote.votes["a"] = true
+        assertTrue(vote.trySettle(now = 0, aliveHumanPlayerIds = setOf("a", "b")))
+        assertTrue(vote.result!!) // 0 - startedAt >= 0 -> timeout reached at once
+    }
+
+    @Test
+    fun jsonRoundTripPreservesAllFields() {
+        val vote = newVote(timeoutMinutes = 90).apply {
+            targetTurn = 33
+            initiatorPlayerId = "playerA"
+            startedAtMillis = 123456789L
+            votes["playerA"] = true
+            votes["playerB"] = false
+            status = RestartVoteStatus.SETTLED
+            result = true
+        }
+        val restored = com.unciv.json.json().fromJson(RestartVote::class.java, com.unciv.json.json().toJson(vote))
+        assertEquals(33, restored.targetTurn)
+        assertEquals("playerA", restored.initiatorPlayerId)
+        assertEquals(123456789L, restored.startedAtMillis)
+        assertEquals(90, restored.timeoutMinutes)
+        assertEquals(mapOf("playerA" to true, "playerB" to false), restored.votes)
+        assertEquals(RestartVoteStatus.SETTLED, restored.status)
+        assertEquals(true, restored.result)
+    }
+
+    @Test
+    fun jsonRoundTripWithMissingOptionalFieldsUsesDefaults() {
+        // Simulates an older vote file that predates a field addition
+        val restored = com.unciv.json.json().fromJson(
+            RestartVote::class.java,
+            "{\"targetTurn\":5,\"initiatorPlayerId\":\"p\",\"startedAtMillis\":1,\"votes\":{\"p\":true}}"
+        )
+        assertEquals(24 * 60, restored.timeoutMinutes)
+        assertEquals(RestartVoteStatus.OPEN, restored.status)
+        assertEquals(null, restored.result)
+    }
+
+    @Test
+    fun gameParametersDefaultsAndCloneKeepVoteSettings() {
+        val json = com.unciv.json.json()
+        // Old save without the new fields -> defaults: vote disabled, 24h timeout
+        val oldStyle = json.fromJson(
+            com.unciv.models.metadata.GameParameters::class.java,
+            "{\"difficulty\":\"Prince\",\"isOnlineMultiplayer\":true}"
+        )
+        assertEquals(0, oldStyle.restartVoteTurn)
+        assertEquals(24 * 60, oldStyle.restartVoteTimeoutMinutes)
+        // Clone preserves the new fields
+        oldStyle.restartVoteTurn = 77
+        oldStyle.restartVoteTimeoutMinutes = 5 * 60
+        val clone = oldStyle.clone()
+        assertEquals(77, clone.restartVoteTurn)
+        assertEquals(5 * 60, clone.restartVoteTimeoutMinutes)
+    }
 }
