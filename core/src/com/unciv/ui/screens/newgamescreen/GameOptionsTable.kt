@@ -69,6 +69,20 @@ class GameOptionsTable(
         "30 seconds" to 30
     )
 
+    private val restartVoteTurnOptions = linkedMapOf(
+        "Off" to 0,
+        "Turn 10" to 10,
+        "Turn 20" to 20,
+        "Turn 30" to 30,
+        "Turn 50" to 50,
+        "Turn 75" to 75,
+        "Turn 100" to 100,
+        "Turn 150" to 150,
+        "Turn 200" to 200,
+        "Turn 300" to 300,
+        "Turn 500" to 500
+    )
+
     // Remember this so we can unselect it when the pool dialog returns an empty pool
     private var randomNationsPoolCheckbox: CheckBox? = null
     // Allow resetting base ruleset from outside
@@ -125,6 +139,8 @@ class GameOptionsTable(
             selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
             selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)
             selectBoxTable.addPollingIntervalSelectBox()
+            selectBoxTable.addRestartVoteTurnSelectBox()
+            selectBoxTable.addDurationSelectBox("Restart vote timeout:", GameParameters::restartVoteTimeoutMinutes, 1, 0, 0)
         }
         add(checkboxTable).center().row()
         add(selectBoxTable).center().row()
@@ -502,6 +518,18 @@ class GameOptionsTable(
         selectBox.isDisabled = locked
         add(selectBox).fillX().row()
     }
+    private fun Table.addRestartVoteTurnSelectBox() {
+        add("Restart vote turn:".toLabel(hideIcons = true)).right()
+        val currentValue = restartVoteTurnOptions.entries.firstOrNull { it.value == gameParameters.restartVoteTurn }
+            ?: restartVoteTurnOptions.entries.first()
+        val selectBox = TranslatedSelectBox(restartVoteTurnOptions.keys.toList(), restartVoteTurnOptions.keys.first())
+        selectBox.setSelected(currentValue.key)
+        selectBox.onChange {
+            gameParameters.restartVoteTurn = restartVoteTurnOptions[selectBox.selected.value] ?: 0
+        }
+        selectBox.isDisabled = locked
+        add(selectBox).fillX().row()
+    }
 
     private class DurationSelector(
         private val gameParameters: GameParameters,
@@ -512,7 +540,7 @@ class GameOptionsTable(
         private val dayValues: Array<Int> = arrayOf(0,1,2,3,4,5,6,7,8,9,10,11),
         private val hourValues: Array<Int> = arrayOf(0,1,2,3,4,5,6,8,10,12,16,20),
         private val minuteValues: Array<Int> = arrayOf(0,3,5,10,15,20,25,30,35,40,45,50)
-        
+
     ) {
         val dayBox: SelectBox<String> = createTimeCell(dayValues, defaultDayValue, "d")
         val hourBox: SelectBox<String> = createTimeCell(hourValues, defaultHourValue, "h")
@@ -526,7 +554,7 @@ class GameOptionsTable(
                 minuteBox.selected ="3m"
             }
         }
-            
+
         fun updateGameParameter() {
             val value = dayValues[dayBox.selectedIndex] * 24 * 60 +
                 hourValues[hourBox.selectedIndex] * 60 +
@@ -534,7 +562,7 @@ class GameOptionsTable(
 
             param.set(gameParameters, value)
         }
-        
+
         fun createTimeCell(intValues: Array<Int>, initialValue: Int, suffix: String): SelectBox<String> {
             val timeBox = SelectBox<String>(BaseScreen.skin)
             val stringValues =  Array(intValues.size) { i -> "${intValues[i]}" + suffix }

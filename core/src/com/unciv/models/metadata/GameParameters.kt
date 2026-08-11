@@ -65,6 +65,11 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
     /** Polling interval in seconds for simultaneous-style multiplayer. 0 = disabled (classic sequential turns). */
     var pollingIntervalSeconds = 0
 
+    /** Turn number at which a restart vote can be initiated in online multiplayer. 0 = disabled. */
+    var restartVoteTurn = 0
+    /** Timeout in minutes for a restart vote; players who didn't vote by then count as agreeing. */
+    var restartVoteTimeoutMinutes = 24 * 60
+
     /** If true, only clients with the same game version as the host can join this multiplayer game. */
     var requireSameVersion = false
     /** Version string of the host that created this game. Set automatically by GameStarter. */
@@ -110,7 +115,14 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
         parameters.isOnlineMultiplayer = isOnlineMultiplayer
         parameters.multiplayerServerUrl = multiplayerServerUrl
         parameters.anyoneCanSpectate = anyoneCanSpectate
+        parameters.minutesUntilSkipTurn = minutesUntilSkipTurn
+        parameters.minutesUntilForceResign = minutesUntilForceResign
+        parameters.minutesRecoveredPerTurn = minutesRecoveredPerTurn
         parameters.pollingIntervalSeconds = pollingIntervalSeconds
+        parameters.requireSameVersion = requireSameVersion
+        parameters.hostVersion = hostVersion
+        parameters.restartVoteTurn = restartVoteTurn
+        parameters.restartVoteTimeoutMinutes = restartVoteTimeoutMinutes
         parameters.baseRuleset = baseRuleset
         parameters.mods = LinkedHashSet(mods)
         parameters.maxTurns = maxTurns
