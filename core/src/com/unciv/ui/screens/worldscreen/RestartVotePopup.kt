@@ -9,6 +9,7 @@ import com.unciv.logic.multiplayer.RestartVoteStatus
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.input.onClick
 import com.unciv.ui.popups.Popup
+import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.utils.Concurrency
@@ -113,12 +114,17 @@ class RestartVotePopup(
         yesButton.isDisabled = true
         noButton.isDisabled = true
         Concurrency.run("CastRestartVote") {
-            val result = worldScreen.game.onlineMultiplayer.castRestartVote(gameId, voteValue)
+            val result = try {
+                worldScreen.game.onlineMultiplayer.castRestartVote(gameId, voteValue)
+            } catch (ex: Exception) {
+                null
+            }
             launchOnGLThread {
                 if (result == null) {
                     // Vote failed (network issue etc.) - re-enable the buttons so the player can retry
                     yesButton.isDisabled = false
                     noButton.isDisabled = false
+                    ToastPopup("Could not submit your vote - please try again!", worldScreen, 3000)
                 }
                 refresh()
             }

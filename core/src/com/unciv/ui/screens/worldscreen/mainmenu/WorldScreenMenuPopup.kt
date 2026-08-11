@@ -14,6 +14,7 @@ import com.unciv.ui.screens.savescreens.LoadGameScreen
 import com.unciv.ui.screens.victoryscreen.VictoryScreen
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.utils.Concurrency
+import com.unciv.utils.debug
 import com.unciv.utils.launchOnGLThread
 
 /** The in-game menu called from the "Hamburger" button top-left
@@ -132,7 +133,12 @@ class WorldScreenMenuPopup(
         val turn = gameInfo.turns
         val timeoutMinutes = gameInfo.gameParameters.restartVoteTimeoutMinutes
         Concurrency.run("StartRestartVote") {
-            val vote = worldScreen.game.onlineMultiplayer.startRestartVote(gameId, turn, timeoutMinutes)
+            val vote = try {
+                worldScreen.game.onlineMultiplayer.startRestartVote(gameId, turn, timeoutMinutes)
+            } catch (ex: Exception) {
+                debug("Could not start restart vote: %s", ex.message)
+                null
+            }
             launchOnGLThread {
                 if (vote != null) {
                     worldScreen.openRestartVotePopup()

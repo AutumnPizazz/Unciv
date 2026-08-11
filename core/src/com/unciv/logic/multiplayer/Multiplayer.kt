@@ -304,8 +304,20 @@ class Multiplayer {
      * Downloads the restart vote for [gameId], settles it when possible, updates the cache and fires
      * [RestartVoteUpdated] when the state changed. Also picks up finished restarts.
      * Serves as both the polling fallback and the receiver-side handler for WebSocket vote signals.
+     * Never throws: it runs on the background updater and a corrupt vote file must not kill the
+     * polling loop (nor trigger the crash screen via the WebSocket signal path).
      */
     suspend fun refreshRestartVote(gameId: String) {
+        try {
+            refreshRestartVoteInternal(gameId)
+        } catch (ex: CancellationException) {
+            throw ex
+        } catch (ex: Exception) {
+            debug("Restart vote refresh failed for %s: %s", gameId, ex.message)
+        }
+    }
+
+    private suspend fun refreshRestartVoteInternal(gameId: String) {
         val vote = fetchRestartVote(gameId)
         val old = restartVoteCache[gameId]
         if (vote == null) {
