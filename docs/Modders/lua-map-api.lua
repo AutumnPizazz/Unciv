@@ -1,0 +1,150 @@
+---@meta
+
+-- Unciv Lua 地图脚本 API 类型定义（与引擎实现对应，改动请同步 LuaMapGenAPI.kt）
+-- Map-script type definitions for the LuaLS language server (VSCode extension "Lua" by sumneko).
+-- Usage: point workspace.library at this file in .luarc.json (together with unciv-api.lua).
+-- The runtime game (mod checker / mod-ci) remains authoritative for signatures.
+
+-- 顶层 ctx（GenerateMap(ctx) / GetMapScriptInfo 返回表）
+---@class UncivMapCtx
+---@field params UncivMapParams 只读 MapParameters（含尺寸/边界/高级参数）
+---@field seed number 地图种子
+---@field perlin fun(x: number, y: number, seed: number, opts?: UncivPerlinOpts): number Perlin 噪声，大致范围 [-1, 1]
+---@field random fun(): number 基于种子的确定性随机数 [0, 1)
+---@field randomInt fun(min: number, max: number): number 基于种子的确定性随机整数 [min, max]（含两端）
+---@field map UncivMapGenMap 地图操作表
+---@field log fun(msg: string) 调试日志
+
+---@class UncivPerlinOpts
+---@field scale? number 噪声观测距离（默认 30.0）
+---@field nOctaves? number 八度数（默认 6）
+---@field persistence? number 振幅缩放（默认 0.5）
+---@field lacunarity? number 频率缩放（默认 2.0）
+
+---@class UncivMapSize
+---@field name string
+---@field radius number
+---@field width number
+---@field height number
+
+---@class UncivMapBounds
+---@field minX number 实际最小 X（矩形地图为负）
+---@field minY number 实际最小 Y
+---@field maxX number 实际最大 X
+---@field maxY number 实际最大 Y
+
+---@class UncivMapParams
+---@field name string
+---@field type string 地图类型（如 MapType.scripted = "Scripted"）
+---@field shape string MapShape（"Rectangular"/"Hexagonal"/"Flat Earth Hexagonal"）
+---@field worldWrap boolean
+---@field mirroring string
+---@field symmetryMode string
+---@field size UncivMapSize
+---@field bounds UncivMapBounds 实际地块坐标范围（遍历请用 map.getAllTiles()）
+---@field waterThreshold number
+---@field temperatureintensity number
+---@field temperatureShift number
+---@field vegetationRichness number
+---@field rareFeaturesRichness number
+---@field resourceRichness number
+---@field elevationExponent number
+---@field tilesPerBiomeArea number
+---@field maxCoastExtension number
+---@field noRuins boolean
+---@field noNaturalWonders boolean
+---@field mapResources string
+---@field strategicBalance boolean
+---@field legendaryStart boolean
+---@field mods string[] 启用的模组列表
+---@field baseRuleset string
+
+---@class UncivMapGenMap
+---@field getWidth fun(): number
+---@field getHeight fun(): number
+---@field getRadius fun(): number
+---@field getShape fun(): string
+---@field isWrapped fun(): boolean
+---@field getTile fun(x: number, y: number): UncivMapGenTile|nil
+---@field getAllTiles fun(): UncivMapGenTile[]
+---@field assignContinents fun()
+---@field addStartingLocation fun(x: number, y: number, nationName?: string): boolean
+---@field getStartingLocations fun(): UncivMapStartingLocation[]
+---@field clearStartingLocations fun()
+---@field setTransients fun()
+---@field normalizeTiles fun()
+---@field floodFill fun(x: number, y: number, terrainFilter?: string): UncivMapGenTile[] BFS 连通地块（可选按地形过滤）
+---@field generateClimate fun()
+---@field spreadCoasts fun(maxExtension?: number)
+---@field generateMountains fun(elevationExponent?: number)
+---@field generateRivers fun()
+---@field generateIce fun()
+---@field convertTerrains fun()
+---@field normalizeStartPlot fun(x: number, y: number, opts?: UncivStartPlotOpts) 起始地块平衡（食物/产能/奢侈/丘陵）
+---@field distributeLuxuries fun(opts?: {perPlayer?: number, minDistance?: number})
+---@field distributeStrategics fun(opts?: {perPlayer?: number, radius?: number})
+---@field strategicBalanceStarts fun(opts?: {horses?: number, iron?: number, radius?: number})
+
+---@class UncivStartPlotOpts
+---@field freshwater? boolean 确保邻接淡水（默认 true）
+---@field minFood? number 内环最小食物（默认 4）
+---@field minProd? number 内环最小产能（默认 3）
+---@field minLuxuries? number 3 格内最少奢侈种类（默认 2）
+---@field maxBlocking? number 内环最大不可通行/水域地块数（默认 2）
+---@field minHills? number 内环最小丘陵数（默认 2）
+
+---@class UncivMapStartingLocation
+---@field x number
+---@field y number
+---@field nation string 关联的文明（nation）名（可为空）
+
+---@class UncivMapGenTile
+---@field position {x: number, y: number}
+---@field getX fun(): number
+---@field getY fun(): number
+---@field baseTerrain string
+---@field isLand boolean
+---@field isWater boolean
+---@field isCoast boolean
+---@field isHill fun(): boolean
+---@field isMountain fun(): boolean
+---@field isImpassable fun(): boolean
+---@field hasTerrainFeature fun(featureName: string): boolean
+---@field getTerrainFeatures fun(): string[]
+---@field temperature number
+---@field setTemperature fun(v: number)
+---@field getTemperature fun(): number
+---@field humidity number
+---@field setHumidity fun(v: number)
+---@field getHumidity fun(): number
+---@field getLatitude fun(): number
+---@field getLongitude fun(): number
+---@field getContinent fun(): number
+---@field hasResource fun(): boolean
+---@field resourceName string
+---@field resourceAmount number
+---@field hasImprovement fun(): boolean
+---@field improvementName string
+---@field isRiver fun(): boolean
+---@field isNaturalWonder fun(): boolean
+---@field isAdjacentToFreshWater fun(): boolean
+---@field getBaseYield fun(stat: string): number 地块基础产出（无文明视角）
+---@field getNeighbors fun(): UncivMapGenTile[]
+---@field getTilesInDistance fun(radius: number): UncivMapGenTile[]
+---@field setTerrain fun(terrainName: string)
+---@field addTerrainFeature fun(featureName: string)
+---@field removeTerrainFeature fun(featureName: string)
+---@field removeAllTerrainFeatures fun()
+---@field setResource fun(resourceName: string, amount: number)
+---@field removeResource fun()
+---@field setImprovement fun(improvementName: string)
+---@field removeImprovement fun()
+---@field setRoad fun()
+---@field setRailroad fun()
+---@field removeRoad fun()
+---@field setNaturalWonder fun(wonderName: string) 空字符串清除
+
+-- GetMapScriptInfo 返回值约定
+---@class UncivMapScriptInfo
+---@field name string 显示名（新建游戏界面）
+---@field description string 描述

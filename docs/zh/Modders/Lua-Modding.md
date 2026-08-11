@@ -749,6 +749,8 @@ map.strategicBalanceStarts({horses, iron, radius})
 
 完整的可复制改名示例位于 `docs/Modders/examples/LuaMapScriptExample/`（见其 README）。
 
+地图脚本的编辑器自动补全：把 LuaLS 语言服务器指向 `docs/Modders/lua-map-api.lua`（`.luarc.json` 配置与[编辑器设置](#编辑器设置自动补全与类型提示)相同，`workspace.library` 同时列出 `unciv-api.lua` 与 `lua-map-api.lua`）；定义文件与引擎实现的一致性由测试保障。
+
 ## 注意事项
 
 - **参数约定（极易出错）**：引擎只向 lua 函数传入一个参数 `ctx`。`ctx.parameter` 才是 unique 中 `[parameter]` 解析后的值，`ctx.game`/`ctx.civ` 是上下文对象的入口。不要把第一个形参当成业务参数、不要把 `game` 当成全局变量——这是实测中最常见的错误

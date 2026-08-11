@@ -720,6 +720,8 @@ Tiles returned by `map.getTile` / `getAllTiles` / `floodFill` support: `position
 
 A complete copy-and-rename example lives at `docs/Modders/examples/LuaMapScriptExample/` (see its README).
 
+For editor autocompletion of map scripts, point the LuaLS language server at `docs/Modders/lua-map-api.lua` (same `.luarc.json` setup as [Editor Setup](#editor-setup-autocompletion--type-hints), listing both `unciv-api.lua` and `lua-map-api.lua` under `workspace.library`); the definitions are kept in sync with the engine by a test.
+
 ## Notes
 
 - **Sandbox**: The Lua environment is restricted. `os.*`, `io.*`, `coroutine.*`, `require`, `debug.*`, `string.dump`, the `package` library (and its `package.loaded` table), file operations, and metatable operations are disabled. Scripts that try to access them fail with an error.
