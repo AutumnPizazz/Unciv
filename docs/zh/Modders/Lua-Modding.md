@@ -106,7 +106,7 @@ Countable 表达式在调用 Lua 之前被解析为字符串。例如当前金�
 ]
 ```
 
-支持的触发条件包括：`<upon turn start>`、`<upon turn end>`、`<upon discovering [techFilter] technology>`、`<upon conquering a city>`、`<upon founding a city>` 等。此外，`TriggerLuaFunction` 可以直接放在 `Building`、`Tech`、`Policy`、`Era`、`Event`/`EventChoice`、`Unit`、`Promotion` 等对象的 `uniques` 中，在这些对象的自然触发时机（建造完成、研究完成、政策采纳等）执行。
+支持的触发条件包括：`<upon turn start>`、`<upon turn end>`、`<upon discovering [techFilter] technology>`、`<upon conquering a city>`、`<upon founding a city>` 等。此外，另支持 `<upon completing a trade with [civFilter] Civilizations>`（任意被接受的交易完成时对双方触发，含 AI 自动接受）。其他战争/外交钩子：`<upon declaring war on [civFilter] Civilizations>`、`<upon being declared war on by [civFilter] Civilizations>`、`<upon entering a war with [civFilter] Civilizations>`、`<upon signing a peace treaty with [civFilter] Civilizations>`、`<upon losing a city>`。此外，`TriggerLuaFunction` 可以直接放在 `Building`、`Tech`、`Policy`、`Era`、`Event`/`EventChoice`、`Unit`、`Promotion` 等对象的 `uniques` 中，在这些对象的自然触发时机（建造完成、研究完成、政策采纳等）执行。
 
 ## ctx 上下文对象
 
@@ -124,6 +124,8 @@ Lua 函数接收一个 `ctx` 表，包含以下字段：
 | `ctx.log(msg)` | function | 输出调试日志到 Unciv 日志 |
 | `ctx.count(expr)` | function | 运行时求值 Countable 表达式 |
 | `ctx.evaluateConditional(condition)` | function | 求值一个 conditional 条件句（如 `"when at war"`），返回 boolean |
+| `ctx.random()` | function | 确定性随机数，范围 [0, 1)——相同游戏状态下的相同调用序列产生相同结果（联机安全） |
+| `ctx.randomInt(min, max)` | function | 确定性随机整数，范围 [min, max]（含两端） |
 
 **调用约定**：API 函数使用 `.` 语法（不是 `:` 语法）：
 
@@ -154,8 +156,17 @@ civ.getStat("Science")             -- 返回属性储备值
 civ.getStatYield("Production")     -- 返回每回合产出
 civ.getGoldPerTurn()               -- 返回每回合金币净收入
 civ.getResourceAmount("Iron")      -- 返回资源库存
+civ.getResourceStockpiles()        -- 资源库存表 {资源名 = 数量}
 civ.hasResource("Horses")          -- 是否有 ≥1
 civ.getEraNumber()                 -- 0-based 时代序号
+civ.getNation()                    -- 文明（nation）名
+civ.getLeaderName()                -- 领袖名
+civ.getScore()                     -- 当前分数
+civ.getForce()                     -- 军力排名值
+civ.getSciencePerTurn()            -- 每回合科研
+civ.getCulturePerTurn()            -- 每回合文化
+civ.getFoodPerTurn()               -- 每回合食物
+civ.getProductionPerTurn()         -- 每回合产能
 
 -- 科技
 civ.isResearched("Agriculture")    -- 是否已研究
@@ -163,6 +174,7 @@ civ.canResearch("Philosophy")      -- 能否研究
 civ.getResearchingTech()           -- 当前研究中的科技名
 civ.getResearchProgress("Writing") -- 已有烧瓶数
 civ.getTechsResearched()           -- 返回已研究科技名列表
+civ.getTechCost("Philosophy")        -- 科技基础研究成本
 civ.getAvailableTechs()            -- 可研究科技名列表
 civ.grantTech("Agriculture")       -- 直接授予科技
 
@@ -170,6 +182,7 @@ civ.grantTech("Agriculture")       -- 直接授予科技
 civ.hasPolicy("Oligarchy")         -- 是否已采纳
 civ.canAdoptPolicy()               -- 是否有可采纳的政策
 civ.getAdoptedPolicies()           -- 已采纳政策名列表
+civ.getCultureNeededForNextPolicy() -- 下一个政策所需文化
 civ.grantPolicy("Oligarchy")       -- 直接采纳政策
 
 -- 外交
@@ -181,6 +194,10 @@ civ.getInfluence("City-State")     -- 城邦影响力数值
 civ.getKnownCivs()                 -- 已知文明名列表
 civ.addInfluence("City-State", 15) -- 增加城邦影响力
 civ.declareWarOn("Greece")         -- 宣战
+civ.getDiplomaticStatuses()         -- 外交状态表 {文明名 = 状态名}
+civ.getProximityTo("Greece")         -- 邻近度字符串（None/Neighbors/Close/Far）
+civ.hasEmbassyWith("Greece")         -- 是否已互设大使馆
+civ.makePeaceWith("Greece")          -- 签订和平（不在战时则为空操作）
 
 -- 宗教
 civ.hasReligion()                  -- 是否已创建宗教
@@ -191,10 +208,15 @@ civ.getFaith()                     -- 信仰值
 civ.getCities()                    -- 城市表列表
 civ.getCity("Rome")               -- 按名称获取城市表
 civ.getCapital()                   -- 首都城市表
+civ.getCityNames()                  -- 城市名列表
+civ.getTotalPopulation()             -- 所有城市人口总和
+civ.getWondersBuilt()                -- 已建造的奇观名列表
 civ.getUnits()                     -- 单位表列表
 civ.getUnitsMatching("Melee")      -- 按 filter 筛选单位
 civ.getUnitCount()                 -- 单位总数
 civ.getSpyCount()                  -- 间谍数量
+civ.getSpies()                      -- 间谍详情表列表 {name, rank, action, location}
+civ.addSpy()                        -- 增加一名间谍
 
 -- 黄金时代
 civ.isGoldenAge()                  -- 是否在黄金时代
@@ -202,6 +224,7 @@ civ.getGoldenAgeTurnsRemaining()   -- 剩余回合
 
 -- 写操作
 civ.addGold(500)                   -- 增加金币
+civ.setGold(500)                   -- 将金币设为精确值
 civ.addStat("Science", 100)        -- 增加属性
 civ.addStats("+2 Gold, +3 Culture") -- 复合属性变化
 civ.addResource("Iron", 5)         -- 增加战略资源
@@ -235,6 +258,19 @@ city.population, city.health       -- 人口和血量
 -- 查询
 city.getStatYield("Production")    -- 单项产出
 city.getAllYields()                -- 所有产出表
+city.getFood()                      -- 当前食物产出
+city.getFoodSurplus()               -- 每回合净食物（负数为饥荒）
+city.getFoodStorage()               -- 已存食物（用于人口增长）
+city.getFoodNeeded()                -- 下一个人口所需食物
+city.getProductionProgress()        -- 当前建造已投入产能
+city.getProductionCost()            -- 当前建造总成本
+city.getTurnsToCompletion()         -- 预计完成回合数
+city.getGarrisonedUnit()            -- 驻军单位表（无则 nil）
+city.getStrength()                  -- 城市战斗力
+city.getSpecialistCount()           -- 已分配专家数
+city.getUnemployedCount()           -- 空闲（未分配）人口
+city.getBuiltWonders()              -- 已建造奇观名列表
+city.isInResistance()               -- 征服后是否处于抵抗
 city.hasBuilding("Library")        -- 是否有某建筑
 city.getBuiltBuildings()           -- 已建成建筑名列表
 city.getBuildingCount()            -- 建筑总数
@@ -249,8 +285,14 @@ city.isHolyCity()                  -- 是否为圣城
 
 -- 写操作
 city.addPopulation(1)              -- 增加人口
+city.setPopulation(5)               -- 精确设置人口（最低 1）
+city.addFood(10)                    -- 增加存粮
+city.addProduction(10)              -- 增加当前建造产能
+city.addHealth(25)                  -- 治疗城市
+city.setName("新罗马")               -- 城市改名
 city.addBuilding("Library")        -- 免费建造
 city.removeBuilding("Library")     -- 移除建筑
+city.sellBuilding("Library")       -- 出售建筑换取金币
 
 -- 建造队列
 city.setProduction("Library")      -- 将当前建造项目设为指定项目
@@ -291,6 +333,17 @@ unit.getRange()                    -- 射程
 unit.getMovement()                 -- 最大移动力
 unit.getCurrentMovement()          -- 剩余移动力
 unit.getXP()                       -- 经验值
+unit.getMaxHealth()                 -- 100（最大生命）
+unit.getDamage()                    -- 最大生命减当前生命
+unit.getAttacksLeft()               -- 本回合剩余攻击次数
+unit.getVisibilityRange()           -- 视野范围（格）
+unit.getAction()                    -- 当前行动字符串（"Fortify"、"moveTo x,y" 等）
+unit.canAttack()                    -- 本回合能否攻击
+unit.canPillage()                   -- 当前地块是否可掠夺
+unit.isInEnemyTerritory()           -- 是否处于敌方领土
+unit.isInFriendlyTerritory()        -- 是否处于己方领土
+unit.isGreatPerson()                -- 是否为伟人
+unit.getReligionDisplayName()       -- 单位宗教名（无则为 ""）
 unit.hasPromotion("Shock I")       -- 是否有晋升
 unit.hasUnique("unique text")      -- 单位是否拥有此 unique（含 unit type + 晋升）
 unit.getPromotions()               -- 晋升名列表
@@ -306,10 +359,16 @@ unit.isOwnedBy("Rome")             -- 是否属于某文明
 unit.healBy(25)                    -- 回复血量
 unit.takeDamage(30)                -- 造成伤害
 unit.addXP(10)                     -- 增加经验
+unit.setXP(30)                      -- 精确设置经验
+unit.setHealth(75)                  -- 精确设置生命（自动限制范围）
 unit.addPromotion("Shock I")       -- 添加晋升
 unit.removePromotion("Shock I")    -- 移除晋升
 unit.addMovement(2)                -- 增加移动力
 unit.useMovement(1.5)              -- 消耗移动力
+unit.setStatus("Test", 3)           -- 施加 N 回合的单位状态
+unit.setAttacksLeft(0)              -- 设置剩余攻击次数
+unit.fortify()                      -- 驻防（action = "Fortify"）
+unit.moveByPath(path)               -- 沿 findPathTo() 的路径移动；返回实际步数
 unit.upgrade()                     -- 免费升级
 unit.destroy()                     -- 摧毁单位
 unit.teleportTo(x, y)              -- 传送
@@ -338,6 +397,16 @@ tile.hasTerrainFeature("Forest")   -- 是否有地形特征
 tile.getTerrainFeatures()          -- 地形特征列表
 tile.isImpassable()                -- 是否不可通行
 tile.isRiver()                     -- 是否为河流
+tile.isAdjacentToCoast()            -- 是否邻接海岸
+tile.hasRoad()                      -- 是否有道路
+tile.hasRailroad()                  -- 是否有铁路
+tile.hasNaturalWonder()             -- 是否有自然奇观
+tile.getNaturalWonder()             -- 自然奇观名（无则 ""）
+tile.isFriendlyTerritory("Rome")     -- 是否为己方领土
+tile.isEnemyTerritory("Rome")       -- 是否为敌方领土
+tile.getDistanceTo(x, y)            -- 空中直线距离（格，越界返回 -1）
+tile.isAdjacentTo(x, y)             -- 是否相邻
+tile.setExplored("Rome", true)      -- 设置/取消某文明对该地块的探索
 tile.hasResource()                 -- 是否有资源
 tile.hasImprovement()              -- 是否有改良设施
 tile.hasMilitaryUnit()             -- 是否有军事单位
@@ -381,6 +450,9 @@ game.difficulty                    -- 难度名
 -- 查询
 game.getYear()                     -- 当前年份
 game.getCurrentPlayer()            -- 当前玩家文明名
+game.getCurrentPlayerCiv()          -- 当前玩家文明表（无则 nil）
+game.getCivNames()                  -- 所有文明名列表
+game.getHumanCivs()                 -- 人类文明列表
 game.getCiv("Rome")               -- 按名称获取文明表
 game.getCivById("uuid...")        -- 按 ID 获取文明表
 game.getAllCivs()                  -- 所有文明表列表
@@ -391,6 +463,12 @@ game.getBarbarianCiv()             -- 蛮族文明
 -- 地图
 game.getTile(x, y)                 -- 获取地块表
 game.getMapWidth(), game.getMapHeight()
+game.getMapName()                   -- 地图名
+game.getMapType()                   -- 地图类型
+game.getEraNames()                  -- 所有时代名
+game.getVictoryTypes()              -- 启用的胜利类型
+game.getMods()                      -- 启用的模组列表
+game.getBaseRuleset()               -- 基础规则集
 game.isWrapped()                   -- 地图是否环绕
 game.getTilesNear(x, y, radius)    -- 范围内地块
 game.findTiles(criteria)           -- 按条件搜索全图地块，见下方说明
@@ -402,8 +480,27 @@ game.getRulesetTechs()             -- 所有科技名列表
 game.getRulesetPolicies()          -- 所有政策名列表
 game.getRulesetEras()              -- 所有时代名列表
 game.getRulesetPromotions()        -- 所有晋升名列表
+game.getRulesetTerrains()          -- 地形名列表
+game.getRulesetResources()          -- 资源名列表
+game.getRulesetImprovements()       -- 改良名列表
+game.getRulesetNations()            -- 文明（nation）名列表
+game.getRulesetReligions()          -- 宗教名列表
+game.getRulesetBeliefs()            -- 信条名列表
+game.getRulesetEvents()             -- 事件名列表
+game.getRulesetNaturalWonders()     -- 自然奇观名列表
+game.getRulesetUnitTypes()          -- 单位类型名列表
 game.doesBuildingExist("Name")     -- 规则集中是否存在
 game.doesUnitExist("Name")         -- 规则集中是否存在
+game.doesTechExist("Name")          -- 科技是否存在
+game.doesPolicyExist("Name")        -- 政策是否存在
+game.doesEraExist("Name")           -- 时代是否存在
+game.doesPromotionExist("Name")     -- 晋升是否存在
+game.doesTerrainExist("Name")       -- 地形是否存在
+game.doesResourceExist("Name")      -- 资源是否存在
+game.doesImprovementExist("Name")   -- 改良是否存在
+game.doesNationExist("Name")        -- 文明（nation）是否存在
+game.doesBeliefExist("Name")        -- 信条是否存在
+game.doesEventExist("Name")         -- 事件是否存在
 
 -- 写操作
 game.addGlobalNotification("text") -- 向所有人类玩家发通知
@@ -490,6 +587,39 @@ end
 
 支持的条件类型覆盖游戏内置的全部 conditional 格式（70+ 种），包括战争状态、科技/政策完成、资源数量比较、地形判断等。条件在调用 `triggerUnique` 时给定的文明/城市/单位上下文中求值。
 
+## 完整示例## Lua 条件（LuaConditional）
+
+除了用 `ctx.evaluateConditional` 在运行时求值，你还可以把 Lua 函数**直接接入 unique 条件系统**。任何 unique 都可以使用条件：
+
+```
+<if [myMod:myCondition] returns true>
+```
+
+函数收到常规 `ctx` 表，返回 `true` 时 unique 生效：
+
+```json
+{
+    "name": "富有的国王",
+    "uniques": [
+        "[+2 Gold] <if [myMod:isRich] returns true>"
+    ]
+}
+```
+
+```lua
+-- scripts/myMod.lua
+function isRich(ctx)
+    return ctx.civ.getGold() > 1000
+end
+```
+
+规则与注意事项：
+
+1. **函数必须是纯查询**——条件会被非常频繁地求值（每次检查 unique 时），请保持函数廉价且无副作用。缺失的函数按 `false` 处理（不会崩溃），模组检查器会在加载时报告
+2. **性能**：每次检查都有跨语言开销。热路径优先用内置条件，Lua 条件用于内置条件无法表达的逻辑
+3. 与触发器组合时与其他条件行为一致：`"Trigger the function [myMod:onX] with [] <if [myMod:shouldX] returns true> <upon turn start>"` 只有触发条件和 Lua 条件同时满足才会触发
+4. `[civFilter]` 参数的约定适用于所有条件：用 `[All]` 匹配所有文明（空 `[]` 不匹配任何文明）
+
 ## 完整示例
 
 ```lua
@@ -566,12 +696,66 @@ end
 
 > **限制说明**：定义文件由生成器从 API 目录自动生成，参数/返回值标注是尽力而为——常见模式精确、其余为宽松的 `fun(...)`。拿不准时以游戏内模组检查器或 `mod-ci` 为准（它们才是权威），并在游戏中实测函数行为。
 
+## 注意事项## Lua 地图脚本
+
+模组现在可以**用 Lua 编写完整的地图生成器**。`scripts/` 文件夹中定义以下两个函数的模组会出现在地图类型选项中：
+
+| 函数 | 用途 |
+|------|------|
+| `GetMapScriptInfo()` | 返回 `{ name = "...", description = "..." }`——显示在新建游戏界面 |
+| `GenerateMap(ctx)` | 生成地图；成功返回 `true` |
+
+在新建游戏界面选择**地图类型 → Lua Generated**，再选择脚本。引擎会创建一张指定大小的全海洋 `TileMap` 并调用 `GenerateMap(ctx)`，之后对每个地块按规则集做地形规范化。
+
+地图脚本的 `ctx` 是**独立的、仅生成期可用**的 API：
+
+| 字段 | 说明 |
+|------|------|
+| `ctx.params` | 只读 `MapParameters`：`size{name,radius,width,height}`、`bounds{minX,minY,maxX,maxY}`（实际地块坐标——矩形地图以 0,0 为中心，坐标可能为负）、`shape`、`worldWrap`、`waterThreshold`、`temperatureintensity`、`temperatureShift`、`vegetationRichness`、`rareFeaturesRichness`、`resourceRichness`、`elevationExponent`、`tilesPerBiomeArea`、`maxCoastExtension`、`noRuins`、`noNaturalWonders`、`mapResources`、`strategicBalance`、`legendaryStart`、`mods`、`baseRuleset` |
+| `ctx.seed` | 地图种子 |
+| `ctx.perlin(x, y, seed[, {scale=..., nOctaves=..., persistence=..., lacunarity=...}])` | Perlin 噪声，大致范围 [-1, 1] |
+| `ctx.random()` / `ctx.randomInt(min, max)` | 基于种子的地图 RNG |
+| `ctx.map` | 地图操作表（见下） |
+| `ctx.log(msg)` | 调试日志 |
+
+`ctx.map` 助手：
+
+```lua
+map.getWidth() / map.getHeight() / map.getRadius()
+map.getShape() / map.isWrapped()
+map.getTile(x, y) / map.getAllTiles()
+map.assignContinents()
+map.addStartingLocation(x, y, nationName)   -- nationName 可选
+map.getStartingLocations() / map.clearStartingLocations()
+map.setTransients() / map.normalizeTiles()
+map.floodFill(x, y, terrainFilter?)          -- BFS 连通地块
+map.generateClimate()
+map.spreadCoasts(maxExtension?)              -- 默认 params.maxCoastExtension
+map.generateMountains(elevationExponent?)
+map.generateRivers()
+map.generateIce()
+map.convertTerrains()
+map.normalizeStartPlot(x, y, {freshwater, minFood, minProd, minLuxuries, maxBlocking, minHills})
+map.distributeLuxuries({perPlayer, minDistance})
+map.distributeStrategics({perPlayer, radius})
+map.strategicBalanceStarts({horses, iron, radius})
+```
+
+`map.getTile` / `getAllTiles` / `floodFill` 返回的地块支持：`position{x,y}`、`getX()/getY()`、`baseTerrain`、`isLand/isWater/isCoast`、`isHill()/isMountain()/isImpassable()`、`hasTerrainFeature(name)/getTerrainFeatures()`、`temperature/getTemperature/setTemperature`、`humidity/getHumidity/setHumidity`、`getLatitude()/getLongitude()`、`getContinent()`、`hasResource/resourceName/resourceAmount`、`hasImprovement/improvementName`、`isRiver()`、`isNaturalWonder()`、`isAdjacentToFreshWater()`、`getBaseYield(stat)`、`getNeighbors()`、`getTilesInDistance(r)`，以及写入操作：`setTerrain(name)`、`addTerrainFeature/removeTerrainFeature/removeAllTerrainFeatures`、`setResource(name, amount)/removeResource`、`setImprovement(name)/removeImprovement`、`setRoad()/setRailroad()/removeRoad`、`setNaturalWonder(name)`。
+
+> **重要**：遍历地块请用 `map.getAllTiles()`，不要假设坐标从 0 开始——矩形地图以 (0,0) 为中心，`params.bounds.minX`/`minY` 为负值。
+>
+> `GenerateMap` 与 `GetMapScriptInfo` 是**保留函数名**：模组检查器会拒绝在游戏内 `TriggerLuaFunction` 中引用它们，因为它们只在生成期运行。
+
+完整的可复制改名示例位于 `docs/Modders/examples/LuaMapScriptExample/`（见其 README）。
+
 ## 注意事项
 
 - **参数约定（极易出错）**：引擎只向 lua 函数传入一个参数 `ctx`。`ctx.parameter` 才是 unique 中 `[parameter]` 解析后的值，`ctx.game`/`ctx.civ` 是上下文对象的入口。不要把第一个形参当成业务参数、不要把 `game` 当成全局变量——这是实测中最常见的错误
 - **函数名必须全局唯一**：同一模组内不要定义同名函数。跨模组调用使用 `modName:functionName` 格式。函数名须匹配 `[a-zA-Z_][a-zA-Z0-9_]*`（可加 `modName:` 前缀），不能含连字符等特殊字符
 - **返回值**：函数应返回 `true`（成功）或 `false`（失败）。返回 `false` 时触发器认为无效，在 UI 中可能显示为禁用状态。注意 Lua 的真值语义：`return 0` 和 `return nil` 都算**失败**，`return ""` 或 `return 1` 才算成功
 - **性能**：Lua 调用有跨语言开销，避免在高频触发的路径上使用（如每回合的大量单位遍历）。优先使用 JSON Unique 处理简单的数值修正
+- **快照属性**：上下文表的*属性*（如 `city.name`、`unit.health`、`civ.name`）是建表时的快照。写入（如 `city.setName(...)`、`unit.setHealth(...)`）之后，请用查询方法（`civ.getCityNames()`、`unit.getDamage()` 等）确认结果——属性会保持旧值直到下次构建 ctx
 - **死循环会被截断**：每次脚本加载和每次函数调用都有指令预算（约一秒钟 CPU 时间）。意外的 `while true do end` 会以“预算超限”错误中断，而不是卡死游戏
 - **沙箱**：Lua 环境是受限的，`os.*`、`io.*`、`coroutine.*`、`require`、`debug.*`、`string.dump`、`package` 库（及其 `package.loaded` 表）、文件操作、元表操作等功能已被禁用，脚本访问它们会直接报错
 - **持久化存储**：`ctx.store` 中的值以字符串形式存入存档文件。存储非字符串数据时，用 `tostring()` 写入、`tonumber()` 读取

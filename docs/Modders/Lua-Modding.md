@@ -90,6 +90,7 @@ Combine `TriggerLuaFunction` with trigger conditions for per-turn execution. Pla
 ```
 
 Also supported: `<upon discovering [techFilter] technology>`, `<upon conquering a city>`, `<upon founding a city>`, etc.
+Also supported: `<upon completing a trade with [civFilter] Civilizations>` fires for both sides of any accepted trade (including AI auto-accepted ones). Other warfare/diplomacy hooks: `<upon declaring war on [civFilter] Civilizations>`, `<upon being declared war on by [civFilter] Civilizations>`, `<upon entering a war with [civFilter] Civilizations>`, `<upon signing a peace treaty with [civFilter] Civilizations>`, `<upon losing a city>`.
 
 ### Unique Syntax
 
@@ -118,6 +119,8 @@ Countable expressions are resolved to strings before Lua execution. For example,
 | `ctx.log(msg)` | function | Write debug output to Unciv's log |
 | `ctx.count(expr)` | function | Evaluate a Countable expression at runtime |
 | `ctx.evaluateConditional(condition)` | function | Evaluate a conditional string, returns boolean |
+| `ctx.random()` | function | Deterministic random in [0, 1) - same call sequence on the same game state yields the same values (online-multiplayer safe) |
+| `ctx.randomInt(min, max)` | function | Deterministic random integer in [min, max] (inclusive) |
 
 ## API Reference
 
@@ -135,10 +138,19 @@ civ.getStat("Science")               -- Stat reserve value
 civ.getStatYield("Production")       -- Per-turn yield
 civ.getGoldPerTurn()                 -- Net gold per turn
 civ.getResourceAmount("Iron")        -- Stockpiled resource amount
+civ.getResourceStockpiles()        -- Table {resourceName = amount}
 civ.hasResource("Horses")            -- Has at least 1
 civ.getEra()                         -- Era name
 civ.getEraNumber()                   -- 0-based era index
 civ.getCityCount()                   -- Number of cities
+civ.getNation()                      -- Nation name
+civ.getLeaderName()                  -- Leader name
+civ.getScore()                       -- Current score
+civ.getForce()                       -- Military might ranking value
+civ.getSciencePerTurn()              -- Net science per turn
+civ.getCulturePerTurn()              -- Net culture per turn
+civ.getFoodPerTurn()                 -- Net food per turn
+civ.getProductionPerTurn()           -- Net production per turn
 
 -- Tech
 civ.isResearched("Agriculture")      -- Has researched
@@ -146,6 +158,7 @@ civ.canResearch("Philosophy")        -- Can research
 civ.getResearchingTech()             -- Currently researching tech name
 civ.getResearchProgress("Writing")   -- Accumulated science
 civ.getTechCount()                   -- Number of researched techs
+civ.getTechCost("Philosophy")        -- Base research cost of a tech
 civ.getTechsResearched()             -- List of researched tech names
 civ.getAvailableTechs()              -- List of available tech names
 civ.grantTech("Agriculture")         -- Instantly grant a tech
@@ -156,6 +169,7 @@ civ.canAdoptPolicy()                 -- Can adopt any policy
 civ.getAdoptedPolicyCount()          -- Number of adopted policies
 civ.getAdoptedPolicies()             -- List of adopted policy names
 civ.getAvailablePolicyBranches()     -- List of all policy branch names
+civ.getCultureNeededForNextPolicy() -- Culture needed for the next policy
 civ.grantPolicy("Oligarchy")         -- Instantly adopt a policy
 
 -- Diplomacy
@@ -167,6 +181,10 @@ civ.getInfluence("City-State")       -- Influence with city-state
 civ.getKnownCivs()                   -- Known civilization names
 civ.addInfluence("City-State", 15)   -- Add influence
 civ.declareWarOn("Greece")           -- Declare war
+civ.getDiplomaticStatuses()         -- Table {civName = statusName} for all known civs
+civ.getProximityTo("Greece")         -- Proximity string (None/Neighbors/Close/Far)
+civ.hasEmbassyWith("Greece")         -- Embassy established either way
+civ.makePeaceWith("Greece")          -- Sign peace (no-op when not at war)
 
 -- Religion
 civ.hasReligion()                    -- Founded a religion
@@ -177,10 +195,15 @@ civ.getFaith()                       -- Faith amount
 civ.getCities()                      -- List of city tables
 civ.getCity("Rome")                  -- City table by name
 civ.getCapital()                     -- Capital city table
+civ.getCityNames()                  -- List of city names
+civ.getTotalPopulation()             -- Sum of all city populations
+civ.getWondersBuilt()                -- List of built wonder names
 civ.getUnits()                       -- List of unit tables
 civ.getUnitsMatching("Melee")        -- Filter units by type
 civ.getUnitCount()                   -- Total unit count
 civ.getSpyCount()                    -- Spy count
+civ.getSpies()                      -- List of {name, rank, action, location} tables
+civ.addSpy()                        -- Add a spy
 
 -- Golden Age
 civ.isGoldenAge()                    -- In a golden age
@@ -191,6 +214,7 @@ civ.hasUnique("unique text")
 
 -- Write operations
 civ.addGold(500)
+civ.setGold(500)                    -- Set gold to exactly this amount
 civ.addStat("Science", 100)
 civ.addStats("+2 Gold, +3 Culture")
 civ.addResource("Iron", 5)
@@ -216,6 +240,19 @@ civ.addRebelUnit("Barbarian Axeman")
 -- Queries
 city.getStatYield("Production")      -- Single stat yield
 city.getAllYields()                  -- All yields as a table
+city.getFood()                      -- Current food yield
+city.getFoodSurplus()               -- Net food per turn (negative when starving)
+city.getFoodStorage()               -- Stored food toward growth
+city.getFoodNeeded()                -- Food needed for the next population
+city.getProductionProgress()        -- Production already invested in current construction
+city.getProductionCost()            -- Total production cost of current construction
+city.getTurnsToCompletion()         -- Estimated turns to finish current construction
+city.getGarrisonedUnit()            -- Garrison unit table (or nil)
+city.getStrength()                  -- City combat strength
+city.getSpecialistCount()           -- Assigned specialists
+city.getUnemployedCount()           -- Free (unassigned) population
+city.getBuiltWonders()              -- Built wonder names
+city.isInResistance()               -- City is in resistance after conquest
 city.hasBuilding("Library")          -- Has building
 city.getBuiltBuildings()             -- List of built building names
 city.getBuildingCount()              -- Total building count
@@ -231,8 +268,14 @@ city.hasUnique("unique text")        -- Check built buildings for this unique
 
 -- Write operations
 city.addPopulation(1)
+city.setPopulation(5)               -- Set population exactly (min 1)
+city.addFood(10)                    -- Add stored food
+city.addProduction(10)              -- Add production to current construction
+city.addHealth(25)                  -- Heal the city
+city.setName("New Rome")            -- Rename the city
 city.addBuilding("Library")
 city.removeBuilding("Library")
+city.sellBuilding("Library")         -- Sell a building for gold
 city.setProduction("Library")
 city.addToQueue("Walls")
 city.clearQueue()
@@ -267,6 +310,17 @@ unit.getRange()
 unit.getMovement()
 unit.getCurrentMovement()
 unit.getXP()
+unit.getMaxHealth()                 -- 100 (max HP)
+unit.getDamage()                    -- Max health minus current health
+unit.getAttacksLeft()               -- Attacks remaining this turn
+unit.getVisibilityRange()           -- Sight range in tiles
+unit.getAction()                    -- Current action string ("Fortify", "moveTo x,y", ...)
+unit.canAttack()                    -- Can attack this turn
+unit.canPillage()                   -- Current tile has something to pillage
+unit.isInEnemyTerritory()           -- Standing in enemy territory
+unit.isInFriendlyTerritory()        -- Standing in own territory
+unit.isGreatPerson()                -- Is a great person
+unit.getReligionDisplayName()       -- Religion of this unit ("" if none)
 unit.hasPromotion("Shock I")
 unit.getPromotions()
 unit.getPromotionCount()
@@ -282,10 +336,16 @@ unit.hasUnique("unique text")        -- Searches unit type + promotion uniques
 unit.healBy(25)
 unit.takeDamage(30)
 unit.addXP(10)
+unit.setXP(30)                      -- Set XP exactly
+unit.setHealth(75)                  -- Set health exactly (clamped)
 unit.addPromotion("Shock I")
 unit.removePromotion("Shock I")
 unit.addMovement(2)
 unit.useMovement(1.5)
+unit.setStatus("Test", 3)           -- Apply a unit status for N turns
+unit.setAttacksLeft(0)              -- Set attacks remaining
+unit.fortify()                      -- Fortify (action = "Fortify")
+unit.moveByPath(path)               -- Move along a findPathTo() path; returns steps taken
 unit.upgrade()
 unit.destroy()
 unit.teleportTo(x, y)
@@ -313,6 +373,16 @@ tile.hasTerrainFeature("Forest")
 tile.getTerrainFeatures()
 tile.isImpassable()
 tile.isRiver()
+tile.isAdjacentToCoast()
+tile.hasRoad()
+tile.hasRailroad()
+tile.hasNaturalWonder()
+tile.getNaturalWonder()             -- Name or ""
+tile.isFriendlyTerritory("Rome")
+tile.isEnemyTerritory("Rome")
+tile.getDistanceTo(x, y)            -- Aerial distance in tiles (-1 if out of map)
+tile.isAdjacentTo(x, y)
+tile.setExplored("Rome", true)
 tile.hasResource()
 tile.hasImprovement()
 tile.isPillaged()
@@ -351,6 +421,9 @@ tile.removeRoad()
 -- Queries
 game.getYear()
 game.getCurrentPlayer()
+game.getCurrentPlayerCiv()          -- Current player civ table (or nil)
+game.getCivNames()                  -- All civilization names
+game.getHumanCivs()                 -- Human civilizations
 game.getCiv("Rome")
 game.getCivById("uuid...")
 game.getAllCivs()
@@ -362,6 +435,12 @@ game.getBarbarianCiv()
 game.getTile(x, y)
 game.getMapWidth()
 game.getMapHeight()
+game.getMapName()
+game.getMapType()
+game.getEraNames()
+game.getVictoryTypes()
+game.getMods()
+game.getBaseRuleset()
 game.isWrapped()
 game.getTilesNear(x, y, radius)
 
@@ -389,8 +468,27 @@ game.getRulesetTechs()
 game.getRulesetPolicies()
 game.getRulesetEras()
 game.getRulesetPromotions()
+game.getRulesetTerrains()
+game.getRulesetResources()
+game.getRulesetImprovements()
+game.getRulesetNations()
+game.getRulesetReligions()
+game.getRulesetBeliefs()
+game.getRulesetEvents()
+game.getRulesetNaturalWonders()
+game.getRulesetUnitTypes()
 game.doesBuildingExist("Name")
 game.doesUnitExist("Name")
+game.doesTechExist("Name")
+game.doesPolicyExist("Name")
+game.doesEraExist("Name")
+game.doesPromotionExist("Name")
+game.doesTerrainExist("Name")
+game.doesResourceExist("Name")
+game.doesImprovementExist("Name")
+game.doesNationExist("Name")
+game.doesBeliefExist("Name")
+game.doesEventExist("Name")
 
 -- Write operations
 game.addGlobalNotification("text")
@@ -461,6 +559,39 @@ if ctx.evaluateConditional("when number of [Cities] is greater than [5]") then
     -- has more than 5 cities
 end
 ```
+
+## Complete Example## Lua Conditions
+
+Beyond runtime evaluation via `ctx.evaluateConditional`, you can plug a Lua function **directly into the unique condition system**. Any unique can use the condition
+
+```
+<if [myMod:myCondition] returns true>
+```
+
+The function receives the usual `ctx` table and must return `true` for the unique to apply:
+
+```json
+{
+    "name": "Rich King",
+    "uniques": [
+        "[+2 Gold] <if [myMod:isRich] returns true>"
+    ]
+}
+```
+
+```lua
+-- scripts/myMod.lua
+function isRich(ctx)
+    return ctx.civ.getGold() > 1000
+end
+```
+
+Rules and caveats:
+
+1. **The function is a pure query** - conditions are evaluated very frequently (every time the unique is checked), keep the function cheap and side-effect-free. Missing functions simply evaluate to `false` (never crash); the mod checker reports them at load time.
+2. **Performance**: each check crosses the Lua interop boundary. Prefer built-in conditions for hot paths; use Lua conditions for logic that can't be expressed otherwise.
+3. Combined with triggers it behaves like any other condition: `"Trigger the function [myMod:onX] with [] <if [myMod:shouldX] returns true> <upon turn start>"` only fires when both the trigger and the Lua condition match.
+4. The civ filter convention applies to `[civFilter]` parameters everywhere: use `[All]` to match every civilization (an empty `[]` matches none).
 
 ## Complete Example
 
@@ -536,11 +667,65 @@ You now get: `ctx.` autocompletion (civ/city/unit/tile/game/store), method-name 
 
 > **Limitations**: the definition file is generated from the API catalog with best-effort signatures - parameter/return types are precise for common patterns and loose (`fun(...)`) for the rest. When in doubt, trust the in-game mod checker or `mod-ci` (they are authoritative), and check the function's actual behavior in-game.
 
+## Notes## Lua Map Scripts
+
+Since the map-generation rewrite, mods can provide **entire map generators in Lua**. A mod whose `scripts/` folder defines these two functions shows up as a new map type:
+
+| Function | Purpose |
+|----------|---------|
+| `GetMapScriptInfo()` | Returns `{ name = "...", description = "..." }` - shown in the new-game screen |
+| `GenerateMap(ctx)` | Builds the map; return `true` on success |
+
+On the new-game screen pick **Map Type → Lua Generated**, then select the script. The engine creates an all-ocean `TileMap` of the configured size and calls `GenerateMap(ctx)`, then normalizes every tile against the ruleset.
+
+The map-script `ctx` is a **separate, generation-only API**:
+
+| Field | Description |
+|-------|-------------|
+| `ctx.params` | Read-only `MapParameters`: `size{name,radius,width,height}`, `bounds{minX,minY,maxX,maxY}` (real tile coordinates - rectangular maps are centered on 0,0 and can be negative), `shape`, `worldWrap`, `waterThreshold`, `temperatureintensity`, `temperatureShift`, `vegetationRichness`, `rareFeaturesRichness`, `resourceRichness`, `elevationExponent`, `tilesPerBiomeArea`, `maxCoastExtension`, `noRuins`, `noNaturalWonders`, `mapResources`, `strategicBalance`, `legendaryStart`, `mods`, `baseRuleset` |
+| `ctx.seed` | The map seed |
+| `ctx.perlin(x, y, seed[, {scale=..., nOctaves=..., persistence=..., lacunarity=...}])` | Perlin noise in roughly [-1, 1] |
+| `ctx.random()` / `ctx.randomInt(min, max)` | Seeded map RNG |
+| `ctx.map` | TileMap manipulation (below) |
+| `ctx.log(msg)` | Debug log |
+
+`ctx.map` helpers:
+
+```lua
+map.getWidth() / map.getHeight() / map.getRadius()
+map.getShape() / map.isWrapped()
+map.getTile(x, y) / map.getAllTiles()
+map.assignContinents()
+map.addStartingLocation(x, y, nationName)   -- nationName optional
+map.getStartingLocations() / map.clearStartingLocations()
+map.setTransients() / map.normalizeTiles()
+map.floodFill(x, y, terrainFilter?)          -- BFS-connected tiles
+map.generateClimate()
+map.spreadCoasts(maxExtension?)              -- default: params.maxCoastExtension
+map.generateMountains(elevationExponent?)
+map.generateRivers()
+map.generateIce()
+map.convertTerrains()
+map.normalizeStartPlot(x, y, {freshwater, minFood, minProd, minLuxuries, maxBlocking, minHills})
+map.distributeLuxuries({perPlayer, minDistance})
+map.distributeStrategics({perPlayer, radius})
+map.strategicBalanceStarts({horses, iron, radius})
+```
+
+Tiles returned by `map.getTile` / `getAllTiles` / `floodFill` support: `position{x,y}`, `getX()/getY()`, `baseTerrain`, `isLand/isWater/isCoast`, `isHill()/isMountain()/isImpassable()`, `hasTerrainFeature(name)/getTerrainFeatures()`, `temperature/getTemperature/setTemperature`, `humidity/getHumidity/setHumidity`, `getLatitude()/getLongitude()`, `getContinent()`, `hasResource/resourceName/resourceAmount`, `hasImprovement/improvementName`, `isRiver()`, `isNaturalWonder()`, `isAdjacentToFreshWater()`, `getBaseYield(stat)`, `getNeighbors()`, `getTilesInDistance(r)`, and writes: `setTerrain(name)`, `addTerrainFeature/removeTerrainFeature/removeAllTerrainFeatures`, `setResource(name, amount)/removeResource`, `setImprovement(name)/removeImprovement`, `setRoad()/setRailroad()/removeRoad`, `setNaturalWonder(name)`.
+
+> **Important**: iterate tiles with `map.getAllTiles()` rather than assuming coordinates start at 0 - rectangular maps are centered on (0,0), so `params.bounds.minX`/`minY` are negative.
+>
+> `GenerateMap` and `GetMapScriptInfo` are **reserved names**: the mod checker rejects any in-game `TriggerLuaFunction` that references them, since they only run during generation.
+
+A complete copy-and-rename example lives at `docs/Modders/examples/LuaMapScriptExample/` (see its README).
+
 ## Notes
 
 - **Sandbox**: The Lua environment is restricted. `os.*`, `io.*`, `coroutine.*`, `require`, `debug.*`, `string.dump`, the `package` library (and its `package.loaded` table), file operations, and metatable operations are disabled. Scripts that try to access them fail with an error.
 - **Runaway loops are cut off**: Every script load and every function call has an instruction budget (about a second of CPU). An accidental `while true do end` is interrupted with a "budget exceeded" error instead of freezing the game.
 - **Performance**: Lua calls have cross-language overhead. Avoid high-frequency trigger paths. Prefer JSON uniques for simple stat modifiers.
+- **Snapshot properties**: context-table *properties* (e.g. `city.name`, `unit.health`, `civ.name`) are snapshots taken when the table is built. After a write (e.g. `city.setName(...)`, `unit.setHealth(...)`), confirm the result with a query method (`civ.getCityNames()`, `unit.getDamage()`, ...) - the property keeps its old value until a new ctx is built.
 - **Persistent storage**: `ctx.store` values are stored as strings in the save file. Use `tostring()`/`tonumber()` for non-string data.
 - **Pathfinding cost**: `unit.findPathTo()` uses A* multi-turn pathfinding and may be expensive on large maps. Avoid calling it in high-frequency loops.
 - **Function names**: Must be unique within a mod. Use `modName:functionName` for cross-mod references. Names must match `[a-zA-Z_][a-zA-Z0-9_]*` (optionally prefixed with `modName:`); no dashes or special characters.
