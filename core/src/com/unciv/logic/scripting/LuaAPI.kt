@@ -1,5 +1,6 @@
 package com.unciv.logic.scripting
 
+import com.unciv.Constants
 import com.unciv.logic.battle.Battle
 import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.city.City
@@ -8,7 +9,10 @@ import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.civilization.diplomacy.DiplomaticStatus
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.logic.map.tile.Tile
+import com.unciv.models.ruleset.IConstruction
+import com.unciv.models.ruleset.INonPerpetualConstruction
 import com.unciv.models.ruleset.unique.Conditionals
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
@@ -29,13 +33,13 @@ object LuaAPI {
      * Kept in sync with the runtime registration by [LuaSecurityTests].
      */
     val apiCatalog: Map<String, Set<String>> = mapOf(
-        "ctx" to setOf("parameter", "city", "unit", "tile", "civ", "game", "log", "count", "evaluateConditional", "store"),
+        "ctx" to setOf("parameter", "city", "unit", "tile", "civ", "game", "log", "count", "evaluateConditional", "store", "random", "randomInt"),
         "store" to setOf("get", "set"),
-        "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getResourceAmount", "hasResource", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "grantTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getLeaderTitle", "hasUnique", "addGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
-        "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "addBuilding", "removeBuilding", "setProduction", "addToQueue", "clearQueue"),
-        "unit" to setOf("id", "name", "instanceName", "isCivilian", "isMilitary", "isRanged", "isEmbarked", "isFortified", "isAutomated", "base", "health", "getRange", "getMovement", "getCurrentMovement", "getXP", "hasPromotion", "hasUnique", "getPromotions", "getPromotionCount", "hasStatus", "getStatusTurns", "getPosition", "canMoveTo", "getOwner", "isOwnedBy", "healBy", "takeDamage", "addXP", "addPromotion", "removePromotion", "addMovement", "useMovement", "upgrade", "destroy", "attackTile", "teleportTo", "findPathTo", "canReach"),
-        "tile" to setOf("position", "getX", "getY", "baseTerrain", "isLand", "isWater", "isCoast", "isHill", "isMountain", "hasTerrainFeature", "getTerrainFeatures", "isImpassable", "isRiver", "hasResource", "resourceName", "resourceAmount", "hasImprovement", "improvementName", "isPillaged", "getYield", "isOwned", "getOwner", "isOwnedBy", "isCityCenter", "getOwningCity", "isExploredBy", "hasMilitaryUnit", "hasCivilianUnit", "getUnits", "getNeighbors", "getNeighborAt", "getTilesInDistance", "setTerrain", "addTerrainFeature", "removeTerrainFeature", "setImprovement", "removeImprovement", "removeResource", "setResource", "setRoad", "setRailroad", "removeRoad"),
-        "game" to setOf("turn", "getYear", "speed", "difficulty", "getCurrentPlayer", "getCiv", "getCivById", "getAllCivs", "getAliveMajorCivs", "getAliveCityStates", "getBarbarianCiv", "getTile", "findTiles", "getMapWidth", "getMapHeight", "isWrapped", "getTilesNear", "getRulesetBuildings", "getRulesetUnits", "getRulesetTechs", "getRulesetPolicies", "getRulesetEras", "getRulesetPromotions", "doesBuildingExist", "doesUnitExist", "addGlobalNotification", "revealEntireMap", "revealTilesAround"),
+        "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getNation", "getLeaderName", "getScore", "getForce", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getSciencePerTurn", "getCulturePerTurn", "getFoodPerTurn", "getProductionPerTurn", "getResourceAmount", "hasResource", "getResourceStockpiles", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "getTechCost", "grantTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "getCultureNeededForNextPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getDiplomaticStatuses", "getProximityTo", "hasEmbassyWith", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "makePeaceWith", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getCityNames", "getTotalPopulation", "getWondersBuilt", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getSpies", "addSpy", "getLeaderTitle", "hasUnique", "addGold", "setGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
+        "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "getFood", "getFoodSurplus", "getFoodStorage", "getFoodNeeded", "getProductionProgress", "getProductionCost", "getTurnsToCompletion", "getGarrisonedUnit", "getStrength", "getSpecialistCount", "getUnemployedCount", "getBuiltWonders", "isInResistance", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "setPopulation", "addFood", "addProduction", "addHealth", "setName", "addBuilding", "removeBuilding", "sellBuilding", "setProduction", "addToQueue", "clearQueue"),
+        "unit" to setOf("id", "name", "instanceName", "isCivilian", "isMilitary", "isRanged", "isEmbarked", "isFortified", "isAutomated", "base", "health", "getRange", "getMovement", "getCurrentMovement", "getXP", "getMaxHealth", "getDamage", "getAttacksLeft", "getVisibilityRange", "getAction", "canAttack", "canPillage", "isInEnemyTerritory", "isInFriendlyTerritory", "isGreatPerson", "getReligionDisplayName", "hasPromotion", "hasUnique", "getPromotions", "getPromotionCount", "hasStatus", "getStatusTurns", "getPosition", "canMoveTo", "getOwner", "isOwnedBy", "healBy", "takeDamage", "addXP", "setXP", "setHealth", "addPromotion", "removePromotion", "addMovement", "useMovement", "setStatus", "setAttacksLeft", "fortify", "moveByPath", "upgrade", "destroy", "attackTile", "teleportTo", "findPathTo", "canReach"),
+        "tile" to setOf("position", "getX", "getY", "baseTerrain", "isLand", "isWater", "isCoast", "isHill", "isMountain", "hasTerrainFeature", "getTerrainFeatures", "isImpassable", "isRiver", "isAdjacentToCoast", "hasRoad", "hasRailroad", "hasNaturalWonder", "getNaturalWonder", "hasResource", "resourceName", "resourceAmount", "hasImprovement", "improvementName", "isPillaged", "getYield", "isOwned", "getOwner", "isOwnedBy", "isFriendlyTerritory", "isEnemyTerritory", "isCityCenter", "getOwningCity", "isExploredBy", "getDistanceTo", "isAdjacentTo", "hasMilitaryUnit", "hasCivilianUnit", "getUnits", "getNeighbors", "getNeighborAt", "getTilesInDistance", "setExplored", "setTerrain", "addTerrainFeature", "removeTerrainFeature", "setImprovement", "removeImprovement", "removeResource", "setResource", "setRoad", "setRailroad", "removeRoad"),
+        "game" to setOf("turn", "getYear", "speed", "difficulty", "getCurrentPlayer", "getCurrentPlayerCiv", "getCiv", "getCivById", "getAllCivs", "getCivNames", "getHumanCivs", "getAliveMajorCivs", "getAliveCityStates", "getBarbarianCiv", "getTile", "findTiles", "getMapWidth", "getMapHeight", "getMapName", "getMapType", "isWrapped", "getTilesNear", "getEraNames", "getVictoryTypes", "getMods", "getBaseRuleset", "getRulesetBuildings", "getRulesetUnits", "getRulesetTechs", "getRulesetPolicies", "getRulesetEras", "getRulesetPromotions", "getRulesetTerrains", "getRulesetResources", "getRulesetImprovements", "getRulesetNations", "getRulesetReligions", "getRulesetBeliefs", "getRulesetEvents", "getRulesetNaturalWonders", "getRulesetUnitTypes", "doesBuildingExist", "doesUnitExist", "doesTechExist", "doesPolicyExist", "doesEraExist", "doesPromotionExist", "doesTerrainExist", "doesResourceExist", "doesImprovementExist", "doesNationExist", "doesBeliefExist", "doesEventExist", "addGlobalNotification", "revealEntireMap", "revealTilesAround"),
     )
 
 
@@ -45,6 +49,14 @@ object LuaAPI {
      * statically detect typos in mod Lua scripts, e.g. `ctx.civ.addGoldd(...)`.
      */
     val knownApiMethods = java.util.concurrent.ConcurrentHashMap<String, MutableSet<String>>()
+
+    /**
+     * Counter feeding the seed of [ctx.random]/[ctx.randomInt]. Combined with the game's
+     * state-based RNG this makes Lua randomness deterministic across online-multiplayer
+     * clients (same call sequence on the same game state yields the same numbers), while
+     * still producing fresh values on every call.
+     */
+    private val luaRandomCounter = java.util.concurrent.atomic.AtomicLong()
 
     private fun LuaTable.registerApi(owner: String, name: String, value: LuaValue): LuaTable {
         if (name !in apiCatalog[owner].orEmpty())
@@ -109,6 +121,19 @@ object LuaAPI {
             LuaValue.valueOf(applies)
         })
 
+        // Deterministic random helpers (seeded from game state, so online-multiplayer safe)
+        ctx.registerApi("ctx", "random", luaFunction {
+            val rng = gameContext.stateBasedRandom("LuaAPI.random", (luaRandomCounter.incrementAndGet() and 0x7FFFFFFF).toInt())
+            LuaValue.valueOf(rng.nextDouble())
+        })
+        ctx.registerApi("ctx", "randomInt", luaFunction { args ->
+            val min = args.arg(1).safeToInt()
+            val max = args.arg(2).safeToInt()
+            if (max < min) return@luaFunction LuaValue.valueOf(min)
+            val rng = gameContext.stateBasedRandom("LuaAPI.randomInt", (luaRandomCounter.incrementAndGet() and 0x7FFFFFFF).toInt())
+            LuaValue.valueOf(rng.nextInt(max - min + 1) + min)
+        })
+
         if (modName.isNotEmpty()) {
             val storage = civInfo.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
             val store = LuaValue.tableOf()
@@ -143,6 +168,14 @@ object LuaAPI {
         t.registerApi("civ", "isCityState", LuaValue.valueOf(civ.isCityState))
         t.registerApi("civ", "isBarbarian", LuaValue.valueOf(civ.isBarbarian))
         t.registerApi("civ", "isSpectator", LuaValue.valueOf(civ.isSpectator()))
+        t.registerApi("civ", "getNation", luaFunction { LuaValue.valueOf(civ.nation.name) })
+        t.registerApi("civ", "getLeaderName", luaFunction { LuaValue.valueOf(civ.nation.leaderName) })
+        t.registerApi("civ", "getScore", luaFunction {
+            LuaValue.valueOf(civ.getStatForRanking(RankingType.Score))
+        })
+        t.registerApi("civ", "getForce", luaFunction {
+            LuaValue.valueOf(civ.getStatForRanking(RankingType.Force))
+        })
 
         // Stats
         t.registerApi("civ", "getGold", luaFunction { LuaValue.valueOf(civ.gold) })
@@ -161,6 +194,18 @@ object LuaAPI {
         t.registerApi("civ", "getGoldPerTurn", luaFunction {
             LuaValue.valueOf((civ.stats.statsForNextTurn[Stat.Gold] ?: 0f).toDouble())
         })
+        t.registerApi("civ", "getSciencePerTurn", luaFunction {
+            LuaValue.valueOf((civ.stats.statsForNextTurn[Stat.Science] ?: 0f).toDouble())
+        })
+        t.registerApi("civ", "getCulturePerTurn", luaFunction {
+            LuaValue.valueOf((civ.stats.statsForNextTurn[Stat.Culture] ?: 0f).toDouble())
+        })
+        t.registerApi("civ", "getFoodPerTurn", luaFunction {
+            LuaValue.valueOf((civ.stats.statsForNextTurn[Stat.Food] ?: 0f).toDouble())
+        })
+        t.registerApi("civ", "getProductionPerTurn", luaFunction {
+            LuaValue.valueOf((civ.stats.statsForNextTurn[Stat.Production] ?: 0f).toDouble())
+        })
 
         // Resources
         t.registerApi("civ", "getResourceAmount", luaFunction { args ->
@@ -168,6 +213,12 @@ object LuaAPI {
         })
         t.registerApi("civ", "hasResource", luaFunction { args ->
             LuaValue.valueOf(civ.getResourceAmount(args.arg(1).tojstring()) > 0)
+        })
+        t.registerApi("civ", "getResourceStockpiles", luaFunction {
+            val stockpiles = LuaValue.tableOf()
+            for ((name, amount) in civ.resourceStockpiles)
+                stockpiles.set(name, LuaValue.valueOf(amount))
+            stockpiles
         })
 
         // Era
@@ -207,6 +258,10 @@ object LuaAPI {
             }
             arr
         })
+        t.registerApi("civ", "getTechCost", luaFunction { args ->
+            val tech = civ.gameInfo.ruleset.technologies[args.arg(1).tojstring()]
+            LuaValue.valueOf(tech?.cost ?: 0)
+        })
         t.registerApi("civ", "grantTech", luaFunction { args ->
             val name = args.arg(1).tojstring()
             if (civ.tech.canBeResearched(name)) civ.tech.addTechnology(name)
@@ -244,6 +299,9 @@ object LuaAPI {
                 civ.policies.adopt(policy)
             LuaValue.NIL
         })
+        t.registerApi("civ", "getCultureNeededForNextPolicy", luaFunction {
+            LuaValue.valueOf(civ.policies.getCultureNeededForNextPolicy())
+        })
 
         // Diplomacy
         t.registerApi("civ", "isAtWarWith", luaFunction { args ->
@@ -266,6 +324,25 @@ object LuaAPI {
             val other = args.arg(1).tojstring()
             val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
             LuaValue.valueOf(dm?.diplomaticStatus?.name ?: "Neutral")
+        })
+        t.registerApi("civ", "getDiplomaticStatuses", luaFunction {
+            val statuses = LuaValue.tableOf()
+            for (dm in civ.diplomacy.values)
+                statuses.set(dm.otherCivName, LuaValue.valueOf(dm.diplomaticStatus.name))
+            statuses
+        })
+        t.registerApi("civ", "getProximityTo", luaFunction { args ->
+            val other = civ.gameInfo.getCivilizationOrNull(args.arg(1).tojstring())
+            LuaValue.valueOf(if (other != null) civ.getProximity(other).name else "")
+        })
+        t.registerApi("civ", "hasEmbassyWith", luaFunction { args ->
+            val other = args.arg(1).tojstring()
+            val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
+            val hasEmbassy = dm?.trades?.any { trade ->
+                trade.ourOffers.any { it.name == Constants.acceptEmbassy && it.duration > 0 }
+                    || trade.theirOffers.any { it.name == Constants.acceptEmbassy && it.duration > 0 }
+            } == true
+            LuaValue.valueOf(hasEmbassy)
         })
         t.registerApi("civ", "getInfluence", luaFunction { args ->
             val other = args.arg(1).tojstring()
@@ -291,6 +368,12 @@ object LuaAPI {
             val otherCiv = civ.gameInfo.getCivilizationOrNull(other)
             if (otherCiv != null && !civ.isAtWarWith(otherCiv))
                 civ.getDiplomacyManagerOrMeet(otherCiv).declareWar()
+            LuaValue.NIL
+        })
+        t.registerApi("civ", "makePeaceWith", luaFunction { args ->
+            val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == args.arg(1).tojstring() }
+            if (dm != null && dm.diplomaticStatus == DiplomaticStatus.War)
+                dm.makePeace()
             LuaValue.NIL
         })
 
@@ -323,6 +406,21 @@ object LuaAPI {
             if (capital != null) buildCityTable(capital) else LuaValue.NIL
         })
         t.registerApi("civ", "getCityCount", luaFunction { LuaValue.valueOf(civ.cities.size) })
+        t.registerApi("civ", "getCityNames", luaFunction {
+            val arr = LuaTable()
+            civ.cities.forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(c.name)) }
+            arr
+        })
+        t.registerApi("civ", "getTotalPopulation", luaFunction {
+            LuaValue.valueOf(civ.cities.sumOf { it.population.population })
+        })
+        t.registerApi("civ", "getWondersBuilt", luaFunction {
+            val arr = LuaTable()
+            civ.cities.flatMap { it.cityConstructions.getBuiltBuildings() }
+                .filter { it.isAnyWonder() }
+                .forEachIndexed { i, b -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(b.name)) }
+            arr
+        })
 
         // Units
         t.registerApi("civ", "getUnits", luaFunction {
@@ -357,6 +455,22 @@ object LuaAPI {
         t.registerApi("civ", "getSpyCount", luaFunction {
             LuaValue.valueOf(civ.espionageManager.spyList.size)
         })
+        t.registerApi("civ", "getSpies", luaFunction {
+            val arr = LuaTable()
+            civ.espionageManager.spyList.forEachIndexed { i, spy ->
+                val s = LuaValue.tableOf()
+                s.set("name", LuaValue.valueOf(spy.name))
+                s.set("rank", LuaValue.valueOf(spy.rank))
+                s.set("action", LuaValue.valueOf(spy.action.name))
+                s.set("location", LuaValue.valueOf(spy.getLocationName()))
+                arr.set(LuaValue.valueOf(i + 1), s)
+            }
+            arr
+        })
+        t.registerApi("civ", "addSpy", luaFunction {
+            civ.espionageManager.addSpy()
+            LuaValue.NIL
+        })
         t.registerApi("civ", "getLeaderTitle", luaFunction {
             LuaValue.valueOf(civ.leaderTitle.ifEmpty { null } ?: "")
         })
@@ -374,6 +488,11 @@ object LuaAPI {
         // Write operations
         t.registerApi("civ", "addGold", luaFunction { args ->
             civ.addGold(args.arg(1).safeToInt())
+            LuaValue.NIL
+        })
+        t.registerApi("civ", "setGold", luaFunction { args ->
+            val target = args.arg(1).safeToInt().coerceAtLeast(0)
+            civ.addGold(target - civ.gold)
             LuaValue.NIL
         })
         t.registerApi("civ", "addStat", luaFunction { args ->
@@ -501,6 +620,53 @@ object LuaAPI {
             yields
         })
 
+        // Food & growth
+        t.registerApi("city", "getFood", luaFunction {
+            LuaValue.valueOf((city.cityStats.currentCityStats[Stat.Food] ?: 0f).toDouble())
+        })
+        t.registerApi("city", "getFoodSurplus", luaFunction {
+            LuaValue.valueOf(city.foodForNextTurn())
+        })
+        t.registerApi("city", "getFoodStorage", luaFunction {
+            LuaValue.valueOf(city.population.foodStored)
+        })
+        t.registerApi("city", "getFoodNeeded", luaFunction {
+            LuaValue.valueOf(city.population.getFoodToNextPopulation())
+        })
+
+        // Production
+        t.registerApi("city", "getProductionProgress", luaFunction {
+            LuaValue.valueOf(city.cityConstructions.getWorkDone(city.cityConstructions.currentConstructionName()))
+        })
+        t.registerApi("city", "getProductionCost", luaFunction {
+            val construction = city.cityConstructions.getCurrentConstruction()
+            val cost = (construction as? INonPerpetualConstruction)?.getProductionCost(city.civ, city)
+            LuaValue.valueOf(cost ?: 0)
+        })
+        t.registerApi("city", "getTurnsToCompletion", luaFunction {
+            LuaValue.valueOf(city.cityConstructions.turnsToConstruction(city.cityConstructions.currentConstructionName()))
+        })
+
+        // Military
+        t.registerApi("city", "getGarrisonedUnit", luaFunction {
+            val garrison = city.getGarrison()
+            if (garrison != null) buildUnitTable(garrison) else LuaValue.NIL
+        })
+        t.registerApi("city", "getStrength", luaFunction {
+            LuaValue.valueOf(city.getStrength().toDouble())
+        })
+
+        // Population
+        t.registerApi("city", "getSpecialistCount", luaFunction {
+            LuaValue.valueOf(city.population.getNumberOfSpecialists())
+        })
+        t.registerApi("city", "getUnemployedCount", luaFunction {
+            LuaValue.valueOf(city.population.getFreePopulation())
+        })
+        t.registerApi("city", "isInResistance", luaFunction {
+            LuaValue.valueOf(city.isInResistance())
+        })
+
         t.registerApi("city", "hasBuilding", luaFunction { args ->
             LuaValue.valueOf(city.cityConstructions.containsBuildingOrEquivalent(args.arg(1).tojstring()))
         })
@@ -516,6 +682,12 @@ object LuaAPI {
         })
         t.registerApi("city", "getWonderCount", luaFunction {
             LuaValue.valueOf(city.cityConstructions.getBuiltBuildings().count { it.isAnyWonder() })
+        })
+        t.registerApi("city", "getBuiltWonders", luaFunction {
+            val arr = LuaTable()
+            city.cityConstructions.getBuiltBuildings().filter { it.isAnyWonder() }
+                .forEachIndexed { i, b -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(b.name)) }
+            arr
         })
 
         t.registerApi("city", "getPosition", luaFunction {
@@ -563,6 +735,26 @@ object LuaAPI {
             city.population.addPopulation(args.arg(1).safeToInt())
             LuaValue.NIL
         })
+        t.registerApi("city", "setPopulation", luaFunction { args ->
+            city.population.setPopulation(args.arg(1).safeToInt().coerceAtLeast(1))
+            LuaValue.NIL
+        })
+        t.registerApi("city", "addFood", luaFunction { args ->
+            city.addStat(Stat.Food, args.arg(1).safeToInt())
+            LuaValue.NIL
+        })
+        t.registerApi("city", "addProduction", luaFunction { args ->
+            city.addStat(Stat.Production, args.arg(1).safeToInt())
+            LuaValue.NIL
+        })
+        t.registerApi("city", "addHealth", luaFunction { args ->
+            city.health = (city.health + args.arg(1).safeToInt()).coerceAtLeast(0)
+            LuaValue.NIL
+        })
+        t.registerApi("city", "setName", luaFunction { args ->
+            city.name = args.arg(1).tojstring()
+            LuaValue.NIL
+        })
         t.registerApi("city", "addBuilding", luaFunction { args ->
             val building = city.civ.getEquivalentBuilding(args.arg(1).tojstring())
             if (!city.cityConstructions.containsBuildingOrEquivalent(building.name))
@@ -573,6 +765,10 @@ object LuaAPI {
             val building = city.cityConstructions.getBuiltBuildings()
                 .firstOrNull { it.name == args.arg(1).tojstring() }
             if (building != null) city.cityConstructions.removeBuilding(building)
+            LuaValue.NIL
+        })
+        t.registerApi("city", "sellBuilding", luaFunction { args ->
+            city.sellBuilding(args.arg(1).tojstring())
             LuaValue.NIL
         })
 
@@ -630,6 +826,37 @@ object LuaAPI {
         t.registerApi("unit", "base", baseTable)
 
         t.registerApi("unit", "health", LuaValue.valueOf(unit.health))
+        t.registerApi("unit", "getMaxHealth", luaFunction {
+            LuaValue.valueOf(MapUnitCombatant(unit).getMaxHealth())
+        })
+        t.registerApi("unit", "getDamage", luaFunction {
+            LuaValue.valueOf(MapUnitCombatant(unit).getMaxHealth() - unit.health)
+        })
+        t.registerApi("unit", "getAttacksLeft", luaFunction {
+            LuaValue.valueOf(unit.maxAttacksPerTurn() - unit.attacksThisTurn)
+        })
+        t.registerApi("unit", "getVisibilityRange", luaFunction {
+            LuaValue.valueOf(unit.getVisibilityRange())
+        })
+        t.registerApi("unit", "getAction", luaFunction {
+            LuaValue.valueOf(unit.action ?: "")
+        })
+        t.registerApi("unit", "canAttack", luaFunction { LuaValue.valueOf(unit.canAttack()) })
+        t.registerApi("unit", "canPillage", luaFunction {
+            LuaValue.valueOf(unit.currentTile.canPillageTile())
+        })
+        t.registerApi("unit", "isInEnemyTerritory", luaFunction {
+            LuaValue.valueOf(unit.currentTile.isEnemyTerritory(unit.civ))
+        })
+        t.registerApi("unit", "isInFriendlyTerritory", luaFunction {
+            LuaValue.valueOf(unit.currentTile.isFriendlyTerritory(unit.civ))
+        })
+        t.registerApi("unit", "isGreatPerson", luaFunction {
+            LuaValue.valueOf(unit.isGreatPerson())
+        })
+        t.registerApi("unit", "getReligionDisplayName", luaFunction {
+            LuaValue.valueOf(unit.getReligionDisplayName() ?: "")
+        })
         t.registerApi("unit", "getRange", luaFunction { LuaValue.valueOf(unit.getRange()) })
         t.registerApi("unit", "getMovement", luaFunction { LuaValue.valueOf(unit.getMaxMovement().toDouble()) })
         t.registerApi("unit", "getCurrentMovement", luaFunction {
@@ -694,8 +921,17 @@ object LuaAPI {
             unit.takeDamage(args.arg(1).safeToInt())
             LuaValue.NIL
         })
+        t.registerApi("unit", "setHealth", luaFunction { args ->
+            val maxHealth = MapUnitCombatant(unit).getMaxHealth()
+            unit.health = args.arg(1).safeToInt().coerceIn(0, maxHealth)
+            LuaValue.NIL
+        })
         t.registerApi("unit", "addXP", luaFunction { args ->
             unit.promotions.XP += args.arg(1).safeToInt()
+            LuaValue.NIL
+        })
+        t.registerApi("unit", "setXP", luaFunction { args ->
+            unit.promotions.XP = args.arg(1).safeToInt().coerceAtLeast(0)
             LuaValue.NIL
         })
         t.registerApi("unit", "addPromotion", luaFunction { args ->
@@ -713,6 +949,40 @@ object LuaAPI {
         t.registerApi("unit", "useMovement", luaFunction { args ->
             unit.useMovementPoints(args.arg(1).safeToFloat())
             LuaValue.NIL
+        })
+        t.registerApi("unit", "setStatus", luaFunction { args ->
+            unit.setStatus(args.arg(1).tojstring(), args.arg(2).safeToInt())
+            LuaValue.NIL
+        })
+        t.registerApi("unit", "setAttacksLeft", luaFunction { args ->
+            val n = args.arg(1).safeToInt().coerceIn(0, unit.maxAttacksPerTurn())
+            unit.attacksThisTurn = unit.maxAttacksPerTurn() - n
+            LuaValue.NIL
+        })
+        t.registerApi("unit", "fortify", luaFunction {
+            unit.fortify()
+            LuaValue.NIL
+        })
+        t.registerApi("unit", "moveByPath", luaFunction { args ->
+            val path = args.arg(1).checktable()
+            var steps = 0
+            var i = 1
+            while (true) {
+                val node = path.get(LuaValue.valueOf(i))
+                if (node.isnil()) break
+                val x = node.get("x").safeToInt()
+                val y = node.get("y").safeToInt()
+                val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: break
+                if (unit.currentTile == target) {
+                    i++
+                    continue
+                }
+                if (!unit.movement.canMoveTo(target)) break
+                unit.movement.moveToTile(target)
+                steps++
+                i++
+            }
+            LuaValue.valueOf(steps)
         })
         t.registerApi("unit", "upgrade", luaFunction {
             val upgradeAction = UnitActionsUpgrade.getFreeUpgradeAction(unit)
@@ -802,6 +1072,11 @@ object LuaAPI {
         })
         t.registerApi("tile", "isImpassable", luaFunction { LuaValue.valueOf(tile.isImpassible()) })
         t.registerApi("tile", "isRiver", luaFunction { LuaValue.valueOf(tile.neighbors.any { tile.isConnectedByRiver(it) }) })
+        t.registerApi("tile", "isAdjacentToCoast", luaFunction { LuaValue.valueOf(tile.isAdjacentToCoast()) })
+        t.registerApi("tile", "hasRoad", luaFunction { LuaValue.valueOf(tile.roadStatus == RoadStatus.Road) })
+        t.registerApi("tile", "hasRailroad", luaFunction { LuaValue.valueOf(tile.roadStatus == RoadStatus.Railroad) })
+        t.registerApi("tile", "hasNaturalWonder", luaFunction { LuaValue.valueOf(tile.naturalWonder != null) })
+        t.registerApi("tile", "getNaturalWonder", luaFunction { LuaValue.valueOf(tile.naturalWonder ?: "") })
 
         t.registerApi("tile", "hasResource", luaFunction { LuaValue.valueOf(tile.tileResource != null) })
         t.registerApi("tile", "resourceName", LuaValue.valueOf(tile.tileResource?.name ?: ""))
@@ -825,6 +1100,25 @@ object LuaAPI {
         t.registerApi("tile", "isOwnedBy", luaFunction { args ->
             LuaValue.valueOf(tile.getOwner()?.civName == args.arg(1).tojstring())
         })
+        t.registerApi("tile", "isFriendlyTerritory", luaFunction { args ->
+            val other = civInfo.gameInfo.getCivilizationOrNull(args.arg(1).tojstring())
+            LuaValue.valueOf(other != null && tile.isFriendlyTerritory(other))
+        })
+        t.registerApi("tile", "isEnemyTerritory", luaFunction { args ->
+            val other = civInfo.gameInfo.getCivilizationOrNull(args.arg(1).tojstring())
+            LuaValue.valueOf(other != null && tile.isEnemyTerritory(other))
+        })
+        t.registerApi("tile", "getDistanceTo", luaFunction { args ->
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
+            val other = civInfo.gameInfo.tileMap[HexCoord(x, y)]
+            LuaValue.valueOf(if (other != null) tile.aerialDistanceTo(other) else -1)
+        })
+        t.registerApi("tile", "isAdjacentTo", luaFunction { args ->
+            val x = args.arg(1).safeToInt()
+            val y = args.arg(2).safeToInt()
+            LuaValue.valueOf(tile.neighbors.any { it.position == HexCoord(x, y) })
+        })
         t.registerApi("tile", "isCityCenter", luaFunction { LuaValue.valueOf(tile.isCityCenter()) })
         t.registerApi("tile", "getOwningCity", luaFunction {
             LuaValue.valueOf(tile.owningCity?.name ?: "")
@@ -833,6 +1127,11 @@ object LuaAPI {
         t.registerApi("tile", "isExploredBy", luaFunction { args ->
             val other = civInfo.gameInfo.getCivilizationOrNull(args.arg(1).tojstring())
             LuaValue.valueOf(other != null && tile.isExplored(other))
+        })
+        t.registerApi("tile", "setExplored", luaFunction { args ->
+            val other = civInfo.gameInfo.getCivilizationOrNull(args.arg(1).tojstring())
+            if (other != null) tile.setExplored(other, args.arg(2).toboolean())
+            LuaValue.NIL
         })
 
         t.registerApi("tile", "hasMilitaryUnit", luaFunction { LuaValue.valueOf(tile.militaryUnit != null) })
@@ -930,6 +1229,13 @@ object LuaAPI {
                 LuaValue.NIL
             }
         })
+        t.registerApi("game", "getCurrentPlayerCiv", luaFunction {
+            try {
+                buildCivTable(gameInfo.currentPlayerCiv)
+            } catch (e: Exception) {
+                LuaValue.NIL
+            }
+        })
 
         // Civ queries
         t.registerApi("game", "getCiv", luaFunction { args ->
@@ -945,6 +1251,17 @@ object LuaAPI {
         t.registerApi("game", "getAllCivs", luaFunction {
             val arr = LuaTable()
             gameInfo.civilizations.forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), buildCivTable(c)) }
+            arr
+        })
+        t.registerApi("game", "getCivNames", luaFunction {
+            val arr = LuaTable()
+            gameInfo.civilizations.forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(c.civName)) }
+            arr
+        })
+        t.registerApi("game", "getHumanCivs", luaFunction {
+            val arr = LuaTable()
+            gameInfo.civilizations.filter { it.isHuman() }
+                .forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), buildCivTable(c)) }
             arr
         })
         t.registerApi("game", "getAliveMajorCivs", luaFunction {
@@ -988,6 +1305,12 @@ object LuaAPI {
         })
         t.registerApi("game", "getMapHeight", luaFunction {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.mapSize.height)
+        })
+        t.registerApi("game", "getMapName", luaFunction {
+            LuaValue.valueOf(gameInfo.tileMap.mapParameters.name)
+        })
+        t.registerApi("game", "getMapType", luaFunction {
+            LuaValue.valueOf(gameInfo.tileMap.mapParameters.type)
         })
         t.registerApi("game", "isWrapped", luaFunction {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.worldWrap)
@@ -1033,11 +1356,80 @@ object LuaAPI {
             ruleset.unitPromotions.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
+        t.registerApi("game", "getRulesetTerrains", luaFunction {
+            stringList(ruleset.terrains.keys)
+        })
+        t.registerApi("game", "getRulesetResources", luaFunction {
+            stringList(ruleset.tileResources.keys)
+        })
+        t.registerApi("game", "getRulesetImprovements", luaFunction {
+            stringList(ruleset.tileImprovements.keys)
+        })
+        t.registerApi("game", "getRulesetNations", luaFunction {
+            stringList(ruleset.nations.keys)
+        })
+        t.registerApi("game", "getRulesetReligions", luaFunction {
+            stringList(ruleset.religions)
+        })
+        t.registerApi("game", "getRulesetBeliefs", luaFunction {
+            stringList(ruleset.beliefs.keys)
+        })
+        t.registerApi("game", "getRulesetEvents", luaFunction {
+            stringList(ruleset.events.keys)
+        })
+        t.registerApi("game", "getRulesetNaturalWonders", luaFunction {
+            stringList(gameInfo.tileMap.naturalWonders)
+        })
+        t.registerApi("game", "getRulesetUnitTypes", luaFunction {
+            stringList(ruleset.unitTypes.keys)
+        })
+        t.registerApi("game", "getEraNames", luaFunction {
+            stringList(ruleset.eras.keys)
+        })
+        t.registerApi("game", "getVictoryTypes", luaFunction {
+            stringList(gameInfo.gameParameters.victoryTypes)
+        })
+        t.registerApi("game", "getMods", luaFunction {
+            stringList(gameInfo.gameParameters.mods)
+        })
+        t.registerApi("game", "getBaseRuleset", luaFunction {
+            LuaValue.valueOf(gameInfo.gameParameters.baseRuleset)
+        })
         t.registerApi("game", "doesBuildingExist", luaFunction { args ->
             LuaValue.valueOf(ruleset.buildings.containsKey(args.arg(1).tojstring()))
         })
         t.registerApi("game", "doesUnitExist", luaFunction { args ->
             LuaValue.valueOf(ruleset.units.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesTechExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.technologies.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesPolicyExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.policies.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesEraExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.eras.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesPromotionExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.unitPromotions.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesTerrainExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.terrains.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesResourceExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.tileResources.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesImprovementExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.tileImprovements.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesNationExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.nations.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesBeliefExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.beliefs.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesEventExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.events.containsKey(args.arg(1).tojstring()))
         })
 
         // Write
@@ -1072,6 +1464,13 @@ object LuaAPI {
     // endregion
 
     // region helpers
+    /** Builds a 1-based Lua array table from a collection of strings. */
+    private fun stringList(values: Collection<String>): LuaValue {
+        val arr = LuaTable()
+        values.forEachIndexed { i, v -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(v)) }
+        return arr
+    }
+
     private fun filterTilesByCriteria(
         tiles: Sequence<Tile>,
         criteria: LuaValue,

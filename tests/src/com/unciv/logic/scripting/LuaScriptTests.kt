@@ -159,6 +159,34 @@ class LuaScriptTests {
     }
 
     @Test
+    fun extendedApiTestsPass() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(HexCoord(0, 0)))
+
+        // Reload testMOD scripts so edits to testNewApi.lua take effect within a shared JVM
+        LuaScriptManager.clearMod(modName)
+        val testModDir = sequenceOf(
+            Gdx.files.internal("mods/$modName"),
+            Gdx.files.absolute(System.getProperty("user.dir") + "/android/assets/mods/$modName")
+        ).firstOrNull { it.isDirectory }
+        if (testModDir != null)
+            LuaScriptManager.loadScripts(testModDir, modName, testGame.ruleset)
+
+        val ctx = LuaAPI.buildContext(civ, city, unit, unit.currentTile, "", GameContext(civ, city, unit, unit.currentTile), modName)
+        val (_, func) = LuaScriptManager.getFunction(modName, "testNewApi") ?: run {
+            Assert.fail("testNewApi function not found - is testMOD loaded with testNewApi.lua?")
+            return
+        }
+        var success = false
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
+        val failures = civ.gameInfo.modLuaStorage[modName]?.get("testNewApi_failures") ?: ""
+        val luaErrors = testGame.gameInfo.ruleset.luaErrors.joinToString("; ") { "[${it.severity}]${it.message}" }
+        println("DEBUG extendedApi: success=$success failures='$failures' storage=${civ.gameInfo.modLuaStorage}")
+        Assert.assertTrue("Extended Lua API tests should pass. Failures: $failures | LuaErrors: $luaErrors", success)
+    }
+
+    @Test
     fun triggerLuaFunctionUniqueIntegration() {
         // Verify that TriggerLuaFunction unique is properly wired through the unique system
         val civ = testGame.addCiv(isPlayer = true)
