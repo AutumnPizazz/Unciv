@@ -10,6 +10,8 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- Lua 模组编辑器支持：新增自动生成的 EmmyLua 类型定义（`docs/Modders/lua-api.lua`，由 `LuaApiDefinitionWriter` 从 API 目录表生成，命令 `./gradlew desktop:generateDocs`，与实现的一致性由测试保障）——模组作者把 LuaLS 语言服务器指向该文件即可获得自动补全、悬停文档与即时拼写检查；常见 API 的参数/返回值标注精确，其余宽松
+- Lua 模组起步模板：新增可复制改名的模板模组 `docs/Modders/examples/LuaStarterMod/`（每回合钩子、参数示例、API 冒烟测试），并在 Lua-Modding 文档（中英）新增“编辑器设置”小节（LuaLS 扩展、`.luarc.json` 配置与模板说明）；测试持续保障模板能通过模组作者会跑的检查
 - 文档：Lua-Modding 页面中英重新对齐——英文版补齐“最常见错误”提醒、`game.findTiles` 条件表与缺失的 civ API（getAdoptedPolicyCount / getAvailablePolicyBranches / getLeaderTitle / getTechCount）；两版共同补充返回值真值陷阱（`return 0`/`nil` 算失败）、函数名规则、沙箱加固与死循环预算说明，以及新增“检查你的模组”小节（游戏内模组检查器与 `mod-ci` 命令行）
 - 移除 `testMapScript` 示例模组——其使用的 Lua 地图生成 API（`ctx.map`、`ctx.perlin`、`GenerateMap`）在引擎中从未实现，示例属于失效死代码
 - Lua 模组健壮性与工具链：运行时错误弹窗现在带脚本行号；AI 回合触发的错误会记入游戏内模组检查器而非只写日志；Lua API 的浮点参数（addInfluence / addMovement / useMovement）增加 NaN/无穷值防护；新增静态 API 拼写检查（如 `ctx.civ.addGoldd(...)` 会报错并给建议），游戏内模组检查器与 `mod-ci` 命令行均会运行，底层 API 目录表与运行时注册的一致性由测试保障

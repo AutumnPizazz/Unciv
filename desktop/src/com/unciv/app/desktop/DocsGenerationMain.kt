@@ -18,5 +18,6 @@ fun main() {
     UniqueDocsWriter().writeChinese()
     UiElementDocsWriter().write()
     MergeActionDocsWriter().write()
+    com.unciv.logic.scripting.LuaApiDefinitionWriter().write()
     println("Docs generation complete.")
 }

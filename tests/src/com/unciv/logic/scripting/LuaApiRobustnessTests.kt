@@ -187,5 +187,72 @@ class LuaApiRobustnessTests {
         )
     }
 
+    @Test
+    fun generatedDefinitionsCoverAllApiMethods() {
+        // The generated EmmyLua type definitions must contain exactly the APIs of the catalog,
+        // so IDE autocompletion can never drift from the implementation
+        val generated = LuaApiDefinitionWriter().generate()
+        for ((owner, names) in LuaAPI.apiCatalog) {
+            for (name in names) {
+                Assert.assertTrue(
+                    "Generated definitions are missing $owner.$name",
+                    generated.contains("---@field $name ")
+                )
+            }
+        }
+        // No field from the generated file may be unknown to the catalog
+        val fieldRegex = Regex("""---@field (\w+) """)
+        for (match in fieldRegex.findAll(generated)) {
+            val field = match.groupValues[1]
+            val known = LuaAPI.apiCatalog.values.any { it.contains(field) }
+            Assert.assertTrue("Generated definition contains unknown field '$field'", known)
+        }
+    }
+
+    @Test
+    fun starterModStaysHealthy() {
+        // The LuaStarterMod template must stay loadable and pass the same checks a mod author
+        // would run (mod-ci): no Lua errors, no API typos, no Error-level ruleset issues
+        // Locate the repo root by walking up from the bundled testMOD (android/assets/mods/testMOD)
+        val testModFile = Gdx.files.internal("mods/testMOD").file().canonicalFile
+        val repoRoot = testModFile.parentFile!!.parentFile!!.parentFile!!.parentFile!!
+        val starterDir = Gdx.files.absolute("${repoRoot.path}/docs/Modders/examples/LuaStarterMod")
+        if (!starterDir.isDirectory) {
+            Assert.fail("LuaStarterMod template directory not found under $repoRoot"); return
+        }
+
+        val ruleset = Ruleset().apply { name = "LuaStarterMod" }
+        ruleset.load(starterDir.child("jsons"))
+        ruleset.luaErrors.addAll(LuaModStaticChecker.checkApiUsage(starterDir.child("scripts")))
+
+        val hardErrors = ruleset.luaErrors.filter { it.severity == LuaScriptErrorSeverity.ERROR }
+        Assert.assertTrue(
+            "Starter mod must load without Lua errors, got: ${hardErrors.map { it.message }}",
+            hardErrors.isEmpty()
+        )
+        val typoErrors = ruleset.luaErrors.filter { it.severity == LuaScriptErrorSeverity.WARNING }
+        Assert.assertTrue(
+            "Starter mod must pass the API spelling check, got: ${typoErrors.map { it.message }}",
+            typoErrors.isEmpty()
+        )
+
+        val errorList = com.unciv.models.ruleset.validation.RulesetValidator.create(ruleset, true).getErrorList()
+        Assert.assertFalse(
+            "Starter mod must have no Error-level issues, got: ${errorList.filter { it.errorSeverityToReport == com.unciv.models.ruleset.validation.RulesetErrorSeverity.Error }.map { it.text }}",
+            errorList.any { it.errorSeverityToReport == com.unciv.models.ruleset.validation.RulesetErrorSeverity.Error }
+        )
+    }
+
+    @Test
+    fun generatedDefinitionsHaveCuratedSignatures() {
+        // Spot-check that high-frequency APIs get precise (non-fallback) signatures
+        val generated = LuaApiDefinitionWriter().generate()
+        Assert.assertTrue(generated.contains("---@field addGold fun(amount: number)"))
+        Assert.assertTrue(generated.contains("---@field isAtWarWith fun(civName: string): boolean"))
+        Assert.assertTrue(generated.contains("---@field getTile fun(x: number, y: number): UncivTile|nil"))
+        Assert.assertTrue(generated.contains("---@field civ UncivCiv"))
+        Assert.assertTrue(generated.contains("---@class UncivCtx"))
+    }
+
     //endregion
 }
