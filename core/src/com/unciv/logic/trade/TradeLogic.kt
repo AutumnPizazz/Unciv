@@ -11,6 +11,7 @@ import com.unciv.logic.civilization.diplomacy.DiplomacyManager
 import com.unciv.logic.civilization.diplomacy.DiplomaticModifiers
 import com.unciv.logic.civilization.diplomacy.WarType
 import com.unciv.models.ruleset.tile.ResourceType
+import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import yairm210.purity.annotations.Readonly
 
@@ -34,15 +35,15 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
         ourAvailableOffers += getAvailableOffers(ourCivilization, otherCivilization)
         theirAvailableOffers += getAvailableOffers(otherCivilization, ourCivilization)
     }
-    
+
     @Readonly
     private fun getAvailableOffers(civInfo: Civilization, otherCiv: Civilization): TradeOffersList {
         val offers = TradeOffersList()
         if (civInfo.isCityState || otherCiv.isCityState) return offers
-        
+
         if (civInfo.isAtWarWith(otherCiv))
             offers.add(TradeOffer(Constants.peaceTreaty, TradeOfferType.Treaty, speed = civInfo.gameInfo.speed))
-        
+
         if (civInfo.diplomacyFunctions.meetsEmbassyRequirementFor(otherCiv)
             && !otherCiv.getDiplomacyManager(civInfo)!!.hasOpenBorders
             && civInfo.hasUnique(UniqueType.EnablesOpenBorders)
@@ -65,7 +66,7 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
             else TradeOfferType.Strategic_Resource
             offers.add(TradeOffer(entry.resource.name, resourceTradeOfferType, entry.amount, speed = civInfo.gameInfo.speed))
         }
-        
+
         for (entry in civInfo.getStockpiledResourcesForTrade()){
             offers.add(TradeOffer(entry.resource.name, TradeOfferType.Stockpiled_Resource, entry.amount, speed = civInfo.gameInfo.speed))
         }
@@ -97,7 +98,7 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
                 offers.add(TradeOffer(thirdCiv.civID, TradeOfferType.WarDeclaration, speed = civInfo.gameInfo.speed))
             }
         }
-        
+
         val thirdCivsAtWarTheyKnow = otherCiv.getKnownCivs().filter {
             it.isAtWarWith(civInfo) && !it.isDefeated()
                 && !it.gameInfo.ruleset.modOptions.hasUnique(UniqueType.DiplomaticRelationshipsCannotChange)
@@ -108,7 +109,7 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
             val amount = if (TradeEvaluation().isPeaceProposalEnabled(thirdCiv, civInfo)) 1 else 0
             offers.add(TradeOffer(thirdCiv.civID, TradeOfferType.PeaceProposal, amount, civInfo.gameInfo.speed))
         }
-        
+
         return offers
     }
 
@@ -146,7 +147,7 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
                 }
                 TradeOfferType.City -> {
                     val city = from.cities.first { it.id == offer.name }
-                    
+
                     city.espionage.removeAllPresentSpies(SpyFleeReason.CityBought)
                     city.moveToCiv(to)
                     city.getCenterTile().getUnits().toList()
@@ -207,7 +208,7 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
                     val peaceOffer = TradeOffer(Constants.peaceTreaty, TradeOfferType.Treaty, speed = from.gameInfo.speed)
                     trade.ourOffers.add(peaceOffer)
                     trade.theirOffers.add(peaceOffer)
-                    
+
                     val thirdCiv = from.gameInfo.getCivilization(offer.name)
                     val tradePartnerDiplo = from.getDiplomacyManager(thirdCiv)!!
                     tradePartnerDiplo.apply {
@@ -230,17 +231,17 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
         // Their value can be so big it throws the gift system out of wack
         // Also, offers for peace/war with a third nation are not a "gift"
         val shouldChangeRelationshipDueToGiftedValue = applyGifts
-                && !currentTrade.ourOffers.any { 
+                && !currentTrade.ourOffers.any {
                     it.name == Constants.peaceTreaty
                             || it.type == TradeOfferType.WarDeclaration
                             || it.type == TradeOfferType.PeaceProposal
                 }
-        
+
         if (shouldChangeRelationshipDueToGiftedValue) {
             // Must evaluate before moving, or else cities have already moved and we get an exception
             val ourGoldValueOfTrade = TradeEvaluation().getTradeAcceptability(currentTrade, ourCivilization, otherCivilization, includeDiplomaticGifts = false)
             val theirGoldValueOfTrade = TradeEvaluation().getTradeAcceptability(currentTrade.reverse(), otherCivilization, ourCivilization, includeDiplomaticGifts = false)
-            
+
             if (ourGoldValueOfTrade > theirGoldValueOfTrade) {
                 val isPureGift = currentTrade.ourOffers.isEmpty()
                 ourDiploManager.giftGold(ourGoldValueOfTrade - theirGoldValueOfTrade.coerceAtLeast(0), isPureGift)
@@ -282,5 +283,14 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
 
         otherCivilization.cache.updateCivResources()
         otherCivilization.updateStatsForNextTurn()
+
+        // Trigger "upon completing a trade" uniques (e.g. Lua hooks) for both sides.
+        // Fires on every accepted trade - see the UniqueType doc for the full scope.
+        for (unique in ourCivilization.getTriggeredUniques(UniqueType.TriggerUponTradeMade)
+                { otherCivilization.matchesFilter(it.params[0]) })
+            UniqueTriggerActivation.triggerUnique(unique, ourCivilization)
+        for (unique in otherCivilization.getTriggeredUniques(UniqueType.TriggerUponTradeMade)
+                { ourCivilization.matchesFilter(it.params[0]) })
+            UniqueTriggerActivation.triggerUnique(unique, otherCivilization)
     }
 }

@@ -13,9 +13,12 @@ import com.unciv.models.ruleset.tech.TechColumn
 import com.unciv.models.ruleset.tech.Technology
 import com.unciv.models.ruleset.unique.Conditionals
 import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.ruleset.unique.TemporaryUnique
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.logic.trade.TradeLogic
+import com.unciv.logic.trade.TradeOfferType
 import com.unciv.models.ruleset.validation.RulesetErrorSeverity
 import com.unciv.models.ruleset.validation.RulesetValidator
 import com.unciv.testing.GdxTestRunner
@@ -214,6 +217,38 @@ class LuaScriptTests {
         val state = GameContext(civ, city)
         val unique = Unique("[+1 Production] <if [noSuchMod:noSuchFunc] returns true>")
         Assert.assertFalse(Conditionals.conditionalApplies(null, unique.getModifiers(UniqueType.ConditionalLuaCheck)[0], state))
+    }
+
+    @Test
+    fun triggerLuaUponTradeMade() {
+        // New lifecycle hook: "upon completing a trade" fires TriggerLuaFunction for both sides
+        loadLuaScriptToMod("tradeMod", "trade.lua", """
+            function onTrade(ctx)
+                ctx.store.set("trade_triggered", "yes")
+                return true
+            end
+        """.trimIndent())
+        val tradeGame = TestGame(
+            "Trigger the function [tradeMod:onTrade] with [] " +
+                "<upon completing a trade with [All] Civilizations>"
+        )
+        tradeGame.makeHexagonalMap(5, "Grassland")
+        val civA = tradeGame.addCiv(isPlayer = true)
+        val civB = tradeGame.addCiv(isPlayer = false)
+        tradeGame.addCity(civA, tradeGame.getTile(HexCoord(0, 0)))
+        tradeGame.addCity(civB, tradeGame.getTile(HexCoord(2, 2)))
+        civA.addGold(500)
+
+        // Complete a gold trade: A gives gold to B
+        val tradeLogic = TradeLogic(civA, civB)
+        val goldOffer = tradeLogic.ourAvailableOffers.first { it.type == TradeOfferType.Gold }
+        tradeLogic.currentTrade.ourOffers.add(goldOffer)
+        tradeLogic.acceptTrade()
+
+        Assert.assertEquals(
+            "Lua onTrade should have fired after the trade completed",
+            "yes", civA.gameInfo.modLuaStorage["tradeMod"]?.get("trade_triggered")
+        )
     }
 
     @Test
