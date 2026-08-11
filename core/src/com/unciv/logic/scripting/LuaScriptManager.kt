@@ -24,6 +24,17 @@ fun luaFunction(block: (Varargs) -> LuaValue): LuaFunction {
         override fun call(arg1: LuaValue, arg2: LuaValue): LuaValue = block(LuaValue.varargsOf(arg1, arg2))
         override fun call(arg1: LuaValue, arg2: LuaValue, arg3: LuaValue): LuaValue =
             block(LuaValue.varargsOf(arg1, arg2, arg3))
+
+        /**
+         * CRITICAL: luaj's [LuaClosure] uses [LuaValue.invoke] for any call whose argument list
+         * contains a function call expression (e.g. `ctx.store.set("k", tostring(1))`), while plain
+         * literal arguments use the [call] overloads above. The base [LuaFunction] does not override
+         * invoke, so it falls through to [LuaValue.callmt] which looks up the `__call` metamethod -
+         * absent for custom LuaFunction subclasses (luaj only installs it for its own LibFunctions via
+         * the debug library) - throwing "attempt to call function" at runtime.
+         * Overriding invoke here fixes every `foo(bar())` style call in mod scripts.
+         */
+        override fun invoke(varargs: Varargs): Varargs = block(varargs)
     }
 }
 

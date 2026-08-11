@@ -67,6 +67,33 @@ class LuaApiRobustnessTests {
 
     //endregion
 
+    @Test
+    fun nestedCallAsArgumentWorks() {
+        // Regression: custom LuaFunction wrappers (luaFunction {}) must override invoke(Varargs).
+        // luaj's LuaClosure routes any call whose argument list contains a function-call expression
+        // (e.g. `ctx.store.set("k", tostring(1))`) through LuaValue.invoke, which by default goes to
+        // the `__call` metamethod lookup - absent for custom LuaFunction subclasses - throwing
+        // "attempt to call function". Plain literal arguments use the call(...) overloads instead,
+        // which is why this only ever surfaced with nested calls.
+        val mod = loadLuaScriptToMod("nestedMod", "nested.lua", """
+            function testNested(ctx)
+                ctx.store.set("key", tostring(1))
+                return ctx.store.get("key") == "1"
+            end
+        """.trimIndent())
+        val civ = testGame.addCiv(isPlayer = true)
+        testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+
+        val (foundMod, func) = LuaScriptManager.getFunction("nestedMod", "testNested") ?: run {
+            Assert.fail("testNested not found"); return
+        }
+        val ctx = LuaAPI.buildContext(civ, null, null, null, "", GameContext(civ), foundMod)
+        var result = false
+        LuaScriptManager.callFunction(func, ctx, civ, "testNested", onSuccess = { result = it }, modName = foundMod)
+        Assert.assertTrue("nested call as argument should work", result)
+        Assert.assertEquals("1", civ.gameInfo.modLuaStorage["nestedMod"]?.get("key"))
+    }
+
     //region Static checker & API catalog
 
     @Test

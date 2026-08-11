@@ -3,6 +3,8 @@
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
 ## Unreleased
+- Fixed a Lua runtime crash affecting every mod script: custom Lua API functions (`luaFunction`) now override luaj's `invoke()`, so calls whose argument list contains a function-call expression (e.g. `ctx.store.set("k", tostring(1))`, `ctx.log(tostring(x))`, `civ.addNotification(makeText())`) no longer throw "attempt to call function" - previously only literal arguments worked; regression test added
+- Fixed the `testMOD` example script `hello.lua` using nonexistent API fields (`civ.gold` / `civ.cityCount` / `civ.era`) that silently evaluated to nil - now uses `civ.getGold()` / `civ.getCityCount()` / `civ.getEra()`
 
 ## v4.21.6.5 (build 1249)
 - Docs: reflected the Lua overhaul across the docs site - Coding-standards generator list now includes `LuaApiDefinitionWriter`/`lua-api.lua`; the Features page's Lua section rewritten (triggers, safety sandbox, error reporting, tooling); Differences table updated with Lua checks and tooling rows; the Mods intro page got a Lua scripting entry pointing to the tutorial and the starter template (EN/ZH kept in sync)

@@ -9,6 +9,8 @@ title: UncivCN 更新日志
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
 ## 未发布（Unreleased）
+- 修复影响所有 Lua 模组脚本的运行时崩溃：自定义 Lua API 函数（`luaFunction`）现在重写 luaj 的 `invoke()`，参数列表包含函数调用表达式（如 `ctx.store.set("k", tostring(1))`、`ctx.log(tostring(x))`、`civ.addNotification(makeText())`）的调用不再报 "attempt to call function"——此前只有字面量参数可用；已补回归测试
+- 修复 `testMOD` 示例脚本 `hello.lua` 使用不存在的 API 字段（`civ.gold` / `civ.cityCount` / `civ.era`，会静默得到 nil）——已改为 `civ.getGold()` / `civ.getCityCount()` / `civ.getEra()`
 
 ## v4.21.6.5（build 1249）
 - 文档：将 Lua 大改全面反映到文档站——Coding-standards 生成器清单新增 `LuaApiDefinitionWriter`/`lua-api.lua`；Features 页 Lua 章节重写（触发方式、安全沙箱、错误报告、工具链）；Differences 对比表更新 Lua 检查与工具链行；模组总览页新增 Lua 脚本入口（指向教程与起步模板，中英同步）

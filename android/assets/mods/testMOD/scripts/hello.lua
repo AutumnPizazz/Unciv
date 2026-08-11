@@ -4,16 +4,16 @@ function hello(ctx)
 
     ctx.log("======== Lua testMOD ========")
     ctx.log("Civ: " .. civ.name)
-    ctx.log("Gold: " .. tostring(civ.gold))
-    ctx.log("Cities: " .. tostring(civ.cityCount))
-    ctx.log("Era: " .. civ.era)
+    ctx.log("Gold: " .. tostring(civ.getGold()))
+    ctx.log("Cities: " .. tostring(civ.getCityCount()))
+    ctx.log("Era: " .. civ.getEra())
     ctx.log("==============================")
 
     -- 弹出游戏内通知
-    civ.addNotification("Lua testMOD says hello! Gold=" .. tostring(civ.gold))
+    civ.addNotification("Lua testMOD says hello! Gold=" .. tostring(civ.getGold()))
 
-    -- 赠送 100 科技
-    civ.addStat("Gold", 100)
+    -- 赠送 100 金币
+    civ.addGold(100)
 
     ctx.log("Done! 100 Gold gifted.")
     return true
