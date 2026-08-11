@@ -9,6 +9,7 @@ import com.unciv.UncivGame
 import com.unciv.logic.map.*
 import com.unciv.logic.map.mapgenerator.MapGenerator
 import com.unciv.logic.map.mapgenerator.MapResourceSetting
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.unique.GameContext
@@ -46,6 +47,8 @@ class MapParametersTable(
     private var customWorldSizeTable = Table()
     private var hexagonalSizeTable = Table()
     private var rectangularSizeTable = Table()
+    private lateinit var mapScriptSelectBox: TranslatedSelectBox
+    private var mapScriptsTable = Table()
     lateinit var resourceSelectBox: TranslatedSelectBox
     lateinit var mirrorSelectBox: TranslatedSelectBox
     private lateinit var noRuinsCheckbox: CheckBox
@@ -102,6 +105,9 @@ class MapParametersTable(
             label.wrap = true
             add(label).colspan(2).grow().row()
         }
+        // Lua map scripts: force type to Scripted
+        if (mapGeneratedMainType == MapGeneratedMainType.luaGenerated)
+            mapParameters.type = MapType.scripted
         addMapShapeSelectBox()
         addMapTypeSelectBox()
         addWorldSizeTable()
@@ -207,6 +213,11 @@ class MapParametersTable(
                 }
             }
             add(optionsTable).colspan(2).grow().row()
+        } else if (mapGeneratedMainType == MapGeneratedMainType.luaGenerated) {
+            // Lua mode: no map type dropdown, only the script selector
+            mapParameters.type = MapType.scripted
+            updateMapScriptSelectBox()
+            add(mapScriptsTable).colspan(2).grow().row()
         } else {
             mapTypeSelectBox = TranslatedSelectBox(mapTypes, mapParameters.type)
 
@@ -225,6 +236,36 @@ class MapParametersTable(
             add(mapTypeSelectBox).fillX().row()
             add(mapTypeExample).colspan(2).grow().row()
         }
+    }
+
+    /** Builds the Lua map script selector (shown only in Lua mode). */
+    private fun updateMapScriptSelectBox() {
+        mapScriptsTable.clear()
+        if (mapParameters.type != MapType.scripted) return
+        if (forMapEditor) return  // Map scripts are for new games only
+
+        val ruleset = (previousScreen as? NewGameScreen)?.ruleset
+            ?: return
+        val scripts = LuaScriptManager.getMapScripts(ruleset)
+        if (scripts.isEmpty()) return
+
+        val scriptNames = scripts.map { it.name }
+        val initialScript = if (mapParameters.mapScript.isNotEmpty()) {
+            scripts.firstOrNull { it.modName == mapParameters.mapScript }?.name
+                ?: scriptNames.firstOrNull() ?: ""
+        } else {
+            scriptNames.firstOrNull() ?: ""
+        }
+
+        mapScriptSelectBox = TranslatedSelectBox(scriptNames, initialScript)
+
+        mapScriptSelectBox.onChange {
+            val selected = scripts.firstOrNull { it.name == mapScriptSelectBox.selected.value }
+            mapParameters.mapScript = selected?.modName ?: ""
+        }
+
+        add("{Map Script}:".toLabel()).left()
+        add(mapScriptSelectBox).fillX().row()
     }
 
     private fun addWorldSizeTable() {
@@ -377,13 +418,13 @@ class MapParametersTable(
     private fun addMirrorSelectBox() {
         if (! forMapEditor)
             return
-        
+
         // only support these, as the rest seem buggy
         val options = listOf(
             MirroringType.none,
             MirroringType.leftright
         )
-        
+
         mirrorSelectBox = TranslatedSelectBox(options, mapParameters.mirroring)
 
         mirrorSelectBox.onChange {

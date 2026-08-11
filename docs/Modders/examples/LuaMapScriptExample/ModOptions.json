@@ -1,0 +1,8 @@
+{
+    "name": "LuaMapScriptExample",
+    "author": "UncivCN",
+    "description": "Example Lua map script: generates a simple Perlin-noise island map.",
+    "uniques": [
+        "Should only be used as permanent audiovisual mod"
+    ]
+}

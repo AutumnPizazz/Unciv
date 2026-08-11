@@ -8,9 +8,16 @@ import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.files.MapSaver
 import com.unciv.logic.map.HexMath
+import com.unciv.logic.map.MapParameters
+import com.unciv.logic.map.MapShape
+import com.unciv.logic.map.MapType
 import com.unciv.logic.map.TileMap
+import com.unciv.logic.map.mapgenerator.MapGenerationRandomness
 import com.unciv.logic.map.mapgenerator.MapGenerator
 import com.unciv.logic.map.tile.Tile
+import com.unciv.logic.map.tile.TileNormalizer
+import com.unciv.logic.scripting.LuaMapGenAPI
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.metadata.Player
 import com.unciv.models.ruleset.Ruleset
@@ -84,7 +91,11 @@ class GameStarter private constructor(
             // The MapGen needs to know what civs are in the game to generate regions, starts and resources
             phaseOneChosenCivs = chooseCivilizations(existingMap = false)
             addCivilizations(phaseOneChosenCivs)
-            tileMap = mapGen.generateMap(gameSetupInfo.mapParameters, gameSetupInfo.gameParameters, gameInfo)
+            if (gameSetupInfo.mapParameters.type == MapType.scripted) {
+                tileMap = generateLuaMap(gameSetupInfo.mapParameters, ruleset)
+            } else {
+                tileMap = mapGen.generateMap(gameSetupInfo.mapParameters, gameSetupInfo.gameParameters, gameInfo)
+            }
             tileMap.mapParameters = gameSetupInfo.mapParameters
             // Now forget them for a moment! MapGen can silently fail to place some city states, so then we'll use the old fallback method to place those.
             gameInfo.civilizations.clear()
@@ -671,5 +682,47 @@ class GameStarter private constructor(
             }
         }
         return preferredTiles.randomOrNull(rng) ?: freeTiles.random(rng)
+    }
+
+    /** Generates a map via a Lua map script instead of the Kotlin [MapGenerator] pipeline. */
+    private fun generateLuaMap(mapParameters: MapParameters, ruleset: Ruleset): TileMap {
+        val modName = mapParameters.mapScript
+        if (modName.isEmpty())
+            throw Exception("Map type is '${MapType.scripted}' but no map script is specified (mapScript is empty)")
+
+        val (_, func) = LuaScriptManager.getFunction(modName, "GenerateMap")
+            ?: throw Exception("Lua map script '$modName:GenerateMap' not found. " +
+                "Make sure the mod '$modName' is loaded and defines a GenerateMap function.")
+
+        val randomness = MapGenerationRandomness()
+        randomness.seedRNG(mapParameters.seed)
+
+        val map = if (mapParameters.shape == MapShape.rectangular)
+            TileMap(mapParameters.mapSize.width, mapParameters.mapSize.height, ruleset, mapParameters.worldWrap)
+        else
+            TileMap(mapParameters.mapSize.radius, ruleset, mapParameters.worldWrap)
+
+        map.mapParameters = mapParameters
+        mapParameters.createdWithVersion = UncivGame.VERSION.toSerializeString()
+
+        for (tile in map.values) {
+            tile.baseTerrain = Constants.ocean
+            tile.setTerrainTransients()
+        }
+
+        val ctx = LuaMapGenAPI.buildMapGenContext(map, ruleset, randomness)
+        var success = false
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
+        if (!success) {
+            throw Exception(
+                "Lua map script '$modName:GenerateMap' returned false. " +
+                    "The script may have encountered an error during map generation."
+            )
+        }
+
+        for (tile in map.values)
+            TileNormalizer.normalizeToRuleset(tile, ruleset)
+
+        return map
     }
 }

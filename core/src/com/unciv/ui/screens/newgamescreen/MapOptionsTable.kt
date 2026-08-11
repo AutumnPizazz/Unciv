@@ -2,6 +2,8 @@ package com.unciv.ui.screens.newgamescreen
 
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.logic.map.MapGeneratedMainType
+import com.unciv.logic.map.MapType
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.components.input.onChange
 import com.unciv.ui.components.widgets.TranslatedSelectBox
@@ -13,6 +15,7 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
     private var mapTypeSpecificTable = Table()
     internal val generatedMapOptionsTable = MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.generated)
     private val randomMapOptionsTable = MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.randomGenerated)
+    internal val luaMapOptionsTable = MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.luaGenerated)
     private val savedMapOptionsTable = MapFileSelectTable(newGameScreen, mapParameters)
     private val scenarioOptionsTable = ScenarioSelectTable(newGameScreen)
     internal val mapTypeSelectBox: TranslatedSelectBox
@@ -40,6 +43,7 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
     }
 
     private fun getMapTypes() = arrayListOf(MapGeneratedMainType.generated, MapGeneratedMainType.randomGenerated).apply {
+        if (LuaScriptManager.getMapScripts(newGameScreen.ruleset).isNotEmpty()) add(MapGeneratedMainType.luaGenerated)
         if (savedMapOptionsTable.isNotEmpty()) add(MapGeneratedMainType.custom)
         if (newGameScreen.game.files.getScenarioFiles().any()) add(MapGeneratedMainType.scenario)
     }
@@ -57,6 +61,12 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
                 mapParameters.name = ""
                 mapParameters.type = generatedMapOptionsTable.mapTypeSelectBox.selected.value
                 mapTypeSpecificTable.add(generatedMapOptionsTable)
+                newGameScreen.unlockTables()
+            }
+            MapGeneratedMainType.luaGenerated -> {
+                mapParameters.name = ""
+                mapParameters.type = MapType.scripted
+                mapTypeSpecificTable.add(luaMapOptionsTable)
                 newGameScreen.unlockTables()
             }
             MapGeneratedMainType.randomGenerated -> {

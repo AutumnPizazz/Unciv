@@ -11,7 +11,7 @@ object MapShape {
     const val rectangular = "Rectangular"
     const val hexagonal = "Hexagonal"
     const val flatEarth = "Flat Earth Hexagonal"
-    
+
     val allValues = listOf(rectangular, hexagonal, flatEarth)
 }
 
@@ -19,6 +19,8 @@ object MapGeneratedMainType {
     const val generated = "Generated"
     // Randomly choose a generated map type
     const val randomGenerated = "Random Generated"
+    // Lua map script
+    const val luaGenerated = "Lua Generated"
     // Non-generated maps
     const val custom = "Custom"
     const val scenario = "Scenario"
@@ -39,7 +41,7 @@ object MapType {
     const val fourCorners = "Four Corners"
     const val boreal = "Boreal"
     const val spiral = "Spiral"
-    
+
     // ordered based on popularity poll
     val allValues = listOf(
         pangaea,
@@ -59,6 +61,9 @@ object MapType {
 
     // All ocean tiles
     const val empty = "Empty"
+
+    // Lua map script
+    const val scripted = "Scripted"
 }
 
 object MirroringType {
@@ -102,6 +107,8 @@ class MapParameters : IsPartOfGameInfoSerialization {
     var createdWithVersion = ""
 
     var seed: Long = System.currentTimeMillis()
+    /** Mod name of the Lua map script to use when [type] is [MapType.scripted]. */
+    var mapScript = ""
     var tilesPerBiomeArea = 6
     var maxCoastExtension = 2
     var elevationExponent = 0.7f
@@ -130,6 +137,7 @@ class MapParameters : IsPartOfGameInfoSerialization {
         toReturn.baseRuleset = baseRuleset
         toReturn.symmetryMode = symmetryMode
         toReturn.seed = seed
+        toReturn.mapScript = mapScript
         toReturn.tilesPerBiomeArea = tilesPerBiomeArea
         toReturn.maxCoastExtension = maxCoastExtension
         toReturn.elevationExponent = elevationExponent

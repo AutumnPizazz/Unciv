@@ -942,6 +942,16 @@ open class RulesetValidator protected constructor(
                     continue
                 }
 
+                // Map-generation functions must not be called from in-game triggers
+                if (LuaScriptManager.isMapGenFunction(functionName)) {
+                    lines.add(
+                        "Lua function '$functionName' is reserved for map generation " +
+                            "and cannot be used in TriggerLuaFunction. Remove this trigger or use a different function.",
+                        RulesetErrorSeverity.Error, obj, unique
+                    )
+                    continue
+                }
+
                 if (functionName !in knownFunctions) {
                     lines.add(
                         "Lua function '$functionName' not found in any loaded mod (referenced by '$luaRef' in ${obj.name})",

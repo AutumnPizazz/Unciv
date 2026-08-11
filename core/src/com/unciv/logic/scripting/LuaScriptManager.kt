@@ -38,6 +38,18 @@ fun luaFunction(block: (Varargs) -> LuaValue): LuaFunction {
     }
 }
 
+/** Metadata for a Lua map script discovered via [LuaScriptManager.getMapScripts]. */
+data class MapScriptInfo(
+    val modName: String,
+    /** Display name shown in the map type dropdown. */
+    val name: String,
+    /** Description shown as tooltip. */
+    val description: String
+) {
+    /** Fully qualified reference string: "modName:GenerateMap". */
+    val ref get() = "$modName:GenerateMap"
+}
+
 object LuaScriptManager {
 
     private val luaFunctionRefRegex = Regex("^[a-zA-Z_]\\w*(:[a-zA-Z_]\\w*)?$")
@@ -294,6 +306,52 @@ object LuaScriptManager {
     }
 
     @Readonly fun isValidFunctionRef(ref: String): Boolean = luaFunctionRefRegex.matches(ref)
+
+    // region Map scripts
+
+    /**
+     * Functions reserved for map generation scripts.
+     * These must NOT be called via [UniqueType.TriggerLuaFunction] in-game,
+     * as they are designed to manipulate the TileMap during generation only.
+     */
+    private val mapGenReservedFunctions = setOf("GetMapScriptInfo", "GenerateMap")
+
+    /** Returns true if [functionName] is reserved for map generation and cannot be used in TriggerLuaFunction. */
+    fun isMapGenFunction(functionName: String): Boolean =
+        functionName in mapGenReservedFunctions
+
+    /**
+     * Discovers all Lua map scripts from the currently loaded mods in [ruleset].
+     * A map script is a Lua file that defines both [GetMapScriptInfo] (returning metadata)
+     * and [GenerateMap] (the generator function).
+     */
+    fun getMapScripts(ruleset: Ruleset): List<MapScriptInfo> {
+        val scripts = mutableListOf<MapScriptInfo>()
+        for ((modName, globals) in modGlobals) {
+            if (ruleset.mods.isNotEmpty() && modName !in ruleset.mods) continue
+
+            val infoFunc = globals.get("GetMapScriptInfo")
+            if (infoFunc == LuaValue.NIL || infoFunc !is LuaFunction) continue
+
+            val genFunc = globals.get("GenerateMap")
+            if (genFunc == LuaValue.NIL || genFunc !is LuaFunction) continue
+
+            try {
+                val result = infoFunc.call()
+                if (!result.istable()) continue
+                val table = result.checktable()
+                val name = table.get("name").tojstring()
+                val description = table.get("description")?.tojstring() ?: ""
+                if (name.isNotEmpty())
+                    scripts.add(MapScriptInfo(modName, name, description))
+            } catch (ex: Exception) {
+                Log.error("Lua: error calling GetMapScriptInfo for mod $modName: ${ex.message}")
+            }
+        }
+        return scripts
+    }
+
+    // endregion
 
     private fun extractLineNumber(message: String?): Int? {
         if (message == null) return null
