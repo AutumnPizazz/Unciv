@@ -64,10 +64,16 @@ object DesktopLauncher {
             if (jsonsFolder.exists()) {
                 // Load vanilla ruleset from the JAR, in case the mod requires parts of it
                 RulesetCache.loadRulesets(consoleMode = true, noMods = true)
-                // Load the actual ruleset here
+                // Load the actual ruleset here - this also loads scripts/*.lua and collects
+                // syntax errors / missing function references into ruleset.luaErrors
                 ruleset.load(jsonsFolder)
             }
             UniqueAutoUpdater.autoupdateUniques(ruleset)
+            // Static Lua API spelling check (ctx.civ.addGoldd(...) etc.) - needs the catalog,
+            // no game state required
+            ruleset.luaErrors.addAll(
+                com.unciv.logic.scripting.LuaModStaticChecker.checkApiUsage(FileHandle("scripts"))
+            )
             val errors = RulesetValidator.create(ruleset, true).getErrorList()
             println(errors.getErrorText(true))
             exitProcess(if (errors.any { it.errorSeverityToReport == RulesetErrorSeverity.Error }) 1 else 0)

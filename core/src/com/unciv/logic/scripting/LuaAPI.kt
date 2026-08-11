@@ -22,6 +22,38 @@ import org.luaj.vm2.LuaValue
 
 object LuaAPI {
 
+    /**
+     * Static catalog of every API name exposed per context table - the source of
+     * truth for the CLI mod checker (desktop mod-ci / --check-mod), which has no
+     * running game to trigger the runtime registration below.
+     * Kept in sync with the runtime registration by [LuaSecurityTests].
+     */
+    val apiCatalog: Map<String, Set<String>> = mapOf(
+        "ctx" to setOf("parameter", "city", "unit", "tile", "civ", "game", "log", "count", "evaluateConditional", "store"),
+        "store" to setOf("get", "set"),
+        "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getResourceAmount", "hasResource", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "grantTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getLeaderTitle", "hasUnique", "addGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
+        "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "addBuilding", "removeBuilding", "setProduction", "addToQueue", "clearQueue"),
+        "unit" to setOf("id", "name", "instanceName", "isCivilian", "isMilitary", "isRanged", "isEmbarked", "isFortified", "isAutomated", "base", "health", "getRange", "getMovement", "getCurrentMovement", "getXP", "hasPromotion", "hasUnique", "getPromotions", "getPromotionCount", "hasStatus", "getStatusTurns", "getPosition", "canMoveTo", "getOwner", "isOwnedBy", "healBy", "takeDamage", "addXP", "addPromotion", "removePromotion", "addMovement", "useMovement", "upgrade", "destroy", "attackTile", "teleportTo", "findPathTo", "canReach"),
+        "tile" to setOf("position", "getX", "getY", "baseTerrain", "isLand", "isWater", "isCoast", "isHill", "isMountain", "hasTerrainFeature", "getTerrainFeatures", "isImpassable", "isRiver", "hasResource", "resourceName", "resourceAmount", "hasImprovement", "improvementName", "isPillaged", "getYield", "isOwned", "getOwner", "isOwnedBy", "isCityCenter", "getOwningCity", "isExploredBy", "hasMilitaryUnit", "hasCivilianUnit", "getUnits", "getNeighbors", "getNeighborAt", "getTilesInDistance", "setTerrain", "addTerrainFeature", "removeTerrainFeature", "setImprovement", "removeImprovement", "removeResource", "setResource", "setRoad", "setRailroad", "removeRoad"),
+        "game" to setOf("turn", "getYear", "speed", "difficulty", "getCurrentPlayer", "getCiv", "getCivById", "getAllCivs", "getAliveMajorCivs", "getAliveCityStates", "getBarbarianCiv", "getTile", "findTiles", "getMapWidth", "getMapHeight", "isWrapped", "getTilesNear", "getRulesetBuildings", "getRulesetUnits", "getRulesetTechs", "getRulesetPolicies", "getRulesetEras", "getRulesetPromotions", "doesBuildingExist", "doesUnitExist", "addGlobalNotification", "revealEntireMap", "revealTilesAround"),
+    )
+
+
+    /**
+     * API methods exposed per context table (civ/city/unit/tile/game/ctx), registered when the
+     * tables are built at runtime. Consumed by the CLI mod checker (server --check-mod) to
+     * statically detect typos in mod Lua scripts, e.g. `ctx.civ.addGoldd(...)`.
+     */
+    val knownApiMethods = java.util.concurrent.ConcurrentHashMap<String, MutableSet<String>>()
+
+    private fun LuaTable.registerApi(owner: String, name: String, value: LuaValue): LuaTable {
+        if (name !in apiCatalog[owner].orEmpty())
+            com.unciv.utils.Log.error("LuaAPI: '$name' (owner '$owner') is missing from apiCatalog - the CLI mod checker will not know it")
+        knownApiMethods.getOrPut(owner) { java.util.concurrent.ConcurrentHashMap.newKeySet() }.add(name)
+        this.set(name, value)
+        return this
+    }
+
     private fun LuaValue.safeToInt(): Int {
         val d = this.todouble()
         if (d.isNaN() || d.isInfinite()) {
@@ -35,6 +67,15 @@ object LuaAPI {
         return d.toInt()
     }
 
+    private fun LuaValue.safeToFloat(): Float {
+        val f = this.tofloat()
+        if (f.isNaN() || f.isInfinite()) {
+            com.unciv.utils.Log.error("Lua: argument is NaN/Infinity, using 0")
+            return 0f
+        }
+        return f
+    }
+
     fun buildContext(
         civInfo: Civilization,
         city: City?,
@@ -45,23 +86,23 @@ object LuaAPI {
         modName: String = ""
     ): LuaValue {
         val ctx = LuaValue.tableOf()
-        ctx.set("parameter", LuaValue.valueOf(resolvedParam))
-        if (city != null) ctx.set("city", buildCityTable(city))
-        if (unit != null) ctx.set("unit", buildUnitTable(unit))
-        if (tile != null) ctx.set("tile", buildTileTable(tile, civInfo))
-        ctx.set("civ", buildCivTable(civInfo))
-        ctx.set("game", buildGameTable(civInfo))
+        ctx.registerApi("ctx", "parameter", LuaValue.valueOf(resolvedParam))
+        if (city != null) ctx.registerApi("ctx", "city", buildCityTable(city))
+        if (unit != null) ctx.registerApi("ctx", "unit", buildUnitTable(unit))
+        if (tile != null) ctx.registerApi("ctx", "tile", buildTileTable(tile, civInfo))
+        ctx.registerApi("ctx", "civ", buildCivTable(civInfo))
+        ctx.registerApi("ctx", "game", buildGameTable(civInfo))
 
-        ctx.set("log", luaFunction { args ->
+        ctx.registerApi("ctx", "log", luaFunction { args ->
             com.unciv.utils.Log.debug("Lua: ${args.arg(1).tojstring()}")
             LuaValue.NIL
         })
-        ctx.set("count", luaFunction { args ->
+        ctx.registerApi("ctx", "count", luaFunction { args ->
             val expr = args.arg(1).tojstring()
             val result = LuaScriptManager.resolveCountablesInString(expr, gameContext)
             LuaValue.valueOf(result)
         })
-        ctx.set("evaluateConditional", luaFunction { args ->
+        ctx.registerApi("ctx", "evaluateConditional", luaFunction { args ->
             val conditionalText = args.arg(1).tojstring()
             val conditional = Unique(conditionalText)
             val applies = Conditionals.conditionalApplies(null, conditional, gameContext)
@@ -71,18 +112,18 @@ object LuaAPI {
         if (modName.isNotEmpty()) {
             val storage = civInfo.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
             val store = LuaValue.tableOf()
-            store.set("get", luaFunction { args ->
+            store.registerApi("store", "get", luaFunction { args ->
                 val key = args.arg(1).tojstring()
                 val defaultValue = if (args.narg() > 1) args.arg(2).tojstring() else ""
                 LuaValue.valueOf(storage[key] ?: defaultValue)
             })
-            store.set("set", luaFunction { args ->
+            store.registerApi("store", "set", luaFunction { args ->
                 val key = args.arg(1).tojstring()
                 val value = args.arg(2).tojstring()
                 storage[key] = value
                 LuaValue.NIL
             })
-            ctx.set("store", store)
+            ctx.registerApi("ctx", "store", store)
         }
 
         return ctx
@@ -93,71 +134,71 @@ object LuaAPI {
         val t = LuaValue.tableOf()
 
         // Identity
-        t.set("id", LuaValue.valueOf(civ.civID))
-        t.set("name", LuaValue.valueOf(civ.civName))
-        t.set("isHuman", LuaValue.valueOf(civ.isHuman()))
-        t.set("isAI", LuaValue.valueOf(civ.isAI()))
-        t.set("isAlive", LuaValue.valueOf(civ.isAlive()))
-        t.set("isMajorCiv", LuaValue.valueOf(civ.isMajorCiv()))
-        t.set("isCityState", LuaValue.valueOf(civ.isCityState))
-        t.set("isBarbarian", LuaValue.valueOf(civ.isBarbarian))
-        t.set("isSpectator", LuaValue.valueOf(civ.isSpectator()))
+        t.registerApi("civ", "id", LuaValue.valueOf(civ.civID))
+        t.registerApi("civ", "name", LuaValue.valueOf(civ.civName))
+        t.registerApi("civ", "isHuman", LuaValue.valueOf(civ.isHuman()))
+        t.registerApi("civ", "isAI", LuaValue.valueOf(civ.isAI()))
+        t.registerApi("civ", "isAlive", LuaValue.valueOf(civ.isAlive()))
+        t.registerApi("civ", "isMajorCiv", LuaValue.valueOf(civ.isMajorCiv()))
+        t.registerApi("civ", "isCityState", LuaValue.valueOf(civ.isCityState))
+        t.registerApi("civ", "isBarbarian", LuaValue.valueOf(civ.isBarbarian))
+        t.registerApi("civ", "isSpectator", LuaValue.valueOf(civ.isSpectator()))
 
         // Stats
-        t.set("getGold", luaFunction { LuaValue.valueOf(civ.gold) })
-        t.set("getHappiness", luaFunction { LuaValue.valueOf(civ.getHappiness()) })
-        t.set("getStat", luaFunction { args ->
+        t.registerApi("civ", "getGold", luaFunction { LuaValue.valueOf(civ.gold) })
+        t.registerApi("civ", "getHappiness", luaFunction { LuaValue.valueOf(civ.getHappiness()) })
+        t.registerApi("civ", "getStat", luaFunction { args ->
             val stat = Stat.safeValueOf(args.arg(1).tojstring())
             LuaValue.valueOf(if (stat != null) civ.getStatReserve(stat) else 0)
         })
-        t.set("getStatYield", luaFunction { args ->
+        t.registerApi("civ", "getStatYield", luaFunction { args ->
             val stat = Stat.safeValueOf(args.arg(1).tojstring())
             LuaValue.valueOf(
                 if (stat != null) (civ.stats.statsForNextTurn[stat] ?: 0f).toDouble()
                 else 0.0
             )
         })
-        t.set("getGoldPerTurn", luaFunction {
+        t.registerApi("civ", "getGoldPerTurn", luaFunction {
             LuaValue.valueOf((civ.stats.statsForNextTurn[Stat.Gold] ?: 0f).toDouble())
         })
 
         // Resources
-        t.set("getResourceAmount", luaFunction { args ->
+        t.registerApi("civ", "getResourceAmount", luaFunction { args ->
             LuaValue.valueOf(civ.getResourceAmount(args.arg(1).tojstring()))
         })
-        t.set("hasResource", luaFunction { args ->
+        t.registerApi("civ", "hasResource", luaFunction { args ->
             LuaValue.valueOf(civ.getResourceAmount(args.arg(1).tojstring()) > 0)
         })
 
         // Era
-        t.set("getEra", luaFunction { LuaValue.valueOf(civ.getEra().name) })
-        t.set("getEraNumber", luaFunction { LuaValue.valueOf(civ.getEra().eraNumber) })
+        t.registerApi("civ", "getEra", luaFunction { LuaValue.valueOf(civ.getEra().name) })
+        t.registerApi("civ", "getEraNumber", luaFunction { LuaValue.valueOf(civ.getEra().eraNumber) })
 
         // Tech
-        t.set("isResearched", luaFunction { args ->
+        t.registerApi("civ", "isResearched", luaFunction { args ->
             LuaValue.valueOf(civ.tech.isResearched(args.arg(1).tojstring()))
         })
-        t.set("canResearch", luaFunction { args ->
+        t.registerApi("civ", "canResearch", luaFunction { args ->
             LuaValue.valueOf(civ.tech.canBeResearched(args.arg(1).tojstring()))
         })
-        t.set("getResearchingTech", luaFunction {
+        t.registerApi("civ", "getResearchingTech", luaFunction {
             LuaValue.valueOf(civ.tech.currentTechnologyName() ?: "")
         })
-        t.set("getResearchProgress", luaFunction { args ->
+        t.registerApi("civ", "getResearchProgress", luaFunction { args ->
             val name = args.arg(1).tojstring()
             LuaValue.valueOf(civ.tech.techsInProgress[name] ?: 0)
         })
-        t.set("getTechCount", luaFunction {
+        t.registerApi("civ", "getTechCount", luaFunction {
             LuaValue.valueOf(civ.tech.researchedTechnologies.size)
         })
-        t.set("getTechsResearched", luaFunction {
+        t.registerApi("civ", "getTechsResearched", luaFunction {
             val arr = LuaTable()
             civ.tech.researchedTechnologies.forEachIndexed { i, tech ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(tech.name))
             }
             arr
         })
-        t.set("getAvailableTechs", luaFunction {
+        t.registerApi("civ", "getAvailableTechs", luaFunction {
             val arr = LuaTable()
             val available = civ.gameInfo.ruleset.technologies.keys
                 .filter { civ.tech.canBeResearched(it) }
@@ -166,37 +207,37 @@ object LuaAPI {
             }
             arr
         })
-        t.set("grantTech", luaFunction { args ->
+        t.registerApi("civ", "grantTech", luaFunction { args ->
             val name = args.arg(1).tojstring()
             if (civ.tech.canBeResearched(name)) civ.tech.addTechnology(name)
             LuaValue.NIL
         })
 
         // Policies
-        t.set("hasPolicy", luaFunction { args ->
+        t.registerApi("civ", "hasPolicy", luaFunction { args ->
             LuaValue.valueOf(civ.policies.isAdopted(args.arg(1).tojstring()))
         })
-        t.set("canAdoptPolicy", luaFunction {
+        t.registerApi("civ", "canAdoptPolicy", luaFunction {
             LuaValue.valueOf(civ.policies.canAdoptPolicy())
         })
-        t.set("getAdoptedPolicyCount", luaFunction {
+        t.registerApi("civ", "getAdoptedPolicyCount", luaFunction {
             LuaValue.valueOf(civ.policies.getAdoptedPolicies().size)
         })
-        t.set("getAdoptedPolicies", luaFunction {
+        t.registerApi("civ", "getAdoptedPolicies", luaFunction {
             val arr = LuaTable()
             civ.policies.getAdoptedPolicies().forEachIndexed { i, policyName ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(policyName))
             }
             arr
         })
-        t.set("getAvailablePolicyBranches", luaFunction {
+        t.registerApi("civ", "getAvailablePolicyBranches", luaFunction {
             val arr = LuaTable()
             civ.gameInfo.ruleset.policyBranches.keys.forEachIndexed { i, branchName ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(branchName))
             }
             arr
         })
-        t.set("grantPolicy", luaFunction { args ->
+        t.registerApi("civ", "grantPolicy", luaFunction { args ->
             val name = args.arg(1).tojstring()
             val policy = civ.gameInfo.ruleset.policies[name]
             if (policy != null && !civ.policies.isAdopted(name))
@@ -205,47 +246,47 @@ object LuaAPI {
         })
 
         // Diplomacy
-        t.set("isAtWarWith", luaFunction { args ->
+        t.registerApi("civ", "isAtWarWith", luaFunction { args ->
             val other = args.arg(1).tojstring()
             val otherCiv = civ.gameInfo.getCivilizationOrNull(other)
             LuaValue.valueOf(otherCiv != null && civ.isAtWarWith(otherCiv))
         })
-        t.set("hasOpenBordersWith", luaFunction { args ->
+        t.registerApi("civ", "hasOpenBordersWith", luaFunction { args ->
             val other = args.arg(1).tojstring()
             val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
             LuaValue.valueOf(dm?.hasOpenBorders == true)
         })
-        t.set("isAlliedWith", luaFunction { args ->
+        t.registerApi("civ", "isAlliedWith", luaFunction { args ->
             val other = args.arg(1).tojstring()
             val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
             LuaValue.valueOf(dm != null && dm.diplomaticStatus == DiplomaticStatus.Peace
                 && dm.otherCiv.isCityState)
         })
-        t.set("getDiplomaticStatus", luaFunction { args ->
+        t.registerApi("civ", "getDiplomaticStatus", luaFunction { args ->
             val other = args.arg(1).tojstring()
             val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
             LuaValue.valueOf(dm?.diplomaticStatus?.name ?: "Neutral")
         })
-        t.set("getInfluence", luaFunction { args ->
+        t.registerApi("civ", "getInfluence", luaFunction { args ->
             val other = args.arg(1).tojstring()
             val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
             LuaValue.valueOf(dm?.getInfluence()?.toInt() ?: 0)
         })
-        t.set("getKnownCivs", luaFunction {
+        t.registerApi("civ", "getKnownCivs", luaFunction {
             val arr = LuaTable()
             civ.getKnownCivs().forEachIndexed { i, c ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(c.civName))
             }
             arr
         })
-        t.set("addInfluence", luaFunction { args ->
+        t.registerApi("civ", "addInfluence", luaFunction { args ->
             val other = args.arg(1).tojstring()
-            val amount = args.arg(2).tofloat()
+            val amount = args.arg(2).safeToFloat()
             val dm = civ.diplomacy.values.firstOrNull { it.otherCivName == other }
             dm?.addInfluence(amount)
             LuaValue.NIL
         })
-        t.set("declareWarOn", luaFunction { args ->
+        t.registerApi("civ", "declareWarOn", luaFunction { args ->
             val other = args.arg(1).tojstring()
             val otherCiv = civ.gameInfo.getCivilizationOrNull(other)
             if (otherCiv != null && !civ.isAtWarWith(otherCiv))
@@ -254,44 +295,44 @@ object LuaAPI {
         })
 
         // Religion
-        t.set("hasReligion", luaFunction {
+        t.registerApi("civ", "hasReligion", luaFunction {
             LuaValue.valueOf(civ.religionManager.religion != null)
         })
-        t.set("getReligionName", luaFunction {
+        t.registerApi("civ", "getReligionName", luaFunction {
             LuaValue.valueOf(civ.religionManager.religion?.getReligionDisplayName() ?: "")
         })
-        t.set("getFaith", luaFunction {
+        t.registerApi("civ", "getFaith", luaFunction {
             LuaValue.valueOf(civ.getStatReserve(Stat.Faith))
         })
 
         // Cities
-        t.set("getCities", luaFunction {
+        t.registerApi("civ", "getCities", luaFunction {
             val arr = LuaTable()
             civ.cities.forEachIndexed { i, city ->
                 arr.set(LuaValue.valueOf(i + 1), buildCityTable(city))
             }
             arr
         })
-        t.set("getCity", luaFunction { args ->
+        t.registerApi("civ", "getCity", luaFunction { args ->
             val name = args.arg(1).tojstring()
             val city = civ.cities.firstOrNull { it.name == name }
             if (city != null) buildCityTable(city) else LuaValue.NIL
         })
-        t.set("getCapital", luaFunction {
+        t.registerApi("civ", "getCapital", luaFunction {
             val capital = civ.getCapital()
             if (capital != null) buildCityTable(capital) else LuaValue.NIL
         })
-        t.set("getCityCount", luaFunction { LuaValue.valueOf(civ.cities.size) })
+        t.registerApi("civ", "getCityCount", luaFunction { LuaValue.valueOf(civ.cities.size) })
 
         // Units
-        t.set("getUnits", luaFunction {
+        t.registerApi("civ", "getUnits", luaFunction {
             val arr = LuaTable()
             civ.units.getCivUnits().forEachIndexed { i, unit ->
                 arr.set(LuaValue.valueOf(i + 1), buildUnitTable(unit))
             }
             arr
         })
-        t.set("getUnitsMatching", luaFunction { args ->
+        t.registerApi("civ", "getUnitsMatching", luaFunction { args ->
             val filter = args.arg(1).tojstring()
             val arr = LuaTable()
             civ.units.getCivUnits().filter { it.matchesFilter(filter) }
@@ -300,26 +341,26 @@ object LuaAPI {
                 }
             arr
         })
-        t.set("getUnitCount", luaFunction {
+        t.registerApi("civ", "getUnitCount", luaFunction {
             LuaValue.valueOf(civ.units.getCivUnits().count())
         })
 
         // Golden Age
-        t.set("isGoldenAge", luaFunction {
+        t.registerApi("civ", "isGoldenAge", luaFunction {
             LuaValue.valueOf(civ.goldenAges.isGoldenAge())
         })
-        t.set("getGoldenAgeTurnsRemaining", luaFunction {
+        t.registerApi("civ", "getGoldenAgeTurnsRemaining", luaFunction {
             LuaValue.valueOf(civ.goldenAges.turnsLeftForCurrentGoldenAge)
         })
 
         // Misc
-        t.set("getSpyCount", luaFunction {
+        t.registerApi("civ", "getSpyCount", luaFunction {
             LuaValue.valueOf(civ.espionageManager.spyList.size)
         })
-        t.set("getLeaderTitle", luaFunction {
+        t.registerApi("civ", "getLeaderTitle", luaFunction {
             LuaValue.valueOf(civ.leaderTitle.ifEmpty { null } ?: "")
         })
-        t.set("hasUnique", luaFunction { args ->
+        t.registerApi("civ", "hasUnique", luaFunction { args ->
             val text = args.arg(1).tojstring()
             val ruleset = civ.gameInfo.ruleset
             LuaValue.valueOf(
@@ -331,68 +372,68 @@ object LuaAPI {
         })
 
         // Write operations
-        t.set("addGold", luaFunction { args ->
+        t.registerApi("civ", "addGold", luaFunction { args ->
             civ.addGold(args.arg(1).safeToInt())
             LuaValue.NIL
         })
-        t.set("addStat", luaFunction { args ->
+        t.registerApi("civ", "addStat", luaFunction { args ->
             val stat = Stat.safeValueOf(args.arg(1).tojstring())
             val amount = args.arg(2).safeToInt()
             if (stat != null) civ.addStat(stat, amount)
             LuaValue.NIL
         })
-        t.set("addStats", luaFunction { args ->
+        t.registerApi("civ", "addStats", luaFunction { args ->
             val stats = Stats.parse(args.arg(1).tojstring())
             if (!stats.isEmpty()) civ.addStats(stats)
             LuaValue.NIL
         })
-        t.set("addResource", luaFunction { args ->
+        t.registerApi("civ", "addResource", luaFunction { args ->
             val resource = civ.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
             val amount = args.arg(2).safeToInt()
             if (resource != null) civ.gainStockpiledResource(resource, amount)
             LuaValue.NIL
         })
-        t.set("consumeResource", luaFunction { args ->
+        t.registerApi("civ", "consumeResource", luaFunction { args ->
             val resource = civ.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
             val amount = args.arg(2).safeToInt()
             if (resource != null) civ.gainStockpiledResource(resource, -amount)
             LuaValue.NIL
         })
-        t.set("triggerGoldenAge", luaFunction { args ->
+        t.registerApi("civ", "triggerGoldenAge", luaFunction { args ->
             val arg1 = args.arg(1)
             if (arg1.isnil()) civ.goldenAges.enterGoldenAge()
             else civ.goldenAges.enterGoldenAge(arg1.safeToInt())
             LuaValue.NIL
         })
-        t.set("grantFreeGreatPerson", luaFunction {
+        t.registerApi("civ", "grantFreeGreatPerson", luaFunction {
             civ.greatPeople.freeGreatPeople++
             LuaValue.NIL
         })
-        t.set("setLeaderTitle", luaFunction { args ->
+        t.registerApi("civ", "setLeaderTitle", luaFunction { args ->
             civ.leaderTitle = args.arg(1).tojstring()
             LuaValue.NIL
         })
-        t.set("addNotification", luaFunction { args ->
+        t.registerApi("civ", "addNotification", luaFunction { args ->
             civ.addNotification(args.arg(1).tojstring(), NotificationCategory.General)
             LuaValue.NIL
         })
-        t.set("addNotificationAt", luaFunction { args ->
+        t.registerApi("civ", "addNotificationAt", luaFunction { args ->
             civ.addNotification(args.arg(1).tojstring(), HexCoord(args.arg(2).safeToInt(), args.arg(3).safeToInt()), NotificationCategory.General)
             LuaValue.NIL
         })
-        t.set("addFreeTech", luaFunction {
+        t.registerApi("civ", "addFreeTech", luaFunction {
             civ.tech.freeTechs++
             LuaValue.NIL
         })
 
         // Unit creation
-        t.set("addUnit", luaFunction { args ->
+        t.registerApi("civ", "addUnit", luaFunction { args ->
             val unitName = args.arg(1).tojstring()
             val baseUnit = civ.gameInfo.ruleset.units[unitName] ?: return@luaFunction LuaValue.FALSE
             val placedUnit = civ.units.addUnit(civ.getEquivalentUnit(baseUnit), civ.getCapital())
             LuaValue.valueOf(placedUnit != null)
         })
-        t.set("addUnitAtCity", luaFunction { args ->
+        t.registerApi("civ", "addUnitAtCity", luaFunction { args ->
             val unitName = args.arg(1).tojstring()
             val cityName = args.arg(2).tojstring()
             val city = civ.cities.firstOrNull { it.name == cityName }
@@ -402,7 +443,7 @@ object LuaAPI {
             val placedUnit = civ.units.addUnit(civ.getEquivalentUnit(baseUnit), city)
             LuaValue.valueOf(placedUnit != null)
         })
-        t.set("addUnitAtTile", luaFunction { args ->
+        t.registerApi("civ", "addUnitAtTile", luaFunction { args ->
             val unitName = args.arg(1).tojstring()
             val x = args.arg(2).safeToInt()
             val y = args.arg(3).safeToInt()
@@ -411,7 +452,7 @@ object LuaAPI {
             val placedUnit = civ.units.placeUnitNearTile(HexCoord(x, y), civ.getEquivalentUnit(baseUnit))
             LuaValue.valueOf(placedUnit != null)
         })
-        t.set("addRebelUnit", luaFunction { args ->
+        t.registerApi("civ", "addRebelUnit", luaFunction { args ->
             val unitName = args.arg(1).tojstring()
             val baseUnit = civ.gameInfo.ruleset.units[unitName]
                 ?: return@luaFunction LuaValue.FALSE
@@ -431,27 +472,27 @@ object LuaAPI {
     private fun buildCityTable(city: City): LuaValue {
         val t = LuaValue.tableOf()
 
-        t.set("id", LuaValue.valueOf(city.id))
-        t.set("name", LuaValue.valueOf(city.name))
-        t.set("isCapital", LuaValue.valueOf(city.isCapital()))
-        t.set("isCoastal", LuaValue.valueOf(
+        t.registerApi("city", "id", LuaValue.valueOf(city.id))
+        t.registerApi("city", "name", LuaValue.valueOf(city.name))
+        t.registerApi("city", "isCapital", LuaValue.valueOf(city.isCapital()))
+        t.registerApi("city", "isCoastal", LuaValue.valueOf(
             city.getCenterTile().neighbors.any { it.isWater }
         ))
-        t.set("isPuppet", LuaValue.valueOf(city.isPuppet))
-        t.set("isBeingRazed", LuaValue.valueOf(city.isBeingRazed))
-        t.set("isConnectedToCapital", LuaValue.valueOf(city.isConnectedToCapital()))
+        t.registerApi("city", "isPuppet", LuaValue.valueOf(city.isPuppet))
+        t.registerApi("city", "isBeingRazed", LuaValue.valueOf(city.isBeingRazed))
+        t.registerApi("city", "isConnectedToCapital", LuaValue.valueOf(city.isConnectedToCapital()))
 
-        t.set("population", LuaValue.valueOf(city.population.population))
-        t.set("health", LuaValue.valueOf(city.health))
+        t.registerApi("city", "population", LuaValue.valueOf(city.population.population))
+        t.registerApi("city", "health", LuaValue.valueOf(city.health))
 
-        t.set("getStatYield", luaFunction { args ->
+        t.registerApi("city", "getStatYield", luaFunction { args ->
             val stat = Stat.safeValueOf(args.arg(1).tojstring())
             LuaValue.valueOf(
                 if (stat != null) (city.cityStats.currentCityStats[stat] ?: 0f).toDouble()
                 else 0.0
             )
         })
-        t.set("getAllYields", luaFunction {
+        t.registerApi("city", "getAllYields", luaFunction {
             val yields = LuaValue.tableOf()
             for (stat in Stat.entries) {
                 val v = city.cityStats.currentCityStats[stat]
@@ -460,31 +501,31 @@ object LuaAPI {
             yields
         })
 
-        t.set("hasBuilding", luaFunction { args ->
+        t.registerApi("city", "hasBuilding", luaFunction { args ->
             LuaValue.valueOf(city.cityConstructions.containsBuildingOrEquivalent(args.arg(1).tojstring()))
         })
-        t.set("getBuiltBuildings", luaFunction {
+        t.registerApi("city", "getBuiltBuildings", luaFunction {
             val arr = LuaTable()
             city.cityConstructions.getBuiltBuildings().forEachIndexed { i, b ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(b.name))
             }
             arr
         })
-        t.set("getBuildingCount", luaFunction {
+        t.registerApi("city", "getBuildingCount", luaFunction {
             LuaValue.valueOf(city.cityConstructions.getBuiltBuildings().count())
         })
-        t.set("getWonderCount", luaFunction {
+        t.registerApi("city", "getWonderCount", luaFunction {
             LuaValue.valueOf(city.cityConstructions.getBuiltBuildings().count { it.isAnyWonder() })
         })
 
-        t.set("getPosition", luaFunction {
+        t.registerApi("city", "getPosition", luaFunction {
             val pos = LuaValue.tableOf()
             pos.set("x", LuaValue.valueOf(city.location.x))
             pos.set("y", LuaValue.valueOf(city.location.y))
             pos
         })
-        t.set("getCenterTile", luaFunction { buildTileTable(city.getCenterTile(), city.civ) })
-        t.set("getTiles", luaFunction {
+        t.registerApi("city", "getCenterTile", luaFunction { buildTileTable(city.getCenterTile(), city.civ) })
+        t.registerApi("city", "getTiles", luaFunction {
             val arr = LuaTable()
             city.tiles.forEachIndexed { i, coord ->
                 val pt = LuaValue.tableOf()
@@ -495,10 +536,10 @@ object LuaAPI {
             arr
         })
 
-        t.set("getCurrentConstruction", luaFunction {
+        t.registerApi("city", "getCurrentConstruction", luaFunction {
             LuaValue.valueOf(city.cityConstructions.currentConstructionName())
         })
-        t.set("getConstructionQueue", luaFunction {
+        t.registerApi("city", "getConstructionQueue", luaFunction {
             val arr = LuaTable()
             city.cityConstructions.constructionQueue.forEachIndexed { i, c ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(c))
@@ -506,29 +547,29 @@ object LuaAPI {
             arr
         })
 
-        t.set("getMajorityReligion", luaFunction {
+        t.registerApi("city", "getMajorityReligion", luaFunction {
             LuaValue.valueOf(city.religion.getMajorityReligionName() ?: "")
         })
-        t.set("isHolyCity", luaFunction {
+        t.registerApi("city", "isHolyCity", luaFunction {
             LuaValue.valueOf(city.isHolyCity())
         })
-        t.set("hasUnique", luaFunction { args ->
+        t.registerApi("city", "hasUnique", luaFunction { args ->
             val text = args.arg(1).tojstring()
             LuaValue.valueOf(city.cityConstructions.getBuiltBuildings().any { b -> b.uniqueObjects.any { it.text == text } })
         })
 
         // Write
-        t.set("addPopulation", luaFunction { args ->
+        t.registerApi("city", "addPopulation", luaFunction { args ->
             city.population.addPopulation(args.arg(1).safeToInt())
             LuaValue.NIL
         })
-        t.set("addBuilding", luaFunction { args ->
+        t.registerApi("city", "addBuilding", luaFunction { args ->
             val building = city.civ.getEquivalentBuilding(args.arg(1).tojstring())
             if (!city.cityConstructions.containsBuildingOrEquivalent(building.name))
                 city.cityConstructions.completeConstruction(building)
             LuaValue.NIL
         })
-        t.set("removeBuilding", luaFunction { args ->
+        t.registerApi("city", "removeBuilding", luaFunction { args ->
             val building = city.cityConstructions.getBuiltBuildings()
                 .firstOrNull { it.name == args.arg(1).tojstring() }
             if (building != null) city.cityConstructions.removeBuilding(building)
@@ -536,15 +577,15 @@ object LuaAPI {
         })
 
         // Production queue
-        t.set("setProduction", luaFunction { args ->
+        t.registerApi("city", "setProduction", luaFunction { args ->
             city.cityConstructions.setCurrentConstruction(args.arg(1).tojstring())
             LuaValue.NIL
         })
-        t.set("addToQueue", luaFunction { args ->
+        t.registerApi("city", "addToQueue", luaFunction { args ->
             city.cityConstructions.addToQueue(args.arg(1).tojstring())
             LuaValue.NIL
         })
-        t.set("clearQueue", luaFunction {
+        t.registerApi("city", "clearQueue", luaFunction {
             city.cityConstructions.removeAll()
             LuaValue.NIL
         })
@@ -557,15 +598,15 @@ object LuaAPI {
     private fun buildUnitTable(unit: MapUnit): LuaValue {
         val t = LuaValue.tableOf()
 
-        t.set("id", LuaValue.valueOf(unit.id))
-        t.set("name", LuaValue.valueOf(unit.name))
-        t.set("instanceName", LuaValue.valueOf(unit.instanceName ?: ""))
-        t.set("isCivilian", LuaValue.valueOf(unit.baseUnit.isCivilian()))
-        t.set("isMilitary", LuaValue.valueOf(unit.baseUnit.isMilitary))
-        t.set("isRanged", LuaValue.valueOf(unit.baseUnit.isRanged()))
-        t.set("isEmbarked", LuaValue.valueOf(unit.isEmbarked()))
-        t.set("isFortified", LuaValue.valueOf(unit.isFortified()))
-        t.set("isAutomated", LuaValue.valueOf(unit.isAutomated()))
+        t.registerApi("unit", "id", LuaValue.valueOf(unit.id))
+        t.registerApi("unit", "name", LuaValue.valueOf(unit.name))
+        t.registerApi("unit", "instanceName", LuaValue.valueOf(unit.instanceName ?: ""))
+        t.registerApi("unit", "isCivilian", LuaValue.valueOf(unit.baseUnit.isCivilian()))
+        t.registerApi("unit", "isMilitary", LuaValue.valueOf(unit.baseUnit.isMilitary))
+        t.registerApi("unit", "isRanged", LuaValue.valueOf(unit.baseUnit.isRanged()))
+        t.registerApi("unit", "isEmbarked", LuaValue.valueOf(unit.isEmbarked()))
+        t.registerApi("unit", "isFortified", LuaValue.valueOf(unit.isFortified()))
+        t.registerApi("unit", "isAutomated", LuaValue.valueOf(unit.isAutomated()))
 
         val baseTable = LuaValue.tableOf()
         baseTable.set("name", LuaValue.valueOf(unit.baseUnit.name))
@@ -586,105 +627,105 @@ object LuaAPI {
             basePromos.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(p))
         }
         baseTable.set("promotions", basePromos)
-        t.set("base", baseTable)
+        t.registerApi("unit", "base", baseTable)
 
-        t.set("health", LuaValue.valueOf(unit.health))
-        t.set("getRange", luaFunction { LuaValue.valueOf(unit.getRange()) })
-        t.set("getMovement", luaFunction { LuaValue.valueOf(unit.getMaxMovement().toDouble()) })
-        t.set("getCurrentMovement", luaFunction {
+        t.registerApi("unit", "health", LuaValue.valueOf(unit.health))
+        t.registerApi("unit", "getRange", luaFunction { LuaValue.valueOf(unit.getRange()) })
+        t.registerApi("unit", "getMovement", luaFunction { LuaValue.valueOf(unit.getMaxMovement().toDouble()) })
+        t.registerApi("unit", "getCurrentMovement", luaFunction {
             LuaValue.valueOf(unit.currentMovement.toDouble())
         })
-        t.set("getXP", luaFunction { LuaValue.valueOf(unit.promotions.XP) })
+        t.registerApi("unit", "getXP", luaFunction { LuaValue.valueOf(unit.promotions.XP) })
 
-        t.set("hasPromotion", luaFunction { args ->
+        t.registerApi("unit", "hasPromotion", luaFunction { args ->
             LuaValue.valueOf(unit.promotions.promotions.contains(args.arg(1).tojstring()))
         })
-        t.set("hasUnique", luaFunction { args ->
+        t.registerApi("unit", "hasUnique", luaFunction { args ->
             val text = args.arg(1).tojstring()
             LuaValue.valueOf(unit.baseUnit.rulesetUniqueObjects.any { it.text == text }
                 || unit.promotions.promotions.any { promoName ->
                     unit.civ.gameInfo.ruleset.unitPromotions[promoName]?.uniqueObjects?.any { it.text == text } == true
                 })
         })
-        t.set("getPromotions", luaFunction {
+        t.registerApi("unit", "getPromotions", luaFunction {
             val arr = LuaTable()
             unit.promotions.promotions.forEachIndexed { i, p ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(p))
             }
             arr
         })
-        t.set("getPromotionCount", luaFunction {
+        t.registerApi("unit", "getPromotionCount", luaFunction {
             LuaValue.valueOf(unit.promotions.promotions.size)
         })
 
-        t.set("hasStatus", luaFunction { args ->
+        t.registerApi("unit", "hasStatus", luaFunction { args ->
             LuaValue.valueOf(unit.hasStatus(args.arg(1).tojstring()))
         })
-        t.set("getStatusTurns", luaFunction { args ->
+        t.registerApi("unit", "getStatusTurns", luaFunction { args ->
             val status = unit.getStatus(args.arg(1).tojstring())
             LuaValue.valueOf(status?.turnsLeft ?: 0)
         })
 
-        t.set("getPosition", luaFunction {
+        t.registerApi("unit", "getPosition", luaFunction {
             val pos = LuaValue.tableOf()
             pos.set("x", LuaValue.valueOf(unit.currentTile.position.x))
             pos.set("y", LuaValue.valueOf(unit.currentTile.position.y))
             pos
         })
-        t.set("canMoveTo", luaFunction { args ->
+        t.registerApi("unit", "canMoveTo", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val tile = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
             LuaValue.valueOf(tile != null && unit.movement.canMoveTo(tile))
         })
-        t.set("getOwner", luaFunction {
+        t.registerApi("unit", "getOwner", luaFunction {
             LuaValue.valueOf(unit.civ.civName)
         })
-        t.set("isOwnedBy", luaFunction { args ->
+        t.registerApi("unit", "isOwnedBy", luaFunction { args ->
             LuaValue.valueOf(unit.civ.civName == args.arg(1).tojstring())
         })
 
         // Write
-        t.set("healBy", luaFunction { args ->
+        t.registerApi("unit", "healBy", luaFunction { args ->
             unit.healBy(args.arg(1).safeToInt())
             LuaValue.NIL
         })
-        t.set("takeDamage", luaFunction { args ->
+        t.registerApi("unit", "takeDamage", luaFunction { args ->
             unit.takeDamage(args.arg(1).safeToInt())
             LuaValue.NIL
         })
-        t.set("addXP", luaFunction { args ->
+        t.registerApi("unit", "addXP", luaFunction { args ->
             unit.promotions.XP += args.arg(1).safeToInt()
             LuaValue.NIL
         })
-        t.set("addPromotion", luaFunction { args ->
+        t.registerApi("unit", "addPromotion", luaFunction { args ->
             unit.promotions.addPromotion(args.arg(1).tojstring(), true)
             LuaValue.NIL
         })
-        t.set("removePromotion", luaFunction { args ->
+        t.registerApi("unit", "removePromotion", luaFunction { args ->
             unit.promotions.removePromotion(args.arg(1).tojstring())
             LuaValue.NIL
         })
-        t.set("addMovement", luaFunction { args ->
-            unit.useMovementPoints(-args.arg(1).tofloat())
+        t.registerApi("unit", "addMovement", luaFunction { args ->
+            unit.useMovementPoints(-args.arg(1).safeToFloat())
             LuaValue.NIL
         })
-        t.set("useMovement", luaFunction { args ->
-            unit.useMovementPoints(args.arg(1).tofloat())
+        t.registerApi("unit", "useMovement", luaFunction { args ->
+            unit.useMovementPoints(args.arg(1).safeToFloat())
             LuaValue.NIL
         })
-        t.set("upgrade", luaFunction {
+        t.registerApi("unit", "upgrade", luaFunction {
             val upgradeAction = UnitActionsUpgrade.getFreeUpgradeAction(unit)
             if (upgradeAction.any()) {
                 upgradeAction.minBy { (it as UpgradeUnitAction).unitToUpgradeTo.cost }.action?.invoke()
             }
             LuaValue.NIL
         })
-        t.set("destroy", luaFunction {
+        t.registerApi("unit", "destroy", luaFunction {
             unit.destroy()
             LuaValue.NIL
         })
-        t.set("attackTile", luaFunction { args ->
+        t.registerApi("unit", "attackTile", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val targetTile = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
@@ -698,7 +739,7 @@ object LuaAPI {
             resultTable.set("defenderDamage", LuaValue.valueOf(result.defenderDealt))
             resultTable
         })
-        t.set("teleportTo", luaFunction { args ->
+        t.registerApi("unit", "teleportTo", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)]
@@ -707,7 +748,7 @@ object LuaAPI {
         })
 
         // Pathfinding
-        t.set("findPathTo", luaFunction { args ->
+        t.registerApi("unit", "findPathTo", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.NIL
@@ -721,7 +762,7 @@ object LuaAPI {
             }
             arr
         })
-        t.set("canReach", luaFunction { args ->
+        t.registerApi("unit", "canReach", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val target = unit.civ.gameInfo.tileMap[HexCoord(x, y)] ?: return@luaFunction LuaValue.FALSE
@@ -739,37 +780,37 @@ object LuaAPI {
         val pos = LuaValue.tableOf()
         pos.set("x", LuaValue.valueOf(tile.position.x))
         pos.set("y", LuaValue.valueOf(tile.position.y))
-        t.set("position", pos)
-        t.set("getX", luaFunction { LuaValue.valueOf(tile.position.x) })
-        t.set("getY", luaFunction { LuaValue.valueOf(tile.position.y) })
+        t.registerApi("tile", "position", pos)
+        t.registerApi("tile", "getX", luaFunction { LuaValue.valueOf(tile.position.x) })
+        t.registerApi("tile", "getY", luaFunction { LuaValue.valueOf(tile.position.y) })
 
-        t.set("baseTerrain", LuaValue.valueOf(tile.baseTerrain))
-        t.set("isLand", LuaValue.valueOf(tile.isLand))
-        t.set("isWater", LuaValue.valueOf(tile.isWater))
-        t.set("isCoast", LuaValue.valueOf(tile.baseTerrain == "Coast"))
-        t.set("isHill", LuaValue.valueOf(tile.isHill()))
-        t.set("isMountain", LuaValue.valueOf(tile.isImpassible()))
-        t.set("hasTerrainFeature", luaFunction { args ->
+        t.registerApi("tile", "baseTerrain", LuaValue.valueOf(tile.baseTerrain))
+        t.registerApi("tile", "isLand", LuaValue.valueOf(tile.isLand))
+        t.registerApi("tile", "isWater", LuaValue.valueOf(tile.isWater))
+        t.registerApi("tile", "isCoast", LuaValue.valueOf(tile.baseTerrain == "Coast"))
+        t.registerApi("tile", "isHill", LuaValue.valueOf(tile.isHill()))
+        t.registerApi("tile", "isMountain", LuaValue.valueOf(tile.isImpassible()))
+        t.registerApi("tile", "hasTerrainFeature", luaFunction { args ->
             LuaValue.valueOf(tile.terrainFeatures.contains(args.arg(1).tojstring()))
         })
-        t.set("getTerrainFeatures", luaFunction {
+        t.registerApi("tile", "getTerrainFeatures", luaFunction {
             val arr = LuaTable()
             tile.terrainFeatures.sorted().forEachIndexed { i, f ->
                 arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(f))
             }
             arr
         })
-        t.set("isImpassable", luaFunction { LuaValue.valueOf(tile.isImpassible()) })
-        t.set("isRiver", luaFunction { LuaValue.valueOf(tile.neighbors.any { tile.isConnectedByRiver(it) }) })
+        t.registerApi("tile", "isImpassable", luaFunction { LuaValue.valueOf(tile.isImpassible()) })
+        t.registerApi("tile", "isRiver", luaFunction { LuaValue.valueOf(tile.neighbors.any { tile.isConnectedByRiver(it) }) })
 
-        t.set("hasResource", luaFunction { LuaValue.valueOf(tile.tileResource != null) })
-        t.set("resourceName", LuaValue.valueOf(tile.tileResource?.name ?: ""))
-        t.set("resourceAmount", LuaValue.valueOf(tile.resourceAmount))
-        t.set("hasImprovement", luaFunction { LuaValue.valueOf(tile.tileImprovement != null) })
-        t.set("improvementName", LuaValue.valueOf(tile.improvement ?: ""))
-        t.set("isPillaged", luaFunction { LuaValue.valueOf(tile.isPillaged()) })
+        t.registerApi("tile", "hasResource", luaFunction { LuaValue.valueOf(tile.tileResource != null) })
+        t.registerApi("tile", "resourceName", LuaValue.valueOf(tile.tileResource?.name ?: ""))
+        t.registerApi("tile", "resourceAmount", LuaValue.valueOf(tile.resourceAmount))
+        t.registerApi("tile", "hasImprovement", luaFunction { LuaValue.valueOf(tile.tileImprovement != null) })
+        t.registerApi("tile", "improvementName", LuaValue.valueOf(tile.improvement ?: ""))
+        t.registerApi("tile", "isPillaged", luaFunction { LuaValue.valueOf(tile.isPillaged()) })
 
-        t.set("getYield", luaFunction {
+        t.registerApi("tile", "getYield", luaFunction {
             val result = LuaValue.tableOf()
             val stats = tile.stats.getTileStats(civInfo)
             for (stat in Stat.entries) {
@@ -779,40 +820,40 @@ object LuaAPI {
             result
         })
 
-        t.set("isOwned", luaFunction { LuaValue.valueOf(tile.getOwner() != null) })
-        t.set("getOwner", luaFunction { LuaValue.valueOf(tile.getOwner()?.civName ?: "") })
-        t.set("isOwnedBy", luaFunction { args ->
+        t.registerApi("tile", "isOwned", luaFunction { LuaValue.valueOf(tile.getOwner() != null) })
+        t.registerApi("tile", "getOwner", luaFunction { LuaValue.valueOf(tile.getOwner()?.civName ?: "") })
+        t.registerApi("tile", "isOwnedBy", luaFunction { args ->
             LuaValue.valueOf(tile.getOwner()?.civName == args.arg(1).tojstring())
         })
-        t.set("isCityCenter", luaFunction { LuaValue.valueOf(tile.isCityCenter()) })
-        t.set("getOwningCity", luaFunction {
+        t.registerApi("tile", "isCityCenter", luaFunction { LuaValue.valueOf(tile.isCityCenter()) })
+        t.registerApi("tile", "getOwningCity", luaFunction {
             LuaValue.valueOf(tile.owningCity?.name ?: "")
         })
 
-        t.set("isExploredBy", luaFunction { args ->
+        t.registerApi("tile", "isExploredBy", luaFunction { args ->
             val other = civInfo.gameInfo.getCivilizationOrNull(args.arg(1).tojstring())
             LuaValue.valueOf(other != null && tile.isExplored(other))
         })
 
-        t.set("hasMilitaryUnit", luaFunction { LuaValue.valueOf(tile.militaryUnit != null) })
-        t.set("hasCivilianUnit", luaFunction { LuaValue.valueOf(tile.civilianUnit != null) })
-        t.set("getUnits", luaFunction {
+        t.registerApi("tile", "hasMilitaryUnit", luaFunction { LuaValue.valueOf(tile.militaryUnit != null) })
+        t.registerApi("tile", "hasCivilianUnit", luaFunction { LuaValue.valueOf(tile.civilianUnit != null) })
+        t.registerApi("tile", "getUnits", luaFunction {
             val arr = LuaTable()
             tile.getUnits().forEachIndexed { i, u -> arr.set(LuaValue.valueOf(i + 1), buildUnitTable(u)) }
             arr
         })
 
-        t.set("getNeighbors", luaFunction {
+        t.registerApi("tile", "getNeighbors", luaFunction {
             val arr = LuaTable()
             tile.neighbors.forEachIndexed { i, n -> arr.set(LuaValue.valueOf(i + 1), buildTileTable(n, civInfo)) }
             arr
         })
-        t.set("getNeighborAt", luaFunction { args ->
+        t.registerApi("tile", "getNeighborAt", luaFunction { args ->
             val dir = args.arg(1).safeToInt()
             val neighbors = tile.neighbors.toList()
             if (dir in neighbors.indices) buildTileTable(neighbors[dir], civInfo) else LuaValue.NIL
         })
-        t.set("getTilesInDistance", luaFunction { args ->
+        t.registerApi("tile", "getTilesInDistance", luaFunction { args ->
             val radius = args.arg(1).safeToInt()
             val arr = LuaTable()
             tile.getTilesInDistance(radius).forEachIndexed { i, t2 -> arr.set(LuaValue.valueOf(i + 1), buildTileTable(t2, civInfo)) }
@@ -820,51 +861,51 @@ object LuaAPI {
         })
 
         // Write
-        t.set("setTerrain", luaFunction { args ->
+        t.registerApi("tile", "setTerrain", luaFunction { args ->
             val terrain = civInfo.gameInfo.ruleset.terrains[args.arg(1).tojstring()]
             if (terrain != null) tile.setBaseTerrain(terrain)
             LuaValue.NIL
         })
-        t.set("addTerrainFeature", luaFunction { args ->
+        t.registerApi("tile", "addTerrainFeature", luaFunction { args ->
             tile.addTerrainFeature(args.arg(1).tojstring())
             LuaValue.NIL
         })
-        t.set("removeTerrainFeature", luaFunction { args ->
+        t.registerApi("tile", "removeTerrainFeature", luaFunction { args ->
             tile.removeTerrainFeature(args.arg(1).tojstring())
             LuaValue.NIL
         })
-        t.set("setImprovement", luaFunction { args ->
+        t.registerApi("tile", "setImprovement", luaFunction { args ->
             val improvement = civInfo.gameInfo.ruleset.tileImprovements[args.arg(1).tojstring()]
             if (improvement != null) tile.setImprovement(improvement)
             LuaValue.NIL
         })
-        t.set("removeImprovement", luaFunction {
+        t.registerApi("tile", "removeImprovement", luaFunction {
             tile.removeImprovement()
             LuaValue.NIL
         })
-        t.set("removeResource", luaFunction {
+        t.registerApi("tile", "removeResource", luaFunction {
             tile.tileResource = null
             tile.resourceAmount = 0
             LuaValue.NIL
         })
-        t.set("setResource", luaFunction { args ->
+        t.registerApi("tile", "setResource", luaFunction { args ->
             val resource = civInfo.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
             val amount = args.arg(2).safeToInt()
             tile.tileResource = resource
             tile.resourceAmount = amount
             LuaValue.NIL
         })
-        t.set("setRoad", luaFunction {
+        t.registerApi("tile", "setRoad", luaFunction {
             val roadStatus = com.unciv.logic.map.tile.RoadStatus.Road
             tile.setRoadStatus(roadStatus, civInfo)
             LuaValue.NIL
         })
-        t.set("setRailroad", luaFunction {
+        t.registerApi("tile", "setRailroad", luaFunction {
             val roadStatus = com.unciv.logic.map.tile.RoadStatus.Railroad
             tile.setRoadStatus(roadStatus, civInfo)
             LuaValue.NIL
         })
-        t.set("removeRoad", luaFunction {
+        t.registerApi("tile", "removeRoad", luaFunction {
             tile.removeRoad()
             LuaValue.NIL
         })
@@ -878,11 +919,11 @@ object LuaAPI {
         val gameInfo = civInfo.gameInfo
         val t = LuaValue.tableOf()
 
-        t.set("turn", LuaValue.valueOf(gameInfo.turns))
-        t.set("getYear", luaFunction { LuaValue.valueOf(gameInfo.getYear(0)) })
-        t.set("speed", LuaValue.valueOf(gameInfo.speed.name))
-        t.set("difficulty", LuaValue.valueOf(gameInfo.difficulty))
-        t.set("getCurrentPlayer", luaFunction {
+        t.registerApi("game", "turn", LuaValue.valueOf(gameInfo.turns))
+        t.registerApi("game", "getYear", luaFunction { LuaValue.valueOf(gameInfo.getYear(0)) })
+        t.registerApi("game", "speed", LuaValue.valueOf(gameInfo.speed.name))
+        t.registerApi("game", "difficulty", LuaValue.valueOf(gameInfo.difficulty))
+        t.registerApi("game", "getCurrentPlayer", luaFunction {
             try {
                 LuaValue.valueOf(gameInfo.currentPlayerCiv.civName)
             } catch (e: Exception) {
@@ -891,44 +932,44 @@ object LuaAPI {
         })
 
         // Civ queries
-        t.set("getCiv", luaFunction { args ->
+        t.registerApi("game", "getCiv", luaFunction { args ->
             val name = args.arg(1).tojstring()
             val civ = gameInfo.civilizations.firstOrNull { it.civName == name }
             if (civ != null) buildCivTable(civ) else LuaValue.NIL
         })
-        t.set("getCivById", luaFunction { args ->
+        t.registerApi("game", "getCivById", luaFunction { args ->
             val id = args.arg(1).tojstring()
             val civ = gameInfo.getCivilizationOrNull(id)
             if (civ != null) buildCivTable(civ) else LuaValue.NIL
         })
-        t.set("getAllCivs", luaFunction {
+        t.registerApi("game", "getAllCivs", luaFunction {
             val arr = LuaTable()
             gameInfo.civilizations.forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), buildCivTable(c)) }
             arr
         })
-        t.set("getAliveMajorCivs", luaFunction {
+        t.registerApi("game", "getAliveMajorCivs", luaFunction {
             val arr = LuaTable()
             gameInfo.getAliveMajorCivs().forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), buildCivTable(c)) }
             arr
         })
-        t.set("getAliveCityStates", luaFunction {
+        t.registerApi("game", "getAliveCityStates", luaFunction {
             val arr = LuaTable()
             gameInfo.getAliveCityStates().forEachIndexed { i, c -> arr.set(LuaValue.valueOf(i + 1), buildCivTable(c)) }
             arr
         })
-        t.set("getBarbarianCiv", luaFunction {
+        t.registerApi("game", "getBarbarianCiv", luaFunction {
             buildCivTable(gameInfo.getBarbarianCivilization())
         })
 
         // Map
         val ruleset = gameInfo.ruleset
-        t.set("getTile", luaFunction { args ->
+        t.registerApi("game", "getTile", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val tile = gameInfo.tileMap[HexCoord(x, y)]
             if (tile != null) buildTileTable(tile, civInfo) else LuaValue.NIL
         })
-        t.set("findTiles", luaFunction { args ->
+        t.registerApi("game", "findTiles", luaFunction { args ->
             val criteria = args.arg(1).checktable()
             val maxResults = criteria.get("maxResults")
             val limit = if (maxResults.isnil()) 500 else maxResults.safeToInt().coerceAtLeast(1)
@@ -942,16 +983,16 @@ object LuaAPI {
             }
             arr
         })
-        t.set("getMapWidth", luaFunction {
+        t.registerApi("game", "getMapWidth", luaFunction {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.mapSize.width)
         })
-        t.set("getMapHeight", luaFunction {
+        t.registerApi("game", "getMapHeight", luaFunction {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.mapSize.height)
         })
-        t.set("isWrapped", luaFunction {
+        t.registerApi("game", "isWrapped", luaFunction {
             LuaValue.valueOf(gameInfo.tileMap.mapParameters.worldWrap)
         })
-        t.set("getTilesNear", luaFunction { args ->
+        t.registerApi("game", "getTilesNear", luaFunction { args ->
             val x = args.arg(1).safeToInt()
             val y = args.arg(2).safeToInt()
             val radius = args.arg(3).safeToInt()
@@ -962,45 +1003,45 @@ object LuaAPI {
         })
 
         // Ruleset queries
-        t.set("getRulesetBuildings", luaFunction {
+        t.registerApi("game", "getRulesetBuildings", luaFunction {
             val arr = LuaTable()
             ruleset.buildings.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
-        t.set("getRulesetUnits", luaFunction {
+        t.registerApi("game", "getRulesetUnits", luaFunction {
             val arr = LuaTable()
             ruleset.units.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
-        t.set("getRulesetTechs", luaFunction {
+        t.registerApi("game", "getRulesetTechs", luaFunction {
             val arr = LuaTable()
             ruleset.technologies.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
-        t.set("getRulesetPolicies", luaFunction {
+        t.registerApi("game", "getRulesetPolicies", luaFunction {
             val arr = LuaTable()
             ruleset.policies.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
-        t.set("getRulesetEras", luaFunction {
+        t.registerApi("game", "getRulesetEras", luaFunction {
             val arr = LuaTable()
             ruleset.eras.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
-        t.set("getRulesetPromotions", luaFunction {
+        t.registerApi("game", "getRulesetPromotions", luaFunction {
             val arr = LuaTable()
             ruleset.unitPromotions.keys.forEachIndexed { i, k -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(k)) }
             arr
         })
-        t.set("doesBuildingExist", luaFunction { args ->
+        t.registerApi("game", "doesBuildingExist", luaFunction { args ->
             LuaValue.valueOf(ruleset.buildings.containsKey(args.arg(1).tojstring()))
         })
-        t.set("doesUnitExist", luaFunction { args ->
+        t.registerApi("game", "doesUnitExist", luaFunction { args ->
             LuaValue.valueOf(ruleset.units.containsKey(args.arg(1).tojstring()))
         })
 
         // Write
-        t.set("addGlobalNotification", luaFunction { args ->
+        t.registerApi("game", "addGlobalNotification", luaFunction { args ->
             val text = args.arg(1).tojstring()
             for (c in gameInfo.civilizations) {
                 if (c.isHuman() && c.isAlive())
@@ -1008,13 +1049,13 @@ object LuaAPI {
             }
             LuaValue.NIL
         })
-        t.set("revealEntireMap", luaFunction { args ->
+        t.registerApi("game", "revealEntireMap", luaFunction { args ->
             val name = args.arg(1).tojstring()
             val civ = gameInfo.civilizations.firstOrNull { it.civName == name }
             if (civ != null) gameInfo.tileMap.values.forEach { it.setExplored(civ, true) }
             LuaValue.NIL
         })
-        t.set("revealTilesAround", luaFunction { args ->
+        t.registerApi("game", "revealTilesAround", luaFunction { args ->
             val name = args.arg(1).tojstring()
             val x = args.arg(2).safeToInt()
             val y = args.arg(3).safeToInt()
