@@ -72,7 +72,7 @@ class LuaScriptTests {
             return
         }
         var success = false
-        LuaScriptManager.callFunction(func, ctx) { success = it }
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("testStore should return true", success)
 
         // Verify the storage persisted at the GameInfo level
@@ -92,7 +92,7 @@ class LuaScriptTests {
             return
         }
         var success = false
-        LuaScriptManager.callFunction(func, ctx) { success = it }
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("testFindTiles should return true", success)
     }
 
@@ -107,7 +107,7 @@ class LuaScriptTests {
             return
         }
         var success = false
-        LuaScriptManager.callFunction(func, ctx) { success = it }
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("testConditional should verify conditional evaluation works", success)
     }
 
@@ -122,7 +122,7 @@ class LuaScriptTests {
             return
         }
         var success = false
-        LuaScriptManager.callFunction(func, ctx) { success = it }
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("testCityProduction should return true", success)
     }
 
@@ -138,7 +138,7 @@ class LuaScriptTests {
             return
         }
         var success = false
-        LuaScriptManager.callFunction(func, ctx) { success = it }
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("testPathfinding should return true", success)
     }
 
@@ -154,7 +154,7 @@ class LuaScriptTests {
             return
         }
         var success = false
-        LuaScriptManager.callFunction(func, ctx) { success = it }
+        LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("All Lua API tests should pass", success)
     }
 
@@ -191,7 +191,7 @@ class LuaScriptTests {
         val ctx1 = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
         val (_, func) = LuaScriptManager.getFunction(modName, "testStore") ?: return
         var success = false
-        LuaScriptManager.callFunction(func, ctx1) { success = it }
+        LuaScriptManager.callFunction(func, ctx1, onSuccess = { success = it })
         Assert.assertTrue(success)
 
         // Second call: verify the value is still there by reading directly
@@ -420,7 +420,7 @@ class LuaScriptTests {
                 throw org.luaj.vm2.LuaError("Simulated runtime error for testing")
         }
         var success = true // default
-        LuaScriptManager.callFunction(nonExistentFunc, ctx) { success = it }
+        LuaScriptManager.callFunction(nonExistentFunc, ctx, onSuccess = { success = it })
         Assert.assertFalse(
             "Runtime error should result in onSuccess(false)",
             success
@@ -541,7 +541,7 @@ class LuaScriptTests {
         val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
         val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), "testSandbox")
         var result = false
-        LuaScriptManager.callFunction(luaFunc, ctx) { result = it }
+        LuaScriptManager.callFunction(luaFunc, ctx, onSuccess = { result = it })
         Assert.assertTrue("string.dump should be nil in sandbox", result)
     }
 
@@ -593,7 +593,7 @@ class LuaScriptTests {
 
         val alertCountBefore = civ.popupAlerts.size
         val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
-        LuaScriptManager.callFunction(errorFunc, ctx, civ, "testErrorFunc") { /* ignore */ }
+        LuaScriptManager.callFunction(errorFunc, ctx, civ, "testErrorFunc", onSuccess = { /* ignore */ })
 
         Assert.assertTrue("PopupAlert should be created for runtime error",
             civ.popupAlerts.size > alertCountBefore)
@@ -617,12 +617,12 @@ class LuaScriptTests {
         val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
 
         // First call — should create popup
-        LuaScriptManager.callFunction(errorFunc, ctx, civ, "dedupTestFunc") { /* ignore */ }
+        LuaScriptManager.callFunction(errorFunc, ctx, civ, "dedupTestFunc", onSuccess = { /* ignore */ })
         val alertCountAfterFirst = civ.popupAlerts.size
         Assert.assertTrue("First error should create popup", alertCountAfterFirst > 0)
 
         // Second call with same function name — should NOT create another popup
-        LuaScriptManager.callFunction(errorFunc, ctx, civ, "dedupTestFunc") { /* ignore */ }
+        LuaScriptManager.callFunction(errorFunc, ctx, civ, "dedupTestFunc", onSuccess = { /* ignore */ })
         Assert.assertEquals("Second call with same function should not create duplicate popup",
             alertCountAfterFirst, civ.popupAlerts.size)
     }

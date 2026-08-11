@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Lua modding security: closed a sandbox escape - the `package` library's `package.loaded` table still exposed full `io`/`os`/`luajava` references after the globals were nilled out, allowing arbitrary file access, process execution and Java reflection from mod scripts (the library is now removed entirely); added an instruction budget per script load and per function call so runaway loops (`while true do end`) are interrupted with a clear error instead of freezing the game
 - Online multiplayer: added restart votes - the host can enable "Restart vote turn" and "Restart vote timeout" in the game setup; from exactly that turn on, any player can start a vote to restart the game with the same setup, all players (including offline ones, who keep their vote until they come back) are asked to vote yes/no, votes settle when everyone voted or on timeout (non-voters count as agreeing), restart passes unless more than half explicitly vote no, and once approved the game restarts with the same setup under a new gameId - all clients switch over automatically; while a vote is open, players who haven't voted yet cannot end their turn
 
 - CI: GitHub Release title is now set explicitly to the plain version number (e.g. "4.21.6.4") instead of whatever the upload action auto-filled

@@ -14,6 +14,7 @@ import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaFunction
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
+import org.luaj.vm2.lib.DebugLib
 import org.luaj.vm2.lib.jse.JsePlatform
 
 fun luaFunction(block: (Varargs) -> LuaValue): LuaFunction {
@@ -31,6 +32,66 @@ object LuaScriptManager {
     private val luaFunctionRefRegex = Regex("^[a-zA-Z_]\\w*(:[a-zA-Z_]\\w*)?$")
     private val countableRegex = Regex("\\[[^]]+\\]")
 
+    /**
+     * Maximum number of Lua bytecode instructions a single script load (top-level execution)
+     * or a single function call may execute. Guards against accidental or malicious infinite
+     * loops (e.g. `while true do end`) that would otherwise hang the game's main thread forever.
+     * luaj's interpreter executes on the order of a few million instructions per second, so this
+     * budget limits one call to roughly a second of CPU time - far more than any sane mod logic.
+     */
+    private const val INSTRUCTION_BUDGET = 10_000_000L
+
+    /**
+     * Instruction-counting debug library installed on every sandboxed globals.
+     * The luaj VM calls [onInstruction] for every executed bytecode instruction, which lets us
+     * interrupt runaway loops. We deliberately override all three VM callbacks ([onCall],
+     * [onInstruction], [onReturn]) without touching the superclass' internal `globals` field,
+     * so no `debug.*` library is exposed to the mod (the [DebugLib] superclass would otherwise
+     * register `debug` into the globals table, which the sandbox explicitly forbids).
+     */
+    private class InstructionBudgetDebugLib : DebugLib() {
+        private var instructionCount = 0L
+        private var budget = 0L
+
+        fun reset(budget: Long) {
+            instructionCount = 0L
+            this.budget = budget
+        }
+
+        override fun onCall(closure: org.luaj.vm2.LuaClosure, varargs: Varargs, stack: Array<LuaValue>) {
+            checkBudget()
+        }
+
+        /** BaseLib.pcall invokes this single-argument overload; the default reads this.globals (null here). */
+        override fun onCall(function: LuaFunction) {
+            checkBudget()
+        }
+
+        override fun onInstruction(pc: Int, v: Varargs, top: Int) {
+            checkBudget()
+        }
+
+        override fun onReturn() {
+            checkBudget()
+        }
+
+        /**
+         * The luaj VM calls [DebugLib.traceback] from `LuaClosure.errorHook` whenever a script
+         * throws, and the base implementation reads `this.globals` - which we never initialize
+         * (initializing it via the superclass `call` would register the `debug.*` library into
+         * the sandbox). Returning an empty traceback keeps the original error message intact.
+         */
+        override fun traceback(level: Int): String = ""
+
+        private fun checkBudget() {
+            if (++instructionCount > budget)
+                throw LuaError("Lua execution budget exceeded - possible infinite loop")
+        }
+    }
+
+    /** Per-mod instruction budgets, reset before every top-level load and every function call. */
+    private val modInstructionBudgets = java.util.concurrent.ConcurrentHashMap<String, InstructionBudgetDebugLib>()
+
     /** Globals per mod for sandbox isolation */
     private val modGlobals = java.util.concurrent.ConcurrentHashMap<String, Globals>()
 
@@ -43,6 +104,7 @@ object LuaScriptManager {
 
     fun clear() {
         modGlobals.clear()
+        modInstructionBudgets.clear()
         cachedKnownFunctions = null
         cachedKnownFunctionsRuleset = null
         shownLuaErrors.clear()
@@ -50,6 +112,7 @@ object LuaScriptManager {
 
     fun clearMod(modName: String) {
         modGlobals.remove(modName)
+        modInstructionBudgets.remove(modName)
         cachedKnownFunctions = null
         cachedKnownFunctionsRuleset = null
         shownLuaErrors.clear()
@@ -87,6 +150,11 @@ object LuaScriptManager {
         val globals = createSandboxedGlobals(modName, ruleset)
         modGlobals[modName] = globals
 
+        val budget = modInstructionBudgets[modName] ?: InstructionBudgetDebugLib().also {
+            modInstructionBudgets[modName] = it
+            globals.debuglib = it
+        }
+
         val loaded = ArrayList<String>()
 
         // Phase 1: compile & execute all .lua files to define functions in globals
@@ -95,6 +163,7 @@ object LuaScriptManager {
             try {
                 val source = file.readString(Charsets.UTF_8.name())
                 val chunk = globals.load(source, file.name())
+                budget.reset(INSTRUCTION_BUDGET)
                 chunk.call() // Execute chunk so function definitions are registered
                 loaded += file.nameWithoutExtension()
                 Log.debug("Lua: loaded script ${file.name()} for mod $modName")
@@ -151,31 +220,50 @@ object LuaScriptManager {
         ctxTable: LuaValue,
         civInfo: Civilization? = null,
         functionName: String = "",
-        onSuccess: (Boolean) -> Unit
+        onSuccess: (Boolean) -> Unit,
+        modName: String = ""
     ) {
+        // Reset the mod's instruction budget so a previous runaway script can't poison later calls
+        modInstructionBudgets[modName]?.reset(INSTRUCTION_BUDGET)
         try {
             val result = func.call(ctxTable)
             val success = result.toboolean(1)
             onSuccess(success)
         } catch (ex: LuaError) {
             Log.error("Lua runtime error: ${ex.message}", ex)
-            reportLuaError(civInfo, functionName, ex.message ?: "Unknown Lua runtime error")
+            reportLuaError(civInfo, functionName, ex.message ?: "Unknown Lua runtime error", modName)
             onSuccess(false)
         } catch (ex: Exception) {
             Log.error("Unexpected Lua error: ${ex.message}", ex)
-            reportLuaError(civInfo, functionName, ex.message ?: "Unknown error")
+            reportLuaError(civInfo, functionName, ex.message ?: "Unknown error", modName)
             onSuccess(false)
         }
     }
 
-    private fun reportLuaError(civInfo: Civilization?, functionName: String, message: String) {
+    private fun reportLuaError(civInfo: Civilization?, functionName: String, message: String, modName: String = "") {
+        val lineNum = extractLineNumber(message)
+        val displayMessage = if (functionName.isNotEmpty())
+            if (lineNum != null)
+                "Function '$functionName' error at line $lineNum:|$message"
+            else
+                "Function '$functionName' error:|$message"
+        else
+            message
+
+        // Record the error in the ruleset's error list so mod authors can see it in the
+        // in-game mod checker - regardless of whether the triggering civ is human (AI-turn
+        // errors previously only went to the log and were invisible to mod authors).
+        val ruleset = civInfo?.gameInfo?.ruleset
+        if (ruleset != null) {
+            ruleset.luaErrors.add(LuaScriptError(
+                modName, null, LuaScriptErrorSeverity.WARNING,
+                "Runtime Lua error: $displayMessage", lineNum
+            ))
+        }
+
         if (civInfo == null || !civInfo.isHuman()) return
         val errorKey = if (functionName.isNotEmpty()) functionName else message
         if (!shownLuaErrors.add(errorKey)) return // Already shown this error in this session
-        val displayMessage = if (functionName.isNotEmpty())
-            "Function '$functionName' error:|$message"
-        else
-            message
         civInfo.popupAlerts.add(PopupAlert(AlertType.LuaError, displayMessage))
     }
 
@@ -212,7 +300,12 @@ object LuaScriptManager {
             "require", "collectgarbage", "module",
             "rawget", "rawset", "rawequal", "rawlen",
             "setmetatable", "getmetatable", "newproxy",
-            "debug", "coroutine"
+            "debug", "coroutine",
+            // The package library must go entirely: its `package.loaded` table keeps full
+            // references to `io`, `os`, `luajava` and `coroutine` even after the globals above
+            // are set to nil, giving mod scripts complete sandbox escape (arbitrary file
+            // read/write, process execution and Java reflection via luajava).
+            "package"
         )) {
             globals.set(dangerous, LuaValue.NIL)
         }
