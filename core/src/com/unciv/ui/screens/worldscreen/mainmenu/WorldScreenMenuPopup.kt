@@ -6,11 +6,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle
 import com.unciv.ui.components.input.KeyboardBinding
 import com.unciv.ui.components.input.onLongPress
+import com.unciv.ui.popups.ConfirmPopup
 import com.unciv.ui.popups.Popup
+import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.savescreens.LoadGameScreen
 import com.unciv.ui.screens.victoryscreen.VictoryScreen
 import com.unciv.ui.screens.worldscreen.WorldScreen
+import com.unciv.utils.Concurrency
+import com.unciv.utils.launchOnGLThread
 
 /** The in-game menu called from the "Hamburger" button top-left
  *
@@ -33,7 +37,8 @@ class WorldScreenMenuPopup(
         val showSave = !worldScreen.gameInfo.gameParameters.isOnlineMultiplayer
         val showMusic = worldScreen.game.musicController.isMusicAvailable()
         val showConsole = showSave && expertMode
-        val buttonCount = 8 + (if (showSave) 1 else 0) + (if (showMusic) 1 else 0) + (if (showConsole) 1 else 0)
+        val showRestartVote = canStartRestartVote()
+        val buttonCount = 8 + (if (showSave) 1 else 0) + (if (showMusic) 1 else 0) + (if (showConsole) 1 else 0) + (if (showRestartVote) 1 else 0)
 
         val emptyPrefHeight = this.prefHeight
         val firstCell = addButton("Main menu") {
@@ -61,6 +66,18 @@ class WorldScreenMenuPopup(
             close()
             worldScreen.openNewGameScreen()
         }.nextColumn()
+        if (showRestartVote)
+            addButton("Start restart vote") {
+                close()
+                val askPopup = ConfirmPopup(
+                    worldScreen,
+                    "Are you sure you want to start a restart vote? All players will be asked to agree to restart the game with the same setup.",
+                    "Yes",
+                ) {
+                    startRestartVote()
+                }
+                askPopup.open()
+            }.nextColumn()
         addButton("Victory status", KeyboardBinding.VictoryScreen) {
             close()
             worldScreen.game.pushScreen(VictoryScreen(worldScreen))
@@ -85,7 +102,7 @@ class WorldScreenMenuPopup(
                 close()
                 worldScreen.openDeveloperConsole()
             }.nextColumn()
-        
+
         addButton("Exit") {
             close()
             Gdx.app.exit()
@@ -96,5 +113,33 @@ class WorldScreenMenuPopup(
         pack()
 
         open(force = true)
+    }
+
+    /** Whether a restart vote can be started right now: online game, votes enabled, exactly the
+     *  configured turn, no vote file known yet, and we are a player (not a spectator). */
+    private fun canStartRestartVote(): Boolean {
+        val gameInfo = worldScreen.gameInfo
+        if (!gameInfo.gameParameters.isOnlineMultiplayer) return false
+        if (worldScreen.viewingCiv.isSpectator()) return false
+        val restartVoteTurn = gameInfo.gameParameters.restartVoteTurn
+        if (restartVoteTurn <= 0 || gameInfo.turns != restartVoteTurn) return false
+        return worldScreen.game.onlineMultiplayer.getCachedRestartVote(gameInfo.gameId) == null
+    }
+
+    private fun startRestartVote() {
+        val gameInfo = worldScreen.gameInfo
+        val gameId = gameInfo.gameId
+        val turn = gameInfo.turns
+        val timeoutMinutes = gameInfo.gameParameters.restartVoteTimeoutMinutes
+        Concurrency.run("StartRestartVote") {
+            val vote = worldScreen.game.onlineMultiplayer.startRestartVote(gameId, turn, timeoutMinutes)
+            launchOnGLThread {
+                if (vote != null) {
+                    worldScreen.openRestartVotePopup()
+                } else {
+                    ToastPopup("Could not start the restart vote!", worldScreen, 3000)
+                }
+            }
+        }
     }
 }

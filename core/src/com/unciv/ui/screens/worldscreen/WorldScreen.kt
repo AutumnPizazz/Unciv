@@ -18,6 +18,8 @@ import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapVisualization
 import com.unciv.logic.multiplayer.MultiplayerGameUpdated
 import com.unciv.logic.multiplayer.OnlineStatusUpdated
+import com.unciv.logic.multiplayer.RestartVoteStatus
+import com.unciv.logic.multiplayer.RestartVoteUpdated
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
@@ -104,7 +106,7 @@ class WorldScreen(
     /** Indicates it's the player's ([viewingCiv]) turn */
     var isPlayersTurn = viewingCiv.isCurrentPlayer()
         internal set     // only this class is allowed to make changes
-    
+
     /** Indicates that a game failed to upload, and needs to be uploaded */
     var failedUpload = false
         private set
@@ -236,6 +238,9 @@ class WorldScreen(
             events.receive(OnlineStatusUpdated::class, { it.gameId == gameId }) { update ->
                 playerOnlineTimes[update.civName] = System.currentTimeMillis()
                 shouldUpdate = true
+            }
+            events.receive(RestartVoteUpdated::class, { it.gameId == gameId }) {
+                onRestartVoteUpdated()
             }
         }
 
@@ -600,7 +605,7 @@ class WorldScreen(
         val scrollX = mapHolder.scrollX
         val scrollY = mapHolder.scrollY
     }
-    
+
     @Readonly
     fun getRestoreState(): RestoreState {
         return RestoreState(mapHolder, selectedCiv.civID, viewingCiv.civID, fogOfWar)
@@ -620,7 +625,52 @@ class WorldScreen(
         fogOfWar = restoreState.fogOfWar
     }
 
+    //region Restart vote
+
+    private var restartVotePopup: RestartVotePopup? = null
+
+    /** Refreshes an open vote popup, or auto-opens one when a vote needs our input. */
+    private fun onRestartVoteUpdated() {
+        val popup = restartVotePopup
+        if (popup != null && popup.hasParent()) popup.refresh()
+        else maybeAutoOpenRestartVotePopup()
+    }
+
+    /** Opens the vote popup if there is an open vote we haven't voted on yet. */
+    private fun maybeAutoOpenRestartVotePopup() {
+        if (viewingCiv.isSpectator()) return
+        if (canVoteOnRestart()) openRestartVotePopup()
+    }
+
+    /** Whether there is an open restart vote and we haven't voted yet. */
+    private fun canVoteOnRestart(): Boolean {
+        if (!gameInfo.gameParameters.isOnlineMultiplayer) return false
+        val vote = game.onlineMultiplayer.getCachedRestartVote(gameInfo.gameId) ?: return false
+        if (vote.status != RestartVoteStatus.OPEN) return false
+        return !vote.hasVoted(game.settings.multiplayer.getUserId())
+    }
+
+    fun openRestartVotePopup() {
+        if (restartVotePopup?.hasParent() == true) return
+        restartVotePopup = RestartVotePopup(this).apply { open(force = true) }
+    }
+
+    /**
+     * While a restart vote is open, players who haven't voted yet cannot end their turn -
+     * they must handle the vote first.
+     * @return true if the next turn was blocked
+     */
+    private fun restartVoteBlocksNextTurn(): Boolean {
+        if (!canVoteOnRestart()) return false
+        openRestartVotePopup()
+        ToastPopup("You must vote on the restart vote before ending your turn!", this, 3000)
+        return true
+    }
+
+    //endregion
+
     fun nextTurn() {
+        if (restartVoteBlocksNextTurn()) return
         isPlayersTurn = false
         shouldUpdate = true
         val progressBar = NextTurnProgress(nextTurnButton)
@@ -863,7 +913,7 @@ class WorldScreen(
         }
         shouldUpdate = true
     }
-    
+
     @Readonly
     internal fun isNextTurnUpdateRunning(): Boolean {
         val job = nextTurnUpdateJob
