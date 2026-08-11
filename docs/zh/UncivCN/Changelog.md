@@ -16,6 +16,7 @@ title: UncivCN 更新日志
 - 新增生命周期钩子：`TriggerUponTradeMade`——`<upon completing a trade with [civFilter] Civilizations>` 在任意被接受的交易完成时触发（双方都会触发，包括 AI 自动接受的交易）；与 TriggerLuaFunction 组合即可获得交易完成的 Lua 钩子
 - Lua 地图脚本：模组现在可以在 `scripts/` 中提供地图生成器（`GetMapScriptInfo` 返回 `{name, description}` 元数据 + `GenerateMap(ctx)` 生成函数）；新建游戏界面新增“Lua Generated”地图类型并列出发现的脚本；生成器获得独立的沙箱 ctx（`params`/`seed`/`perlin`/`random`/`randomInt`/`log`/`map`，含地块访问、大陆分配、起始位置、气候/山脉/海岸/河流/冰雪生成、洪泛填充、地形规范化与起始地块平衡助手）；`params.bounds` 暴露实际（可能为负的）地块坐标范围；`GenerateMap`/`GetMapScriptInfo` 为保留函数，模组检查器禁止在游戏内 TriggerLuaFunction 中使用；新增示例模组 `docs/Modders/examples/LuaMapScriptExample/`、77 个 API 测试与一个端到端示例测试；同时修复 Perlin 噪声函数同样的 luaj invoke() 缺陷（4 参数调用）
 - 上线前 Lua 加固：`city.sellBuilding` 对未知建筑不再抛异常（存在性守卫）；循环 Lua 条件（A 通过 `ctx.evaluateConditional` 求值 B、B 求值 A）加入深度限制，超限按 false 处理而非撑爆 JVM 栈；Lua Generated 模式不再渲染错误的 Kotlin 生成示例地图，导入含 Lua 地图脚本的配置后地图类型自动恢复为 Lua Generated；CLI 静态检查器（mod-ci）新增地图脚本 API 覆盖（`ctx.map`/`ctx.params`/`ctx.size`/`ctx.bounds`，tile API 按两套上下文取并集检查），静态 catalog 与运行时注册的一致性由测试保障；新增地图脚本 EmmyLua 类型定义（`docs/Modders/lua-map-api.lua`，防漂移测试守护）
+- 翻译：为新增的 Lua UI 字符串与 unique 补齐简体中文词条（模板占位符同步）——`Lua Generated`（Lua 脚本生成）、`Scripted`（脚本生成）、`Map Script:`（地图脚本：）、`if [luaFunction] returns true`（如果 [luaFunction] 返回 true）、`upon completing a trade with [civFilter] Civilizations`（一旦与[civFilter]文明完成交易时）
 
 ## v4.21.6.5（build 1249）
 - 文档：将 Lua 大改全面反映到文档站——Coding-standards 生成器清单新增 `LuaApiDefinitionWriter`/`lua-api.lua`；Features 页 Lua 章节重写（触发方式、安全沙箱、错误报告、工具链）；Differences 对比表更新 Lua 检查与工具链行；模组总览页新增 Lua 脚本入口（指向教程与起步模板，中英同步）
