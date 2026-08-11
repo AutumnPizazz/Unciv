@@ -310,7 +310,7 @@ class LuaApiDefinitionWriter {
             }
             out.appendLine()
         }
-        return out.toString()
+        return out.toString().trimEnd() + "\n"
     }
 
     /** Writes the generated definitions into the docs folder (generateDocs task, working dir = assets). */

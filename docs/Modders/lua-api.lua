@@ -241,4 +241,3 @@
 ---@field count fun(expr: string): string
 ---@field evaluateConditional fun(condition: string): boolean
 ---@field store UncivStore
-
