@@ -19,13 +19,22 @@
 ---@field isCityState boolean
 ---@field isBarbarian boolean
 ---@field isSpectator boolean
+---@field getNation fun(): string
+---@field getLeaderName fun(): string
+---@field getScore fun(): number
+---@field getForce fun(): number
 ---@field getGold fun(): number
 ---@field getHappiness fun(): number
 ---@field getStat fun(stat: string): number
 ---@field getStatYield fun(stat: string): number
 ---@field getGoldPerTurn fun(): number
+---@field getSciencePerTurn fun(): number
+---@field getCulturePerTurn fun(): number
+---@field getFoodPerTurn fun(): number
+---@field getProductionPerTurn fun(): number
 ---@field getResourceAmount fun(resourceName: string): number
 ---@field hasResource fun(resourceName: string): boolean
+---@field getResourceStockpiles fun(): table
 ---@field getEra fun(): string
 ---@field getEraNumber fun(): number
 ---@field isResearched fun(techName: string): boolean
@@ -35,6 +44,7 @@
 ---@field getTechCount fun(): number
 ---@field getTechsResearched fun(): string[]
 ---@field getAvailableTechs fun(): string[]
+---@field getTechCost fun(techName: string): number
 ---@field grantTech fun(techName: string)
 ---@field hasPolicy fun(policyName: string): boolean
 ---@field canAdoptPolicy fun(): boolean
@@ -42,14 +52,19 @@
 ---@field getAdoptedPolicies fun(): string[]
 ---@field getAvailablePolicyBranches fun(): string[]
 ---@field grantPolicy fun(policyName: string)
+---@field getCultureNeededForNextPolicy fun(): number
 ---@field isAtWarWith fun(civName: string): boolean
 ---@field hasOpenBordersWith fun(civName: string): boolean
 ---@field isAlliedWith fun(civName: string): boolean
 ---@field getDiplomaticStatus fun(civName: string): string
+---@field getDiplomaticStatuses fun(): table
+---@field getProximityTo fun(civName: string): string
+---@field hasEmbassyWith fun(civName: string): boolean
 ---@field getInfluence fun(civName: string): number
 ---@field getKnownCivs fun(): string[]
 ---@field addInfluence fun(civName: string, amount: number)
 ---@field declareWarOn fun(civName: string)
+---@field makePeaceWith fun(civName: string)
 ---@field hasReligion fun(): boolean
 ---@field getReligionName fun(): string
 ---@field getFaith fun(): number
@@ -57,15 +72,21 @@
 ---@field getCity fun(cityName: string): UncivCity|nil
 ---@field getCapital fun(): UncivCity|nil
 ---@field getCityCount fun(): number
+---@field getCityNames fun(): string[]
+---@field getTotalPopulation fun(): number
+---@field getWondersBuilt fun(): string[]
 ---@field getUnits fun(): UncivUnit[]
 ---@field getUnitsMatching fun(filter: string): UncivUnit[]
 ---@field getUnitCount fun(): number
 ---@field isGoldenAge fun(): boolean
 ---@field getGoldenAgeTurnsRemaining fun(): number
 ---@field getSpyCount fun(): number
+---@field getSpies fun(): table[]
+---@field addSpy fun()
 ---@field getLeaderTitle fun(): string
 ---@field hasUnique fun(uniqueText: string): boolean
 ---@field addGold fun(amount: number)
+---@field setGold fun(amount: number)
 ---@field addStat fun(stat: string, amount: number)
 ---@field addStats fun(statsText: string)
 ---@field addResource fun(resourceName: string, amount: number)
@@ -93,6 +114,19 @@
 ---@field health number
 ---@field getStatYield fun(stat: string): number
 ---@field getAllYields fun(): table
+---@field getFood fun(): number
+---@field getFoodSurplus fun(): number
+---@field getFoodStorage fun(): number
+---@field getFoodNeeded fun(): number
+---@field getProductionProgress fun(): number
+---@field getProductionCost fun(): number
+---@field getTurnsToCompletion fun(): number
+---@field getGarrisonedUnit fun(): UncivUnit|nil
+---@field getStrength fun(): number
+---@field getSpecialistCount fun(): number
+---@field getUnemployedCount fun(): number
+---@field getBuiltWonders fun(): string[]
+---@field isInResistance fun(): boolean
 ---@field hasBuilding fun(buildingName: string): boolean
 ---@field getBuiltBuildings fun(): string[]
 ---@field getBuildingCount fun(): number
@@ -106,8 +140,14 @@
 ---@field isHolyCity fun(): boolean
 ---@field hasUnique fun(uniqueText: string): boolean
 ---@field addPopulation fun(amount: number)
+---@field setPopulation fun(count: number)
+---@field addFood fun(amount: number)
+---@field addProduction fun(amount: number)
+---@field addHealth fun(amount: number)
+---@field setName fun(newName: string)
 ---@field addBuilding fun(buildingName: string)
 ---@field removeBuilding fun(buildingName: string)
+---@field sellBuilding fun(buildingName: string)
 ---@field setProduction fun(itemName: string)
 ---@field addToQueue fun(itemName: string)
 ---@field clearQueue fun()
@@ -128,6 +168,17 @@
 ---@field getMovement fun(): number
 ---@field getCurrentMovement fun(): number
 ---@field getXP fun(): number
+---@field getMaxHealth fun(): number
+---@field getDamage fun(): number
+---@field getAttacksLeft fun(): number
+---@field getVisibilityRange fun(): number
+---@field getAction fun(): string
+---@field canAttack fun(): boolean
+---@field canPillage fun(): boolean
+---@field isInEnemyTerritory fun(): boolean
+---@field isInFriendlyTerritory fun(): boolean
+---@field isGreatPerson fun(): boolean
+---@field getReligionDisplayName fun(): string
 ---@field hasPromotion fun(promotionName: string): boolean
 ---@field hasUnique fun(uniqueText: string): boolean
 ---@field getPromotions fun(): string[]
@@ -141,10 +192,16 @@
 ---@field healBy fun(amount: number)
 ---@field takeDamage fun(amount: number)
 ---@field addXP fun(amount: number)
+---@field setXP fun(amount: number)
+---@field setHealth fun(amount: number)
 ---@field addPromotion fun(promotionName: string)
 ---@field removePromotion fun(promotionName: string)
 ---@field addMovement fun(amount: number)
 ---@field useMovement fun(amount: number)
+---@field setStatus fun(statusName: string, turns: number)
+---@field setAttacksLeft fun(count: number)
+---@field fortify fun()
+---@field moveByPath fun(path: table): number
 ---@field upgrade fun()
 ---@field destroy fun()
 ---@field attackTile fun(x: number, y: number): table|false
@@ -166,6 +223,11 @@
 ---@field getTerrainFeatures fun(): string[]
 ---@field isImpassable fun(): boolean
 ---@field isRiver fun(): boolean
+---@field isAdjacentToCoast fun(): boolean
+---@field hasRoad fun(): boolean
+---@field hasRailroad fun(): boolean
+---@field hasNaturalWonder fun(): boolean
+---@field getNaturalWonder fun(): string
 ---@field hasResource fun(): boolean
 ---@field resourceName string
 ---@field resourceAmount number
@@ -176,15 +238,20 @@
 ---@field isOwned fun(): boolean
 ---@field getOwner fun(): string
 ---@field isOwnedBy fun(civName: string): boolean
+---@field isFriendlyTerritory fun(...)
+---@field isEnemyTerritory fun(...)
 ---@field isCityCenter fun(): boolean
 ---@field getOwningCity fun(): string
 ---@field isExploredBy fun(civName: string): boolean
+---@field getDistanceTo fun(x: number, y: number): number
+---@field isAdjacentTo fun(x: number, y: number): boolean
 ---@field hasMilitaryUnit fun(): boolean
 ---@field hasCivilianUnit fun(): boolean
 ---@field getUnits fun(): UncivUnit[]
 ---@field getNeighbors fun(): UncivTile[]
 ---@field getNeighborAt fun(direction: number): UncivTile|nil
 ---@field getTilesInDistance fun(radius: number): UncivTile[]
+---@field setExplored fun(civName: string, explored: boolean)
 ---@field setTerrain fun(terrainName: string)
 ---@field addTerrainFeature fun(featureName: string)
 ---@field removeTerrainFeature fun(featureName: string)
@@ -202,9 +269,12 @@
 ---@field speed string
 ---@field difficulty string
 ---@field getCurrentPlayer fun(): string
+---@field getCurrentPlayerCiv fun(): UncivCiv|nil
 ---@field getCiv fun(civName: string): UncivCiv|nil
 ---@field getCivById fun(id: string): UncivCiv|nil
 ---@field getAllCivs fun(): UncivCiv[]
+---@field getCivNames fun(): string[]
+---@field getHumanCivs fun(): UncivCiv[]
 ---@field getAliveMajorCivs fun(): UncivCiv[]
 ---@field getAliveCityStates fun(): UncivCiv[]
 ---@field getBarbarianCiv fun(): UncivCiv
@@ -212,16 +282,41 @@
 ---@field findTiles fun(criteria: table): UncivTile[]
 ---@field getMapWidth fun(): number
 ---@field getMapHeight fun(): number
+---@field getMapName fun(): string
+---@field getMapType fun(): string
 ---@field isWrapped fun(): boolean
 ---@field getTilesNear fun(x: number, y: number, radius: number): UncivTile[]
+---@field getEraNames fun(): string[]
+---@field getVictoryTypes fun(): string[]
+---@field getMods fun(): string[]
+---@field getBaseRuleset fun(): string
 ---@field getRulesetBuildings fun(): string[]
 ---@field getRulesetUnits fun(): string[]
 ---@field getRulesetTechs fun(): string[]
 ---@field getRulesetPolicies fun(): string[]
 ---@field getRulesetEras fun(): string[]
 ---@field getRulesetPromotions fun(): string[]
+---@field getRulesetTerrains fun(): string[]
+---@field getRulesetResources fun(): string[]
+---@field getRulesetImprovements fun(): string[]
+---@field getRulesetNations fun(): string[]
+---@field getRulesetReligions fun(): string[]
+---@field getRulesetBeliefs fun(): string[]
+---@field getRulesetEvents fun(): string[]
+---@field getRulesetNaturalWonders fun(): string[]
+---@field getRulesetUnitTypes fun(): string[]
 ---@field doesBuildingExist fun(buildingName: string): boolean
 ---@field doesUnitExist fun(unitName: string): boolean
+---@field doesTechExist fun(techName: string): boolean
+---@field doesPolicyExist fun(policyName: string): boolean
+---@field doesEraExist fun(eraName: string): boolean
+---@field doesPromotionExist fun(promotionName: string): boolean
+---@field doesTerrainExist fun(terrainName: string): boolean
+---@field doesResourceExist fun(resourceName: string): boolean
+---@field doesImprovementExist fun(improvementName: string): boolean
+---@field doesNationExist fun(nationName: string): boolean
+---@field doesBeliefExist fun(beliefName: string): boolean
+---@field doesEventExist fun(eventName: string): boolean
 ---@field addGlobalNotification fun(text: string)
 ---@field revealEntireMap fun(civName: string)
 ---@field revealTilesAround fun(civName: string, x: number, y: number, radius: number)
@@ -241,3 +336,5 @@
 ---@field count fun(expr: string): string
 ---@field evaluateConditional fun(condition: string): boolean
 ---@field store UncivStore
+---@field random fun(): number
+---@field randomInt fun(min: number, max: number): number
