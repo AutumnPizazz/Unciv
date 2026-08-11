@@ -2,7 +2,7 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
-## Unreleased
+## v4.21.6.6 (build 1250)
 - Game updates: added automatic update checking - on entering the main menu the game queries the latest GitHub release of the CN fork repository (AutumnPizazz/Unciv), routed through the active download source like everything else; when a newer version exists, the version label at the bottom of the main menu shows a "New version available" hint and clicking it opens a popup with the current vs. latest version and a download button; if the check fails due to network problems, the game offers a one-click switch to a mirror download source (same interaction as the mod list)
 - Settings: renamed the "Mod download source" option to "Download source" (it now also covers the update check); the source SelectBox now shows display names (e.g. "GitHub (official)") instead of raw enum names; fixed the "Custom download prefix" row blowing up the options table width - the label now sits in the left column and the text field + Enter button in the right column with a width cap
 - Fixed a Lua runtime crash affecting every mod script: custom Lua API functions (`luaFunction`) now override luaj's `invoke()`, so calls whose argument list contains a function-call expression (e.g. `ctx.store.set("k", tostring(1))`, `ctx.log(tostring(x))`, `civ.addNotification(makeText())`) no longer throw "attempt to call function" - previously only literal arguments worked; regression test added

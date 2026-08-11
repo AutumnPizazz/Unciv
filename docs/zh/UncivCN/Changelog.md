@@ -8,7 +8,7 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
-## 未发布（Unreleased）
+## v4.21.6.6（build 1250）
 - 游戏更新：新增自动更新检测——进入主菜单后在后台查询 CN 分支仓库（AutumnPizazz/Unciv）的最新 GitHub Release（与模组下载一样走当前下载源）；发现新版本时主菜单底部版本号旁显示“发现新版本”提示，点击版本号弹出新版本信息与下载按钮；因网络问题检测失败时弹窗询问一键切换镜像下载源（与模组列表失败时的交互一致）
 - 设置：将“模组下载源”更名为“下载源”（现在也用于更新检测）；下载源下拉框改为显示源名称（如“GitHub（官方）”）而非原始枚举名；修复“自定义下载前缀”一行把选项表撑宽的问题——标签移入左列，输入框与确定按钮放入右列并限制宽度
 - 修复影响所有 Lua 模组脚本的运行时崩溃：自定义 Lua API 函数（`luaFunction`）现在重写 luaj 的 `invoke()`，参数列表包含函数调用表达式（如 `ctx.store.set("k", tostring(1))`、`ctx.log(tostring(x))`、`civ.addNotification(makeText())`）的调用不再报 "attempt to call function"——此前只有字面量参数可用；已补回归测试
