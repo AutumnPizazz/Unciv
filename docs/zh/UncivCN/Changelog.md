@@ -11,7 +11,7 @@ title: UncivCN 更新日志
 ## 未发布（Unreleased）
 
 - Lua API：新增 `unit.getEraNumber()`（单位需求科技的最小时代序号，与 `{Era.X}` 单位过滤器语义一致）与 `civ.discoverTech()`（等价 `Discover [tech]` unique，绕过可研究性检查直接解锁，幂等）；已同步 EmmyLua 类型定义
-- 模组：CoeHarMod 活用 Lua 系统减负——将军/海军统帅光环由每伟人 9 条时代分段 unique 合并为 1 条 Lua 条件；AI 修正（60 条市政 Discover + 11 条资源/政策槽 Provides）收敛为 2 个回合钩子；清理注释掉的旧规则定义约 1900 行
+- 模组：CoeHarMod 活用 Lua 系统减负——将军/海军统帅光环由每伟人 9 条时代分段 unique 合并为 1 条 Lua 条件；AI 修正（60 条市政 Discover + 11 条资源/政策槽 Provides）收敛为 2 个回合钩子；AI 市政改为按时代增量解锁（ctx.store 记录进度）；清理注释掉的旧规则定义约 1900 行
 
 - 模组：CoeHarMod 改为以 git 子模块（submodule）方式内置，指向独立仓库 AutumnPizazz/CoeHarMod——以子模块引用替换仓库内副本（当前 v3.3.9+），内置版本随模组仓库更新
 
