@@ -199,7 +199,7 @@ open class RulesetValidator protected constructor(
 
     protected open fun addEraErrors(lines: RulesetErrorList) {
         for (era in ruleset.eras.values) {
-            if (era.researchAgreementCost < 0 || era.startingSettlerCount < 0 || era.startingWorkerCount < 0 || 
+            if (era.researchAgreementCost < 0 || era.startingSettlerCount < 0 || era.startingWorkerCount < 0 ||
                 era.startingMilitaryUnitCount < 0 || era.startingGold < 0 || era.startingCulture < 0)
                 lines.add("Unexpected negative number found while parsing era ${era.name}", sourceObject = era)
             if (era.settlerPopulation <= 0)
@@ -351,7 +351,7 @@ open class RulesetValidator protected constructor(
             }
             lines.add("ModConstant '${propertyName ?: property.name}}' does not meet criteria '${range.describe()}'.")
         }
-        
+
         //TODO: More thorough checks. Here I picked just those where bad values might endanger stability.
         val constants = ruleset.modOptions.constants
         checkConstant(constants::cityExpandRange, 1..100)
@@ -923,7 +923,8 @@ open class RulesetValidator protected constructor(
         val knownFunctions = LuaScriptManager.getKnownFunctions(ruleset)
         for (obj in ruleset.allRulesetObjects()) {
             for (unique in obj.uniqueObjects) {
-                if (unique.type != UniqueType.TriggerLuaFunction) continue
+                if (unique.type != UniqueType.TriggerLuaFunction
+                    && unique.type != UniqueType.ConditionalLuaCheck) continue
                 val luaRef = unique.params[0]
                 val (refModName, functionName) = LuaScriptManager.parseLuaRef(luaRef)
 

@@ -11,6 +11,7 @@ import com.unciv.models.ruleset.Event
 import com.unciv.models.ruleset.EventChoice
 import com.unciv.models.ruleset.tech.TechColumn
 import com.unciv.models.ruleset.tech.Technology
+import com.unciv.models.ruleset.unique.Conditionals
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
@@ -156,6 +157,63 @@ class LuaScriptTests {
         var success = false
         LuaScriptManager.callFunction(func, ctx, onSuccess = { success = it })
         Assert.assertTrue("All Lua API tests should pass", success)
+    }
+
+    @Test
+    fun luaConditionalWorks() {
+        // ConditionalLuaCheck: "<if [mod:func] returns true>" evaluates a Lua function as a condition
+        loadLuaScriptToMod("condMod", "cond.lua", """
+            function isRich(ctx)
+                return ctx.civ.getGold() > 100
+            end
+            function alwaysTrue(ctx)
+                return true
+            end
+            function alwaysFalse(ctx)
+                return false
+            end
+        """.trimIndent())
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val state = GameContext(civ, city)
+
+        // Unique parsing: the conditional part must be recognized as ConditionalLuaCheck
+        val unique = Unique("[+1 Production] <if [condMod:isRich] returns true>")
+        val luaConditionals = unique.getModifiers(UniqueType.ConditionalLuaCheck)
+        Assert.assertEquals(1, luaConditionals.size)
+        Assert.assertEquals("condMod:isRich", luaConditionals[0].params[0])
+
+        // False while poor
+        civ.addGold(50)
+        Assert.assertFalse(
+            "Lua condition should be false when the function returns false",
+            Conditionals.conditionalApplies(null, luaConditionals[0], state)
+        )
+
+        // True once rich (50 + 100 = 150 > 100)
+        civ.addGold(100)
+        Assert.assertTrue(
+            "Lua condition should be true when the function returns true",
+            Conditionals.conditionalApplies(null, luaConditionals[0], state)
+        )
+
+        // A function returning false always makes the conditional false
+        val alwaysFalse = Unique("[+1 Production] <if [condMod:alwaysFalse] returns true>")
+        Assert.assertFalse(Conditionals.conditionalApplies(null, alwaysFalse.getModifiers(UniqueType.ConditionalLuaCheck)[0], state))
+
+        // A function returning true always makes the conditional true
+        val alwaysTrue = Unique("[+1 Production] <if [condMod:alwaysTrue] returns true>")
+        Assert.assertTrue(Conditionals.conditionalApplies(null, alwaysTrue.getModifiers(UniqueType.ConditionalLuaCheck)[0], state))
+    }
+
+    @Test
+    fun luaConditionalMissingFunctionIsFalse() {
+        // A missing function must evaluate to false (never crash the conditional path)
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        val state = GameContext(civ, city)
+        val unique = Unique("[+1 Production] <if [noSuchMod:noSuchFunc] returns true>")
+        Assert.assertFalse(Conditionals.conditionalApplies(null, unique.getModifiers(UniqueType.ConditionalLuaCheck)[0], state))
     }
 
     @Test

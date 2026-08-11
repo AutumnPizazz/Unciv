@@ -7,6 +7,8 @@ import com.unciv.logic.battle.CombatAction
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.ReligionState
+import com.unciv.logic.scripting.LuaAPI
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.ruleset.validation.ModCompatibility
 import com.unciv.models.stats.Stat
 import com.unciv.utils.hashOf
@@ -14,6 +16,29 @@ import yairm210.purity.annotations.Readonly
 import kotlin.random.Random
 
 object Conditionals {
+
+    /**
+     * Evaluates a Lua function from a loaded mod as a condition. The function receives the usual
+     * ctx table and must return true for the condition to apply. Runs mod code inside a [@Readonly]
+     * context - authors must keep the function a side-effect-free pure query, since conditions are
+     * evaluated very often (and each call carries Lua interop overhead). Missing functions simply
+     * evaluate to false; the mod checker reports them at load time.
+     */
+    @Readonly @Suppress("purity") // running mod-provided code is inherently effectful - documented above
+    private fun checkLuaCondition(conditional: Unique, state: GameContext): Boolean {
+        val civInfo = state.relevantCiv ?: return false
+        val (modName, functionName) = LuaScriptManager.parseLuaRef(conditional.params[0])
+        val (foundMod, luaFunc) = LuaScriptManager.getFunction(modName, functionName)
+            ?: return false
+        val ctx = LuaAPI.buildContext(
+            civInfo, state.relevantCity, state.relevantUnit, state.relevantTile,
+            "", state, foundMod
+        )
+        var result = false
+        LuaScriptManager.callFunction(luaFunc, ctx, civInfo, functionName,
+            onSuccess = { result = it }, modName = foundMod)
+        return result
+    }
 
     @Readonly @Suppress("purity") // hashcode... requires a think
     private fun getStateBasedRandom(state: GameContext, unique: Unique?): Float {
@@ -126,6 +151,8 @@ object Conditionals {
             UniqueType.ConditionalAfterTurns -> checkOnGameInfo { turns >= conditional.params[0].toInt() }
             UniqueType.ConditionalTutorialsEnabled -> UncivGame.Current.settings.showTutorials
             UniqueType.ConditionalTutorialCompleted -> conditional.params[0] in UncivGame.Current.settings.tutorialTasksCompleted
+
+            UniqueType.ConditionalLuaCheck -> checkLuaCondition(conditional, state)
 
             UniqueType.ConditionalCivFilter -> checkOnCiv { matchesFilter(conditional.params[0], state) }
             UniqueType.ConditionalWar -> checkOnCiv { isAtWar() }
@@ -282,7 +309,7 @@ object Conditionals {
             UniqueType.ConditionalHasNotUsedOtherActions ->
                 state.unit == null || // So we get the action as a valid action in BaseUnit.hasUnique()
                     state.unit.abilityToTimesUsed.isEmpty()
-            UniqueType.ConditionalStackedWithUnit -> state.relevantUnit != null && 
+            UniqueType.ConditionalStackedWithUnit -> state.relevantUnit != null &&
                     state.relevantUnit!!.getTile().getUnits().any { it != state.relevantUnit && it.matchesFilter(conditional.params[0]) }
             UniqueType.ConditionalNotStackedWithUnit -> state.relevantUnit == null ||
                     !state.relevantUnit!!.getTile().getUnits().any { it != state.relevantUnit && it.matchesFilter(conditional.params[0]) }
@@ -373,18 +400,18 @@ object Conditionals {
                     first, second, third ->
                     first in second..third
                 }
-                
+
             UniqueType.ConditionalWhenCarriedBy -> {
                 // Check if the unit is currently transported and being carried by matching filter
                 if (state.relevantUnit == null || !state.relevantUnit!!.isTransported) false
                 else {
                     val carrier = state.relevantUnit!!.getTile().militaryUnit
                     // Only true if: 1) carrier exists, 2) carrier is NOT the unit itself, 3) carrier matches filter
-                    carrier != null && carrier != state.relevantUnit && 
+                    carrier != null && carrier != state.relevantUnit &&
                     carrier.matchesFilter(conditional.params[0]) == true
                 }
             }
-            
+
             UniqueType.ConditionalModEnabled -> checkOnGameInfo {
                 val filter = conditional.params[0]
                 (gameParameters.mods.asSequence() + gameParameters.baseRuleset).any { ModCompatibility.modNameFilter(it, filter) }

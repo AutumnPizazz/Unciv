@@ -92,7 +92,7 @@ enum class UniqueType(
     PercentProductionBuildingsInCapital("[relativeAmount]% Production towards any buildings that already exist in the Capital", UniqueTarget.Global, UniqueTarget.FollowerBelief),
     PercentYieldFromPillaging("[relativeAmount]% Yield from pillaging tiles", UniqueTarget.Global, UniqueTarget.Unit),
     PercentHealthFromPillaging("[relativeAmount]% Health from pillaging tiles", UniqueTarget.Global, UniqueTarget.Unit),
-    
+
     // endregion Stat providing uniques
 
     // region City-State related uniques
@@ -105,8 +105,8 @@ enum class UniqueType(
     CityStateMoreGiftedUnits("Militaristic City-States grant units [positiveAmount] times as fast when you are at war with a common nation", UniqueTarget.Global),
 
     CityStateGoldGiftsProvideMoreInfluence("Gifts of Gold to City-States generate [relativeAmount]% more Influence", UniqueTarget.Global),
-    
-    
+
+
     CityStateCanBeBoughtForGold("Can spend Gold to annex or puppet a City-State that has been your Ally for [nonNegativeAmount] turns", UniqueTarget.Global),
     CityStateTerritoryAlwaysFriendly("City-State territory always counts as friendly territory", UniqueTarget.Global),
 
@@ -147,7 +147,7 @@ enum class UniqueType(
 
     /// Buying units/buildings
     // There is potential to merge these
-    
+
     BuyUnitsIncreasingCost("May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])", UniqueTarget.Global, UniqueTarget.FollowerBelief),
     BuyBuildingsIncreasingCost("May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])", UniqueTarget.Global, UniqueTarget.FollowerBelief),
     BuyUnitsForAmountStat("May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
@@ -233,7 +233,7 @@ enum class UniqueType(
     UnitStartingPromotions("All newly-trained [baseUnitFilter] units [cityFilter] receive the [promotion] promotion", UniqueTarget.Global, UniqueTarget.FollowerBelief),
     // Todo: Lowercase the 'U' of 'Units' in this unique
     CityHealingUnits("[mapUnitFilter] Units adjacent to this city heal [amount] HP per turn when healing", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    
+
     // change the XP cost for a relative amount %
     XPForPromotionModifier("[relativeAmount]% XP required for promotions",UniqueTarget.Global,
         docDescription = MULTIPLICATIVE_BONUS_EXPLANATION, docDescriptionZh = MULTIPLICATIVE_BONUS_EXPLANATION_ZH),
@@ -343,7 +343,7 @@ enum class UniqueType(
     CanBePurchasedWithStat("Can be purchased with [stat] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
     CanBePurchasedForAmountStat("Can be purchased for [amount] [stat] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
     MaxNumberBuildable("Limited to [amount] per Civilization", UniqueTarget.Building, UniqueTarget.Unit),
-    
+
     /** A special unique, as it only activates [RejectionReasonType] when it has conditionals that *do not* apply.
      * Meant to be used together with conditionals, like `"Only available <after adopting [Piety]> <while the empire is happy>"`.
      * Restricts Upgrade/Transform pathways.
@@ -502,7 +502,7 @@ enum class UniqueType(
         docDescription = "Performs an attack against every unit that matches the filter inside the radius with the damage decreasing with distance from the main target. Status effects and on-hit abilities apply.\n" +
                 "If both this and equal area attacks are present, only this will be used, also affects counter damage and damage from own area attacks.\n" +
                 "Damage formula: Damage = (1 - (distance / radius)) * baseDamage", docDescriptionZh = "对半径内匹配过滤器的所有单位发动攻击，伤害随与主目标的距离递减。状态效果和命中能力生效。\n如果同时存在本效果和均等范围攻击，则只使用本效果；也影响反击伤害和自身范围攻击的伤害。\n伤害公式：伤害 = (1 - (距离 / 半径)) * 基础伤害"),
-    DamageSelfInAOE("Takes [relativeAmount]% damage from own area attacks", UniqueTarget.Unit, 
+    DamageSelfInAOE("Takes [relativeAmount]% damage from own area attacks", UniqueTarget.Unit,
         docDescription = "This unit takes damage from its own area attacks when it is in range, 100 = 100% damage.", docDescriptionZh = "此单位在范围内时承受自身范围攻击的伤害，100 = 100% 伤害。"),
     TakeCounterDamageFromAOE("Takes [relativeAmount]% counter damage from each unit hit by its area attacks", UniqueTarget.Unit,
         docDescription = "Only works for melee units, 100 = 100% damage, negative values work but are taken as positive.", docDescriptionZh = "仅对近战单位生效，100 = 100% 伤害，负值可用但按正值处理。"),
@@ -514,7 +514,7 @@ enum class UniqueType(
     WithdrawsBeforeMeleeCombat("Withdraws before melee combat", UniqueTarget.Unit),
     CannotCaptureCities("Unable to capture cities", UniqueTarget.Unit, UniqueTarget.Global),
     CannotPillage("Unable to pillage tiles", UniqueTarget.Unit, UniqueTarget.Global),
-    
+
     // allow any unit to destory cities instead of capturing them, also allows non melee units to destroy cities
     CanDestroyCities("Destroys [cityFilter] cities instead of capturing", UniqueTarget.Unit,
         docDescription = "The unit will destroy [cityFilter] cities instead of capturing them, also allows non-melee units to destroy cities." + "Capital cities (including city states) are immune to this effect.", docDescriptionZh = "此单位将摧毁 [cityFilter] 城市而不是占领它们，也允许非近战单位摧毁城市。首都（包括城邦）对此效果免疫。"),
@@ -742,7 +742,7 @@ enum class UniqueType(
     NoFeatureRemovalNeeded("Does not need removal of [terrainFeature]", UniqueTarget.Improvement),
     RemovesFeaturesIfBuilt("Removes removable features when built", UniqueTarget.Improvement),
 
-    DefensiveBonus("Gives a defensive bonus of [relativeAmount]%", UniqueTarget.Improvement, 
+    DefensiveBonus("Gives a defensive bonus of [relativeAmount]%", UniqueTarget.Improvement,
         docDescription = "Does not accept unit-based conditionals", docDescriptionZh = "不接受基于单位的条件"),
     ImprovementMaintenance("Costs [amount] [stat] per turn when in your territory", UniqueTarget.Improvement), // Roads
     ImprovementAllMaintenance("Costs [amount] [stat] per turn", UniqueTarget.Improvement), // Roads
@@ -806,7 +806,7 @@ enum class UniqueType(
     ConditionalWLTKD("during We Love The King Day", UniqueTarget.Conditional),
 
     ConditionalHappy("while the empire is happy", UniqueTarget.Conditional),
-    
+
     ConditionalDuringEra("during the [era]", UniqueTarget.Conditional),
     ConditionalBeforeEra("before the [era]", UniqueTarget.Conditional),
     ConditionalStartingFromEra("starting from the [era]", UniqueTarget.Conditional),
@@ -1157,11 +1157,14 @@ enum class UniqueType(
         docDescription = "Only meaningful for Mods containing several maps. When this mod is selected on the new game screen's custom maps mod dropdown, the named map will be selected on the map dropdown. Also disables selection by recently modified. Case insensitive.", docDescriptionZh = "仅对包含多张地图的模组有意义。当此模组在新建游戏界面的自定义地图模组下拉框中被选中时，命名地图将在地图下拉框中被选中。同时禁用按最近修改排序的选择。不区分大小写。"),
     ConditionalModEnabled("if [modFilter] is enabled", UniqueTarget.Conditional),
     ConditionalModNotEnabled("if [modFilter] is not enabled", UniqueTarget.Conditional),
+    ConditionalLuaCheck("if [luaFunction] returns true", UniqueTarget.Conditional,
+        docDescription = "Evaluates a Lua function from a loaded mod as a condition; the function receives the usual ctx table (civ/city/unit/tile/game/parameter...) and must return true for the condition to apply. The function should be a pure query - conditionals are evaluated very frequently, so keep it cheap and side-effect-free. Missing functions are reported by the mod checker.",
+        docDescriptionZh = "将已加载模组中的 Lua 函数作为条件求值；函数收到常规 ctx 表（civ/city/unit/tile/game/parameter…），返回 true 时条件成立。函数应为纯查询——条件会被频繁求值，请保持廉价且无副作用。缺失函数由模组检查器报告。"),
 
     // endregion
 
     ///////////////////////////////////////////// region 99 DEPRECATED /////////////////////////////////////////////
-    
+
     // Deprecated uniques should be moved as-is to the DeprecatedUniques.kt file
 
     // Keep the endregion after the semicolon or it won't work
