@@ -292,7 +292,7 @@ class ModManagementScreen private constructor(
         val source = GithubAPI.ModDownloadSource.fromStoredName(game.settings.modDownloadSource)
         if (source != GithubAPI.ModDownloadSource.Official) {
             ToastPopup(
-                "Could not download mod list. If this keeps happening, switch the Mod download source in Options - Advanced.".tr(),
+                "Could not download mod list. If this keeps happening, switch the download source in Options - Advanced.".tr(),
                 this
             )
             return

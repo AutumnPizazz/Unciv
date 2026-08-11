@@ -152,7 +152,7 @@ class GameSettings {
     var turnsBetweenAutosaves = 1
     var allowRandomVariance = false
 
-    /** Mod download source - name of a [ModDownloadSource] entry; "Custom" uses [customModDownloadPrefix] */
+    /** Download source - name of a [ModDownloadSource] entry; "Custom" uses [customModDownloadPrefix] */
     var modDownloadSource: String = ModDownloadSource.Official.name
     /** Custom URL prefix used when [modDownloadSource] is Custom, e.g. "https://gh-proxy.com/" */
     var customModDownloadPrefix = ""

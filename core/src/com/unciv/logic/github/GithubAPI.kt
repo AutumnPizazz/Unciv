@@ -221,6 +221,20 @@ object GithubAPI {
     suspend fun fetchSingleRepo(owner: String, repoName: String) =
         request { url(proxify("$baseUrl/repos/$owner/$repoName")) }
 
+    /** Query the [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)
+     *  of the game repository - goes through the active download source like everything else.
+     *  @return parsed release or `null` if the request was unsuccessful
+     */
+    suspend fun fetchLatestRelease(owner: String, repoName: String): LatestRelease? {
+        val resp = request { url(proxify("$baseUrl/repos/$owner/$repoName/releases/latest")) }
+        if (!resp.status.isSuccess()) return null
+        return try {
+            json().fromJson(LatestRelease::class.java, resp.bodyAsText())
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
     suspend fun fetchSingleRepoOwner(owner: String) =
         request { url(proxify("$baseUrl/users/$owner")) }
 
@@ -312,6 +326,13 @@ object GithubAPI {
                 else json().fromJson(RepoOwner::class.java, resp.bodyAsText())
             }
         }
+    }
+
+    /** Parsed response of the "Get the latest release" GitHub API endpoint */
+    class LatestRelease {
+        var tag_name = ""
+        var html_url = ""
+        var name = ""
     }
 
     /** Topic search response */

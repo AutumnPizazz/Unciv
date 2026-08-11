@@ -138,4 +138,11 @@ object Constants {
     const val uncivRepoURL = "https://github.com/yairm210/Unciv/"
     /** URL to the wiki, including trailing slash */
     const val wikiURL = "https://yairm210.github.io/Unciv/"
+
+    /** Owner/Repo ("owner/repoName") whose [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)
+     *  is checked by the in-game update checker.
+     *  UncivCN builds publish their own releases to the CN fork repository,
+     *  keeping the release tag in sync with the CN version scheme (e.g. 4.21.6.5).
+     *  The upstream default is "yairm210/Unciv". */
+    const val updateCheckRepo = "AutumnPizazz/Unciv"
 }

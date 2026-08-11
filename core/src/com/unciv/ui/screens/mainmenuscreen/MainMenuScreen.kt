@@ -14,6 +14,9 @@ import com.unciv.logic.GameInfo
 import com.unciv.logic.GameStarter
 import com.unciv.logic.HolidayDates
 import com.unciv.logic.UncivShowableException
+import com.unciv.logic.UpdateCheckResult
+import com.unciv.logic.UpdateChecker
+import com.unciv.logic.github.GithubAPI
 import com.unciv.logic.map.MapParameters
 import com.unciv.logic.map.MapShape
 import com.unciv.logic.map.MapSize
@@ -24,12 +27,14 @@ import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.tilesets.TileSetCache
+import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.UncivTooltip.Companion.addTooltip
 import com.unciv.ui.components.extensions.center
 import com.unciv.ui.components.extensions.surroundWithCircle
 import com.unciv.ui.components.extensions.surroundWithThinCircle
 import com.unciv.ui.components.extensions.toLabel
+import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.fonts.Fonts
 import com.unciv.ui.components.input.KeyShortcutDispatcherVeto
 import com.unciv.ui.components.input.KeyboardBinding
@@ -41,6 +46,7 @@ import com.unciv.ui.components.tilegroups.TileGroupMap
 import com.unciv.ui.components.widgets.AutoScrollPane
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.images.padTopDescent
+import com.unciv.ui.popups.ConfirmPopup
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.popups.closeAllPopups
@@ -76,6 +82,10 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
     private var backgroundMapGenerationJob: Job? = null
     private var backgroundMapExists = false
+
+    private var updateCheckJob: Job? = null
+    private var updateAvailable: GithubAPI.LatestRelease? = null
+    private lateinit var versionTable: Table
 
     companion object {
         const val mapFadeTime = 1.3f
@@ -237,20 +247,26 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
         val versionLabel = "{Version} ${UncivGame.VERSION.text}".toLabel()
         versionLabel.setAlignment(Align.center)
-        val versionTable = Table()
+        versionTable = Table()
         versionTable.background = skinStrings.getUiBackground("MainMenuScreen/Version",
             skinStrings.roundedEdgeRectangleShape, Color.DARK_GRAY.cpy().apply { a = 0.7f })
-        versionTable.add(versionLabel)
+        versionTable.add(versionLabel).row()
         versionTable.pack()
         versionTable.setPosition(stage.width / 2, 10f, Align.bottom)
         versionTable.touchable = Touchable.enabled
         versionTable.onClick {
             val popup = Popup(stage)
-            popup.add(AboutTab.asTable()).row()
-            popup.addCloseButton()
+            if (updateAvailable == null) {
+                popup.add(AboutTab.asTable()).row()
+                popup.addCloseButton()
+            } else {
+                addUpdateAvailableContent(popup)
+                popup.addCloseButton()
+            }
             popup.open()
         }
         stage.addActor(versionTable)
+        startUpdateCheck()
     }
 
     private fun startBackgroundMapGeneration() {
@@ -312,6 +328,81 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         if (currentJob.isCancelled) return
         currentJob.cancel()
     }
+
+    //region Update check
+    /** Query the game repository's latest GitHub release in the background - goes through the active download source */
+    private fun startUpdateCheck() {
+        updateCheckJob?.cancel()
+        var job: Job? = null
+        job = Concurrency.run("UpdateCheck") {
+            val result = UpdateChecker.checkForUpdates()
+            launchOnGLThread {
+                if (job?.isCancelled == true) return@launchOnGLThread
+                onUpdateCheckResult(result)
+            }
+        }
+        updateCheckJob = job
+    }
+
+    private fun onUpdateCheckResult(result: UpdateCheckResult) {
+        when (result) {
+            is UpdateCheckResult.UpdateAvailable -> {
+                updateAvailable = result.latestRelease
+                // Keep the label short so it doesn't push the version number around
+                val updateLabel = "New version available".toLabel(
+                    fontColor = Color.GOLD, fontSize = 12, alignment = Align.center
+                )
+                versionTable.add(updateLabel).row()
+                versionTable.pack()
+                versionTable.setPosition(stage.width / 2, 10f, Align.bottom)
+            }
+
+            is UpdateCheckResult.UpToDate -> Unit
+
+            is UpdateCheckResult.CheckFailed -> suggestSwitchingDownloadSource()
+        }
+    }
+
+    /** When the update check fails, offer players with restricted access to github.com
+     *  (e.g. in mainland China) a one-click switch to a mirror download source.
+     *  Must be called on the GL thread. */
+    private fun suggestSwitchingDownloadSource() {
+        val source = GithubAPI.ModDownloadSource.fromStoredName(game.settings.modDownloadSource)
+        if (source != GithubAPI.ModDownloadSource.Official) {
+            ToastPopup(
+                "Could not check for updates. If this keeps happening, switch the download source in Options - Advanced.".tr(),
+                this
+            )
+            return
+        }
+        ConfirmPopup(
+            stage,
+            "Could not check for updates - github.com may be unreachable from your network. Switch to a mirror download source and try again?".tr(),
+            "Switch download source"
+        ) {
+            game.settings.modDownloadSource = GithubAPI.ModDownloadSource.GhProxyCom.name
+            game.settings.save()
+            startUpdateCheck()
+        }.open(true)
+    }
+
+    /** Fill [popup] with "new version available" content: current vs latest version and a download link */
+    private fun addUpdateAvailableContent(popup: Popup) {
+        val release = updateAvailable ?: return
+        val content = Table()
+        content.add("New version available".toLabel(fontSize = Constants.headingFontSize, alignment = Align.center)).row()
+        content.add(
+            "Version [latest] is now available. You are running version [current].".toLabel(alignment = Align.center)
+        ).pad(10f).row()
+        val downloadButton = "Download latest version".toTextButton()
+        downloadButton.onClick {
+            popup.close()
+            Gdx.net.openURI(GithubAPI.proxify(release.html_url))
+        }
+        content.add(downloadButton).pad(10f).row()
+        popup.add(content).row()
+    }
+    //endregion
 
     private fun resumeGame() {
         if (GUI.isWorldLoaded()) {
@@ -392,7 +483,13 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
     override fun recreate(): BaseScreen {
         stopBackgroundMapGeneration()
+        updateCheckJob?.cancel()
         return MainMenuScreen()
+    }
+
+    override fun dispose() {
+        updateCheckJob?.cancel()
+        super.dispose()
     }
 
     override fun resume() {

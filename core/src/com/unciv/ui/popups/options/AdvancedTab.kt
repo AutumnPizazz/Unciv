@@ -71,7 +71,7 @@ internal class AdvancedTab(
     optionsPopup: OptionsPopup
 ): OptionsPopupTab(optionsPopup) {
     override fun lateInitialize() {
-        addModDownloadSource()
+        addDownloadSource()
 
         addSeparator()
 
@@ -113,14 +113,20 @@ internal class AdvancedTab(
 
     private var customPrefixRow: Table? = null
 
-    /** Lets players with restricted access to github.com switch the mod download source to a mirror/proxy */
-    private fun addModDownloadSource() {
-        addEnumAsStringSelectBox(
-            "Mod download source",
-            settings::modDownloadSource,
-            GithubAPI.ModDownloadSource.entries
-        ) { newValue ->
-            customPrefixRow?.isVisible = newValue == GithubAPI.ModDownloadSource.Custom.name
+    /** Lets players with restricted access to github.com switch the download source to a mirror/proxy.
+     *  The SelectBox shows the source display names ("GitHub (official)", "gh-proxy.com", ...),
+     *  while the enum name is stored in the settings. */
+    private fun addDownloadSource() {
+        add("Download source".toLabel()).left().fillX()
+        val select = TranslatedSelectBox(
+            GithubAPI.ModDownloadSource.entries.map { it.displayName },
+            GithubAPI.ModDownloadSource.fromStoredName(settings.modDownloadSource).displayName
+        )
+        add(select).pad(10f).minWidth(rightWidgetMinWidth).maxWidth(rightWidgetMinWidth).right().row()
+        select.onChange {
+            val newSource = GithubAPI.ModDownloadSource.entries.first { it.displayName == select.selected.value }
+            settings.modDownloadSource = newSource.name
+            customPrefixRow?.isVisible = newSource == GithubAPI.ModDownloadSource.Custom
         }
 
         val prefixTextField = UncivTextField("https://gh-proxy.com/", settings.customModDownloadPrefix)
@@ -133,12 +139,15 @@ internal class AdvancedTab(
             ToastPopup("Custom download prefix saved", stage)
         }
 
+        // Two-column row like every other option: label left, text field + button right.
+        // The text field grows to fill the (width-capped) right column - the previous layout
+        // put label + 150px text field + button into one single cell, blowing up the table width.
+        add("Custom download prefix".toLabel()).left().fillX()
         customPrefixRow = Table().apply {
-            add("Custom download prefix".toLabel()).left()
-            add(prefixTextField).padLeft(5f)
-            add(prefixButton).padLeft(5f)
+            add(prefixTextField).growX().padRight(5f)
+            add(prefixButton)
         }
-        add(customPrefixRow).minWidth(rightWidgetMinWidth).right().row()
+        add(customPrefixRow).pad(10f).minWidth(rightWidgetMinWidth).maxWidth(rightWidgetMinWidth).right().row()
         customPrefixRow?.isVisible = settings.modDownloadSource == GithubAPI.ModDownloadSource.Custom.name
     }
 

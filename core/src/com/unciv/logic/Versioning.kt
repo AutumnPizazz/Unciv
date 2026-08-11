@@ -28,6 +28,43 @@ interface HasGameInfoSerializationVersion {
     val version: CompatibilityVersion
 }
 
+/**
+ * Compare two version strings numerically, ignoring non-digit separators.
+ *
+ * Handles the release tag formats used by both the CN fork (e.g. `4.21.6.5`) and upstream
+ * (`4.21.7` / `4.21.7-patch2` / optional `v` prefix). Missing trailing segments count as 0,
+ * so `4.21.6` < `4.21.6.5` and `4.21.7-patch2` compares as `4.21.7.2`.
+ *
+ * @return &gt; 0 if [a] is newer than [b], 0 if equal, &lt; 0 if older
+ */
+fun compareVersionStrings(a: String, b: String): Int {
+    val aNumbers = versionNumberSegments(a)
+    val bNumbers = versionNumberSegments(b)
+    val maxSegments = maxOf(aNumbers.size, bNumbers.size)
+    for (i in 0 until maxSegments) {
+        val comparison = aNumbers.getOrElse(i) { 0 }.compareTo(bNumbers.getOrElse(i) { 0 })
+        if (comparison != 0) return comparison
+    }
+    return 0
+}
+
+private fun versionNumberSegments(version: String): List<Int> {
+    val segments = ArrayList<Int>()
+    var index = 0
+    while (index < version.length) {
+        val char = version[index]
+        if (char in '0'..'9') {
+            var end = index
+            while (end < version.length && version[end] in '0'..'9') end++
+            segments.add(version.substring(index, end).toInt())
+            index = end
+        } else {
+            index++
+        }
+    }
+    return segments
+}
+
 data class CompatibilityVersion(
     /** Contains the current serialization version of [GameInfo], i.e. when this number is not equal to [CURRENT_COMPATIBILITY_NUMBER], it means
      * this instance has been loaded from a save file json that was made with another version of the game. */
