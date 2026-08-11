@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+## v4.21.6.5（build 1249）
 - 文档：将 Lua 大改全面反映到文档站——Coding-standards 生成器清单新增 `LuaApiDefinitionWriter`/`lua-api.lua`；Features 页 Lua 章节重写（触发方式、安全沙箱、错误报告、工具链）；Differences 对比表更新 Lua 检查与工具链行；模组总览页新增 Lua 脚本入口（指向教程与起步模板，中英同步）
 - Lua 模组编辑器支持：新增自动生成的 EmmyLua 类型定义（`docs/Modders/lua-api.lua`，由 `LuaApiDefinitionWriter` 从 API 目录表生成，命令 `./gradlew desktop:generateDocs`，与实现的一致性由测试保障）——模组作者把 LuaLS 语言服务器指向该文件即可获得自动补全、悬停文档与即时拼写检查；常见 API 的参数/返回值标注精确，其余宽松
 - Lua 模组起步模板：新增可复制改名的模板模组 `docs/Modders/examples/LuaStarterMod/`（每回合钩子、参数示例、API 冒烟测试），并在 Lua-Modding 文档（中英）新增“编辑器设置”小节（LuaLS 扩展、`.luarc.json` 配置与模板说明）；测试持续保障模板能通过模组作者会跑的检查
@@ -18,9 +19,7 @@ title: UncivCN 更新日志
 - Lua 模组健壮性与工具链：运行时错误弹窗现在带脚本行号；AI 回合触发的错误会记入游戏内模组检查器而非只写日志；Lua API 的浮点参数（addInfluence / addMovement / useMovement）增加 NaN/无穷值防护；新增静态 API 拼写检查（如 `ctx.civ.addGoldd(...)` 会报错并给建议），游戏内模组检查器与 `mod-ci` 命令行均会运行，底层 API 目录表与运行时注册的一致性由测试保障
 - Lua 模组安全加固：堵住沙箱逃逸——全局名置 nil 后 `package.loaded` 表仍保留完整的 `io`/`os`/`luajava` 库引用，模组脚本可借此读写任意文件、执行系统命令与 Java 反射（现已彻底移除 package 库）；每次脚本加载与函数调用新增指令预算，`while true do end` 之类的死循环会被报错中断，不再卡死游戏
 - 联机多人：新增重开投票功能——开局配置新增“重开投票回合”与“重开投票超时”选项；从该回合起任意玩家可发起重开投票，所有玩家（包括离线者，上线后仍可投票）可投赞成/反对，全员投完或超时后结算（超时未投者默认同意），除非超过半数明确反对否则通过；通过后按原配置以新 gameId 重开，所有客户端自动跳转到新局；投票进行期间未投票的玩家无法结束回合
-
 - CI：GitHub Release 标题改为显式使用纯版本号（如 4.21.6.4），不再使用上传动作自动填充的冗长名称
-
 ## v4.21.6.4（build 1248）
 
 - CI：修复 GitHub Release 说明文本为空——现在按发布 tag 从 CN 中英文更新日志（docs/UncivCN + docs/zh/UncivCN）提取对应版本小节，中英双语写入 Release 说明（此前 CN 四段式版本号在上游 changelog.md 中不存在，导致正文为空）
