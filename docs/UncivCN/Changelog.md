@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Online multiplayer: added restart votes - the host can enable "Restart vote turn" and "Restart vote timeout" in the game setup; from exactly that turn on, any player can start a vote to restart the game with the same setup, all players (including offline ones, who keep their vote until they come back) are asked to vote yes/no, votes settle when everyone voted or on timeout (non-voters count as agreeing), restart passes unless more than half explicitly vote no, and once approved the game restarts with the same setup under a new gameId - all clients switch over automatically; while a vote is open, players who haven't voted yet cannot end their turn
+
 - CI: GitHub Release title is now set explicitly to the plain version number (e.g. "4.21.6.4") instead of whatever the upload action auto-filled
 
 ## v4.21.6.4 (build 1248)
