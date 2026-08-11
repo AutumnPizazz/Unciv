@@ -1,0 +1,8 @@
+{
+    "name": "LuaStarterMod",
+    "author": "You",
+    "modUrl": "",
+    "modVersion": "0.1.0",
+    "isBaseRuleset": false,
+    "constants": {}
+}

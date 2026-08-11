@@ -1,0 +1,11 @@
+{
+    "name": "Global uniques",
+    "uniques": [
+        /* Every turn start: gives the parameter's gold amount (see main.lua) */
+        "Trigger the function [LuaStarterMod:onTurnStart] with [[Gold] + 1] <upon turn start>",
+        /* Every turn end: placeholder - see main.lua */
+        "Trigger the function [LuaStarterMod:onTurnEnd] with [] <upon turn end>",
+        /* Smoke test - uncomment to run api_test.lua's selfCheck once on the first turn:
+           "Trigger the function [LuaStarterMod:selfCheck] with [] <before turn number [1]>" */
+    ]
+}

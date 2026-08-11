@@ -536,6 +536,36 @@ end
 ]
 ```
 
+## 编辑器设置（自动补全与类型提示）
+
+游戏本身会校验你的脚本（见[检查你的模组](#检查你的模组)），而编写时想获得自动补全、悬停文档和即时拼写检查，可以接入 Lua 语言服务器：
+
+1. **安装扩展**：在 VSCode 中安装 **Lua**（作者 sumneko，即 LuaLS 语言服务器）
+2. **加入类型定义**：把 Unciv 仓库中的 `docs/Modders/lua-api.lua`（由生成器自动生成）复制进你的模组，如 `MyMod/.lua-api/unciv-api.lua`
+3. **让 LuaLS 指向它**：在模组目录创建 `.luarc.json`：
+
+```json
+{
+    "runtime.version": "Lua 5.2",
+    "workspace.library": [
+        ".lua-api"
+    ],
+    "diagnostics.globals": ["ctx"]
+}
+```
+
+可选：在 `.vscode/extensions.json` 中推荐扩展，方便协作者自动安装：
+
+```json
+{
+    "recommendations": ["sumneko.lua"]
+}
+```
+
+配置完成后即可获得：`ctx.` 自动补全（civ/city/unit/tile/game/store）、方法名补全与悬停文档（如 `ctx.civ.addGold(`）、以及 `ctx.civ.addGoldd(...)` 这类拼写错误的即时红色波浪线。
+
+> **限制说明**：定义文件由生成器从 API 目录自动生成，参数/返回值标注是尽力而为——常见模式精确、其余为宽松的 `fun(...)`。拿不准时以游戏内模组检查器或 `mod-ci` 为准（它们才是权威），并在游戏中实测函数行为。
+
 ## 注意事项
 
 - **参数约定（极易出错）**：引擎只向 lua 函数传入一个参数 `ctx`。`ctx.parameter` 才是 unique 中 `[parameter]` 解析后的值，`ctx.game`/`ctx.civ` 是上下文对象的入口。不要把第一个形参当成业务参数、不要把 `game` 当成全局变量——这是实测中最常见的错误
@@ -558,3 +588,5 @@ Unciv 分几层检查你的 Lua 脚本：
 4. **命令行（CI / 离线）**：在模组根目录运行桌面版 `Unciv mod-ci`（或 `java -jar Unciv.jar mod-ci`）。它无头加载模组，运行全部 JSON 校验**以及**全部 Lua 检查（语法、函数引用、API 拼写），有错误时退出码为 1——适合接入 CI 流水线。
 
 > **小技巧**：写一个调用你所用 API 的小函数（`function test(ctx) ctx.civ.addGold(1) ... return true end`），再从 `GlobalUniques.json` 里用一个调试用 unique 触发它，即可在游戏内冒烟测试你的逻辑。
+
+> **Lua 模组新手？** 从起步模板 `docs/Modders/examples/LuaStarterMod/` 开始——一个完整可用、复制改名的模组，内含每回合钩子、参数示例与 API 冒烟测试（见其 README）。

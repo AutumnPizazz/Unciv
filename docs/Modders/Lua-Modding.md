@@ -506,6 +506,36 @@ Corresponding JSON (in `ModOptions.json` or `Eras.json`):
 ]
 ```
 
+## Editor Setup (autocompletion & type hints)
+
+While the game itself validates your scripts (see [Checking Your Mod](#checking-your-mod)), you can get autocompletion, hover docs and immediate typo detection while writing with the Lua language server:
+
+1. **Install the extension**: in VSCode, install **Lua** by sumneko (the LuaLS language server).
+2. **Add the API definitions**: copy the generated type definitions `docs/Modders/lua-api.lua` from the Unciv repo (or download the release artifact) into your mod, e.g. `MyMod/.lua-api/unciv-api.lua`.
+3. **Point LuaLS at them**: create `.luarc.json` in your mod folder:
+
+```json
+{
+    "runtime.version": "Lua 5.2",
+    "workspace.library": [
+        ".lua-api"
+    ],
+    "diagnostics.globals": ["ctx"]
+}
+```
+
+Optionally add this to `.vscode/extensions.json` so collaborators are prompted to install the extension:
+
+```json
+{
+    "recommendations": ["sumneko.lua"]
+}
+```
+
+You now get: `ctx.` autocompletion (civ/city/unit/tile/game/store), method-name completion and hover docs (e.g. `ctx.civ.addGold(`), and instant red squiggles for typos like `ctx.civ.addGoldd(...)`.
+
+> **Limitations**: the definition file is generated from the API catalog with best-effort signatures - parameter/return types are precise for common patterns and loose (`fun(...)`) for the rest. When in doubt, trust the in-game mod checker or `mod-ci` (they are authoritative), and check the function's actual behavior in-game.
+
 ## Notes
 
 - **Sandbox**: The Lua environment is restricted. `os.*`, `io.*`, `coroutine.*`, `require`, `debug.*`, `string.dump`, the `package` library (and its `package.loaded` table), file operations, and metatable operations are disabled. Scripts that try to access them fail with an error.
@@ -526,3 +556,5 @@ Unciv checks your Lua scripts in several layers:
 4. **CLI (CI / offline)**: From a mod's root folder, run the desktop build as `Unciv mod-ci` (or `java -jar Unciv.jar mod-ci`). It loads the mod headlessly, runs all JSON validation **and** all Lua checks (syntax, function references, API spelling) and exits with code 1 when there are errors — suitable for a CI pipeline.
 
 > **Tip**: write a tiny Lua function that exercises your API calls (`function test(ctx) ctx.civ.addGold(1) ... return true end`) and trigger it from a debug unique in `GlobalUniques.json` to smoke-test logic in-game.
+
+> **New to Lua modding?** Start from the starter template at `docs/Modders/examples/LuaStarterMod/` — a complete, copy-and-rename mod with per-turn hooks, a parameter example and an API smoke test (see its README).
