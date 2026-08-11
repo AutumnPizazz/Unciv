@@ -6,7 +6,7 @@
 
 - Upstream repository: https://github.com/yairm210/Unciv
 - UncivCN repository: https://github.com/AutumnPizazz/Unciv
-- Current version: **4.21.6.4** (based on upstream 4.21.6)
+- 
 
 ## Relationship with upstream
 
@@ -16,13 +16,13 @@
 
 ## Feature overview
 
-| Category | Features |
-|---|---|
-| Multiplayer | [Polling multiplayer](./Polling-multiplayer), default server (sp.unciv.cn), save-scumming RNG disabled online |
-| Maps | Three mirrored map modes, wraparound (ring) maps, no radius parity restriction |
-| Modding | [Lua scripting](./Features#lua-scripting-since-4-20-8-2-continuously-extended), [MergeAction extended JSON](./Features#mergeaction-extended-json-system-4-20-7-3), tile-claim, [mirror mod download source](./Mod-download-in-China) |
-| UI | Unit pins / map pins, auto-lock citizens button, export/import game settings to clipboard |
-| Other | Save version isolation, RNG re-rollable on load (single-player) |
+| Category    | Features                                                                                                                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Multiplayer | [Polling multiplayer](./Polling-multiplayer), default server (sp.unciv.cn), save-scumming RNG disabled online                                                                                                                        |
+| Maps        | Three mirrored map modes, wraparound (ring) maps, no radius parity restriction                                                                                                                                                       |
+| Modding     | [Lua scripting](./Features#lua-scripting-since-4-20-8-2-continuously-extended), [MergeAction extended JSON](./Features#mergeaction-extended-json-system-4-20-7-3), tile-claim, [mirror mod download source](./Mod-download-in-China) |
+| UI          | Unit pins / map pins, auto-lock citizens button, export/import game settings to clipboard                                                                                                                                            |
+| Other       | Save version isolation, RNG re-rollable on load (single-player)                                                                                                                                                                      |
 
 Details in [Features](./Features) and [Differences vs upstream](./Differences).
 
