@@ -55,3 +55,14 @@ class OnlineStatusUpdated(
     val gameId: String,
     val civName: String
 ) : Event
+
+/** Fired when a restart vote's state changed (new vote cast, settled, removed...).
+ *  The new state is available via [com.unciv.UncivGame.onlineMultiplayer]'s restart vote cache. */
+class RestartVoteUpdated(
+    val gameId: String
+) : Event
+
+/** Fired when a WebSocket chat signal announces a restart vote state change. */
+class RestartVoteSignalReceived(
+    val gameId: String
+) : Event

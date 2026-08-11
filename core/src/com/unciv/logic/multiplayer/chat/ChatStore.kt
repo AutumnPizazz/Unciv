@@ -2,6 +2,9 @@ package com.unciv.logic.multiplayer.chat
 
 import com.badlogic.gdx.Gdx
 import com.unciv.UncivGame
+import com.unciv.logic.event.EventBus
+import com.unciv.logic.multiplayer.RestartVote
+import com.unciv.logic.multiplayer.RestartVoteSignalReceived
 import com.unciv.ui.screens.worldscreen.chat.ChatPopup
 import com.unciv.utils.toUUIDOrNull
 import java.util.Collections.synchronizedMap
@@ -80,6 +83,14 @@ object ChatStore {
 
     fun relayChatMessage(incomingChatMsg: Response.Chat) {
         Gdx.app.postRunnable {
+            if (incomingChatMsg.message.startsWith(RestartVote.PROTOCOL_PREFIX)) {
+                // Restart vote protocol message: never shown in chat, just a signal that the
+                // vote state changed - the actual state is always re-read from the server file.
+                if (!incomingChatMsg.gameId.isNullOrBlank()) {
+                    EventBus.send(RestartVoteSignalReceived(incomingChatMsg.gameId))
+                }
+                return@postRunnable
+            }
             if (incomingChatMsg.gameId == null || incomingChatMsg.gameId.isBlank()) {
                 relayGlobalMessage(incomingChatMsg.message, incomingChatMsg.civName)
             } else {
