@@ -18,6 +18,16 @@ There are three main kinds of mods:
 
 Creating and editing mods from your phone is NOT RECOMMENDED - it's *much easier* using a desktop device!
 
+## Lua scripts
+
+All of the above is pure data. On top of that, UncivCN mods can ship Lua scripts (`scripts/*.lua`) for logic beyond what JSON uniques can express: per-turn hooks, complex conditions, dynamic effects, event chains.
+
+- **Triggers**: the `TriggerLuaFunction` unique, e.g. `"Trigger the function [myMod:onTurnStart] with [[Gold] + 1] <upon turn start>"`
+- **Tutorial & API reference**: [Lua modding](Lua-Modding.md)
+- **Starter template**: copy-and-rename mod with per-turn hooks and an API smoke test at `examples/LuaStarterMod/`
+- **Editor support**: EmmyLua type definitions (`lua-api.lua`) give autocompletion in LuaLS-capable editors — see "Editor setup" in the tutorial
+- **Checking**: the in-game mod checker and the `mod-ci` CLI validate Lua syntax, function references and API spelling
+
 ## Mod names
 
 Mods need to conform to github repo naming rules, but best stay simple and use only letters, digits, and dashes `-`.

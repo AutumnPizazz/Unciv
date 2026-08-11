@@ -10,7 +10,8 @@
 | Map types | Standard maps | + **three mirrored map modes** (mirrored resources) + **ring maps** (no radius parity restriction) |
 | Mod scripting | Pure JSON | + **Lua scripting** (Unique triggers / lifecycle hooks / ctx API) |
 | Mod JSON | Whole-object replacement / basic `_mergeAction` | **MergeAction field-level merge extension**, new Countables parameters |
-| Mod checker | Checks JSON | + lints Lua errors |
+| Mod checker | Checks JSON | + Lua checks (syntax / function references / API spelling) in the mod checker and `mod-ci` CLI |
+| Lua tooling | None | + EmmyLua API type definitions for editors, starter template mod, per-call runaway-loop protection |
 | Tile ownership | None | **tile-claim** (cities claim/swap tiles) |
 | Citizen management | Manual locking | + **auto-lock button** (permanent toggle) |
 | Map annotations | None | **unit pins / map pins** (notes in `{saveName}_notes`) |

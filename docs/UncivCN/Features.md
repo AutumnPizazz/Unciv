@@ -6,9 +6,11 @@ This page describes the features the UncivCN branch adds over upstream. Version 
 
 Mods can attach Lua scripts for logic far beyond plain JSON:
 
-- **Triggers**: via Unique syntax (e.g. `LuaEvent`) or game lifecycle hooks
-- **ctx context object**: scripts can access `civ`, `city`, `unit`, `tile`, `game` APIs
-- **Tooling**: the built-in mod checker can lint mod Lua errors (4.20.8.4); convenience APIs like `game.findTiles` (after 4.20.8.2)
+- **Triggers**: the `TriggerLuaFunction` unique (buildings/techs/policies/eras/events/units/global uniques) and game lifecycle hooks (`<upon turn start>` etc.)
+- **ctx context object**: scripts can access `civ`, `city`, `unit`, `tile`, `game` APIs, plus `ctx.parameter` (Countable-resolved), `ctx.store` (persistent storage), `ctx.count` / `ctx.evaluateConditional`
+- **Safety**: a hardened sandbox (no `io`/`os`/`luajava`/`package` escape, `string.dump` removed) and an instruction budget per script load / function call so runaway loops can't freeze the game
+- **Error reporting**: runtime errors show the script name and line number to players; errors raised during AI turns are recorded in the mod checker instead of being lost
+- **Tooling**: the in-game mod checker and the `mod-ci` CLI check Lua syntax, function references and API spelling (with suggestions); generated EmmyLua type definitions (`docs/Modders/lua-api.lua`) give autocompletion and hover docs in LuaLS-capable editors; a starter template (`docs/Modders/examples/LuaStarterMod/`) gets you going in minutes; convenience APIs like `game.findTiles`
 
 Full tutorial: [Lua modding](/Modders/Lua-Modding).
 

@@ -22,6 +22,16 @@ title: 模组总览
 
 **不推荐**在手机上创建和编辑模组 - 使用桌面设备要*容易得多*！
 
+## Lua 脚本
+
+以上内容全部是纯数据。在此基础上，UncivCN 模组还可以附带 Lua 脚本（`scripts/*.lua`），实现纯 JSON unique 无法表达的逻辑：每回合钩子、复杂条件、动态效果、事件链。
+
+- **触发方式**：`TriggerLuaFunction` unique，例如 `"Trigger the function [myMod:onTurnStart] with [[Gold] + 1] <upon turn start>"`
+- **教程与 API 参考**：[Lua 脚本](/zh/Modders/Lua-Modding)
+- **起步模板**：可复制改名的模组，内含每回合钩子与 API 冒烟测试，见 `examples/LuaStarterMod/`
+- **编辑器支持**：EmmyLua 类型定义（`lua-api.lua`）为 LuaLS 系编辑器提供自动补全——见教程中的"编辑器设置"
+- **检查方式**：游戏内模组检查器与 `mod-ci` 命令行会校验 Lua 语法、函数引用与 API 拼写
+
 ## 模组名称
 
 模组需要符合 GitHub 仓库命名规则，但最好保持简单，只使用字母、数字和连字符 `-`。

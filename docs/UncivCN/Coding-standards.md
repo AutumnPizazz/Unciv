@@ -88,6 +88,7 @@ The UncivCN doc site (`docs-vitepress/`) uses VitePress (mkdocs was dropped: no 
 | `docs/Modders/Mod-file-structure/6-MergeActions.md` | `MergeActionDocsWriter` | **fully generated** |
 | `docs/Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter` | marker region auto, rest hand-maintained |
 | `docs/zh/Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter` | marker region auto, rest hand-maintained |
+| `docs/Modders/lua-api.lua` | `LuaApiDefinitionWriter` | **fully generated** — change the generator source |
 | All other `docs/`, `docs/zh/` pages | — | hand-maintained |
 
 **Rule**: generated docs are maintained exclusively by "change the generator source + run `./gradlew desktop:generateDocs`"; **never hand-edit the output**. The Chinese translations embedded in generators (`docsSentence` / `countablesTranslate`) are maintained with the source.

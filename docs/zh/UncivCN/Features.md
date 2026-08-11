@@ -10,9 +10,11 @@ title: UncivCN 新特性
 
 模组可以挂载 Lua 脚本，实现远超纯 JSON 的复杂逻辑：
 
-- **触发方式**：通过 Unique 语法触发（如 `LuaEvent`），或挂载游戏生命周期钩子
-- **ctx 上下文对象**：脚本内可访问 `civ`（文明）、`city`（城市）、`unit`（单位）、`tile`（地块）、`game`（全局）等 API
-- **工具链**：原生模组检查器可筛查模组的 Lua 错误（4.20.8.4）；`game.findTiles` 等便捷 API（4.20.8.2 后）
+- **触发方式**：`TriggerLuaFunction` unique（建筑/科技/政策/时代/事件/单位/全局词条）与游戏生命周期钩子（`<upon turn start>` 等）
+- **ctx 上下文对象**：脚本内可访问 `civ`（文明）、`city`（城市）、`unit`（单位）、`tile`（地块）、`game`（全局）等 API，另有 `ctx.parameter`（Countable 解析）、`ctx.store`（持久化存储）、`ctx.count` / `ctx.evaluateConditional`
+- **安全保障**：加固的沙箱（无 `io`/`os`/`luajava`/`package` 逃逸路径，移除 `string.dump`）+ 每次脚本加载与函数调用的指令预算，死循环无法卡死游戏
+- **错误报告**：运行时错误向玩家弹出时带脚本名与行号；AI 回合触发的错误记入模组检查器，不再丢失
+- **工具链**：游戏内模组检查器与 `mod-ci` 命令行检查 Lua 语法、函数引用与 API 拼写（带建议）；自动生成的 EmmyLua 类型定义（`docs/Modders/lua-api.lua`）为 LuaLS 系编辑器提供自动补全与悬停文档；起步模板（`docs/Modders/examples/LuaStarterMod/`）几分钟即可上手；另有 `game.findTiles` 等便捷 API
 
 完整教程见 [Lua 脚本](/zh/Modders/Lua-Modding)。
 

@@ -99,6 +99,7 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 | `docs/Modders/Mod-file-structure/6-MergeActions.md` | `MergeActionDocsWriter` | **整体自动** |
 | `docs/Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter` | marker 区间自动，其余人工 |
 | `docs/zh/Modders/Creating-a-UI-skin.md` | `UiElementDocsWriter` | marker 区间自动，其余人工 |
+| `docs/Modders/lua-api.lua` | `LuaApiDefinitionWriter` | **整体自动**，改生成器源码 |
 | 其余 `docs/`、`docs/zh/` 页面 | — | 人工维护 |
 
 **原则**：自动生成的文档只通过「改生成器源码 + 运行 `./gradlew desktop:generateDocs`」维护，
