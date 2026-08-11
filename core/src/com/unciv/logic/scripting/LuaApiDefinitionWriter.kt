@@ -80,6 +80,7 @@ class LuaApiDefinitionWriter {
 
                 "getTechCost" to "fun(techName: string): number",
                 "grantTech" to "fun(techName: string)",
+                "discoverTech" to "fun(techName: string)",
                 "hasPolicy" to "fun(policyName: string): boolean",
                 "canAdoptPolicy" to "fun(): boolean",
                 "getAdoptedPolicyCount" to "fun(): number",
@@ -207,6 +208,7 @@ class LuaApiDefinitionWriter {
                 "base" to "table",
                 "health" to "number",
                 "getRange" to "fun(): number",
+                "getEraNumber" to "fun(): number",
                 "getMovement" to "fun(): number",
                 "getCurrentMovement" to "fun(): number",
                 "getXP" to "fun(): number",

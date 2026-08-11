@@ -4,6 +4,9 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Lua API: added `unit.getEraNumber()` (minimum era number of the unit's required techs, matching the `{Era.X}` unit filter semantics) and `civ.discoverTech()` (equivalent to the `Discover [tech]` unique - unlocks directly, bypassing research-ability checks, idempotent); synced to the EmmyLua type definitions
+- Mods: CoeHarMod now leverages the Lua system to cut redundancy - the general/admiral aura unique went from 9 per-era lines per unit to a single Lua condition; the AI fixes (60 civic Discover + 11 resource/policy-slot Provides entries) were merged into 2 turn-start hooks; ~1900 lines of commented-out legacy rules were removed
+
 - Mods: CoeHarMod is now bundled as a git submodule pointing to its standalone repository (AutumnPizazz/CoeHarMod) - the in-tree copy was replaced by a submodule reference (currently v3.3.9+), so the bundled mod tracks the upstream repo
 
 ## v4.21.6.6 (build 1250)

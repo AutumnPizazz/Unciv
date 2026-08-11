@@ -46,6 +46,7 @@
 ---@field getAvailableTechs fun(): string[]
 ---@field getTechCost fun(techName: string): number
 ---@field grantTech fun(techName: string)
+---@field discoverTech fun(techName: string)
 ---@field hasPolicy fun(policyName: string): boolean
 ---@field canAdoptPolicy fun(): boolean
 ---@field getAdoptedPolicyCount fun(): number
@@ -165,6 +166,7 @@
 ---@field base table
 ---@field health number
 ---@field getRange fun(): number
+---@field getEraNumber fun(): number
 ---@field getMovement fun(): number
 ---@field getCurrentMovement fun(): number
 ---@field getXP fun(): number
