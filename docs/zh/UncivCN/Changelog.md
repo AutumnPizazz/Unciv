@@ -10,6 +10,7 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 文档：Lua-Modding 页面中英重新对齐——英文版补齐“最常见错误”提醒、`game.findTiles` 条件表与缺失的 civ API（getAdoptedPolicyCount / getAvailablePolicyBranches / getLeaderTitle / getTechCount）；两版共同补充返回值真值陷阱（`return 0`/`nil` 算失败）、函数名规则、沙箱加固与死循环预算说明，以及新增“检查你的模组”小节（游戏内模组检查器与 `mod-ci` 命令行）
 - 移除 `testMapScript` 示例模组——其使用的 Lua 地图生成 API（`ctx.map`、`ctx.perlin`、`GenerateMap`）在引擎中从未实现，示例属于失效死代码
 - Lua 模组健壮性与工具链：运行时错误弹窗现在带脚本行号；AI 回合触发的错误会记入游戏内模组检查器而非只写日志；Lua API 的浮点参数（addInfluence / addMovement / useMovement）增加 NaN/无穷值防护；新增静态 API 拼写检查（如 `ctx.civ.addGoldd(...)` 会报错并给建议），游戏内模组检查器与 `mod-ci` 命令行均会运行，底层 API 目录表与运行时注册的一致性由测试保障
 - Lua 模组安全加固：堵住沙箱逃逸——全局名置 nil 后 `package.loaded` 表仍保留完整的 `io`/`os`/`luajava` 库引用，模组脚本可借此读写任意文件、执行系统命令与 Java 反射（现已彻底移除 package 库）；每次脚本加载与函数调用新增指令预算，`while true do end` 之类的死循环会被报错中断，不再卡死游戏

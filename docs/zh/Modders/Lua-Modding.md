@@ -539,10 +539,22 @@ end
 ## 注意事项
 
 - **参数约定（极易出错）**：引擎只向 lua 函数传入一个参数 `ctx`。`ctx.parameter` 才是 unique 中 `[parameter]` 解析后的值，`ctx.game`/`ctx.civ` 是上下文对象的入口。不要把第一个形参当成业务参数、不要把 `game` 当成全局变量——这是实测中最常见的错误
-- **函数名必须全局唯一**：同一模组内不要定义同名函数。跨模组调用使用 `modName:functionName` 格式
-- **返回值**：函数应返回 `true`（成功）或 `false`（失败）。返回 `false` 时触发器认为无效，在 UI 中可能显示为禁用状态
+- **函数名必须全局唯一**：同一模组内不要定义同名函数。跨模组调用使用 `modName:functionName` 格式。函数名须匹配 `[a-zA-Z_][a-zA-Z0-9_]*`（可加 `modName:` 前缀），不能含连字符等特殊字符
+- **返回值**：函数应返回 `true`（成功）或 `false`（失败）。返回 `false` 时触发器认为无效，在 UI 中可能显示为禁用状态。注意 Lua 的真值语义：`return 0` 和 `return nil` 都算**失败**，`return ""` 或 `return 1` 才算成功
 - **性能**：Lua 调用有跨语言开销，避免在高频触发的路径上使用（如每回合的大量单位遍历）。优先使用 JSON Unique 处理简单的数值修正
-- **沙箱**：Lua 环境是受限的，`os.*`、`io.*`、`coroutine.*`、`require`、`debug.*`、`string.dump`、文件操作、元表操作等功能已被禁用
+- **死循环会被截断**：每次脚本加载和每次函数调用都有指令预算（约一秒钟 CPU 时间）。意外的 `while true do end` 会以“预算超限”错误中断，而不是卡死游戏
+- **沙箱**：Lua 环境是受限的，`os.*`、`io.*`、`coroutine.*`、`require`、`debug.*`、`string.dump`、`package` 库（及其 `package.loaded` 表）、文件操作、元表操作等功能已被禁用，脚本访问它们会直接报错
 - **持久化存储**：`ctx.store` 中的值以字符串形式存入存档文件。存储非字符串数据时，用 `tostring()` 写入、`tonumber()` 读取
 - **路径查找开销**：`unit.findPathTo()` 采用 A* 多回合寻路，在大型地图上可能有明显耗时，避免在高频循环中调用
 - **日志**：`ctx.log(msg)` 输出到 Unciv 的调试日志。配合开发者控制台使用以调试脚本
+
+## 检查你的模组
+
+Unciv 分几层检查你的 Lua 脚本：
+
+1. **游戏内模组检查器 / 模组管理器**：模组加载时其 `scripts/*.lua` 会被编译，语法错误显示为红色错误，缺失的 `modName:functionName` 引用显示为黄色警告。打开 **选项 → 模组 → 模组检查** 查看完整报告。
+2. **静态 API 拼写检查**：对未知 API 的直接调用（如 `ctx.civ.addGoldd(...)`）会被标记并给出建议（“你是否想用：addGold, addStat…”）。游戏内模组检查器和下面的命令行工具都会运行该检查。
+3. **运行时错误**：函数运行中抛出的错误（参数类型错误、调用 nil 等）会向人类玩家弹出提示，并带上脚本名与行号（`Function 'x' error at line N`）。AI 回合中触发的错误不弹窗，而是记入模组检查器的错误列表，模组作者同样能看到；这些错误也会写入游戏日志。
+4. **命令行（CI / 离线）**：在模组根目录运行桌面版 `Unciv mod-ci`（或 `java -jar Unciv.jar mod-ci`）。它无头加载模组，运行全部 JSON 校验**以及**全部 Lua 检查（语法、函数引用、API 拼写），有错误时退出码为 1——适合接入 CI 流水线。
+
+> **小技巧**：写一个调用你所用 API 的小函数（`function test(ctx) ctx.civ.addGold(1) ... return true end`），再从 `GlobalUniques.json` 里用一个调试用 unique 触发它，即可在游戏内冒烟测试你的逻辑。

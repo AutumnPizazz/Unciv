@@ -53,6 +53,30 @@ end
 > 3. `game`, `civ`, `city`, `unit` are not globals — they live under `ctx`
 > 4. API functions use `.` syntax (e.g. `civ.addGold(500)`), not `:` syntax
 
+> **⚠️ Most common mistake: confusing where arguments come from**
+>
+> The engine passes exactly **one argument** — the `ctx` context table. Whatever you name the first parameter, it is always `ctx`.
+>
+> ```lua
+> -- ❌ Wrong (easy to trip on)
+> function onTech(ctx, n)         -- n is always nil! The engine only passes one argument
+>     local civ = game.getCurrentPlayer()  -- game is nil! It is not a global
+>     civ.addGold(n)              -- n is nil, nothing happens
+> end
+>
+> -- ✅ Correct
+> function onTech(ctx)
+>     local n = tonumber(ctx.parameter)   -- the parameter comes from ctx.parameter
+>     local civ = ctx.game.getCurrentPlayer()  -- game is a field of ctx
+>     civ.addGold(n)
+> end
+> ```
+>
+> Three rules to remember:
+> 1. **The first parameter is always `ctx`** — the context table injected by the engine
+> 2. **`game`, `civ`, `city` are not globals** — they all live under `ctx`
+> 3. **The unique's parameter comes from `ctx.parameter`** — it is a string; use `tonumber()` when you need a number
+
 ### Lifecycle Hooks
 
 Combine `TriggerLuaFunction` with trigger conditions for per-turn execution. Place the unique in `GlobalUniques.json`:
@@ -121,6 +145,7 @@ civ.isResearched("Agriculture")      -- Has researched
 civ.canResearch("Philosophy")        -- Can research
 civ.getResearchingTech()             -- Currently researching tech name
 civ.getResearchProgress("Writing")   -- Accumulated science
+civ.getTechCount()                   -- Number of researched techs
 civ.getTechsResearched()             -- List of researched tech names
 civ.getAvailableTechs()              -- List of available tech names
 civ.grantTech("Agriculture")         -- Instantly grant a tech
@@ -128,7 +153,9 @@ civ.grantTech("Agriculture")         -- Instantly grant a tech
 -- Policies
 civ.hasPolicy("Oligarchy")           -- Has adopted
 civ.canAdoptPolicy()                 -- Can adopt any policy
+civ.getAdoptedPolicyCount()          -- Number of adopted policies
 civ.getAdoptedPolicies()             -- List of adopted policy names
+civ.getAvailablePolicyBranches()     -- List of all policy branch names
 civ.grantPolicy("Oligarchy")         -- Instantly adopt a policy
 
 -- Diplomacy
@@ -171,6 +198,7 @@ civ.consumeResource("Iron", 2)
 civ.triggerGoldenAge(10)
 civ.grantFreeGreatPerson()
 civ.setLeaderTitle("Emperor")
+civ.getLeaderTitle()                 -- Current leader title
 civ.addNotification("text")
 civ.addNotificationAt("text", x, y)
 civ.addFreeTech()
@@ -370,6 +398,42 @@ game.revealEntireMap("Rome")
 game.revealTilesAround("Rome", x, y, radius)
 ```
 
+### game.findTiles — Tile Search
+
+`findTiles` takes a Lua table of criteria and returns a list of matching tiles. Supported keys:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `resource` | string | Resource name (e.g. `"Iron"`) |
+| `terrain` | string | Base terrain name (e.g. `"Grassland"`) |
+| `terrainFeature` | string | Terrain feature name (e.g. `"Forest"`) |
+| `improvement` | string | Improvement name (e.g. `"Farm"`) |
+| `owned` | boolean | Tile is owned by some civ |
+| `owner` | string | Owning civilization name |
+| `isCoast` | boolean | Coastal tile |
+| `isLand` | boolean | Land tile |
+| `isWater` | boolean | Water tile |
+| `isHill` | boolean | Hill tile |
+| `maxDistance` + `centerX` + `centerY` | number | Spatial range constraint (all three required) |
+| `maxResults` | number | Result cap (default 500) |
+
+```lua
+-- All iron on the map
+local ironTiles = game.findTiles({ resource = "Iron" })
+
+-- Unowned forest tiles within 5 tiles of (10, 15)
+local nearbyForest = game.findTiles({
+    terrainFeature = "Forest",
+    owned = false,
+    maxDistance = 5,
+    centerX = 10,
+    centerY = 15
+})
+
+-- All owned coastal tiles
+local ownedCoastal = game.findTiles({ isCoast = true, owned = true })
+```
+
 ### ctx.store — Persistent Storage
 
 Cross-turn, cross-save key-value storage, automatically isolated per mod. All values are stored as strings:
@@ -444,9 +508,21 @@ Corresponding JSON (in `ModOptions.json` or `Eras.json`):
 
 ## Notes
 
-- **Sandbox**: The Lua environment is restricted. `os.*`, `io.*`, `coroutine.*`, `require`, `debug.*`, `string.dump`, file operations, and metatable operations are disabled.
+- **Sandbox**: The Lua environment is restricted. `os.*`, `io.*`, `coroutine.*`, `require`, `debug.*`, `string.dump`, the `package` library (and its `package.loaded` table), file operations, and metatable operations are disabled. Scripts that try to access them fail with an error.
+- **Runaway loops are cut off**: Every script load and every function call has an instruction budget (about a second of CPU). An accidental `while true do end` is interrupted with a "budget exceeded" error instead of freezing the game.
 - **Performance**: Lua calls have cross-language overhead. Avoid high-frequency trigger paths. Prefer JSON uniques for simple stat modifiers.
 - **Persistent storage**: `ctx.store` values are stored as strings in the save file. Use `tostring()`/`tonumber()` for non-string data.
 - **Pathfinding cost**: `unit.findPathTo()` uses A* multi-turn pathfinding and may be expensive on large maps. Avoid calling it in high-frequency loops.
-- **Function names**: Must be unique within a mod. Use `modName:functionName` for cross-mod references.
-- **Return value**: Functions should return `true` (success) or `false` (failure). Returning `false` may cause the trigger to be treated as inactive.
+- **Function names**: Must be unique within a mod. Use `modName:functionName` for cross-mod references. Names must match `[a-zA-Z_][a-zA-Z0-9_]*` (optionally prefixed with `modName:`); no dashes or special characters.
+- **Return value**: Functions should return `true` (success) or `false` (failure). Returning `false` may cause the trigger to be treated as inactive. Note that Lua's truthiness applies: `return 0` and `return nil` count as **failure**, while `return ""` or `return 1` count as success.
+
+## Checking Your Mod
+
+Unciv checks your Lua scripts in several layers:
+
+1. **Mod checker / mod manager (in-game)**: When a mod is loaded, its `scripts/*.lua` files are compiled; syntax errors show up as red errors and a missing `modName:functionName` reference as a yellow warning. Open **Options → Mods → Mod checker** to see the full report.
+2. **Static API spelling check**: Direct calls to unknown APIs such as `ctx.civ.addGoldd(...)` are flagged with a suggestion ("did you mean: addGold, addStat…"). This runs both in the in-game mod checker and in the CLI tool below.
+3. **Runtime errors**: Errors thrown while a function runs (wrong argument types, nil calls…) show a popup to the human player with the script name and line number (`Function 'x' error at line N`). Errors triggered during AI turns are recorded in the mod checker's error list instead of a popup, so you still see them. The same errors are also written to the game log.
+4. **CLI (CI / offline)**: From a mod's root folder, run the desktop build as `Unciv mod-ci` (or `java -jar Unciv.jar mod-ci`). It loads the mod headlessly, runs all JSON validation **and** all Lua checks (syntax, function references, API spelling) and exits with code 1 when there are errors — suitable for a CI pipeline.
+
+> **Tip**: write a tiny Lua function that exercises your API calls (`function test(ctx) ctx.civ.addGold(1) ... return true end`) and trigger it from a debug unique in `GlobalUniques.json` to smoke-test logic in-game.
