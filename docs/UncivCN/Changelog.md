@@ -2,6 +2,10 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+## Unreleased
+
+- Fixed the "Download latest version" button on the main menu opening the release page in the browser instead of downloading the installer - it now picks the platform-specific package from the release assets (APK on Android, MSI/Windows64 zip on Windows, Linux64 zip on Linux, universal jar fallback for desktop, server jar and helper packages excluded) and opens its direct download URL through the active download source; the update popup now also shows the real file name and the actual version numbers
+
 ## v4.21.7.1 (build 1251)
 
 - CI: fixed the release pipeline - the `unciv-lua-api` VSCode extension packaging step used `vsce package --cwd` (unsupported option, first release after the extension was added); now builds inside the extension directory with an explicit `mkdir -p` for the output folder

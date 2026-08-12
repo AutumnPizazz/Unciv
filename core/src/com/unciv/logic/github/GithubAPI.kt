@@ -328,11 +328,50 @@ object GithubAPI {
         }
     }
 
+    /** One installable file attached to a release (e.g. the Windows installer or the Android APK) */
+    class ReleaseAsset {
+        var name = ""
+        var browser_download_url = ""
+    }
+
     /** Parsed response of the "Get the latest release" GitHub API endpoint */
     class LatestRelease {
         var tag_name = ""
         var html_url = ""
         var name = ""
+        var assets = ArrayList<ReleaseAsset>()
+
+        /**
+         * Pick the installer asset matching [platform] (one of "android", "windows", "linux", "mac" or
+         * anything else for unknown platforms). Desktop platforms fall back to the universal runnable
+         * jar when no platform-specific package exists - except on Android, where a jar is useless.
+         * Server jars and auxiliary helper packages are never considered.
+         * @return the asset to download, or `null` when nothing usable exists
+         */
+        @Readonly
+        fun pickDownloadAsset(platform: String): ReleaseAsset? {
+            // Only installable player packages - never the server jar or helper files for the jar
+            val candidates = assets.filter {
+                !it.name.contains("server", ignoreCase = true)
+                    && !it.name.contains("filesforjar", ignoreCase = true)
+            }
+            fun firstSatisfying(vararg conditions: (String) -> Boolean): ReleaseAsset? =
+                candidates.firstOrNull { asset ->
+                    val lower = asset.name.lowercase()
+                    conditions.all { it(lower) }
+                }
+
+            val jarFallback = if (platform in listOf("windows", "linux", "mac"))
+                firstSatisfying({ it.endsWith(".jar") }) else null
+            return when (platform) {
+                "android" -> firstSatisfying({ it.endsWith(".apk") })
+                "windows" -> firstSatisfying({ it.endsWith(".msi") })
+                    ?: firstSatisfying({ it.contains("windows64") && it.endsWith(".zip") })
+                "linux" -> firstSatisfying({ it.contains("linux64") && it.endsWith(".zip") })
+                "mac" -> firstSatisfying({ it.contains("mac") })
+                else -> null
+            } ?: jarFallback
+        }
     }
 
     /** Topic search response */

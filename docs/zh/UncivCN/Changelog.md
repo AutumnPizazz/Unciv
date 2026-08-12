@@ -8,6 +8,10 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
+## 未发布（Unreleased）
+
+- 修复主菜单「下载最新版本」按钮跳转浏览器打开发布页而非下载安装包：现在按当前平台从 release 资产中挑选安装包（Android 选 APK、Windows 优先 MSI 再 Windows64 zip、Linux 选 Linux64 zip、桌面无专用包回退通用 jar、排除服务器 jar 与辅助包），经当前下载源打开直链下载；更新弹窗同时显示实际文件名与真实版本号
+
 ## v4.21.7.1（build 1251）
 
 - CI：修复发布流水线——`unciv-lua-api` VSCode 扩展打包步骤使用了 `vsce package --cwd`（不支持的参数，扩展随本次首个发版引入）；改为在扩展目录内构建并显式 `mkdir -p` 输出目录

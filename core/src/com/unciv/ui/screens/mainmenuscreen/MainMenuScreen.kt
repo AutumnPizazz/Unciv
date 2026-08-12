@@ -1,5 +1,6 @@
 ﻿package com.unciv.ui.screens.mainmenuscreen
 
+import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Touchable
@@ -392,16 +393,46 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         val content = Table()
         content.add("New version available".toLabel(fontSize = Constants.headingFontSize, alignment = Align.center)).row()
         content.add(
-            "Version [latest] is now available. You are running version [current].".toLabel(alignment = Align.center)
+            "Version [${release.tag_name}] is now available. You are running version [${UncivGame.VERSION.text}]."
+                .toLabel(alignment = Align.center)
         ).pad(10f).row()
-        val downloadButton = "Download latest version".toTextButton()
-        downloadButton.onClick {
-            popup.close()
-            Gdx.net.openURI(GithubAPI.proxify(release.html_url))
+        // Prefer the platform-specific installer package over the release page
+        val asset = release.pickDownloadAsset(currentPlatform)
+        if (asset == null || asset.browser_download_url.isEmpty()) {
+            val releasePageButton = "Open release page".toTextButton()
+            releasePageButton.onClick {
+                popup.close()
+                Gdx.net.openURI(GithubAPI.proxify(release.html_url))
+            }
+            content.add(releasePageButton).pad(10f).row()
+        } else {
+            content.add(
+                "Installer file: [${asset.name}]".toLabel(fontSize = 14, alignment = Align.center)
+            ).pad(5f).row()
+            val downloadButton = "Download latest version".toTextButton()
+            downloadButton.onClick {
+                popup.close()
+                Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
+            }
+            content.add(downloadButton).pad(10f).row()
         }
-        content.add(downloadButton).pad(10f).row()
         popup.add(content).row()
     }
+
+    /** Short platform id used to pick the right installer asset from a GitHub release */
+    private val currentPlatform: String
+        get() = when (Gdx.app.type) {
+            Application.ApplicationType.Android -> "android"
+            Application.ApplicationType.Desktop -> {
+                val os = System.getProperty("os.name").lowercase()
+                when {
+                    os.contains("win") -> "windows"
+                    os.contains("mac") || os.contains("darwin") -> "mac"
+                    else -> "linux"
+                }
+            }
+            else -> "other"
+        }
     //endregion
 
     private fun resumeGame() {
