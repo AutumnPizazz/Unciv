@@ -2,11 +2,13 @@
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.Align
 import com.unciv.Constants
 import com.unciv.GUI
@@ -18,6 +20,7 @@ import com.unciv.logic.UncivShowableException
 import com.unciv.logic.UpdateCheckResult
 import com.unciv.logic.UpdateChecker
 import com.unciv.logic.github.GithubAPI
+import com.unciv.logic.github.GithubAPI.downloadTo
 import com.unciv.logic.map.MapParameters
 import com.unciv.logic.map.MapShape
 import com.unciv.logic.map.MapSize
@@ -86,6 +89,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
     private var updateCheckJob: Job? = null
     private var updateAvailable: GithubAPI.LatestRelease? = null
+    private var installerDownloadJob: Job? = null
     private lateinit var versionTable: Table
 
     companion object {
@@ -398,6 +402,8 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         ).pad(10f).row()
         // Offer the platform's installer packages - on desktop (esp. Windows) several are listed so the player can choose
         val downloadAssets = release.listDownloadAssets(currentPlatform).filter { it.browser_download_url.isNotEmpty() }
+        // On Android the package is downloaded in-game and handed to the system installer - elsewhere the browser does it
+        val installerFolder = game.getInstallerDownloadFolder()?.let { Gdx.files.absolute(it) }
         if (downloadAssets.isEmpty()) {
             val releasePageButton = "Open release page".toTextButton()
             releasePageButton.onClick {
@@ -410,23 +416,75 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             content.add(
                 "Installer file: [${asset.name}]".toLabel(fontSize = 14, alignment = Align.center)
             ).pad(5f).row()
-            val downloadButton = "Download latest version".toTextButton()
-            downloadButton.onClick {
-                popup.close()
-                Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
-            }
-            content.add(downloadButton).pad(10f).row()
+            content.add(createInstallerButton(asset, installerFolder, popup)).pad(10f).row()
         } else {
             for (asset in downloadAssets) {
-                val downloadButton = asset.name.toTextButton()
-                downloadButton.onClick {
-                    popup.close()
-                    Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
-                }
-                content.add(downloadButton).pad(5f).row()
+                content.add(createInstallerButton(asset, installerFolder, popup)).pad(5f).row()
             }
         }
+        if (installerFolder == null && downloadAssets.isNotEmpty()) {
+            content.add(
+                "The installer will be saved to your browser's download folder."
+                    .toLabel(fontSize = 14, alignment = Align.center)
+            ).pad(5f).row()
+        }
         popup.add(content).row()
+    }
+
+    /**
+     * Button for one installer package: on Android it downloads in-game (showing progress) and then
+     * offers [Install] through the system installer; everywhere else it opens the browser download.
+     */
+    private fun createInstallerButton(
+        asset: GithubAPI.ReleaseAsset,
+        installerFolder: FileHandle?,
+        popup: Popup,
+    ): TextButton {
+        val downloadButton = asset.name.toTextButton()
+        var downloaded = installerFolder?.child(asset.name)?.let { it.exists() && it.length() > 0 } == true
+        if (downloaded) downloadButton.setText("Install")
+        downloadButton.onClick {
+            if (installerFolder == null) {
+                popup.close()
+                Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
+            } else if (installerDownloadJob?.isActive == true) {
+                // A download is already running - ignore further clicks
+            } else if (downloaded) {
+                popup.close()
+                game.installDownloadedApk(installerFolder.child(asset.name).file().absolutePath)
+            } else {
+                startInstallerDownload(asset, downloadButton, installerFolder) { success ->
+                    downloaded = success
+                }
+            }
+        }
+        return downloadButton
+    }
+
+    /** Download an installer package in the background, showing progress on [button]; [onFinished] runs on the GL thread */
+    private fun startInstallerDownload(
+        asset: GithubAPI.ReleaseAsset,
+        button: TextButton,
+        installerFolder: FileHandle,
+        onFinished: (Boolean) -> Unit,
+    ) {
+        installerDownloadJob?.cancel()
+        installerDownloadJob = Concurrency.run("DownloadInstaller") {
+            val destination = installerFolder.child(asset.name)
+            val success = asset.downloadTo(destination) { state, progress ->
+                launchOnGLThread { button.setText(state.message(progress)) }
+            }
+            launchOnGLThread {
+                onFinished(success)
+                if (success) {
+                    button.setText("Install")
+                } else {
+                    destination.delete()
+                    button.setText(asset.name)
+                    ToastPopup("Download failed", this@MainMenuScreen)
+                }
+            }
+        }
     }
 
     /** Short platform id used to pick the right installer asset from a GitHub release */
@@ -530,6 +588,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
     override fun dispose() {
         updateCheckJob?.cancel()
+        installerDownloadJob?.cancel()
         super.dispose()
     }
 

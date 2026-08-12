@@ -383,6 +383,39 @@ object GithubAPI {
         fun pickDownloadAsset(platform: String): ReleaseAsset? = listDownloadAssets(platform).firstOrNull()
     }
 
+    /**
+     * Download this release asset (an installer package) to [destination], reporting progress
+     * via [onProgress]. Goes through the active download source like everything else.
+     * @return `true` when the download completed successfully
+     */
+    suspend fun ReleaseAsset.downloadTo(
+        destination: FileHandle,
+        onProgress: (DownloadAndExtractState, Int?) -> Unit = { _, _ -> },
+    ): Boolean {
+        val downloadSucceeded = try {
+            UncivKtor.client.prepareRequest {
+                url(proxify(browser_download_url))
+                timeout { requestTimeoutMillis = Long.MAX_VALUE }
+                onDownload { bytesReceivedTotal, contentLength ->
+                    if (contentLength == null || contentLength <= 0L) return@onDownload
+                    val percent = (bytesReceivedTotal * 100L / contentLength).toInt()
+                    onProgress(DownloadAndExtractState.Downloading, percent.coerceIn(0, 100))
+                }
+            }.execute { resp ->
+                if (!resp.status.isSuccess()) {
+                    false
+                } else {
+                    destination.write(resp.bodyAsChannel().toInputStream(), false)
+                    true
+                }
+            }
+        } catch (_: Exception) {
+            false
+        }
+        if (downloadSucceeded) onProgress(DownloadAndExtractState.Finishing, 100)
+        return downloadSucceeded
+    }
+
     /** Topic search response */
     class TopicSearchResponse {
         // Commented out: Github returns them, but we're not interested

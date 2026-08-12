@@ -20,4 +20,13 @@ interface PlatformSpecific {
 
     /** Get system locale, on Android 13+ app-specific locale */
     fun getDefaultLocale(): Locale = Locale.getDefault()
+
+    /**
+     * If not null, the absolute path of a writable folder for in-game downloaded installer
+     * packages (the APK on Android). Platforms returning `null` (desktop) download via the browser.
+     */
+    fun getInstallerDownloadFolder(): String? = null
+
+    /** Open the system installer for a downloaded APK - no-op on platforms without one */
+    fun installDownloadedApk(apkFilePath: String) {}
 }

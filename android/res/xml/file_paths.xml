@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shareable paths for the FileProvider - must match the folder returned by
+     AndroidGame.getInstallerDownloadFolder() (getExternalFilesDir("installers")). -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="installers" path="installers/" />
+</paths>

@@ -6,8 +6,10 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Debug
+import android.provider.Settings
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.core.content.FileProvider
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.android.AndroidGraphics
 import com.badlogic.gdx.math.Rectangle
@@ -18,6 +20,7 @@ import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.basescreen.UncivStage
 import com.unciv.utils.Concurrency
 import com.unciv.utils.isUUID
+import java.io.File
 import java.util.Locale
 
 class AndroidGame(private val activity: Activity) : UncivGame() {
@@ -96,4 +99,34 @@ class AndroidGame(private val activity: Activity) : UncivGame() {
     override fun getDefaultLocale(): Locale =
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) super.getDefaultLocale()
         else activity.resources.configuration.locales.get(0)
+
+    /** In-game downloaded installer packages (the APK) go to the app-specific external folder -
+     *  no storage permission needed, and shareable to the system installer via [FileProvider] */
+    override fun getInstallerDownloadFolder(): String? =
+        activity.getExternalFilesDir("installers")?.absolutePath
+
+    /** Open the system installer for a downloaded APK - the game runs in the background meanwhile */
+    override fun installDownloadedApk(apkFilePath: String) {
+        // API 26+ requires a per-app permission for installing unknown apps - guide the player there first
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.packageManager.canRequestPackageInstalls()) {
+            val settingsIntent = Intent(
+                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                Uri.parse("package:${activity.packageName}")
+            )
+            activity.startActivity(settingsIntent)
+            return
+        }
+        try {
+            val apkFile = File(apkFilePath)
+            val apkUri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", apkFile)
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            activity.startActivity(installIntent)
+        } catch (_: Exception) {
+            // File missing or provider misconfigured - nothing sensible to show here
+        }
+    }
 }
