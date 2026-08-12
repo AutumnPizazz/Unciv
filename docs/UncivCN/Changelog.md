@@ -2,7 +2,7 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
-## Unreleased
+## v4.21.7.1 (build 1251)
 
 - Merged upstream 4.21.7 / 4.21.7-patch1 / patch2 (41 commits): the `View` refactor continues (#15280) - `TradeApi` views, unified city-internals visibility (`ForeignCityView.tryGetCityView`), `WorldMapHolder`/`WorldTileGroup`/`TileLayerUnitFlag` migrated to `TileView`, unclickable unexplored tiles fixed; AI no longer accepts gold for suicidal wars ("kamikaze wars" disallowed), more AI bug fixes; Stealth Bomber gains Evasion and no longer takes negative damage from interception; MP preview shows players' average turn times (hidden until a full turn is played); carrier payloads survive paradrop/transform; minimap only rebuilt on drag when its size actually changed (ANR fix); Gradle 8.11 → 9.4.1 with AGP/Kotlin upgrades, LibGDX 1.14.2, Android target SDK 36
 - Conflict resolution on merge: CN version bumped to 4.21.7.1 (build 1251); CN features kept - map/unit notes (`editNoteAt` Alt+click & long-press, note bubbles, `updateTileNoteLabel`) adapted to the new `ForeignMapUnitView`/`TileView` APIs, city auto-lock-tiles merged with the upstream tileView click path; `removeMissingModReferences` moved out of `TileGroup` to the map editor following upstream; Gradle 9.4.1 fetched from the Tencent Cloud mirror; translation files merged without conflicts

@@ -8,7 +8,7 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
-## 未发布（Unreleased）
+## v4.21.7.1（build 1251）
 
 - 合并上游 4.21.7 / 4.21.7-patch1 / patch2（41 个提交）：View 重构持续推进（#15280）——Trade API 视图、城市内政可见性统一（`ForeignCityView.tryGetCityView`）、`WorldMapHolder`/`WorldTileGroup`/`TileLayerUnitFlag` 迁移到 `TileView`、修复未探索地块不可点击；AI 不再为金钱接受自杀式战争（禁止“kamikaze wars”），更多 AI bug 修复；隐形轰炸机获得闪避能力且拦截不再造成负伤害；MP 预览显示玩家平均回合用时（完整回合后才显示）；航母载荷在空降/变形时保留；迷你地图仅在尺寸变化时于拖动中重建（修复 ANR）；Gradle 8.11 → 9.4.1（含 AGP/Kotlin 升级）、LibGDX 1.14.2、Android target SDK 36
 - 合并冲突解决：版本号按 CN 惯例升至 4.21.7.1（build 1251）；保留 CN 特色——地图钉/单位钉（`editNoteAt` 的 Alt+点击与长按、注释气泡、`updateTileNoteLabel`）适配新的 `ForeignMapUnitView`/`TileView` API，城市人口锁地与上游 tileView 点击路径融合；`removeMissingModReferences` 随上游移出 `TileGroup` 至地图编辑器；Gradle 9.4.1 走腾讯云镜像；翻译文件无冲突合并
