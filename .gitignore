@@ -184,9 +184,9 @@ MultiplayerFiles/
 /.github/workflows/node_modules/*
 
 # node.js (we only need these temporarily for the release build)
-node_modules/
-package-lock.json
-package.json
+/node_modules/
+/package-lock.json
+/package.json
 
 # Unsorted additions
 # Detekt

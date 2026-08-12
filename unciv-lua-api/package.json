@@ -1,0 +1,48 @@
+{
+  "name": "unciv-lua-api",
+  "displayName": "Unciv Lua API",
+  "description": "Unciv modding Lua API definitions with automatic cloud sync - pulls the latest lua-api.lua / lua-map-api.lua on every VSCode start and wires them into LuaLS, so autocompletion never goes stale.",
+  "version": "1.0.0",
+  "publisher": "uncivcn",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "unciv",
+    "lua",
+    "mod",
+    "luals",
+    "civ"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:lua"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "unciv-lua-api.configure",
+        "title": "Configure Lua API autocompletion (LuaLS workspace.library)",
+        "category": "Unciv"
+      },
+      {
+        "command": "unciv-lua-api.update",
+        "title": "Update Lua API definitions now",
+        "category": "Unciv"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AutumnPizazz/Unciv"
+  },
+  "scripts": {
+    "package": "npx @vscode/vsce package"
+  }
+}
