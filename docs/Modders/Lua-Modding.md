@@ -294,9 +294,11 @@ Corresponding JSON (in `ModOptions.json` or `Eras.json`):
 
 While the game itself validates your scripts (see [Checking Your Mod](#checking-your-mod)), you can get autocompletion, hover docs and immediate typo detection while writing with the Lua language server:
 
-1. **Install the extension**: in VSCode, install **Lua** by sumneko (the LuaLS language server).
-2. **Add the API definitions**: copy the generated type definitions `docs/Modders/lua-api.lua` from the Unciv repo (or download the release artifact) into your mod, e.g. `MyMod/.lua-api/unciv-api.lua`.
-3. **Point LuaLS at them**: create `.luarc.json` in your mod folder:
+1. **Install the Lua language server**: in VSCode, install **Lua** by sumneko (the LuaLS language server).
+2. **Install the Unciv Lua API extension** *(recommended, never go stale)*: download `unciv-lua-api.vsix` from the latest [UncivCN release](https://github.com/AutumnPizazz/Unciv/releases) and install it via **Extensions → ⋯ → Install from VSIX…**. On every VSCode start it pulls the latest `lua-api.lua` / `lua-map-api.lua` from the UncivCN docs site (cloud-deployed on every release) into `~/.unciv/lua-api/` — no manual updates, ever. Offline it keeps the last synced copy.
+3. **Configure LuaLS once**: run **Unciv: Configure Lua API autocompletion** from the command palette — it adds `~/.unciv/lua-api` (absolute path) to your user-level `Lua.workspace.library`, which applies to every mod workspace.
+
+If you prefer a fully manual setup, create `.luarc.json` in your mod folder and copy the definitions beside it (e.g. from the repo's `docs/Modders/`):
 
 ```json
 {
@@ -308,7 +310,7 @@ While the game itself validates your scripts (see [Checking Your Mod](#checking-
 }
 ```
 
-Optionally add this to `.vscode/extensions.json` so collaborators are prompted to install the extension:
+Optionally add this to `.vscode/extensions.json` so collaborators are prompted to install the language server:
 
 ```json
 {
@@ -316,7 +318,7 @@ Optionally add this to `.vscode/extensions.json` so collaborators are prompted t
 }
 ```
 
-You now get: `ctx.` autocompletion (civ/city/unit/tile/game/store), method-name completion and hover docs (e.g. `ctx.civ.addGold(`), and instant red squiggles for typos like `ctx.civ.addGoldd(...)`.
+You now get: `ctx.` autocompletion (civ/city/unit/tile/game/store), method-name completion and hover docs (e.g. `ctx.civ.addGold(`), and instant red squiggles for typos like `ctx.civ.addGoldd(...)`. Map scripts (`GenerateMap(ctx)`) get the same treatment from `lua-map-api.lua` — both files are managed by the extension automatically.
 
 > **Limitations**: the definition file is generated from the API catalog with best-effort signatures - parameter/return types are precise for common patterns and loose (`fun(...)`) for the rest. When in doubt, trust the in-game mod checker or `mod-ci` (they are authoritative), and check the function's actual behavior in-game.
 

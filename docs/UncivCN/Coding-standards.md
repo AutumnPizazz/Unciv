@@ -102,6 +102,8 @@ The UncivCN doc site (`docs-vitepress/`) uses VitePress (mkdocs was dropped: no 
 
 **No Python**: the CN branch's docs toolchain needs only JDK + Node (VitePress + Node scripts under `docs-vitepress/scripts/`, e.g. `check-docs-links.mjs` for CI link checks). Upstream's `mkdocs.yml` / `mkdocs` workflow are removed on this branch — re-remove them when merging upstream if they reappear.
 
+**Modder-facing distribution of the Lua definitions**: every release deploys `lua-api.lua` / `lua-map-api.lua` to the docs site (`docs.yml` → VitePress `buildEnd` copies them into the output, URL `https://club.unciv.cn/Unciv/Modders/…`), and the `unciv-lua-api` VSCode extension (thin puller, source in `unciv-lua-api/`, zero npm deps, vsix attached to every GitHub release) fetches them on each editor start into `~/.unciv/lua-api/` and wires them into LuaLS via its one-click configure command. Mod authors never check for updates manually. The generated files carry a `-- Unciv version:` header (from `UncivGame.VERSION`) so old and new copies are instantly distinguishable.
+
 Local preview: double-click `docs-vitepress/build.bat` (build / open existing / rebuild+restart; the server auto-exits after 5 idle minutes).
 
 ## 6. Unique & translation conventions

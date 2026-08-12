@@ -10,6 +10,8 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 模组作者工具：Lua API 定义实现全自动分发——生成的 `lua-api.lua` / `lua-map-api.lua` 每次发版部署到文档站，新增 `unciv-lua-api` VSCode 扩展（云端薄拉取器，vsix 随每个 Release 附带）在每次编辑器启动时同步到 `~/.unciv/lua-api/` 并用一键命令接入 LuaLS；模组作者无需再人工检查更新。生成文件头部带 `-- Unciv version:` 版本标记，新旧一目了然
+
 - 文档：Lua **地图脚本** API 文档也改为由 Kotlin 数据表（`LuaMapGenApiDocs`）驱动生成——`lua-map-api.lua`（原为手工维护）与新增的 `Lua-Map-API-Reference.md`（中英两版）由 `./gradlew desktop:generateDocs` 一并重新生成；`Lua-Modding.md` 教程的地图脚本章节改为链接到生成的参考页；类型定义生成循环已与游戏内 API 生成器共用（新增同步测试，退役基于正则的旧定义测试）
 
 - 文档：Lua API 参考改为像 unique 文档一样由 Kotlin 数据表（`LuaApiDocs`）驱动生成——`lua-api.lua` 与新增的 `Lua-API-Reference.md`（中英两版）在新增 API 时由 `./gradlew desktop:generateDocs` 一并重新生成，面向模组作者的文档不再可能与实现漂移（新增同步测试）；教程页 `Lua-Modding.md`（中英）改为链接到生成的参考页；`UniqueDocsWriter` 与 Lua 文档生成器共用新的 `DocsWriter` 基类

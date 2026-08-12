@@ -123,6 +123,13 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 下的 Node 脚本，如 CI 链接检查 `check-docs-links.mjs`）；上游的 `mkdocs.yml` 与 mkdocs
 workflow 在本分支已删除——合并上游时若重新出现需再次处理。
 
+**Lua 定义的模组作者分发**：每次发版把 `lua-api.lua` / `lua-map-api.lua` 部署到文档站
+（`docs.yml` → VitePress `buildEnd` 复制进产物，URL `https://club.unciv.cn/Unciv/Modders/…`）；
+`unciv-lua-api` VSCode 扩展（薄拉取器，源码在 `unciv-lua-api/`，零 npm 依赖，
+vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `~/.unciv/lua-api/`
+并用一键配置命令接入 LuaLS。模组作者从此无需人工检查更新。生成文件头部带
+`-- Unciv version:` 标记（来自 `UncivGame.VERSION`），新旧版本一目了然。
+
 本地预览：双击 `docs-vitepress/build.bat`（构建 / 打开现有 / 重建重启三选一，
 服务器空闲 5 分钟自动退出）。
 

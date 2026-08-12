@@ -325,9 +325,11 @@ end
 
 游戏本身会校验你的脚本（见[检查你的模组](#检查你的模组)），而编写时想获得自动补全、悬停文档和即时拼写检查，可以接入 Lua 语言服务器：
 
-1. **安装扩展**：在 VSCode 中安装 **Lua**（作者 sumneko，即 LuaLS 语言服务器）
-2. **加入类型定义**：把 Unciv 仓库中的 `docs/Modders/lua-api.lua`（由生成器自动生成）复制进你的模组，如 `MyMod/.lua-api/unciv-api.lua`
-3. **让 LuaLS 指向它**：在模组目录创建 `.luarc.json`：
+1. **安装 Lua 语言服务器**：在 VSCode 中安装 **Lua**（作者 sumneko，即 LuaLS 语言服务器）
+2. **安装 Unciv Lua API 扩展**（推荐，永不过期）：从最新的 [UncivCN Release](https://github.com/AutumnPizazz/Unciv/releases) 下载 `unciv-lua-api.vsix`，通过 **扩展 → ⋯ → 从 VSIX 安装…** 安装。每次 VSCode 启动它都会从 UncivCN 文档站（每次发版自动部署）拉取最新 `lua-api.lua` / `lua-map-api.lua` 到 `~/.unciv/lua-api/`——从此无需人工检查更新、无需复制文件；离线时保留上次同步的版本
+3. **一键配置 LuaLS**：命令面板（Ctrl+Shift+P）运行 **Unciv: Configure Lua API autocompletion**——把 `~/.unciv/lua-api`（绝对路径）加入用户级 `Lua.workspace.library`，对所有模组工作区生效
+
+如果偏好完全手动配置，可在模组目录创建 `.luarc.json` 并把定义文件复制到旁边（如从仓库 `docs/Modders/` 获取）：
 
 ```json
 {
@@ -339,7 +341,7 @@ end
 }
 ```
 
-可选：在 `.vscode/extensions.json` 中推荐扩展，方便协作者自动安装：
+可选：在 `.vscode/extensions.json` 中推荐扩展，方便协作者自动安装语言服务器：
 
 ```json
 {
@@ -347,7 +349,7 @@ end
 }
 ```
 
-配置完成后即可获得：`ctx.` 自动补全（civ/city/unit/tile/game/store）、方法名补全与悬停文档（如 `ctx.civ.addGold(`）、以及 `ctx.civ.addGoldd(...)` 这类拼写错误的即时红色波浪线。
+配置完成后即可获得：`ctx.` 自动补全（civ/city/unit/tile/game/store）、方法名补全与悬停文档（如 `ctx.civ.addGold(`）、以及 `ctx.civ.addGoldd(...)` 这类拼写错误的即时红色波浪线。地图脚本（`GenerateMap(ctx)`）同样受益于 `lua-map-api.lua`——两个文件都由扩展自动管理。
 
 > **限制说明**：定义文件由生成器从 API 目录自动生成，参数/返回值标注是尽力而为——常见模式精确、其余为宽松的 `fun(...)`。拿不准时以游戏内模组检查器或 `mod-ci` 为准（它们才是权威），并在游戏中实测函数行为。
 

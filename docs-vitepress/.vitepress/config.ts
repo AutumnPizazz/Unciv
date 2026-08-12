@@ -107,11 +107,21 @@ export default defineConfig({
   // 构建结束后把本工程的 public/ 静态资源复制到输出目录。
   // （vite root = srcDir = ../docs，其默认 public 目录 docs/public 不存在；
   //  本文件位于 .vitepress/ 下，故 public 相对路径为 ../public）
+  // 同时把 Lua API 定义文件（lua-api.lua / lua-map-api.lua）一并复制进产物——
+  // 文档站是模组作者 VSCode 扩展（unciv-lua-api）拉取最新定义的云端来源，
+  // docs.yml 每次发版自动部署，扩展每次激活即可拿到最新版。
   async buildEnd(siteConfig) {
-    const { cpSync, existsSync } = await import('node:fs')
+    const { cpSync, existsSync, mkdirSync } = await import('node:fs')
+    const path = (await import('node:path')).default
     const publicDir = fileURLToPath(new URL('../public', import.meta.url))
     if (existsSync(publicDir)) {
       cpSync(publicDir, siteConfig.outDir, { recursive: true })
+    }
+    const defsOutDir = path.join(siteConfig.outDir, 'Modders')
+    mkdirSync(defsOutDir, { recursive: true })
+    for (const file of ['lua-api.lua', 'lua-map-api.lua']) {
+      const src = fileURLToPath(new URL(`../../docs/Modders/${file}`, import.meta.url))
+      if (existsSync(src)) cpSync(src, path.join(defsOutDir, file))
     }
   },
 
