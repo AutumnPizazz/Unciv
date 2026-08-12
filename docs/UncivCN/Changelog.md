@@ -2,7 +2,7 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
-## Unreleased
+## v4.21.7.2 (build 1252)
 
 - Android: the update popup now downloads the APK in-game (progress shown on the button) and hands it to the system installer via FileProvider - no more hunting for the file in the browser; the unknown-sources install permission (API 26+) is guided automatically on first install; on other platforms the popup now notes where the browser saves the installer
 - Android: update downloads are now interruption-safe - the package downloads to a `.part` file and is renamed only when complete (an interrupted download just leaves a half file that is simply downloaded again), completed APKs offer Install plus Redownload, a copy is also saved to the public Downloads folder (Android 10+) so players can install from their file manager even outside the game, and leftover packages of older releases are cleaned up when the popup opens
