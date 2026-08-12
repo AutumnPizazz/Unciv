@@ -54,7 +54,7 @@ if "%SERVER_RUNNING%"=="1" (
 )
 
 echo ============================================
-echo   [1/4] Generating Kotlin docs (uniques etc.)
+echo   [1/4] Generating Kotlin docs (uniques, Lua API reference etc.)
 echo ============================================
 cd /d "%~dp0\.."
 call gradlew.bat desktop:generateDocs --no-daemon -q
@@ -103,7 +103,7 @@ echo Browser will open automatically.
 echo The server exits automatically after 5 minutes without visits,
 echo or you can close its window / press Ctrl+C anytime.
 echo.
-start "UncivCN Docs Preview (auto-exits when idle)" /min cmd /c "cd /d %~dp0 && python scripts\preview_server.py"
+start "UncivCN Docs Preview (auto-exits when idle)" /min cmd /c "cd /d %~dp0 && node scripts\preview-server.mjs"
 ping -n 4 127.0.0.1 >nul
 start "" "http://localhost:4173/Unciv/"
 endlocal

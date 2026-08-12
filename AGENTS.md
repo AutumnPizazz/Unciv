@@ -29,6 +29,8 @@
 
 - 中英完全双向对应（`docs/` ↔ `docs/zh/`），新页面须同时补两版；独有内容按性质放 `UncivCN/`（分支内容）或 `Community/`（社区内容）
 - 生成器产物只改生成器源码再 `./gradlew desktop:generateDocs`，严禁人工编辑（清单见 Coding-standards 第五节）
+- Lua API 文档（`lua-api.lua` + 中英 `Lua-API-Reference.md`）由 `LuaApiDocs` 数据表驱动：新增 Lua API 时同步 `LuaAPI.apiCatalog` 与 `LuaApiDocs`（签名 + 中英说明）后重新生成，`LuaApiDocsTests` 强制一致
+- 本分支文档工具链只需 JDK + Node，**无 Python 依赖**（上游 mkdocs 流程已弃用，合入上游时注意）
 - VitePress 踩坑与预览方式见 Coding-standards 第四节
 
 ## 合并上游
