@@ -317,14 +317,8 @@ jobs:
           mv UncivLuaAPI/unciv-lua-api-*.vsix deploy/
           [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy/UncivCN-${{ github.ref_name }}.msi || true
 
-      # 模组作者 VSCode 扩展（薄拉取器）：从文档站实时拉取最新 lua-api 定义，
-      # 随游戏发版附到 Release；无需 npm install（零依赖）
-      - name: Build Unciv Lua API VSCode extension (vsix)
-        run: |
-          mkdir -p ../deploy
-          cd unciv-lua-api
-          npx --yes @vscode/vsce package --out ../deploy/unciv-lua-api-${{ github.ref_name }}.vsix
-
+      # 模组作者 VSCode 扩展（薄拉取器）已在 build-jar job 内打包为 UncivLuaAPI artifact，
+      # 上方 consolidate 已移入 deploy/；此处无需再打包
       - name: Check if this is a real release or a test version, for Github release
         id: check-version-tag
         run: |
