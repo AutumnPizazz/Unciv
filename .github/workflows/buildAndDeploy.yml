@@ -289,6 +289,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Checkout repository (unciv-lua-api extension sources)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: unciv-lua-api
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
