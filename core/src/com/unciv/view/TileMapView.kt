@@ -19,6 +19,10 @@ class TileMapView(private val tileMap: TileMap,
         arrayOfNulls(maxOf(tileMap.tileList.size, maxIndex + 1))
     }
 
+    /** Note that since this requires the original Tile, this CAN return tiles that are NOT visible to the viewing civ
+     * This is currently required for the map since to even create the empty tiles we need to know it exists
+     * I don't have a good solution for this data leak at the moment 
+     * since calculating paths to tiles that don't exist will currently break pathfinding */
     @Readonly fun getTile(tile: Tile): TileView {
         val idx = tile.zeroBasedIndex
         return tileViews[idx] ?: TileView(tile, this, viewer, spectatorMode).also { tileViews[idx] = it }

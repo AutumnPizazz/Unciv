@@ -9,6 +9,7 @@ import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.files.UnitNotesManager
 import com.unciv.view.CivView
+import com.unciv.view.ForeignMapUnitView
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.surroundWithCircle
@@ -33,28 +34,25 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         militaryUnitIcon?.let { removeOwnedActor(it) }
     }
 
-    private fun showMilitaryUnit(viewingCiv: CivView) = tileGroup.isForceVisible
-            || viewingCiv.getCiv().viewableInvisibleUnitsTiles.contains(tileGroup.tile)
-            || !tileGroup.tile.hasEnemyInvisibleUnit(viewingCiv.getCiv())
-
     private fun setIconPosition(slot: Int, icon: UnitIconGroup) {
         // Centre horizontally; offset vertically per slot (slot 0 = bottom, slot 1 = top)
         icon.x = tileX + (size - icon.width) / 2
         icon.y = tileY + (size - icon.height) / 2 + if (slot == 1) 20f else -20f
     }
 
-    private fun newUnitIcon(slot: Int, unit: MapUnit?, isViewable: Boolean, viewingCiv: CivView?): UnitIconGroup? {
+    private fun newUnitIcon(slot: Int, unit: ForeignMapUnitView?, isViewable: Boolean, viewingCiv: CivView?): UnitIconGroup? {
 
         var newIcon: UnitIconGroup? = null
 
         if (unit != null && isViewable) {
-            newIcon = UnitIconGroup(unit, 30f)
+            val rawUnit = unit.getUnit()
+            newIcon = UnitIconGroup(rawUnit, 30f)
             setIconPosition(slot, newIcon)
             addOwnedActor(newIcon)
 
             // Display air unit table for carriers/transports
-            if (unit.getTile().airUnits.any { unit.isTransportTypeOf(it) } && !unit.getTile().isCityCenter()) {
-                val table = getAirUnitTable(unit)
+            if (rawUnit.getTile().airUnits.any { rawUnit.isTransportTypeOf(it) } && !rawUnit.getTile().isCityCenter()) {
+                val table = getAirUnitTable(rawUnit)
                 newIcon.addActor(table)
                 table.toBack()
                 table.y = newIcon.height/2 - table.height/2
@@ -62,17 +60,18 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
             }
 
             // Fade out action indicator for own non-idle units
-            if (unit.civ === viewingCiv?.getCiv() && !unit.isIdle() && UncivGame.Current.settings.unitIconOpacity == 1f)
+            if (rawUnit.civ === viewingCiv?.getCiv() && !rawUnit.isIdle() && UncivGame.Current.settings.unitIconOpacity == 1f)
                 newIcon.actionGroup?.color?.a = 0.5f
 
             // Fade out flag for own out-of-moves units
-            if (unit.civ === viewingCiv?.getCiv() && !unit.hasMovement())
+            if (rawUnit.civ === viewingCiv?.getCiv() && !rawUnit.hasMovement())
                 newIcon.color.a = 0.5f * UncivGame.Current.settings.unitIconOpacity
 
             // Show note bubble below unit when toggle is enabled
             if (UncivGame.Current.settings.showUnitNotes && tileGroup.tile.tileMap.hasGameInfo()) {
                 val gameInfo = tileGroup.tile.tileMap.gameInfo
-                val note = UnitNotesManager.getNote(gameInfo, unit)
+                val mapUnit = unit.getUnit()
+                val note = UnitNotesManager.getNote(gameInfo, mapUnit)
                 if (note != null) {
                     val bubble = createNoteBubble(note, 10)
                     bubble.setPosition(
@@ -86,10 +85,10 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
                         NoteViewPopup(
                             screen = worldScreen,
                             note = note,
-                            icon = ImageGetter.getUnitIcon(unit.baseUnit).surroundWithCircle(60f),
-                            onEdit = { UnitNotePopup(worldScreen, unit, gameInfo) {} },
+                            icon = ImageGetter.getUnitIcon(mapUnit.baseUnit).surroundWithCircle(60f),
+                            onEdit = { UnitNotePopup(worldScreen, mapUnit, gameInfo) {} },
                             onDelete = {
-                                UnitNotesManager.deleteNote(gameInfo, unit)
+                                UnitNotesManager.deleteNote(gameInfo, mapUnit)
                                 GUI.setUpdateWorldOnNextRender()
                             }
                         )
@@ -145,16 +144,13 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
     }
 
     private fun fillSlots(viewingCiv: CivView?) {
-        val isForceVisible = viewingCiv == null || tileGroup.isForceVisible
-
-        val isViewable = isForceVisible || isViewable(viewingCiv!!)
-        val isVisibleMilitary = isForceVisible || showMilitaryUnit(viewingCiv!!)
+        val isViewable = viewingCiv == null || tileGroup.isForceVisible || isViewable(viewingCiv)
 
         val isCivilianShown = isViewable
-        val isMilitaryShown = isViewable && isVisibleMilitary
+        val isMilitaryShown = isViewable
 
-        civilianUnitIcon = newUnitIcon(0, tileGroup.tile.civilianUnit, isCivilianShown, viewingCiv)
-        militaryUnitIcon = newUnitIcon(1, tileGroup.tile.militaryUnit, isMilitaryShown, viewingCiv)
+        civilianUnitIcon = newUnitIcon(0, tileGroup.tileView.civilianUnit, isCivilianShown, viewingCiv)
+        militaryUnitIcon = newUnitIcon(1, tileGroup.tileView.militaryUnit, isMilitaryShown, viewingCiv)
     }
 
     override fun doUpdate(viewingCiv: CivView?) {
@@ -162,11 +158,8 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         fillSlots(viewingCiv)
 
         if (viewingCiv != null) {
-            val unitsInTile = tile.getUnits()
-            val shouldBeHighlighted = unitsInTile.any()
-                    && unitsInTile.first().civ.isAtWarWith(viewingCiv.getCiv())
+            val shouldBeHighlighted = tileGroup.tileView.getVisibleUnits().any { it.civ().isAtWarWith(viewingCiv) }
                     && isViewable(viewingCiv)
-                    && showMilitaryUnit(viewingCiv)
             if (shouldBeHighlighted)
                 highlightRed()
         }

@@ -89,8 +89,6 @@ open class TileGroup(
         layerTerrain.update(null)
     }
 
-    open fun clone() = TileGroup(tileView, tileSetStrings)
-
     fun isViewable(viewingCiv: CivView) = isForceVisible
             || viewingCiv.canSeeTile(tileView)
             || viewingCiv.isSpectator()
@@ -128,7 +126,7 @@ open class TileGroup(
 
         // Do not update layers if tile is not explored by viewing player
         if (viewingCiv != null && !(isForceVisible || viewingCiv.hasExplored(tileView))) {
-            if (tileView.neighbors.none { viewingCiv.hasExplored(it) }) {
+            if (tileView.getVisibleNeighbors().none()) {
                 // No explored neighbors - hide all layers
                 setAllLayersVisible(false)
             } else {
@@ -142,8 +140,6 @@ open class TileGroup(
 
         setAllLayersVisible(true)
 
-        removeMissingModReferences()
-
         // Tile notes (map pins): show note text on the tile when enabled
         updateTileNoteLabel()
 
@@ -155,11 +151,6 @@ open class TileGroup(
         if (!UncivGame.Current.settings.showTileNotes) return
         val gameInfo = UncivGame.Current.gameInfo ?: return
         tileNoteText = UnitNotesManager.getTileNote(gameInfo, tile.position.x, tile.position.y)
-    }
-
-    private fun removeMissingModReferences() {
-        for (unit in tileView.getTile().getUnits())
-            if (!tileView.getRuleset().nations.containsKey(unit.owner)) unit.removeFromTile()
     }
 
     override fun draw(batch: Batch?, parentAlpha: Float) { super.draw(batch, parentAlpha) }
