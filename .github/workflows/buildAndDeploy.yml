@@ -114,6 +114,19 @@ jobs:
         run: |
           ./gradlew server:dist
 
+      - name: Build Unciv Lua API VSCode extension (vsix)
+        run: |
+          mkdir -p deploy
+          cd unciv-lua-api
+          npx --yes @vscode/vsce package --out ../deploy/unciv-lua-api-${{ github.ref_name }}.vsix
+
+      - name: Upload Lua API extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: UncivLuaAPI
+          path: deploy/unciv-lua-api-*.vsix
+          if-no-files-found: error
+
       - name: Upload Server
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -289,11 +302,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout repository (unciv-lua-api extension sources)
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: unciv-lua-api
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
@@ -306,6 +314,7 @@ jobs:
           mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy/UncivCN-Linux64-${{ github.ref_name }}.zip
           mv UncivCNAPK/UncivCN-${{ github.ref_name }}.Apk deploy
           mv UncivServer/UncivServer.jar deploy/UncivServer-${{ github.ref_name }}.jar
+          mv UncivLuaAPI/unciv-lua-api-*.vsix deploy/
           [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy/UncivCN-${{ github.ref_name }}.msi || true
 
       # 模组作者 VSCode 扩展（薄拉取器）：从文档站实时拉取最新 lua-api 定义，
