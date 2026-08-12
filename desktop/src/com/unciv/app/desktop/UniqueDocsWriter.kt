@@ -11,7 +11,9 @@ import com.unciv.models.translations.getPlaceholderParameters
 import com.unciv.utils.Log
 import java.io.File
 
-class UniqueDocsWriter {
+class UniqueDocsWriter : DocsWriter() {
+    override val outputFileName get() = uniqueTypesFileName
+    override val outputZhFileName get() = uniqueTypesZhFileName
     companion object {
         /** Where the UniqueType file is to be overwritten,
          *  relative to the current (assets) directory (not incluenced by `--data-dir=`). */
@@ -143,31 +145,19 @@ class UniqueDocsWriter {
         }
     }
 
-    fun write() {
-        writeUniqueTypes(uniqueTypesFileName, language = null)
+    override fun write() {
+        super.write()
         writeCountables()
     }
 
     /** Generate the Chinese uniques list (overwrites docs/zh/开发者专区/模组开发/Unique能力列表.md). */
-    fun writeChinese() {
-        writeUniqueTypes(uniqueTypesZhFileName, language = "Simplified_Chinese")
+    override fun writeChinese() {
+        super.writeChinese()
+        writeCountables()
     }
 
-    private fun loadTranslations(language: String): Map<String, String> {
-        val file = File("jsons/translations/$language.properties")
-        if (!file.exists()) return emptyMap()
-        val translations = LinkedHashMap<String, String>()
-        for (line in file.readLines(Charsets.UTF_8)) {
-            if (line.isBlank() || line.startsWith('#')) continue
-            val split = line.split(" = ", limit = 2)
-            if (split.size == 2 && split[1].isNotEmpty()) {
-                translations[split[0].replace("\\n", "\n")] = split[1].replace("\\n", "\n")
-            }
-        }
-        return translations
-    }
-
-    private fun writeUniqueTypes(outputFileName: String, language: String?) {
+    /** 纯生成 uniques 文档全文（英文或中文版），写盘交给基类 */
+    override fun generate(language: String?): String {
         val translations = language?.let { loadTranslations(it) } ?: emptyMap()
         fun tr(text: String) = translations[text] ?: text
         fun doc(text: String) = docsSentence(text, language)
@@ -296,7 +286,7 @@ class UniqueDocsWriter {
             lines += "| `" + paramType.parameterName + "` | " + description + " |"
         }
 
-        File(outputFileName).writeText(lines.joinToString("\n"))
+        return lines.joinToString("\n")
     }
 
     private fun writeCountables() {

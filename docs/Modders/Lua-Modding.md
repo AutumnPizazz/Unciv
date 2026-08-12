@@ -92,7 +92,7 @@ Combine `TriggerLuaFunction` with trigger conditions for per-turn execution. Pla
 Also supported: `<upon discovering [techFilter] technology>`, `<upon conquering a city>`, `<upon founding a city>`, etc.
 Also supported: `<upon completing a trade with [civFilter] Civilizations>` fires for both sides of any accepted trade (including AI auto-accepted ones). Other warfare/diplomacy hooks: `<upon declaring war on [civFilter] Civilizations>`, `<upon being declared war on by [civFilter] Civilizations>`, `<upon entering a war with [civFilter] Civilizations>`, `<upon signing a peace treaty with [civFilter] Civilizations>`, `<upon losing a city>`.
 
-### Unique Syntax
+## Unique Syntax
 
 ```
 "Trigger the function [luaFunction] with [parameter]"
@@ -124,168 +124,13 @@ Countable expressions are resolved to strings before Lua execution. For example,
 
 ## API Reference
 
-### civ — Civilization
+The complete list of every context-table function and property is generated from the game code and can never go stale — see [Lua API Reference](Lua-API-Reference.md).
 
-**Identity properties**: `id`, `name`, `isHuman`, `isAI`, `isAlive`, `isMajorCiv`, `isCityState`, `isBarbarian`, `isSpectator`
+The sections below cover specific topics in depth:
 
-**Methods**:
+## unit.base — Unit Template
 
-```lua
--- Stats
-civ.getGold()                        -- Gold
-civ.getHappiness()                   -- Happiness
-civ.getStat("Science")               -- Stat reserve value
-civ.getStatYield("Production")       -- Per-turn yield
-civ.getGoldPerTurn()                 -- Net gold per turn
-civ.getResourceAmount("Iron")        -- Stockpiled resource amount
-civ.getResourceStockpiles()        -- Table {resourceName = amount}
-civ.hasResource("Horses")            -- Has at least 1
-civ.getEra()                         -- Era name
-civ.getEraNumber()                   -- 0-based era index
-civ.getCityCount()                   -- Number of cities
-civ.getNation()                      -- Nation name
-civ.getLeaderName()                  -- Leader name
-civ.getScore()                       -- Current score
-civ.getForce()                       -- Military might ranking value
-civ.getSciencePerTurn()              -- Net science per turn
-civ.getCulturePerTurn()              -- Net culture per turn
-civ.getFoodPerTurn()                 -- Net food per turn
-civ.getProductionPerTurn()           -- Net production per turn
-
--- Tech
-civ.isResearched("Agriculture")      -- Has researched
-civ.canResearch("Philosophy")        -- Can research
-civ.getResearchingTech()             -- Currently researching tech name
-civ.getResearchProgress("Writing")   -- Accumulated science
-civ.getTechCount()                   -- Number of researched techs
-civ.getTechCost("Philosophy")        -- Base research cost of a tech
-civ.getTechsResearched()             -- List of researched tech names
-civ.getAvailableTechs()              -- List of available tech names
-civ.grantTech("Agriculture")         -- Instantly grant a tech
-
--- Policies
-civ.hasPolicy("Oligarchy")           -- Has adopted
-civ.canAdoptPolicy()                 -- Can adopt any policy
-civ.getAdoptedPolicyCount()          -- Number of adopted policies
-civ.getAdoptedPolicies()             -- List of adopted policy names
-civ.getAvailablePolicyBranches()     -- List of all policy branch names
-civ.getCultureNeededForNextPolicy() -- Culture needed for the next policy
-civ.grantPolicy("Oligarchy")         -- Instantly adopt a policy
-
--- Diplomacy
-civ.isAtWarWith("Greece")            -- At war
-civ.hasOpenBordersWith("Greece")     -- Open borders
-civ.isAlliedWith("City-State")       -- Allied city-state
-civ.getDiplomaticStatus("Greece")    -- Diplomatic status string
-civ.getInfluence("City-State")       -- Influence with city-state
-civ.getKnownCivs()                   -- Known civilization names
-civ.addInfluence("City-State", 15)   -- Add influence
-civ.declareWarOn("Greece")           -- Declare war
-civ.getDiplomaticStatuses()         -- Table {civName = statusName} for all known civs
-civ.getProximityTo("Greece")         -- Proximity string (None/Neighbors/Close/Far)
-civ.hasEmbassyWith("Greece")         -- Embassy established either way
-civ.makePeaceWith("Greece")          -- Sign peace (no-op when not at war)
-
--- Religion
-civ.hasReligion()                    -- Founded a religion
-civ.getReligionName()                -- Religion name
-civ.getFaith()                       -- Faith amount
-
--- Units & Cities
-civ.getCities()                      -- List of city tables
-civ.getCity("Rome")                  -- City table by name
-civ.getCapital()                     -- Capital city table
-civ.getCityNames()                  -- List of city names
-civ.getTotalPopulation()             -- Sum of all city populations
-civ.getWondersBuilt()                -- List of built wonder names
-civ.getUnits()                       -- List of unit tables
-civ.getUnitsMatching("Melee")        -- Filter units by type
-civ.getUnitCount()                   -- Total unit count
-civ.getSpyCount()                    -- Spy count
-civ.getSpies()                      -- List of {name, rank, action, location} tables
-civ.addSpy()                        -- Add a spy
-
--- Golden Age
-civ.isGoldenAge()                    -- In a golden age
-civ.getGoldenAgeTurnsRemaining()     -- Turns remaining
-
--- Unique lookup (searches: nation + researched techs + adopted policies + current era)
-civ.hasUnique("unique text")
-
--- Write operations
-civ.addGold(500)
-civ.setGold(500)                    -- Set gold to exactly this amount
-civ.addStat("Science", 100)
-civ.addStats("+2 Gold, +3 Culture")
-civ.addResource("Iron", 5)
-civ.consumeResource("Iron", 2)
-civ.triggerGoldenAge(10)
-civ.grantFreeGreatPerson()
-civ.setLeaderTitle("Emperor")
-civ.getLeaderTitle()                 -- Current leader title
-civ.addNotification("text")
-civ.addNotificationAt("text", x, y)
-civ.addFreeTech()
-civ.addUnit("Warrior")
-civ.addUnitAtCity("Warrior", "Rome")
-civ.addUnitAtTile("Warrior", 10, 5)
-civ.addRebelUnit("Barbarian Axeman")
-```
-
-### city — City
-
-**Properties**: `id`, `name`, `isCapital`, `isCoastal`, `isPuppet`, `isBeingRazed`, `isConnectedToCapital`, `population`, `health`
-
-```lua
--- Queries
-city.getStatYield("Production")      -- Single stat yield
-city.getAllYields()                  -- All yields as a table
-city.getFood()                      -- Current food yield
-city.getFoodSurplus()               -- Net food per turn (negative when starving)
-city.getFoodStorage()               -- Stored food toward growth
-city.getFoodNeeded()                -- Food needed for the next population
-city.getProductionProgress()        -- Production already invested in current construction
-city.getProductionCost()            -- Total production cost of current construction
-city.getTurnsToCompletion()         -- Estimated turns to finish current construction
-city.getGarrisonedUnit()            -- Garrison unit table (or nil)
-city.getStrength()                  -- City combat strength
-city.getSpecialistCount()           -- Assigned specialists
-city.getUnemployedCount()           -- Free (unassigned) population
-city.getBuiltWonders()              -- Built wonder names
-city.isInResistance()               -- City is in resistance after conquest
-city.hasBuilding("Library")          -- Has building
-city.getBuiltBuildings()             -- List of built building names
-city.getBuildingCount()              -- Total building count
-city.getWonderCount()                -- Wonder count
-city.getPosition()                   -- {x, y} coordinate table
-city.getCenterTile()                 -- City center tile object
-city.getTiles()                      -- Owned tile coordinates
-city.getCurrentConstruction()        -- Currently producing item name
-city.getConstructionQueue()          -- Construction queue
-city.getMajorityReligion()           -- Majority religion name
-city.isHolyCity()                    -- Is a holy city
-city.hasUnique("unique text")        -- Check built buildings for this unique
-
--- Write operations
-city.addPopulation(1)
-city.setPopulation(5)               -- Set population exactly (min 1)
-city.addFood(10)                    -- Add stored food
-city.addProduction(10)              -- Add production to current construction
-city.addHealth(25)                  -- Heal the city
-city.setName("New Rome")            -- Rename the city
-city.addBuilding("Library")
-city.removeBuilding("Library")
-city.sellBuilding("Library")         -- Sell a building for gold
-city.setProduction("Library")
-city.addToQueue("Walls")
-city.clearQueue()
-```
-
-### unit — Unit
-
-**Properties**: `id`, `name`, `instanceName`, `isCivilian`, `isMilitary`, `isRanged`, `isEmbarked`, `isFortified`, `isAutomated`, `health`
-
-**`unit.base` sub-table (read-only unit template)**:
+The `unit.base` sub-table is read-only and holds the unit template (type definition):
 
 ```lua
 unit.base.name              -- "Warrior"
@@ -304,199 +149,7 @@ unit.base.uniqueTo          -- Exclusive civilization name
 unit.base.promotions        -- Initial promotion names
 ```
 
-```lua
--- Queries
-unit.getRange()
-unit.getMovement()
-unit.getCurrentMovement()
-unit.getXP()
-unit.getMaxHealth()                 -- 100 (max HP)
-unit.getDamage()                    -- Max health minus current health
-unit.getAttacksLeft()               -- Attacks remaining this turn
-unit.getVisibilityRange()           -- Sight range in tiles
-unit.getAction()                    -- Current action string ("Fortify", "moveTo x,y", ...)
-unit.canAttack()                    -- Can attack this turn
-unit.canPillage()                   -- Current tile has something to pillage
-unit.isInEnemyTerritory()           -- Standing in enemy territory
-unit.isInFriendlyTerritory()        -- Standing in own territory
-unit.isGreatPerson()                -- Is a great person
-unit.getReligionDisplayName()       -- Religion of this unit ("" if none)
-unit.hasPromotion("Shock I")
-unit.getPromotions()
-unit.getPromotionCount()
-unit.hasStatus("Fortification")
-unit.getStatusTurns("Fortification")
-unit.getPosition()                   -- {x, y}
-unit.canMoveTo(x, y)
-unit.getOwner()
-unit.isOwnedBy("Rome")
-unit.hasUnique("unique text")        -- Searches unit type + promotion uniques
-
--- Write operations
-unit.healBy(25)
-unit.takeDamage(30)
-unit.addXP(10)
-unit.setXP(30)                      -- Set XP exactly
-unit.setHealth(75)                  -- Set health exactly (clamped)
-unit.addPromotion("Shock I")
-unit.removePromotion("Shock I")
-unit.addMovement(2)
-unit.useMovement(1.5)
-unit.setStatus("Test", 3)           -- Apply a unit status for N turns
-unit.setAttacksLeft(0)              -- Set attacks remaining
-unit.fortify()                      -- Fortify (action = "Fortify")
-unit.moveByPath(path)               -- Move along a findPathTo() path; returns steps taken
-unit.upgrade()
-unit.destroy()
-unit.teleportTo(x, y)
-
--- Pathfinding
-unit.canReach(x, y)                  -- Can reach target
-unit.findPathTo(x, y)                -- Returns {{x,y}, {x,y}, ...} or nil
-
--- Combat
-local result = unit.attackTile(x, y)
--- Returns {attackerDamage=n, defenderDamage=m} or false (not attackable)
-```
-
-### tile — Tile
-
-**Properties**: `position`, `baseTerrain`, `isLand`, `isWater`, `resourceName`, `resourceAmount`, `improvementName`
-
-```lua
--- Queries
-tile.getX(), tile.getY()
-tile.isCoast()
-tile.isHill()
-tile.isMountain()
-tile.hasTerrainFeature("Forest")
-tile.getTerrainFeatures()
-tile.isImpassable()
-tile.isRiver()
-tile.isAdjacentToCoast()
-tile.hasRoad()
-tile.hasRailroad()
-tile.hasNaturalWonder()
-tile.getNaturalWonder()             -- Name or ""
-tile.isFriendlyTerritory("Rome")
-tile.isEnemyTerritory("Rome")
-tile.getDistanceTo(x, y)            -- Aerial distance in tiles (-1 if out of map)
-tile.isAdjacentTo(x, y)
-tile.setExplored("Rome", true)
-tile.hasResource()
-tile.hasImprovement()
-tile.isPillaged()
-tile.getYield()                      -- Returns {Food=2, Production=1, ...}
-tile.isOwned()
-tile.getOwner()
-tile.isOwnedBy("Rome")
-tile.isCityCenter()
-tile.getOwningCity()
-tile.isExploredBy("Rome")
-tile.hasMilitaryUnit()
-tile.hasCivilianUnit()
-tile.getUnits()
-tile.getNeighbors()
-tile.getNeighborAt(0)
-tile.getTilesInDistance(3)
-
--- Write operations
-tile.setTerrain("Plains")
-tile.addTerrainFeature("Forest")
-tile.removeTerrainFeature("Forest")
-tile.setImprovement("Farm")
-tile.removeImprovement()
-tile.removeResource()
-tile.setResource("Iron", 6)
-tile.setRoad()
-tile.setRailroad()
-tile.removeRoad()
-```
-
-### game — Global
-
-**Properties**: `turn`, `speed`, `difficulty`
-
-```lua
--- Queries
-game.getYear()
-game.getCurrentPlayer()
-game.getCurrentPlayerCiv()          -- Current player civ table (or nil)
-game.getCivNames()                  -- All civilization names
-game.getHumanCivs()                 -- Human civilizations
-game.getCiv("Rome")
-game.getCivById("uuid...")
-game.getAllCivs()
-game.getAliveMajorCivs()
-game.getAliveCityStates()
-game.getBarbarianCiv()
-
--- Map
-game.getTile(x, y)
-game.getMapWidth()
-game.getMapHeight()
-game.getMapName()
-game.getMapType()
-game.getEraNames()
-game.getVictoryTypes()
-game.getMods()
-game.getBaseRuleset()
-game.isWrapped()
-game.getTilesNear(x, y, radius)
-
--- Tile search
-game.findTiles({
-    terrain = "Grassland",      -- Base terrain
-    terrainFeature = "Forest",  -- Terrain feature
-    resource = "Iron",          -- Resource name
-    improvement = "Farm",       -- Improvement name
-    owned = false,              -- Is owned
-    owner = "Rome",             -- Owner civilization name
-    isCoast = true,             -- Coast tile
-    isLand = true,              -- Land tile
-    isWater = true,             -- Water tile
-    isHill = true,              -- Hill tile
-    maxResults = 10,            -- Result limit (default 500)
-    centerX = 10, centerY = 15,  -- Used with maxDistance
-    maxDistance = 5             -- Spatial range constraint
-})
-
--- Ruleset queries
-game.getRulesetBuildings()
-game.getRulesetUnits()
-game.getRulesetTechs()
-game.getRulesetPolicies()
-game.getRulesetEras()
-game.getRulesetPromotions()
-game.getRulesetTerrains()
-game.getRulesetResources()
-game.getRulesetImprovements()
-game.getRulesetNations()
-game.getRulesetReligions()
-game.getRulesetBeliefs()
-game.getRulesetEvents()
-game.getRulesetNaturalWonders()
-game.getRulesetUnitTypes()
-game.doesBuildingExist("Name")
-game.doesUnitExist("Name")
-game.doesTechExist("Name")
-game.doesPolicyExist("Name")
-game.doesEraExist("Name")
-game.doesPromotionExist("Name")
-game.doesTerrainExist("Name")
-game.doesResourceExist("Name")
-game.doesImprovementExist("Name")
-game.doesNationExist("Name")
-game.doesBeliefExist("Name")
-game.doesEventExist("Name")
-
--- Write operations
-game.addGlobalNotification("text")
-game.revealEntireMap("Rome")
-game.revealTilesAround("Rome", x, y, radius)
-```
-
-### game.findTiles — Tile Search
+## game.findTiles — Tile Search
 
 `findTiles` takes a Lua table of criteria and returns a list of matching tiles. Supported keys:
 
@@ -532,7 +185,7 @@ local nearbyForest = game.findTiles({
 local ownedCoastal = game.findTiles({ isCoast = true, owned = true })
 ```
 
-### ctx.store — Persistent Storage
+## ctx.store — Persistent Storage
 
 Cross-turn, cross-save key-value storage, automatically isolated per mod. All values are stored as strings:
 
@@ -544,7 +197,7 @@ local num = tonumber(ctx.store.get("count", "0"))
 
 Storage data is saved in the game file and persists across save/load cycles.
 
-### ctx.evaluateConditional — Conditional Evaluation
+## ctx.evaluateConditional — Conditional Evaluation
 
 Reuses Unciv's built-in conditional system:
 
@@ -560,7 +213,7 @@ if ctx.evaluateConditional("when number of [Cities] is greater than [5]") then
 end
 ```
 
-## Complete Example## Lua Conditions
+## Lua Conditions
 
 Beyond runtime evaluation via `ctx.evaluateConditional`, you can plug a Lua function **directly into the unique condition system**. Any unique can use the condition
 
@@ -667,7 +320,7 @@ You now get: `ctx.` autocompletion (civ/city/unit/tile/game/store), method-name 
 
 > **Limitations**: the definition file is generated from the API catalog with best-effort signatures - parameter/return types are precise for common patterns and loose (`fun(...)`) for the rest. When in doubt, trust the in-game mod checker or `mod-ci` (they are authoritative), and check the function's actual behavior in-game.
 
-## Notes## Lua Map Scripts
+## Lua Map Scripts
 
 Since the map-generation rewrite, mods can provide **entire map generators in Lua**. A mod whose `scripts/` folder defines these two functions shows up as a new map type:
 

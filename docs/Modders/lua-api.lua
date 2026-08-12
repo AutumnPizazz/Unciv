@@ -240,8 +240,8 @@
 ---@field isOwned fun(): boolean
 ---@field getOwner fun(): string
 ---@field isOwnedBy fun(civName: string): boolean
----@field isFriendlyTerritory fun(...)
----@field isEnemyTerritory fun(...)
+---@field isFriendlyTerritory fun(civName: string): boolean
+---@field isEnemyTerritory fun(civName: string): boolean
 ---@field isCityCenter fun(): boolean
 ---@field getOwningCity fun(): string
 ---@field isExploredBy fun(civName: string): boolean

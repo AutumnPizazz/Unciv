@@ -138,181 +138,15 @@ civ:addGold(500)
 
 ## API 参考
 
-### civ — 文明
+每个上下文表的全部函数与属性列表由游戏代码自动生成、永不落后于实现——见 [Lua API 参考](Lua-API-Reference.md)。
 
-**属性（直接读取）**：
+以下章节深入讲解特定主题：
 
-| 属性 | 类型 | 说明 |
-|------|------|------|
-| `id` | string | 文明唯一 ID |
-| `name` | string | 文明名称 |
-| `isHuman`, `isAI`, `isAlive`, `isMajorCiv`, `isCityState`, `isBarbarian`, `isSpectator` | boolean | 身份标志 |
+## unit.base — 单位模板
 
-**方法**：
+`unit.base` 子表为只读，保存单位模板（类型定义）：
 
 ```lua
--- 属性查询
-civ.getStat("Science")             -- 返回属性储备值
-civ.getStatYield("Production")     -- 返回每回合产出
-civ.getGoldPerTurn()               -- 返回每回合金币净收入
-civ.getResourceAmount("Iron")      -- 返回资源库存
-civ.getResourceStockpiles()        -- 资源库存表 {资源名 = 数量}
-civ.hasResource("Horses")          -- 是否有 ≥1
-civ.getEraNumber()                 -- 0-based 时代序号
-civ.getNation()                    -- 文明（nation）名
-civ.getLeaderName()                -- 领袖名
-civ.getScore()                     -- 当前分数
-civ.getForce()                     -- 军力排名值
-civ.getSciencePerTurn()            -- 每回合科研
-civ.getCulturePerTurn()            -- 每回合文化
-civ.getFoodPerTurn()               -- 每回合食物
-civ.getProductionPerTurn()         -- 每回合产能
-
--- 科技
-civ.isResearched("Agriculture")    -- 是否已研究
-civ.canResearch("Philosophy")      -- 能否研究
-civ.getResearchingTech()           -- 当前研究中的科技名
-civ.getResearchProgress("Writing") -- 已有烧瓶数
-civ.getTechsResearched()           -- 返回已研究科技名列表
-civ.getTechCost("Philosophy")        -- 科技基础研究成本
-civ.getAvailableTechs()            -- 可研究科技名列表
-civ.grantTech("Agriculture")       -- 直接授予科技
-
--- 政策
-civ.hasPolicy("Oligarchy")         -- 是否已采纳
-civ.canAdoptPolicy()               -- 是否有可采纳的政策
-civ.getAdoptedPolicies()           -- 已采纳政策名列表
-civ.getCultureNeededForNextPolicy() -- 下一个政策所需文化
-civ.grantPolicy("Oligarchy")       -- 直接采纳政策
-
--- 外交
-civ.isAtWarWith("Greece")          -- 是否交战
-civ.hasOpenBordersWith("Greece")   -- 是否有开放边界
-civ.isAlliedWith("City-State")     -- 是否为盟友（城邦）
-civ.getDiplomaticStatus("Greece")  -- 外交状态字符串
-civ.getInfluence("City-State")     -- 城邦影响力数值
-civ.getKnownCivs()                 -- 已知文明名列表
-civ.addInfluence("City-State", 15) -- 增加城邦影响力
-civ.declareWarOn("Greece")         -- 宣战
-civ.getDiplomaticStatuses()         -- 外交状态表 {文明名 = 状态名}
-civ.getProximityTo("Greece")         -- 邻近度字符串（None/Neighbors/Close/Far）
-civ.hasEmbassyWith("Greece")         -- 是否已互设大使馆
-civ.makePeaceWith("Greece")          -- 签订和平（不在战时则为空操作）
-
--- 宗教
-civ.hasReligion()                  -- 是否已创建宗教
-civ.getReligionName()              -- 宗教名
-civ.getFaith()                     -- 信仰值
-
--- 单位 & 城市
-civ.getCities()                    -- 城市表列表
-civ.getCity("Rome")               -- 按名称获取城市表
-civ.getCapital()                   -- 首都城市表
-civ.getCityNames()                  -- 城市名列表
-civ.getTotalPopulation()             -- 所有城市人口总和
-civ.getWondersBuilt()                -- 已建造的奇观名列表
-civ.getUnits()                     -- 单位表列表
-civ.getUnitsMatching("Melee")      -- 按 filter 筛选单位
-civ.getUnitCount()                 -- 单位总数
-civ.getSpyCount()                  -- 间谍数量
-civ.getSpies()                      -- 间谍详情表列表 {name, rank, action, location}
-civ.addSpy()                        -- 增加一名间谍
-
--- 黄金时代
-civ.isGoldenAge()                  -- 是否在黄金时代
-civ.getGoldenAgeTurnsRemaining()   -- 剩余回合
-
--- 写操作
-civ.addGold(500)                   -- 增加金币
-civ.setGold(500)                   -- 将金币设为精确值
-civ.addStat("Science", 100)        -- 增加属性
-civ.addStats("+2 Gold, +3 Culture") -- 复合属性变化
-civ.addResource("Iron", 5)         -- 增加战略资源
-civ.consumeResource("Iron", 2)     -- 消耗战略资源
-civ.triggerGoldenAge(10)           -- 进入 N 回合黄金时代
-civ.triggerGoldenAge()             -- 默认长度黄金时代
-civ.grantFreeGreatPerson()         -- 免费伟人
-civ.setLeaderTitle("Emperor")      -- 修改领袖头衔
-civ.addNotification("text")        -- 弹出游戏内通知
-civ.addNotificationAt("text", x, y) -- 可点击跳转的通知
-civ.addFreeTech()                  -- 免费科技点数
-civ.addUnit("Warrior")             -- 生成单位
-civ.addUnitAtCity("Warrior", "Rome") -- 在指定城市生成单位
-civ.addUnitAtTile("Warrior", 10, 5)  -- 在指定坐标生成单位
-civ.addRebelUnit("Barbarian Axeman") -- 生成叛军
-
--- unique 查询
-civ.hasUnique("unique text")         -- 文明是否拥有此 unique（搜索范围：nation + 已研究科技 + 已采纳政策 + 当前时代）
-```
-
-### city — 城市
-
-```lua
--- 属性
-city.id, city.name                 -- ID 和名称
-city.isCapital, city.isCoastal     -- 身份
-city.isPuppet, city.isBeingRazed   -- 状态
-city.isConnectedToCapital          -- 是否连接到首都
-city.population, city.health       -- 人口和血量
-
--- 查询
-city.getStatYield("Production")    -- 单项产出
-city.getAllYields()                -- 所有产出表
-city.getFood()                      -- 当前食物产出
-city.getFoodSurplus()               -- 每回合净食物（负数为饥荒）
-city.getFoodStorage()               -- 已存食物（用于人口增长）
-city.getFoodNeeded()                -- 下一个人口所需食物
-city.getProductionProgress()        -- 当前建造已投入产能
-city.getProductionCost()            -- 当前建造总成本
-city.getTurnsToCompletion()         -- 预计完成回合数
-city.getGarrisonedUnit()            -- 驻军单位表（无则 nil）
-city.getStrength()                  -- 城市战斗力
-city.getSpecialistCount()           -- 已分配专家数
-city.getUnemployedCount()           -- 空闲（未分配）人口
-city.getBuiltWonders()              -- 已建造奇观名列表
-city.isInResistance()               -- 征服后是否处于抵抗
-city.hasBuilding("Library")        -- 是否有某建筑
-city.getBuiltBuildings()           -- 已建成建筑名列表
-city.getBuildingCount()            -- 建筑总数
-city.getWonderCount()              -- 奇观数
-city.getPosition()                 -- {x, y} 坐标表
-city.getCenterTile()               -- 城市中心 tile 对象
-city.getTiles()                    -- 拥有的地块坐标列表
-city.getCurrentConstruction()      -- 当前建设中项目名
-city.getConstructionQueue()        -- 建设队列
-city.getMajorityReligion()         -- 多数宗教名
-city.isHolyCity()                  -- 是否为圣城
-
--- 写操作
-city.addPopulation(1)              -- 增加人口
-city.setPopulation(5)               -- 精确设置人口（最低 1）
-city.addFood(10)                    -- 增加存粮
-city.addProduction(10)              -- 增加当前建造产能
-city.addHealth(25)                  -- 治疗城市
-city.setName("新罗马")               -- 城市改名
-city.addBuilding("Library")        -- 免费建造
-city.removeBuilding("Library")     -- 移除建筑
-city.sellBuilding("Library")       -- 出售建筑换取金币
-
--- 建造队列
-city.setProduction("Library")      -- 将当前建造项目设为指定项目
-city.addToQueue("Walls")           -- 追加到建造队列末尾
-city.clearQueue()                  -- 清空整个建造队列
-
--- unique 查询
-city.hasUnique("unique text")      -- 已建建筑中是否有此 unique
-```
-
-### unit — 单位
-
-```lua
--- 属性
-unit.id, unit.name, unit.instanceName
-unit.isCivilian, unit.isMilitary, unit.isRanged
-unit.isEmbarked, unit.isFortified, unit.isAutomated
-unit.health
-
--- base 子表（单位模板属性，只读）
 unit.base.name                     -- 单位名（如 "Warrior"）
 unit.base.strength                 -- 近战战斗力
 unit.base.rangedStrength           -- 远程战斗力（0 表示非远程）
@@ -327,188 +161,9 @@ unit.base.upgradesTo               -- 升级目标单位名
 unit.base.replaces                 -- 替代单位名
 unit.base.uniqueTo                 -- 专属文明名
 unit.base.promotions               -- 初始晋升名列表
-
--- 查询
-unit.getRange()                    -- 射程
-unit.getMovement()                 -- 最大移动力
-unit.getCurrentMovement()          -- 剩余移动力
-unit.getXP()                       -- 经验值
-unit.getMaxHealth()                 -- 100（最大生命）
-unit.getDamage()                    -- 最大生命减当前生命
-unit.getAttacksLeft()               -- 本回合剩余攻击次数
-unit.getVisibilityRange()           -- 视野范围（格）
-unit.getAction()                    -- 当前行动字符串（"Fortify"、"moveTo x,y" 等）
-unit.canAttack()                    -- 本回合能否攻击
-unit.canPillage()                   -- 当前地块是否可掠夺
-unit.isInEnemyTerritory()           -- 是否处于敌方领土
-unit.isInFriendlyTerritory()        -- 是否处于己方领土
-unit.isGreatPerson()                -- 是否为伟人
-unit.getReligionDisplayName()       -- 单位宗教名（无则为 ""）
-unit.hasPromotion("Shock I")       -- 是否有晋升
-unit.hasUnique("unique text")      -- 单位是否拥有此 unique（含 unit type + 晋升）
-unit.getPromotions()               -- 晋升名列表
-unit.getPromotionCount()           -- 晋升数量
-unit.hasStatus("Fortification")    -- 是否有状态
-unit.getStatusTurns("Fortification") -- 状态剩余回合
-unit.getPosition()                 -- {x, y} 坐标表
-unit.canMoveTo(x, y)               -- 能否移动到
-unit.getOwner()                    -- 所属文明名
-unit.isOwnedBy("Rome")             -- 是否属于某文明
-
--- 写操作
-unit.healBy(25)                    -- 回复血量
-unit.takeDamage(30)                -- 造成伤害
-unit.addXP(10)                     -- 增加经验
-unit.setXP(30)                      -- 精确设置经验
-unit.setHealth(75)                  -- 精确设置生命（自动限制范围）
-unit.addPromotion("Shock I")       -- 添加晋升
-unit.removePromotion("Shock I")    -- 移除晋升
-unit.addMovement(2)                -- 增加移动力
-unit.useMovement(1.5)              -- 消耗移动力
-unit.setStatus("Test", 3)           -- 施加 N 回合的单位状态
-unit.setAttacksLeft(0)              -- 设置剩余攻击次数
-unit.fortify()                      -- 驻防（action = "Fortify"）
-unit.moveByPath(path)               -- 沿 findPathTo() 的路径移动；返回实际步数
-unit.upgrade()                     -- 免费升级
-unit.destroy()                     -- 摧毁单位
-unit.teleportTo(x, y)              -- 传送
-unit.attackTile(x, y)              -- 攻击目标坐标上的单位/城市
-                                   -- 返回 {attackerDamage=n, defenderDamage=m} 或 false（不可攻击）
-
--- 路径查找
-unit.canReach(x, y)                -- 能否到达目标坐标
-unit.findPathTo(x, y)              -- 返回路径坐标列表 {{x,y}, {x,y}, ...} 或 nil
 ```
 
-### tile — 地块
-
-```lua
--- 属性
-tile.position                      -- {x, y} 坐标表
-tile.baseTerrain                   -- 基础地形名
-tile.isLand, tile.isWater          -- 地形类型
-tile.resourceName, tile.resourceAmount
-tile.improvementName
-
--- 查询
-tile.getX(), tile.getY()           -- 坐标
-tile.isCoast(), tile.isHill()      -- 地形特征
-tile.hasTerrainFeature("Forest")   -- 是否有地形特征
-tile.getTerrainFeatures()          -- 地形特征列表
-tile.isImpassable()                -- 是否不可通行
-tile.isRiver()                     -- 是否为河流
-tile.isAdjacentToCoast()            -- 是否邻接海岸
-tile.hasRoad()                      -- 是否有道路
-tile.hasRailroad()                  -- 是否有铁路
-tile.hasNaturalWonder()             -- 是否有自然奇观
-tile.getNaturalWonder()             -- 自然奇观名（无则 ""）
-tile.isFriendlyTerritory("Rome")     -- 是否为己方领土
-tile.isEnemyTerritory("Rome")       -- 是否为敌方领土
-tile.getDistanceTo(x, y)            -- 空中直线距离（格，越界返回 -1）
-tile.isAdjacentTo(x, y)             -- 是否相邻
-tile.setExplored("Rome", true)      -- 设置/取消某文明对该地块的探索
-tile.hasResource()                 -- 是否有资源
-tile.hasImprovement()              -- 是否有改良设施
-tile.hasMilitaryUnit()             -- 是否有军事单位
-tile.hasCivilianUnit()             -- 是否有平民单位
-tile.getUnits()                    -- 地块上的单位表列表
-tile.getYield()                    -- 返回地块产出表 {Food=2, Production=1, Gold=0, ...}
-tile.isOwned()                     -- 是否被拥有
-tile.getOwner()                    -- 拥有者文明名
-tile.isOwnedBy("Rome")             -- 是否属于某文明
-tile.isCityCenter()                -- 是否为城市中心
-tile.getOwningCity()               -- 拥有城市名
-tile.isExploredBy("Rome")          -- 某文明是否已探索
-
--- 邻居（复杂条件判断的关键）
-tile.getNeighbors()                -- 相邻地块表列表
-tile.getNeighborAt(0)              -- 指定方向的相邻地块
-tile.getTilesInDistance(3)         -- 范围内所有地块
-
--- 写操作
-tile.setTerrain("Plains")          -- 改变基础地形
-tile.addTerrainFeature("Forest")   -- 添加地形特征
-tile.removeTerrainFeature("Forest") -- 移除地形特征
-tile.setImprovement("Farm")        -- 设置改良设施
-tile.removeImprovement()           -- 移除改良设施
-tile.removeResource()              -- 移除资源
-tile.setResource("Iron", 6)        -- 设置资源
-tile.setRoad()                     -- 修建道路
-tile.setRailroad()                 -- 修建铁路
-tile.removeRoad()                  -- 移除道路
-tile.isPillaged()                  -- 是否已被劫掠
-```
-
-### game — 全局
-
-```lua
--- 属性
-game.turn                          -- 当前回合数
-game.speed                         -- 游戏速度名
-game.difficulty                    -- 难度名
-
--- 查询
-game.getYear()                     -- 当前年份
-game.getCurrentPlayer()            -- 当前玩家文明名
-game.getCurrentPlayerCiv()          -- 当前玩家文明表（无则 nil）
-game.getCivNames()                  -- 所有文明名列表
-game.getHumanCivs()                 -- 人类文明列表
-game.getCiv("Rome")               -- 按名称获取文明表
-game.getCivById("uuid...")        -- 按 ID 获取文明表
-game.getAllCivs()                  -- 所有文明表列表
-game.getAliveMajorCivs()           -- 存活的 major 文明
-game.getAliveCityStates()          -- 存活的城邦
-game.getBarbarianCiv()             -- 蛮族文明
-
--- 地图
-game.getTile(x, y)                 -- 获取地块表
-game.getMapWidth(), game.getMapHeight()
-game.getMapName()                   -- 地图名
-game.getMapType()                   -- 地图类型
-game.getEraNames()                  -- 所有时代名
-game.getVictoryTypes()              -- 启用的胜利类型
-game.getMods()                      -- 启用的模组列表
-game.getBaseRuleset()               -- 基础规则集
-game.isWrapped()                   -- 地图是否环绕
-game.getTilesNear(x, y, radius)    -- 范围内地块
-game.findTiles(criteria)           -- 按条件搜索全图地块，见下方说明
-
--- 规则集查询
-game.getRulesetBuildings()         -- 所有建筑名列表
-game.getRulesetUnits()             -- 所有单位名列表
-game.getRulesetTechs()             -- 所有科技名列表
-game.getRulesetPolicies()          -- 所有政策名列表
-game.getRulesetEras()              -- 所有时代名列表
-game.getRulesetPromotions()        -- 所有晋升名列表
-game.getRulesetTerrains()          -- 地形名列表
-game.getRulesetResources()          -- 资源名列表
-game.getRulesetImprovements()       -- 改良名列表
-game.getRulesetNations()            -- 文明（nation）名列表
-game.getRulesetReligions()          -- 宗教名列表
-game.getRulesetBeliefs()            -- 信条名列表
-game.getRulesetEvents()             -- 事件名列表
-game.getRulesetNaturalWonders()     -- 自然奇观名列表
-game.getRulesetUnitTypes()          -- 单位类型名列表
-game.doesBuildingExist("Name")     -- 规则集中是否存在
-game.doesUnitExist("Name")         -- 规则集中是否存在
-game.doesTechExist("Name")          -- 科技是否存在
-game.doesPolicyExist("Name")        -- 政策是否存在
-game.doesEraExist("Name")           -- 时代是否存在
-game.doesPromotionExist("Name")     -- 晋升是否存在
-game.doesTerrainExist("Name")       -- 地形是否存在
-game.doesResourceExist("Name")      -- 资源是否存在
-game.doesImprovementExist("Name")   -- 改良是否存在
-game.doesNationExist("Name")        -- 文明（nation）是否存在
-game.doesBeliefExist("Name")        -- 信条是否存在
-game.doesEventExist("Name")         -- 事件是否存在
-
--- 写操作
-game.addGlobalNotification("text") -- 向所有人类玩家发通知
-game.revealEntireMap("Rome")       -- 对某文明揭示全地图
-game.revealTilesAround("Rome", x, y, radius)
-```
-
-### game.findTiles — 地块搜索
+## game.findTiles — 地块搜索
 
 `findTiles` 接受一个 Lua 表作为搜索条件，返回匹配的地块表列表。支持的条件键：
 
@@ -544,7 +199,7 @@ local nearbyForest = game.findTiles({
 local ownedCoastal = game.findTiles({ isCoast = true, owned = true })
 ```
 
-### ctx.store — 持久化存储
+## ctx.store — 持久化存储
 
 `ctx.store` 提供了一个跨回合、跨存档的键值存储，数据按模组自动隔离。所有值以 String 形式存储，需要数字时用 `tonumber()` 转换。
 
@@ -564,7 +219,7 @@ ctx.store.set("totalWars", tostring(wars))
 
 存储数据保存在存档文件中，随游戏进度一起持久化。每个模组的存储空间独立，不会互相干扰。
 
-### ctx.evaluateConditional — 条件求值
+## ctx.evaluateConditional — 条件求值
 
 复用 Unciv 内置的 conditional 系统，判断一个条件句在当前上下文中是否成立。
 
@@ -587,7 +242,7 @@ end
 
 支持的条件类型覆盖游戏内置的全部 conditional 格式（70+ 种），包括战争状态、科技/政策完成、资源数量比较、地形判断等。条件在调用 `triggerUnique` 时给定的文明/城市/单位上下文中求值。
 
-## 完整示例## Lua 条件（LuaConditional）
+## Lua 条件（LuaConditional）
 
 除了用 `ctx.evaluateConditional` 在运行时求值，你还可以把 Lua 函数**直接接入 unique 条件系统**。任何 unique 都可以使用条件：
 
@@ -696,7 +351,7 @@ end
 
 > **限制说明**：定义文件由生成器从 API 目录自动生成，参数/返回值标注是尽力而为——常见模式精确、其余为宽松的 `fun(...)`。拿不准时以游戏内模组检查器或 `mod-ci` 为准（它们才是权威），并在游戏中实测函数行为。
 
-## 注意事项## Lua 地图脚本
+## Lua 地图脚本
 
 模组现在可以**用 Lua 编写完整的地图生成器**。`scripts/` 文件夹中定义以下两个函数的模组会出现在地图类型选项中：
 

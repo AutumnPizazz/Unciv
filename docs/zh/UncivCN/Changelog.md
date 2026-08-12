@@ -10,6 +10,8 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 文档：Lua API 参考改为像 unique 文档一样由 Kotlin 数据表（`LuaApiDocs`）驱动生成——`lua-api.lua` 与新增的 `Lua-API-Reference.md`（中英两版）在新增 API 时由 `./gradlew desktop:generateDocs` 一并重新生成，面向模组作者的文档不再可能与实现漂移（新增同步测试）；教程页 `Lua-Modding.md`（中英）改为链接到生成的参考页；`UniqueDocsWriter` 与 Lua 文档生成器共用新的 `DocsWriter` 基类
+- 工具链：文档工具链不再依赖 Python——CI 链接检查（`check-docs-links.mjs`）与本地预览服务器（`preview-server.mjs`）改为 Node 脚本，一次性迁移脚本与上游 `mkdocs.yml`/mkdocs workflow 已删除（只需 JDK + Node）
 - Lua API：新增 `unit.getEraNumber()`（单位需求科技的最小时代序号，与 `{Era.X}` 单位过滤器语义一致）与 `civ.discoverTech()`（等价 `Discover [tech]` unique，绕过可研究性检查直接解锁，幂等）；已同步 EmmyLua 类型定义
 - 模组：CoeHarMod 活用 Lua 系统减负——将军/海军统帅光环由每伟人 9 条时代分段 unique 合并为 1 条 Lua 条件；AI 修正（60 条市政 Discover + 11 条资源/政策槽 Provides）收敛为 2 个回合钩子；AI 市政改为按时代增量解锁（ctx.store 记录进度）；清理注释掉的旧规则定义约 1900 行
 
