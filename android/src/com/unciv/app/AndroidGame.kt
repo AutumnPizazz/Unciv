@@ -1,14 +1,18 @@
 package com.unciv.app
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Debug
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.android.AndroidGraphics
@@ -127,6 +131,29 @@ class AndroidGame(private val activity: Activity) : UncivGame() {
             activity.startActivity(installIntent)
         } catch (_: Exception) {
             // File missing or provider misconfigured - nothing sensible to show here
+        }
+    }
+
+    /** On Android 10+ also copy the APK to the public Downloads folder via [MediaStore] (no storage
+     *  permission needed), so players can install it from their file manager even outside the game */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override fun saveInstallerToPublicFolder(apkFilePath: String): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+        return try {
+            val apkFile = File(apkFilePath)
+            val resolver = activity.contentResolver
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, apkFile.name)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return false
+            resolver.openOutputStream(uri)?.use { out ->
+                apkFile.inputStream().use { input -> input.copyTo(out) }
+            } ?: return false
+            true
+        } catch (_: Exception) {
+            false
         }
     }
 }

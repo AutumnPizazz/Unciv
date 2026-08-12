@@ -5,6 +5,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 ## Unreleased
 
 - Android: the update popup now downloads the APK in-game (progress shown on the button) and hands it to the system installer via FileProvider - no more hunting for the file in the browser; the unknown-sources install permission (API 26+) is guided automatically on first install; on other platforms the popup now notes where the browser saves the installer
+- Android: update downloads are now interruption-safe - the package downloads to a `.part` file and is renamed only when complete (an interrupted download just leaves a half file that is simply downloaded again), completed APKs offer Install plus Redownload, a copy is also saved to the public Downloads folder (Android 10+) so players can install from their file manager even outside the game, and leftover packages of older releases are cleaned up when the popup opens
 - Fixed the "Download latest version" button on the main menu opening the release page in the browser instead of downloading the installer - it now lists the platform's packages from the release assets (Windows gets the full choice of MSI installer / portable zip / universal jar, other platforms their own packages, server jar and helper files excluded) and opens the chosen direct download URL through the active download source; the update popup now also shows the real file names and the actual version numbers
 
 ## v4.21.7.1 (build 1251)

@@ -404,6 +404,13 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         val downloadAssets = release.listDownloadAssets(currentPlatform).filter { it.browser_download_url.isNotEmpty() }
         // On Android the package is downloaded in-game and handed to the system installer - elsewhere the browser does it
         val installerFolder = game.getInstallerDownloadFolder()?.let { Gdx.files.absolute(it) }
+        // Rescue hygiene: remove leftover packages of older releases / interrupted downloads (not currently downloading)
+        installerFolder?.let { folder ->
+            if (installerDownloadJob?.isActive != true) {
+                val keepNames = downloadAssets.flatMap { listOf(it.name, "${it.name}.part") }
+                folder.list().forEach { file -> if (file.name() !in keepNames) file.delete() }
+            }
+        }
         if (downloadAssets.isEmpty()) {
             val releasePageButton = "Open release page".toTextButton()
             releasePageButton.onClick {
@@ -432,54 +439,93 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
     }
 
     /**
-     * Button for one installer package: on Android it downloads in-game (showing progress) and then
-     * offers [Install] through the system installer; everywhere else it opens the browser download.
+     * One installer package row: on Android it downloads in-game (showing progress on the button)
+     * and then offers [Install] through the system installer, with a Redownload fallback and a note
+     * when a copy was also saved to the public Downloads folder; everywhere else the browser handles it.
      */
     private fun createInstallerButton(
         asset: GithubAPI.ReleaseAsset,
         installerFolder: FileHandle?,
         popup: Popup,
-    ): TextButton {
-        val downloadButton = asset.name.toTextButton()
-        var downloaded = installerFolder?.child(asset.name)?.let { it.exists() && it.length() > 0 } == true
-        if (downloaded) downloadButton.setText("Install")
-        downloadButton.onClick {
-            if (installerFolder == null) {
+    ): Table {
+        val row = Table()
+        if (installerFolder == null) {
+            val downloadButton = asset.name.toTextButton()
+            downloadButton.onClick {
                 popup.close()
                 Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
-            } else if (installerDownloadJob?.isActive == true) {
-                // A download is already running - ignore further clicks
-            } else if (downloaded) {
-                popup.close()
-                game.installDownloadedApk(installerFolder.child(asset.name).file().absolutePath)
-            } else {
-                startInstallerDownload(asset, downloadButton, installerFolder) { success ->
-                    downloaded = success
-                }
+            }
+            row.add(downloadButton)
+            return row
+        }
+
+        // Android: in-game download with rescue paths - a completed package shows Install (+Redownload),
+        // an interrupted one leaves only a .part file so it can simply be downloaded again
+        val apkFile = installerFolder.child(asset.name)
+        val partFile = installerFolder.child("${asset.name}.part")
+        var downloaded = apkFile.exists() && apkFile.length() > 0
+        val savedNote = "The APK is also saved to your system download folder."
+            .toLabel(fontSize = 14, alignment = Align.center)
+            .apply { isVisible = downloaded }
+
+        val mainButton = if (downloaded) "Install".toTextButton() else asset.name.toTextButton()
+        val redownloadButton = "Redownload".toTextButton().apply { isVisible = downloaded }
+        fun startDownload() {
+            if (installerDownloadJob?.isActive == true) return
+            startInstallerDownload(asset, mainButton, installerFolder) { success, savedToPublic ->
+                downloaded = success
+                redownloadButton.isVisible = success
+                savedNote.isVisible = success && savedToPublic
             }
         }
-        return downloadButton
+        mainButton.onClick {
+            if (downloaded) {
+                popup.close()
+                game.installDownloadedApk(apkFile.file().absolutePath)
+            } else startDownload()
+        }
+        redownloadButton.onClick { startDownload() }
+        row.add(mainButton)
+        row.add(redownloadButton).padLeft(10f)
+        row.row()
+        row.add(savedNote).colspan(2).padTop(5f)
+        return row
     }
 
-    /** Download an installer package in the background, showing progress on [button]; [onFinished] runs on the GL thread */
+    /**
+     * Download an installer package in the background, showing progress on [button].
+     * Downloads to a `.part` file first and renames it on success, so an interrupted download
+     * can never be mistaken for a complete package; on success a copy is also offered to the
+     * public Downloads folder ([onFinished] receives both results, runs on the GL thread).
+     */
     private fun startInstallerDownload(
         asset: GithubAPI.ReleaseAsset,
         button: TextButton,
         installerFolder: FileHandle,
-        onFinished: (Boolean) -> Unit,
+        onFinished: (Boolean, Boolean) -> Unit,
     ) {
         installerDownloadJob?.cancel()
         installerDownloadJob = Concurrency.run("DownloadInstaller") {
-            val destination = installerFolder.child(asset.name)
-            val success = asset.downloadTo(destination) { state, progress ->
+            val partFile = installerFolder.child("${asset.name}.part")
+            val apkFile = installerFolder.child(asset.name)
+            val success = asset.downloadTo(partFile) { state, progress ->
                 launchOnGLThread { button.setText(state.message(progress)) }
             }
-            launchOnGLThread {
-                onFinished(success)
+            val moved = try {
                 if (success) {
+                    partFile.moveTo(apkFile)
+                    true
+                } else false
+            } catch (_: Exception) {
+                false
+            }
+            val savedToPublic = moved && game.saveInstallerToPublicFolder(apkFile.file().absolutePath)
+            launchOnGLThread {
+                onFinished(moved, savedToPublic)
+                if (moved) {
                     button.setText("Install")
                 } else {
-                    destination.delete()
+                    partFile.delete()
                     button.setText(asset.name)
                     ToastPopup("Download failed", this@MainMenuScreen)
                 }

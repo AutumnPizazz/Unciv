@@ -29,4 +29,12 @@ interface PlatformSpecific {
 
     /** Open the system installer for a downloaded APK - no-op on platforms without one */
     fun installDownloadedApk(apkFilePath: String) {}
+
+    /**
+     * Copy a downloaded installer package to a user-visible location (the public Downloads folder
+     * on Android 10+), so players can install it from their file manager / download list even
+     * outside the game - e.g. after they rejected the in-game install dialog.
+     * @return `true` when the copy succeeded
+     */
+    fun saveInstallerToPublicFolder(apkFilePath: String): Boolean = false
 }
