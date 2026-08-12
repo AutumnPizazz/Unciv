@@ -331,41 +331,7 @@ Since the map-generation rewrite, mods can provide **entire map generators in Lu
 
 On the new-game screen pick **Map Type → Lua Generated**, then select the script. The engine creates an all-ocean `TileMap` of the configured size and calls `GenerateMap(ctx)`, then normalizes every tile against the ruleset.
 
-The map-script `ctx` is a **separate, generation-only API**:
-
-| Field | Description |
-|-------|-------------|
-| `ctx.params` | Read-only `MapParameters`: `size{name,radius,width,height}`, `bounds{minX,minY,maxX,maxY}` (real tile coordinates - rectangular maps are centered on 0,0 and can be negative), `shape`, `worldWrap`, `waterThreshold`, `temperatureintensity`, `temperatureShift`, `vegetationRichness`, `rareFeaturesRichness`, `resourceRichness`, `elevationExponent`, `tilesPerBiomeArea`, `maxCoastExtension`, `noRuins`, `noNaturalWonders`, `mapResources`, `strategicBalance`, `legendaryStart`, `mods`, `baseRuleset` |
-| `ctx.seed` | The map seed |
-| `ctx.perlin(x, y, seed[, {scale=..., nOctaves=..., persistence=..., lacunarity=...}])` | Perlin noise in roughly [-1, 1] |
-| `ctx.random()` / `ctx.randomInt(min, max)` | Seeded map RNG |
-| `ctx.map` | TileMap manipulation (below) |
-| `ctx.log(msg)` | Debug log |
-
-`ctx.map` helpers:
-
-```lua
-map.getWidth() / map.getHeight() / map.getRadius()
-map.getShape() / map.isWrapped()
-map.getTile(x, y) / map.getAllTiles()
-map.assignContinents()
-map.addStartingLocation(x, y, nationName)   -- nationName optional
-map.getStartingLocations() / map.clearStartingLocations()
-map.setTransients() / map.normalizeTiles()
-map.floodFill(x, y, terrainFilter?)          -- BFS-connected tiles
-map.generateClimate()
-map.spreadCoasts(maxExtension?)              -- default: params.maxCoastExtension
-map.generateMountains(elevationExponent?)
-map.generateRivers()
-map.generateIce()
-map.convertTerrains()
-map.normalizeStartPlot(x, y, {freshwater, minFood, minProd, minLuxuries, maxBlocking, minHills})
-map.distributeLuxuries({perPlayer, minDistance})
-map.distributeStrategics({perPlayer, radius})
-map.strategicBalanceStarts({horses, iron, radius})
-```
-
-Tiles returned by `map.getTile` / `getAllTiles` / `floodFill` support: `position{x,y}`, `getX()/getY()`, `baseTerrain`, `isLand/isWater/isCoast`, `isHill()/isMountain()/isImpassable()`, `hasTerrainFeature(name)/getTerrainFeatures()`, `temperature/getTemperature/setTemperature`, `humidity/getHumidity/setHumidity`, `getLatitude()/getLongitude()`, `getContinent()`, `hasResource/resourceName/resourceAmount`, `hasImprovement/improvementName`, `isRiver()`, `isNaturalWonder()`, `isAdjacentToFreshWater()`, `getBaseYield(stat)`, `getNeighbors()`, `getTilesInDistance(r)`, and writes: `setTerrain(name)`, `addTerrainFeature/removeTerrainFeature/removeAllTerrainFeatures`, `setResource(name, amount)/removeResource`, `setImprovement(name)/removeImprovement`, `setRoad()/setRailroad()/removeRoad`, `setNaturalWonder(name)`.
+The full, always-up-to-date reference of the map-script ctx (`ctx.params`, `ctx.map` helpers, the generation tile table) is generated from the game code - see [Lua Map-Script API Reference](Lua-Map-API-Reference.md).
 
 > **Important**: iterate tiles with `map.getAllTiles()` rather than assuming coordinates start at 0 - rectangular maps are centered on (0,0), so `params.bounds.minX`/`minY` are negative.
 >
@@ -373,7 +339,7 @@ Tiles returned by `map.getTile` / `getAllTiles` / `floodFill` support: `position
 
 A complete copy-and-rename example lives at `docs/Modders/examples/LuaMapScriptExample/` (see its README).
 
-For editor autocompletion of map scripts, point the LuaLS language server at `docs/Modders/lua-map-api.lua` (same `.luarc.json` setup as [Editor Setup](#editor-setup-autocompletion--type-hints), listing both `unciv-api.lua` and `lua-map-api.lua` under `workspace.library`); the definitions are kept in sync with the engine by a test.
+For editor autocompletion of map scripts, point the LuaLS language server at `docs/Modders/lua-map-api.lua` (same `.luarc.json` setup as [Editor Setup](#editor-setup-autocompletion--type-hints), listing both `unciv-api.lua` and `lua-map-api.lua` under `workspace.library`); the definitions are generated from the engine code, so they never go stale.
 
 ## Notes
 

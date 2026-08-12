@@ -10,6 +10,8 @@ title: UncivCN 更新日志
 
 ## 未发布（Unreleased）
 
+- 文档：Lua **地图脚本** API 文档也改为由 Kotlin 数据表（`LuaMapGenApiDocs`）驱动生成——`lua-map-api.lua`（原为手工维护）与新增的 `Lua-Map-API-Reference.md`（中英两版）由 `./gradlew desktop:generateDocs` 一并重新生成；`Lua-Modding.md` 教程的地图脚本章节改为链接到生成的参考页；类型定义生成循环已与游戏内 API 生成器共用（新增同步测试，退役基于正则的旧定义测试）
+
 - 文档：Lua API 参考改为像 unique 文档一样由 Kotlin 数据表（`LuaApiDocs`）驱动生成——`lua-api.lua` 与新增的 `Lua-API-Reference.md`（中英两版）在新增 API 时由 `./gradlew desktop:generateDocs` 一并重新生成，面向模组作者的文档不再可能与实现漂移（新增同步测试）；教程页 `Lua-Modding.md`（中英）改为链接到生成的参考页；`UniqueDocsWriter` 与 Lua 文档生成器共用新的 `DocsWriter` 基类
 - 工具链：文档工具链不再依赖 Python——CI 链接检查（`check-docs-links.mjs`）与本地预览服务器（`preview-server.mjs`）改为 Node 脚本，一次性迁移脚本与上游 `mkdocs.yml`/mkdocs workflow 已删除（只需 JDK + Node）
 - Lua API：新增 `unit.getEraNumber()`（单位需求科技的最小时代序号，与 `{Era.X}` 单位过滤器语义一致）与 `civ.discoverTech()`（等价 `Discover [tech]` unique，绕过可研究性检查直接解锁，幂等）；已同步 EmmyLua 类型定义

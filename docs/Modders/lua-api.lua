@@ -213,14 +213,17 @@
 
 ---@class UncivTile
 ---@field position table
----@field getX fun(): number
----@field getY fun(): number
 ---@field baseTerrain string
 ---@field isLand boolean
 ---@field isWater boolean
 ---@field isCoast boolean
 ---@field isHill boolean
 ---@field isMountain boolean
+---@field resourceName string
+---@field resourceAmount number
+---@field improvementName string
+---@field getX fun(): number
+---@field getY fun(): number
 ---@field hasTerrainFeature fun(featureName: string): boolean
 ---@field getTerrainFeatures fun(): string[]
 ---@field isImpassable fun(): boolean
@@ -231,10 +234,7 @@
 ---@field hasNaturalWonder fun(): boolean
 ---@field getNaturalWonder fun(): string
 ---@field hasResource fun(): boolean
----@field resourceName string
----@field resourceAmount number
 ---@field hasImprovement fun(): boolean
----@field improvementName string
 ---@field isPillaged fun(): boolean
 ---@field getYield fun(): table
 ---@field isOwned fun(): boolean
@@ -267,9 +267,9 @@
 
 ---@class UncivGame
 ---@field turn number
----@field getYear fun(): number
 ---@field speed string
 ---@field difficulty string
+---@field getYear fun(): number
 ---@field getCurrentPlayer fun(): string
 ---@field getCurrentPlayerCiv fun(): UncivCiv|nil
 ---@field getCiv fun(civName: string): UncivCiv|nil

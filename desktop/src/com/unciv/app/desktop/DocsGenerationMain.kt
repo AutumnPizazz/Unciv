@@ -11,6 +11,8 @@ package com.unciv.app.desktop
  *  - MergeActionDocsWriter —— 6-MergeActions.md
  *  - LuaApiDefinitionWriter —— lua-api.lua（EmmyLua 类型定义）
  *  - LuaModdingDocsWriter —— Lua-API-Reference.md（模组作者 API 参考，中英两版）
+ *  - LuaMapApiDefinitionWriter —— lua-map-api.lua（地图脚本类型定义）
+ *  - LuaMapModdingDocsWriter —— Lua-Map-API-Reference.md（地图脚本 API 参考，中英两版）
  *
  * 注意：工作目录必须为 assets 目录（build.gradle.kts 中已配置 workingDir），
  * 生成器使用相对路径 ../../docs/ 写回文档。
@@ -23,5 +25,8 @@ fun main() {
     com.unciv.logic.scripting.LuaApiDefinitionWriter().write()
     LuaModdingDocsWriter().write()
     LuaModdingDocsWriter().writeChinese()
+    com.unciv.logic.scripting.LuaMapApiDefinitionWriter().write()
+    LuaMapModdingDocsWriter().write()
+    LuaMapModdingDocsWriter().writeChinese()
     println("Docs generation complete.")
 }

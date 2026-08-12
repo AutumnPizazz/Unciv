@@ -362,41 +362,7 @@ end
 
 在新建游戏界面选择**地图类型 → Lua Generated**，再选择脚本。引擎会创建一张指定大小的全海洋 `TileMap` 并调用 `GenerateMap(ctx)`，之后对每个地块按规则集做地形规范化。
 
-地图脚本的 `ctx` 是**独立的、仅生成期可用**的 API：
-
-| 字段 | 说明 |
-|------|------|
-| `ctx.params` | 只读 `MapParameters`：`size{name,radius,width,height}`、`bounds{minX,minY,maxX,maxY}`（实际地块坐标——矩形地图以 0,0 为中心，坐标可能为负）、`shape`、`worldWrap`、`waterThreshold`、`temperatureintensity`、`temperatureShift`、`vegetationRichness`、`rareFeaturesRichness`、`resourceRichness`、`elevationExponent`、`tilesPerBiomeArea`、`maxCoastExtension`、`noRuins`、`noNaturalWonders`、`mapResources`、`strategicBalance`、`legendaryStart`、`mods`、`baseRuleset` |
-| `ctx.seed` | 地图种子 |
-| `ctx.perlin(x, y, seed[, {scale=..., nOctaves=..., persistence=..., lacunarity=...}])` | Perlin 噪声，大致范围 [-1, 1] |
-| `ctx.random()` / `ctx.randomInt(min, max)` | 基于种子的地图 RNG |
-| `ctx.map` | 地图操作表（见下） |
-| `ctx.log(msg)` | 调试日志 |
-
-`ctx.map` 助手：
-
-```lua
-map.getWidth() / map.getHeight() / map.getRadius()
-map.getShape() / map.isWrapped()
-map.getTile(x, y) / map.getAllTiles()
-map.assignContinents()
-map.addStartingLocation(x, y, nationName)   -- nationName 可选
-map.getStartingLocations() / map.clearStartingLocations()
-map.setTransients() / map.normalizeTiles()
-map.floodFill(x, y, terrainFilter?)          -- BFS 连通地块
-map.generateClimate()
-map.spreadCoasts(maxExtension?)              -- 默认 params.maxCoastExtension
-map.generateMountains(elevationExponent?)
-map.generateRivers()
-map.generateIce()
-map.convertTerrains()
-map.normalizeStartPlot(x, y, {freshwater, minFood, minProd, minLuxuries, maxBlocking, minHills})
-map.distributeLuxuries({perPlayer, minDistance})
-map.distributeStrategics({perPlayer, radius})
-map.strategicBalanceStarts({horses, iron, radius})
-```
-
-`map.getTile` / `getAllTiles` / `floodFill` 返回的地块支持：`position{x,y}`、`getX()/getY()`、`baseTerrain`、`isLand/isWater/isCoast`、`isHill()/isMountain()/isImpassable()`、`hasTerrainFeature(name)/getTerrainFeatures()`、`temperature/getTemperature/setTemperature`、`humidity/getHumidity/setHumidity`、`getLatitude()/getLongitude()`、`getContinent()`、`hasResource/resourceName/resourceAmount`、`hasImprovement/improvementName`、`isRiver()`、`isNaturalWonder()`、`isAdjacentToFreshWater()`、`getBaseYield(stat)`、`getNeighbors()`、`getTilesInDistance(r)`，以及写入操作：`setTerrain(name)`、`addTerrainFeature/removeTerrainFeature/removeAllTerrainFeatures`、`setResource(name, amount)/removeResource`、`setImprovement(name)/removeImprovement`、`setRoad()/setRailroad()/removeRoad`、`setNaturalWonder(name)`。
+地图脚本 `ctx` 的完整 API 参考（`ctx.params`、`ctx.map` 助手、生成期地块表）由游戏代码自动生成、永不落后于实现——见 [Lua 地图脚本 API 参考](Lua-Map-API-Reference.md)。
 
 > **重要**：遍历地块请用 `map.getAllTiles()`，不要假设坐标从 0 开始——矩形地图以 (0,0) 为中心，`params.bounds.minX`/`minY` 为负值。
 >
@@ -404,7 +370,7 @@ map.strategicBalanceStarts({horses, iron, radius})
 
 完整的可复制改名示例位于 `docs/Modders/examples/LuaMapScriptExample/`（见其 README）。
 
-地图脚本的编辑器自动补全：把 LuaLS 语言服务器指向 `docs/Modders/lua-map-api.lua`（`.luarc.json` 配置与[编辑器设置](#编辑器设置自动补全与类型提示)相同，`workspace.library` 同时列出 `unciv-api.lua` 与 `lua-map-api.lua`）；定义文件与引擎实现的一致性由测试保障。
+地图脚本的编辑器自动补全：把 LuaLS 语言服务器指向 `docs/Modders/lua-map-api.lua`（`.luarc.json` 配置与[编辑器设置](#编辑器设置自动补全与类型提示)相同，`workspace.library` 同时列出 `unciv-api.lua` 与 `lua-map-api.lua`）；定义文件由引擎代码自动生成，永不落后于实现。
 
 ## 注意事项
 

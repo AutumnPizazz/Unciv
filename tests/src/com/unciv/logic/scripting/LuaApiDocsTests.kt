@@ -67,7 +67,7 @@ class LuaApiDocsTests {
             for (name in names) {
                 val entry = LuaApiDocs.entries[owner]!!.first { it.name == name }
                 // Properties render as a backtick list, methods as owner.name(...) call lines
-                val present = if (entry.category == LuaApiDocs.Category.Property)
+                val present = if (entry.category == LuaApiDocCategory.Property)
                     generated.contains("`$name`")
                 else
                     generated.contains("$owner.$name")

@@ -102,6 +102,9 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 | `docs/Modders/lua-api.lua` | `LuaApiDefinitionWriter` | **整体自动**，签名与文案来自 `LuaApiDocs` |
 | `docs/Modders/Lua-API-Reference.md` | `LuaModdingDocsWriter.write()` | **整体自动**，内容来自 `LuaApiDocs` |
 | `docs/zh/Modders/Lua-API-Reference.md` | `LuaModdingDocsWriter.writeChinese()` | **整体自动**，内容来自 `LuaApiDocs` |
+| `docs/Modders/lua-map-api.lua` | `LuaMapApiDefinitionWriter` | **整体自动**，内容来自 `LuaMapGenApiDocs` |
+| `docs/Modders/Lua-Map-API-Reference.md` | `LuaMapModdingDocsWriter.write()` | **整体自动**，内容来自 `LuaMapGenApiDocs` |
+| `docs/zh/Modders/Lua-Map-API-Reference.md` | `LuaMapModdingDocsWriter.writeChinese()` | **整体自动**，内容来自 `LuaMapGenApiDocs` |
 | 其余 `docs/`、`docs/zh/` 页面 | — | 人工维护 |
 
 **原则**：自动生成的文档只通过「改生成器源码 + 运行 `./gradlew desktop:generateDocs`」维护，
@@ -110,8 +113,11 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 
 **新增 Lua API 的流程**：在 `LuaAPI.apiCatalog` 与 `LuaApiDocs`（签名、中英说明、类别）中
 各登记一条，再运行 `./gradlew desktop:generateDocs` —— `lua-api.lua` 与两份
-`Lua-API-Reference.md` 会一起重新生成；`LuaApiDocsTests` 会在三者漂移时让构建失败。
-Lua 文档生成器与 `UniqueDocsWriter` 共用 `DocsWriter` 基类（纯 `generate()` + 写盘分离）。
+`Lua-API-Reference.md` 会一起重新生成；地图脚本 API 同理走
+`LuaMapGenAPI.mapGenApiCatalog` / `LuaMapGenApiDocs`（`lua-map-api.lua` + 两份
+`Lua-Map-API-Reference.md`）；`LuaApiDocsTests` / `LuaMapGenApiDocsTests` 会在漂移时
+让构建失败。Lua 文档生成器与 `UniqueDocsWriter` 共用 `DocsWriter` 基类
+（纯 `generate()` + 写盘分离）。
 
 **仓库已无 Python 依赖**：CN 分支的文档工具链只需 JDK + Node（VitePress + `docs-vitepress/scripts/`
 下的 Node 脚本，如 CI 链接检查 `check-docs-links.mjs`）；上游的 `mkdocs.yml` 与 mkdocs

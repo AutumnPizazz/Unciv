@@ -1,5 +1,19 @@
 package com.unciv.logic.scripting
 
+/** 单个 Lua API 的文档元数据（游戏内 ctx 与地图脚本 ctx 共用） */
+data class LuaApiDocEntry(
+    val name: String,
+    /** EmmyLua 风格签名：方法 "fun(...)"，属性直接写类型 */
+    val signature: String,
+    /** 英文说明 */
+    val desc: String,
+    /** 中文说明 */
+    val descZh: String,
+    val category: LuaApiDocCategory
+)
+
+enum class LuaApiDocCategory { Property, Query, Write }
+
 /**
  * 每个 Lua API 的文档元数据：签名、中英文说明、类别。
  *
@@ -17,30 +31,17 @@ package com.unciv.logic.scripting
  */
 object LuaApiDocs {
 
-    enum class Category { Property, Query, Write }
-
-    data class Entry(
-        val name: String,
-        /** EmmyLua 风格签名：方法 "fun(...)"，属性直接写类型 */
-        val signature: String,
-        /** 英文说明 */
-        val desc: String,
-        /** 中文说明 */
-        val descZh: String,
-        val category: Category
-    )
-
     /** 属性条目 */
     private fun p(name: String, signature: String, desc: String, descZh: String) =
-        Entry(name, signature, desc, descZh, Category.Property)
+        LuaApiDocEntry(name, signature, desc, descZh, LuaApiDocCategory.Property)
 
     /** 查询方法条目 */
     private fun q(name: String, signature: String, desc: String, descZh: String) =
-        Entry(name, signature, desc, descZh, Category.Query)
+        LuaApiDocEntry(name, signature, desc, descZh, LuaApiDocCategory.Query)
 
     /** 写入方法条目 */
     private fun w(name: String, signature: String, desc: String, descZh: String) =
-        Entry(name, signature, desc, descZh, Category.Write)
+        LuaApiDocEntry(name, signature, desc, descZh, LuaApiDocCategory.Write)
 
     // region ctx
 
@@ -413,7 +414,7 @@ object LuaApiDocs {
      * owner → 条目列表（顺序即文档展示顺序）。
      * 条目名集合必须与 [LuaAPI.apiCatalog] 完全一致（测试强制）。
      */
-    val entries: Map<String, List<Entry>> = mapOf(
+    val entries: Map<String, List<LuaApiDocEntry>> = mapOf(
         "ctx" to ctxEntries,
         "store" to storeEntries,
         "civ" to civEntries,
@@ -424,7 +425,7 @@ object LuaApiDocs {
     )
 
     /** 条目名按 owner 索引，供生成器与测试使用 */
-    val entriesByName: Map<String, Map<String, Entry>> = entries.mapValues { (_, list) ->
+    val entriesByName: Map<String, Map<String, LuaApiDocEntry>> = entries.mapValues { (_, list) ->
         list.associateBy { it.name }
     }
 }
