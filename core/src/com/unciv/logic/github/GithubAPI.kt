@@ -342,36 +342,45 @@ object GithubAPI {
         var assets = ArrayList<ReleaseAsset>()
 
         /**
-         * Pick the installer asset matching [platform] (one of "android", "windows", "linux", "mac" or
-         * anything else for unknown platforms). Desktop platforms fall back to the universal runnable
-         * jar when no platform-specific package exists - except on Android, where a jar is useless.
-         * Server jars and auxiliary helper packages are never considered.
-         * @return the asset to download, or `null` when nothing usable exists
+         * List the installable assets for [platform] in preference order (one of "android",
+         * "windows", "linux", "mac" or anything else for unknown platforms).
+         * Desktop platforms offer every usable package (installer, portable zip, universal jar)
+         * so the player can choose; Android only ever gets the APK.
+         * Server jars and auxiliary helper packages are never listed.
          */
         @Readonly
-        fun pickDownloadAsset(platform: String): ReleaseAsset? {
+        fun listDownloadAssets(platform: String): List<ReleaseAsset> {
             // Only installable player packages - never the server jar or helper files for the jar
             val candidates = assets.filter {
                 !it.name.contains("server", ignoreCase = true)
                     && !it.name.contains("filesforjar", ignoreCase = true)
             }
-            fun firstSatisfying(vararg conditions: (String) -> Boolean): ReleaseAsset? =
-                candidates.firstOrNull { asset ->
+            fun satisfying(vararg conditions: (String) -> Boolean): List<ReleaseAsset> =
+                candidates.filter { asset ->
                     val lower = asset.name.lowercase()
                     conditions.all { it(lower) }
                 }
 
-            val jarFallback = if (platform in listOf("windows", "linux", "mac"))
-                firstSatisfying({ it.endsWith(".jar") }) else null
             return when (platform) {
-                "android" -> firstSatisfying({ it.endsWith(".apk") })
-                "windows" -> firstSatisfying({ it.endsWith(".msi") })
-                    ?: firstSatisfying({ it.contains("windows64") && it.endsWith(".zip") })
-                "linux" -> firstSatisfying({ it.contains("linux64") && it.endsWith(".zip") })
-                "mac" -> firstSatisfying({ it.contains("mac") })
-                else -> null
-            } ?: jarFallback
+                "android" -> satisfying({ it.endsWith(".apk") })
+                "windows" -> satisfying({ it.endsWith(".msi") }) +
+                    satisfying({ it.contains("windows64") && it.endsWith(".zip") }) +
+                    satisfying({ it.endsWith(".jar") })
+                "linux" -> satisfying({ it.contains("linux64") && it.endsWith(".zip") }) +
+                    satisfying({ it.endsWith(".jar") })
+                "mac" -> satisfying({ it.contains("mac") }) +
+                    satisfying({ it.endsWith(".jar") })
+                else -> emptyList()
+            }
         }
+
+        /**
+         * Pick the recommended installer asset for [platform] - the first entry of
+         * [listDownloadAssets] (e.g. the MSI for Windows, the APK on Android).
+         * @return the asset to download, or `null` when nothing usable exists
+         */
+        @Readonly
+        fun pickDownloadAsset(platform: String): ReleaseAsset? = listDownloadAssets(platform).firstOrNull()
     }
 
     /** Topic search response */

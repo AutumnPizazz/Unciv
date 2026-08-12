@@ -396,16 +396,17 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             "Version [${release.tag_name}] is now available. You are running version [${UncivGame.VERSION.text}]."
                 .toLabel(alignment = Align.center)
         ).pad(10f).row()
-        // Prefer the platform-specific installer package over the release page
-        val asset = release.pickDownloadAsset(currentPlatform)
-        if (asset == null || asset.browser_download_url.isEmpty()) {
+        // Offer the platform's installer packages - on desktop (esp. Windows) several are listed so the player can choose
+        val downloadAssets = release.listDownloadAssets(currentPlatform).filter { it.browser_download_url.isNotEmpty() }
+        if (downloadAssets.isEmpty()) {
             val releasePageButton = "Open release page".toTextButton()
             releasePageButton.onClick {
                 popup.close()
                 Gdx.net.openURI(GithubAPI.proxify(release.html_url))
             }
             content.add(releasePageButton).pad(10f).row()
-        } else {
+        } else if (downloadAssets.size == 1) {
+            val asset = downloadAssets.first()
             content.add(
                 "Installer file: [${asset.name}]".toLabel(fontSize = 14, alignment = Align.center)
             ).pad(5f).row()
@@ -415,6 +416,15 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
                 Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
             }
             content.add(downloadButton).pad(10f).row()
+        } else {
+            for (asset in downloadAssets) {
+                val downloadButton = asset.name.toTextButton()
+                downloadButton.onClick {
+                    popup.close()
+                    Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
+                }
+                content.add(downloadButton).pad(5f).row()
+            }
         }
         popup.add(content).row()
     }

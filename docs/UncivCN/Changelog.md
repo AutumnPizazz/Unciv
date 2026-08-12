@@ -4,7 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Fixed the "Download latest version" button on the main menu opening the release page in the browser instead of downloading the installer - it now picks the platform-specific package from the release assets (APK on Android, MSI/Windows64 zip on Windows, Linux64 zip on Linux, universal jar fallback for desktop, server jar and helper packages excluded) and opens its direct download URL through the active download source; the update popup now also shows the real file name and the actual version numbers
+- Fixed the "Download latest version" button on the main menu opening the release page in the browser instead of downloading the installer - it now lists the platform's packages from the release assets (Windows gets the full choice of MSI installer / portable zip / universal jar, other platforms their own packages, server jar and helper files excluded) and opens the chosen direct download URL through the active download source; the update popup now also shows the real file names and the actual version numbers
 
 ## v4.21.7.1 (build 1251)
 

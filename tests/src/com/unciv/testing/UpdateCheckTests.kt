@@ -57,6 +57,37 @@ class UpdateCheckTests {
     }
 
     @Test
+    fun listDownloadAssets_preferenceOrder() {
+        // Windows gets the full choice: MSI installer first, then portable zip, then universal jar
+        Assert.assertEquals(
+            listOf("UncivCN-4.21.7.1.msi", "UncivCN-Windows64-4.21.7.1.zip", "UncivCN-4.21.7.1.jar"),
+            fullRelease.listDownloadAssets("windows").map { it.name }
+        )
+        Assert.assertEquals(
+            listOf("UncivCN-Linux64-4.21.7.1.zip", "UncivCN-4.21.7.1.jar"),
+            fullRelease.listDownloadAssets("linux").map { it.name }
+        )
+        Assert.assertEquals(
+            listOf("UncivCN-4.21.7.1.Apk"),
+            fullRelease.listDownloadAssets("android").map { it.name }
+        )
+        Assert.assertEquals(
+            listOf("UncivCN-4.21.7.1.jar"),
+            fullRelease.listDownloadAssets("mac").map { it.name }
+        )
+    }
+
+    @Test
+    fun listDownloadAssets_emptyForUnknownOrServerOnly() {
+        Assert.assertTrue(fullRelease.listDownloadAssets("web").isEmpty())
+        Assert.assertTrue(fullRelease.listDownloadAssets("").isEmpty())
+        Assert.assertTrue(
+            releaseWithAssets("UncivServer-4.21.7.1.jar", "linuxFilesForJar-4.21.7.1.zip")
+                .listDownloadAssets("windows").isEmpty()
+        )
+    }
+
+    @Test
     fun pickDownloadAsset_neverPicksServerOrHelperPackages() {
         // Only server jar and helper files available - nothing may be offered
         val onlyServer = releaseWithAssets("UncivServer-4.21.7.1.jar", "linuxFilesForJar-4.21.7.1.zip")
