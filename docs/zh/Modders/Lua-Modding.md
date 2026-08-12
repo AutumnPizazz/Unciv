@@ -326,8 +326,7 @@ end
 游戏本身会校验你的脚本（见[检查你的模组](#检查你的模组)），而编写时想获得自动补全、悬停文档和即时拼写检查，可以接入 Lua 语言服务器：
 
 1. **安装 Lua 语言服务器**：在 VSCode 中安装 **Lua**（作者 sumneko，即 LuaLS 语言服务器）
-2. **安装 Unciv Lua API 扩展**（推荐，永不过期）：从最新的 [UncivCN Release](https://github.com/AutumnPizazz/Unciv/releases) 下载 `unciv-lua-api.vsix`，通过 **扩展 → ⋯ → 从 VSIX 安装…** 安装。每次 VSCode 启动它都会从 UncivCN 文档站（每次发版自动部署）拉取最新 `lua-api.lua` / `lua-map-api.lua` 到 `~/.unciv/lua-api/`——从此无需人工检查更新、无需复制文件；离线时保留上次同步的版本
-3. **一键配置 LuaLS**：命令面板（Ctrl+Shift+P）运行 **Unciv: Configure Lua API autocompletion**——把 `~/.unciv/lua-api`（绝对路径）加入用户级 `Lua.workspace.library`，对所有模组工作区生效
+2. **安装 Unciv Lua API 扩展**（推荐）：从最新的 [UncivCN Release](https://github.com/AutumnPizazz/Unciv/releases) 下载 `unciv-lua-api.vsix`，通过 **扩展 → ⋯ → 从 VSIX 安装…** 安装，然后在命令面板（Ctrl+Shift+P）运行一次 **Unciv: Configure Lua API autocompletion**。此后每次启动编辑器它都会把 `lua-api.lua` / `lua-map-api.lua` 保持在 `~/.unciv/lua-api/` 最新版——再也不用检查更新。详见 [Unciv Lua API 扩展](Lua-API-Extension.md)
 
 如果偏好完全手动配置，可在模组目录创建 `.luarc.json` 并把定义文件复制到旁边（如从仓库 `docs/Modders/` 获取）：
 

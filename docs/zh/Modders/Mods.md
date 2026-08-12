@@ -29,6 +29,7 @@ title: 模组总览
 - **触发方式**：`TriggerLuaFunction` unique，例如 `"Trigger the function [myMod:onTurnStart] with [[Gold] + 1] <upon turn start>"`
 - **教程**：[Lua 脚本](/zh/Modders/Lua-Modding)
 - **API 参考**：Lua 上下文表的全部函数与属性——[Lua API 参考](/zh/Modders/Lua-API-Reference)（自动生成）
+- **编辑器支持**：[Unciv Lua API 扩展](/zh/Modders/Lua-API-Extension)让补全永不过期（每次启动自动从云端同步）；也可手动配置 EmmyLua——见教程中的"编辑器设置"
 - **起步模板**：可复制改名的模组，内含每回合钩子与 API 冒烟测试，见 `examples/LuaStarterMod/`
 - **编辑器支持**：EmmyLua 类型定义（`lua-api.lua`）为 LuaLS 系编辑器提供自动补全——见教程中的"编辑器设置"
 - **检查方式**：游戏内模组检查器与 `mod-ci` 命令行会校验 Lua 语法、函数引用与 API 拼写

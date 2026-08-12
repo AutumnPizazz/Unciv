@@ -26,7 +26,7 @@ All of the above is pure data. On top of that, UncivCN mods can ship Lua scripts
 - **Tutorial**: [Lua modding](Lua-Modding.md)
 - **API reference**: every function and property of the Lua context tables — [Lua API Reference](Lua-API-Reference.md) (auto-generated)
 - **Starter template**: copy-and-rename mod with per-turn hooks and an API smoke test at `examples/LuaStarterMod/`
-- **Editor support**: EmmyLua type definitions (`lua-api.lua`) give autocompletion in LuaLS-capable editors — see "Editor setup" in the tutorial
+- **Editor support**: the [Unciv Lua API extension](Lua-API-Extension.md) keeps autocompletion forever fresh (auto-synced from the cloud on every editor start); manual EmmyLua setup also possible — see "Editor setup" in the tutorial
 - **Checking**: the in-game mod checker and the `mod-ci` CLI validate Lua syntax, function references and API spelling
 
 ## Mod names

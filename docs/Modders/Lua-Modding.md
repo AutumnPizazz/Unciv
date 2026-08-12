@@ -295,8 +295,7 @@ Corresponding JSON (in `ModOptions.json` or `Eras.json`):
 While the game itself validates your scripts (see [Checking Your Mod](#checking-your-mod)), you can get autocompletion, hover docs and immediate typo detection while writing with the Lua language server:
 
 1. **Install the Lua language server**: in VSCode, install **Lua** by sumneko (the LuaLS language server).
-2. **Install the Unciv Lua API extension** *(recommended, never go stale)*: download `unciv-lua-api.vsix` from the latest [UncivCN release](https://github.com/AutumnPizazz/Unciv/releases) and install it via **Extensions → ⋯ → Install from VSIX…**. On every VSCode start it pulls the latest `lua-api.lua` / `lua-map-api.lua` from the UncivCN docs site (cloud-deployed on every release) into `~/.unciv/lua-api/` — no manual updates, ever. Offline it keeps the last synced copy.
-3. **Configure LuaLS once**: run **Unciv: Configure Lua API autocompletion** from the command palette — it adds `~/.unciv/lua-api` (absolute path) to your user-level `Lua.workspace.library`, which applies to every mod workspace.
+2. **Install the Unciv Lua API extension** *(recommended)*: download `unciv-lua-api.vsix` from the latest [UncivCN release](https://github.com/AutumnPizazz/Unciv/releases), install it via **Extensions → ⋯ → Install from VSIX…**, then run **Unciv: Configure Lua API autocompletion** once from the command palette. From then on it keeps `lua-api.lua` / `lua-map-api.lua` fresh in `~/.unciv/lua-api/` on every editor start — never check for updates again. See [Unciv Lua API Extension](Lua-API-Extension.md) for details and FAQ.
 
 If you prefer a fully manual setup, create `.luarc.json` in your mod folder and copy the definitions beside it (e.g. from the repo's `docs/Modders/`):
 
