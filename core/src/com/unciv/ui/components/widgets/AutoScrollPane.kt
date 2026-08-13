@@ -48,7 +48,6 @@ open class AutoScrollPane(
     constructor(widget: Actor?, skin: Skin, styleName: String) : this(widget, skin.get(styleName,ScrollPaneStyle::class.java))
 
     private var savedFocus: Actor? = null
-//     private var isInMouseOverListener = false
 
     /** This listener "grabs" focus on mouse-over */
     private class MouseOverListener : ClickListener() {

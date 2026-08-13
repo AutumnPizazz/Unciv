@@ -20,8 +20,6 @@ data class UncivSound(
         val Construction = UncivSound("construction")
         val Fire = UncivSound("fire")
         val Fortify = UncivSound("fortify")
-        val Notification1 = UncivSound("notification1")
-        val Notification2 = UncivSound("notification2")
         val Paper = UncivSound("paper")
         val Policy = UncivSound("policy")
         val Promote = UncivSound("promote")

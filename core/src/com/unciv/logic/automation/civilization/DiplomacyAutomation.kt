@@ -38,7 +38,6 @@ object DiplomacyAutomation {
             }
             .sortedByDescending { it.getDiplomacyManager(civInfo)!!.relationshipLevel() }.toList()
         for (otherCiv in civsThatWeCanDeclareFriendshipWith) {
-            val rng = civInfo.getDiplomacyManager(otherCiv)!!.state.stateBasedRandom("DiplomacyAutomation.offerDeclarationOfFriendship")
             // Default setting is 2, this will be changed according to different civ.
             if ((1..10).random(getRandom(civInfo, otherCiv, "declaration of friendship"))
                 <= 2 * civInfo.getPersonality().scaledFocus(PersonalityValue.Diplomacy) 
@@ -137,7 +136,6 @@ object DiplomacyAutomation {
         }.sortedByDescending { it.getDiplomacyManager(civInfo)!!.relationshipLevel() }
 
         for (otherCiv in civsThatWeCanEstablishEmbassyWith) {
-            val rng = civInfo.getDiplomacyManager(otherCiv)!!.state.stateBasedRandom("DiplomacyAutomation.offerToEstablishEmbassy")
             // Default setting is 3
             if ((1..10).random(getRandom(civInfo, otherCiv, "embassy")) < 7) continue
             if (wantsToAcceptEmbassy(civInfo, otherCiv)) {
@@ -185,7 +183,6 @@ object DiplomacyAutomation {
         }.sortedByDescending { it.getDiplomacyManager(civInfo)!!.relationshipLevel() }
 
         for (otherCiv in civsThatWeCanOpenBordersWith) {
-            val rng = civInfo.getDiplomacyManager(otherCiv)!!.state.stateBasedRandom("DiplomacyAutomation.offerOpenBorders")
             // Default setting is 3
             if ((1..10).random(getRandom(civInfo, otherCiv, "open borders")) < 7) continue
             if (wantsToOpenBorders(civInfo, otherCiv)) {
@@ -281,7 +278,6 @@ object DiplomacyAutomation {
         }
 
         for (otherCiv in civsThatWeCanSignDefensivePactWith) {
-            val rng = civInfo.getDiplomacyManager(otherCiv)!!.state.stateBasedRandom("DiplomacyAutomation.offerDefensivePact")
             // Default setting is 3, this will be changed according to different civ.
             if ((1..10).random(getRandom(civInfo, otherCiv, "defensive pact"))
                 <= 7 * civInfo.getPersonality().inverseScaledFocus(PersonalityValue.Loyal)) continue
@@ -481,7 +477,7 @@ object DiplomacyAutomation {
     }
     
     private const val MIN_UNITS_NEAR_BORDER_TO_ISSUE_DEMAND = 8
-    private const val MIN_PERCENT_FORCE_VALUE_NEAR_BORDER_TO_ISSUE_DEMAND = 50 // minimum 1
+    private const val MIN_PERCENT_FORCE_VALUE_NEAR_BORDER_TO_ISSUE_DEMAND = 50
     
     /**
      * Checks if any civ have positioned large portions of their troops along our borders.

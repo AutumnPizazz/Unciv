@@ -38,9 +38,6 @@ class Difficulty : RulesetObject() {
     var turnBarbariansCanEnterPlayerTiles: Int = 0
     var clearBarbarianCampReward: Int = 25
 
-    // property defined in json but so far unused:
-    // var aisExchangeTechs = false
-
     // Note: Difficulty uniques will be treated as part of GlobalUniques
     override fun getUniqueTarget(): UniqueTarget = UniqueTarget.Difficulty
 

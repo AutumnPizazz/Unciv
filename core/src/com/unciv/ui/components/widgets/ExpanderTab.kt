@@ -185,10 +185,6 @@ class ExpanderTab(
         val yToShow = this.y + this.height - heightToShow +
             (if (scrollPane.actor == this.parent) 0f else parent.y)
 
-        // If ever needed - how to check whether scrollTo would not need to scroll (without testing for heightToShow > scrollHeight)
-//         val relativeY =  scrollPane.actor.height - yToShow - scrollPane.scrollY
-//         if (relativeY >= heightToShow && relativeY <= scrollPane.scrollHeight) return
-
         // scrollTo does the y axis inversion for us, and also will do nothing if the requested area is already fully visible
         scrollPane.scrollTo(0f, yToShow, header.width, heightToShow)
     }

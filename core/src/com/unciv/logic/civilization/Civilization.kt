@@ -571,11 +571,6 @@ class Civilization : IsPartOfGameInfoSerialization {
         return getCivResourceSupply().firstOrNull { it.resource == resource }?.amount ?: 0
     }
 
-    /** Gets modifiers for ALL resources */
-    @Readonly
-    fun getResourceModifiers(): Map<String, Float> =
-        gameInfo.ruleset.tileResources.values.associate { it.name to getResourceModifier(it) }
-
     /**
      * Returns the resource production modifier as a multiplier.
      *

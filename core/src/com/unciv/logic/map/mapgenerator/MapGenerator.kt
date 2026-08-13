@@ -524,7 +524,6 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         for (canonical in sortedCanonicals) {
             if (nationIdx >= allNations.size) break
-            val petalStarts = groups[canonical]!!
 
             for (step in 0 until foldCount) {
                 if (nationIdx >= allNations.size) break
@@ -625,7 +624,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     }
 
     private fun spreadCoast(map: TileMap, coasts: List<TerrainOccursRange>) {
-        for (i in 1..map.mapParameters.maxCoastExtension) {
+        repeat(map.mapParameters.maxCoastExtension) {
             val toCoast = mutableListOf<Tile>()
             for (tile in map.values.filter { it.isOcean }) {
                 val tilesInDistance = tile.getTilesInDistance(1)

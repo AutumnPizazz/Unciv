@@ -289,9 +289,6 @@ object GithubAPI {
         var pushed_at = "" // don't use updated_at - see https://github.com/yairm210/Unciv/issues/6106
         var size = 0
         var topics = mutableListOf<String>()
-        //var stargazers_url = ""
-        //var homepage: String? = null      // might use instead of go to repo?
-        //var has_wiki = false              // a wiki could mean proper documentation for the mod?
 
         /** String representation to be used for logging */
         override fun toString() = name.ifEmpty { direct_zip_url }
@@ -418,32 +415,18 @@ object GithubAPI {
 
     /** Topic search response */
     class TopicSearchResponse {
-        // Commented out: Github returns them, but we're not interested
-//         var total_count = 0
-//         var incomplete_results = false
         var items = ArrayList<Topic>()
         class Topic {
             var name = ""
             var display_name: String? = null  // Would need to be curated, which is alottawork
-//             var featured = false
-//             var curated = false
             var created_at = "" // iso datetime with "Z" timezone
             var updated_at = "" // iso datetime with "Z" timezone
         }
     }
 
     /** Class to receive a github API "Get a tree" response parsed as json */
-    // Parts of the response we ignore are commented out
     internal class Tree {
-        //val sha = ""
-        //val url = ""
-
         class TreeFile {
-            //val path = ""
-            //val mode = 0
-            //val type = "" // blob / tree
-            //val sha = ""
-            //val url = ""
             var size: Long = 0L
         }
 

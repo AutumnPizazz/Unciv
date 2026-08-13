@@ -73,7 +73,6 @@ abstract class ParticleEffectAnimation : Disposable {
     }
 
     private val activeEffectData = arrayListOf<ParticleEffectData>()
-    //private val effectsBatch: Batch = SpriteBatch()
     private val targetBounds = Rectangle()
     private var lastScale = 1f
 

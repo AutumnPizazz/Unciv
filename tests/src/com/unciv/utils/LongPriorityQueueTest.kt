@@ -77,22 +77,6 @@ class LongPriorityQueueTest {
             return result
         }
         
-        private inline fun LongArray.findFirstPair(condition: (Long,Long)->Boolean): Int {
-            for (i in 0 ..<size-1) {
-                if (condition(get(i), get(i+1)))
-                    return i
-            }
-            return -1
-        }
-
-        private fun factorial(n: Int): Int {
-            if (n <2) return 1
-            var result = 1
-            for (i in 2..n)
-                result *= i
-            return result
-        }
-        
         private fun LongArray.swap(i: Int, j: Int) {
             val t = get(i)
             set(i, get(j))

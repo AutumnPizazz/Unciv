@@ -45,9 +45,6 @@ class AStar(
     private val cost: (Tile, Tile) -> Float,
     private val heuristic : (Tile, Tile) -> Float,
 ) {
-    /** Maximum number of tiles to search */
-    var maxSize = Int.MAX_VALUE
-
     /** Cache for storing the costs */
     private val costCache = mutableMapOf<Pair<Tile,Tile>, Float>()
 
@@ -120,10 +117,9 @@ class AStar(
      * Processes one step in the A* algorithm, expanding the search from the current tile to its neighbors.
      * It updates the search structures accordingly, considering both the cost so far and the heuristic estimate.
      *
-     * If the maximum size is reached or no more tiles are available, this method will do nothing.
+     * If no more tiles are available, this method will do nothing.
      */
     fun nextStep() {
-        if (tilesReached.size >= maxSize) { tilesToCheck.clear(); return }
         val currentTile = tilesToCheck.poll()?.tile ?: return
         for (neighbor in currentTile.neighbors) {
             val newCost: Float = cumulativeTileCost[currentTile]!! + getCost(currentTile, neighbor)

@@ -177,11 +177,6 @@ class MapParameters : IsPartOfGameInfoSerialization {
     @JvmName("legendaryStartGetter")
     fun getLegendaryStart() = legendaryStart || mapResources == MapResourceSetting.legendaryStart.label
 
-    fun getArea() = when {
-        shape == MapShape.hexagonal || shape == MapShape.flatEarth -> getNumberOfTilesInHexagon(mapSize.radius)
-        worldWrap && mapSize.width % 2 != 0 -> (mapSize.width - 1) * mapSize.height
-        else -> mapSize.width * mapSize.height
-    }
     private fun displayMapDimensions() = mapSize.run {
         (if (shape == MapShape.hexagonal || shape == MapShape.flatEarth) "R$radius" else "${width}x$height") +
         (if (worldWrap) "w" else "")

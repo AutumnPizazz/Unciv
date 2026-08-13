@@ -26,7 +26,6 @@ class GreatPersonManager : IsPartOfGameInfoSerialization {
 
     var greatPersonPointsCounter = Counter<String>()
     var greatGeneralPointsCounter = Counter<String>()
-    var greatGeneralPoints = 0
     var freeGreatPeople = 0
     /** Marks subset of [freeGreatPeople] as subject to maya ability restrictions (each only once until all used) */
     var mayaLimitedFreeGP = 0
@@ -41,7 +40,6 @@ class GreatPersonManager : IsPartOfGameInfoSerialization {
         toReturn.pointsForNextGreatGeneralCounter = pointsForNextGreatGeneralCounter.clone()
         toReturn.greatGeneralPointsCounter = greatGeneralPointsCounter.clone()
         toReturn.pointsForNextGreatGeneral = pointsForNextGreatGeneral
-        toReturn.greatGeneralPoints = greatGeneralPoints
         toReturn.mayaLimitedFreeGP = mayaLimitedFreeGP
         toReturn.longCountGPPool = longCountGPPool.toHashSet()
         return toReturn

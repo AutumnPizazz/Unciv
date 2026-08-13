@@ -154,7 +154,8 @@ class MapGenerationRandomness {
             for (terrain in baseTerrainsToChosenTiles.keys)
                 baseTerrainsToChosenTiles[terrain] = 0
 
-            for (i in 1..number) {
+            var remainingToChoose = number
+            while (remainingToChoose > 0) {
                 val orderedKeys = baseTerrainsToChosenTiles.entries
                     .sortedBy { it.value }.map { it.key }
                 val firstKeyWithTilesLeft = orderedKeys
@@ -166,6 +167,7 @@ class MapGenerationRandomness {
                     availableSet.removeAll(closeTiles)
                 chosenTiles.add(chosenTile)
                 baseTerrainsToChosenTiles[firstKeyWithTilesLeft] = baseTerrainsToChosenTiles[firstKeyWithTilesLeft]!! + 1
+                remainingToChoose--
             }
             if (chosenTiles.size == number || distanceBetweenResources == 1) {
                 // Either we got them all, or we're not going to get anything better

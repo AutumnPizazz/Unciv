@@ -156,7 +156,7 @@ internal class WorkerAutomationTest {
         }
         city.reassignAllPopulation()
         val worker = testGame.addUnit("Worker", civInfo, centerTile)
-        for(i in 0..37) {
+        repeat(38) {
             worker.currentMovement = 2f
             for (unit in civInfo.units.getCivUnits()) {
                 // Disband any workers that may have been built in this time period
@@ -217,7 +217,7 @@ internal class WorkerAutomationTest {
             city.reassignAllPopulation()
         }
         val worker = testGame.addUnit("Worker", civInfo, city1.getCenterTile())
-        for(i in 0..37) {
+        repeat(38) {
             worker.currentMovement = 2f
             for (unit in civInfo.units.getCivUnits()) {
                 // Disband any workers that may have been built in this time period
@@ -297,7 +297,7 @@ internal class WorkerAutomationTest {
             city.cityConstructions.addBuilding("Stock Exchange")
         }
         val worker = testGame.addUnit("Worker", civInfo, city1.getCenterTile())
-        for(i in 0..24) {
+        repeat(25) {
             worker.currentMovement = 2f
             for (unit in civInfo.units.getCivUnits()) {
                 // Disband any workers that may have been built in this time period

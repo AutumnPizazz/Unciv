@@ -79,20 +79,6 @@ open class UnitAction(
         }
     }
 
-    //TODO remove once sure they're unused
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is UnitAction) return false
-
-        if (type != other.type) return false
-        if (isCurrentAction != other.isCurrentAction) return false
-        if (action != other.action) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int = hashOf(type.hashCode(), isCurrentAction.hashCode(), action.hashCode())
-
     override fun toString(): String {
         return "UnitAction(type=$type, title='$title', isCurrentAction=$isCurrentAction)"
     }

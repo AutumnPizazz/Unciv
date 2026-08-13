@@ -99,8 +99,7 @@ class Timers {
         val NO_TIME_POINT = markNow()
         val TIMING_DISABLED = NO_TIME_POINT
         val NO_TIME_DATA = GdxIntArray(0)
-        val NO_SPAN = AutoCloseable { }
-        
+
         val singleton = Timers()
 
         @Pure

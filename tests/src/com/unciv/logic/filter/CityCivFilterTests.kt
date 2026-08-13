@@ -33,7 +33,7 @@ class CityCivFilterTests {
         val city2 = game.addCity(civ, game.tileMap[-2,0], initialPopulation = 9)
         city2.isPuppet = true
         val enemy = game.addCiv()
-        val city3 = game.addCity(enemy, game.tileMap[3,0])
+        game.addCity(enemy, game.tileMap[3,0])
 
         runTestParcours("Filtered cities countable", { test: String ->
             game.gameInfo.getCities().count { it.matchesFilter(test, civ) }

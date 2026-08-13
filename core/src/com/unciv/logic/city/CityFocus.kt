@@ -77,11 +77,5 @@ enum class CityFocus(
 
     companion object {
         @Pure fun safeValueOf(stat: Stat): CityFocus = entries.firstOrNull { it.stat == stat } ?: NoFocus
-
-        // set used in Automation. All non-Food Focuses, so targets 0 Surplus Food
-        val zeroFoodFocuses = setOf(
-            CultureFocus, FaithFocus, GoldFocus,
-            HappinessFocus, ProductionFocus, ScienceFocus
-        )
     }
 }

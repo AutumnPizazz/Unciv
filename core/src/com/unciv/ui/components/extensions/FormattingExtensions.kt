@@ -95,8 +95,6 @@ object UncivDateFormat {
 
     /** Format a date to ISO format with minutes */
     fun Date.formatDate(): String = standardFormat.format(this)
-    // Previously also used:
-    //val updateString = "{Updated}: " +DateFormat.getDateInstance(DateFormat.SHORT).format(date)
 
     // Everything under java.time is from Java 8 onwards, meaning older phones that use Java 7 won't be able to handle it :/
     // So we're forced to use ancient Java 6 classes instead of the newer and nicer LocalDateTime.parse :(

@@ -138,28 +138,6 @@ object DropBox: FileStorage {
         throw FileStorageRateLimitReached(remainingRateLimitSeconds)
     }
 
-//     fun fileExists(fileName: String): Boolean = try {
-//             dropboxApi("https://api.dropboxapi.com/2/files/get_metadata",
-//                 "{\"path\":\"$fileName\"}", "application/json")
-//             true
-//         } catch (ex: MultiplayerFileNotFoundException) {
-//             false
-//         }
-
-//
-//    fun createTemplate(): String {
-//        val result =  dropboxApi("https://api.dropboxapi.com/2/file_properties/templates/add_for_user",
-//                "{\"name\": \"Security\",\"description\": \"These properties describe how confidential this file or folder is.\",\"fields\": [{\"name\": \"Security Policy\",\"description\": \"This is the security policy of the file or folder described.\nPolicies can be Confidential, Public or Internal.\",\"type\": \"string\"}]}"
-//                ,"application/json")
-//        return BufferedReader(InputStreamReader(result, Charsets.UTF_8)).readText()
-//    }
-
-//    private class FolderList{
-//        var entries = ArrayList<MetaData>()
-//        var cursor = ""
-//        var has_more = false
-//    }
-
     @Suppress("PropertyName")  // and don't make that private or this suppress won't work
     private class MetaData: FileMetaData {
 //        var name = ""

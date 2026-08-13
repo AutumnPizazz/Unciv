@@ -109,7 +109,6 @@ enum class ApiVersion {
                 }
                 try {
                     val serverFeatureSet: ServerFeatureSet = json().fromJson(ServerFeatureSet::class.java, response1.bodyAsText())
-                    // val serverFeatureSet: ServerFeatureSet = response1.body()
                     Log.debug("Detected APIv1 at %s: %s", fixedBaseUrl, serverFeatureSet)
                     client.close()
                     return APIv1

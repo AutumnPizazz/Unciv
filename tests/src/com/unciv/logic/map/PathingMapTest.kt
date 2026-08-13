@@ -48,7 +48,6 @@ class PathingMapTest {
         val moveThisTurn = fpmFromFixedPointBits((1 shl 8) or 1) //9 bits. value is 257 aka 13.00
         val turns = (1 shl 5) or 1 // 6 bits. value is 33
         val parentTile = testGame.tileMap.getClockPositionNeighborTile(tile, 12)!!
-        val attackRange = (1 shl 4) or 1 // 5 bits. value is 17
         val damagingTiles = 3
         val underestimatedTotal = fpmFromFixedPointBits((1 shl 13) or 1) //15 bits. value is 8193 aka 409.65move
         val canMoveTo = true

@@ -434,7 +434,6 @@ class WorkerAutomation(
             
             else -> resource.getImprovements().asSequence()
                 .mapNotNull { potentialTileImprovements[it] }
-                .filter { it.name in potentialTileImprovements || it == currentImprovement }
                 .maxByOrNull { getImprovementRanking(tile, unit, it, null, ignoreImprovements + potentialTileImprovements.values) }
         }
 
@@ -571,18 +570,6 @@ class WorkerAutomation(
             value /= 2
         }
         return value
-    }
-
-    @Readonly
-    private fun getImprovementRanking(
-        tile: Tile,
-        unit: MapUnit,
-        improvementName: String,
-        
-        /** Provide for performance */ currentTileStats: Stats? = null
-    ): Float = timeThis("getImprovementRanking") {
-        val improvement = ruleSet.tileImprovements[improvementName]!!
-        return getImprovementRanking(tile, unit, improvement, currentTileStats)
     }
 
     /**

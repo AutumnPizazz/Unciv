@@ -10,8 +10,6 @@ internal class AutomationTab(
 ): OptionsPopupTab(optionsPopup) {
     lateinit var autoPlayMaxTurnsSliderTable: Table
     lateinit var autoPlayMaxTurnsSliderCell: Cell<Table>
-//     val fullAutoPlayTable: Table
-//     val fullAutoPlayCell: Cell<Table>
 
     override fun lateInitialize() {
         top() // So the dynamically displayed parts won't make the page jump up and down
@@ -52,30 +50,8 @@ internal class AutomationTab(
         if (settings.autoPlay.autoPlayUntilEnd)
             autoPlayMaxTurnsSliderCell.setActor(null)
 
-//         addCheckbox("Full AutoPlay AI", settings.autoPlay::fullAutoPlayAI) {
-//             fullAutoPlayCell.setActor(if (it) fullAutoPlayTable else null)
-//             pack()
-//         }
-//         fullAutoPlayCell = addWrapped {
-//             addAutoPlaySections()
-//         }
-//         fullAutoPlayTable = fullAutoPlayCell.actor
-//         if (!settings.autoPlay.fullAutoPlayAI)
-//            fullAutoPlayCell.setActor(null)
-
         super.lateInitialize()
     }
-
-//     private fun Table.addAutoPlaySections() {
-//         defaults().space(5f)
-//         addCheckbox("AutoPlay Military", settings.autoPlay::autoPlayMilitary)
-//         addCheckbox("AutoPlay Civilian", settings.autoPlay::autoPlayCivilian)
-//         addCheckbox("AutoPlay Economy", settings.autoPlay::autoPlayEconomy)
-//         addCheckbox("AutoPlay Diplomacy", settings.autoPlay::autoPlayDiplomacy)
-//         addCheckbox("AutoPlay Technology", settings.autoPlay::autoPlayTechnology)
-//         addCheckbox("AutoPlay Policies", settings.autoPlay::autoPlayPolicies)
-//         addCheckbox("AutoPlay Religion", settings.autoPlay::autoPlayReligion)
-//     }
 
     private fun allCitiesChooseNextConstruction(shouldAutoAssignCityProduction: Boolean) {
         if (!shouldAutoAssignCityProduction) return

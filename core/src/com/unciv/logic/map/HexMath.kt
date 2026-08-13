@@ -377,12 +377,6 @@ object HexMath {
 
 }
 
-//interface HexCoord{
-//    val x: Int
-//    val y: Int
-//
-//}
-
 /**
  *  Holds a position on our hexagon-based [TileMap].
  *  * This data class is required for serialization/deserialization, see [InlineHexCoord].
