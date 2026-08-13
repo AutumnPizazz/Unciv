@@ -6,6 +6,7 @@ import com.unciv.logic.GameInfo
 import com.unciv.logic.GameStarter
 import com.unciv.logic.automation.Timers
 import com.unciv.models.metadata.GameSetupInfo
+import java.util.Locale
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
@@ -231,7 +232,7 @@ class Simulation(
             val numSteps = max(steps.size, 1)
             val expWinRate = 1f / numMajorCivs
             if (numWins[civ]!!.value == 0) continue
-            val winRate = String.format("%.1f", numWins[civ]!!.value * 100f / numSteps)
+            val winRate = String.format(Locale.ENGLISH, "%.1f", numWins[civ]!!.value * 100f / numSteps)
 
             outString += "\n$civ:\n"
             outString += "$winRate% total win rate \n"

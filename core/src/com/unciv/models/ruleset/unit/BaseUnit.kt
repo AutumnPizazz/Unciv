@@ -337,7 +337,7 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
                     val building = civ.getEquivalentBuilding(conditional.params[0]).name
                     val cityFilter = conditional.params[1]
                     if(civ.cities.any { it.matchesFilter(cityFilter)
-                            !it.isPuppet && !it.cityConstructions.containsBuildingOrEquivalent(building)
+                            && !it.isPuppet && !it.cityConstructions.containsBuildingOrEquivalent(building)
                         }) {
                         yield(RejectionReasonType.RequiresBuildingInAllCities.toInstance(
                             "Requires a [${building}] in all cities"))

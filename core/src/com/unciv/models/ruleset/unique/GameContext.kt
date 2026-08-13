@@ -90,7 +90,7 @@ data class GameContext(
     @Readonly
     fun stateBasedRandom(caller: String, seed: Int=31): Random {
         val isOnlineMultiplayer = gameInfo?.gameParameters?.isOnlineMultiplayer == true
-        if (UncivGame.Current.settings.isRandomVarianceEnabled(isOnlineMultiplayer))
+        if (UncivGame.isCurrentInitialized() && UncivGame.Current.settings.isRandomVarianceEnabled(isOnlineMultiplayer))
             return Random
         return Random(hashOf(caller.hashCode(), seed, this.hashCode()))
     }

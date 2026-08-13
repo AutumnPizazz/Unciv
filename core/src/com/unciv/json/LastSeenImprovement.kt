@@ -1,6 +1,5 @@
 package com.unciv.json
 
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Json
 import com.badlogic.gdx.utils.JsonValue
 import com.unciv.logic.IsPartOfGameInfoSerialization
@@ -33,11 +32,6 @@ class LastSeenImprovement(
         }
     }
 
-    @Pure
-    private fun String.toVector2(): Vector2 {
-        val (x, y) = removeSurrounding("(", ")").split(',')
-        return Vector2(x.toFloat(), y.toFloat())
-    }
     @Pure
     private fun String.toHexCoord(): HexCoord {
         val (x, y) = removeSurrounding("(", ")").split(',')

@@ -24,9 +24,9 @@ class Belief() : RulesetObject() {
     @Readonly
     fun matchesFilter(filter: String, state: GameContext? = null, multiFilter: Boolean = true): Boolean {
         return if (multiFilter) MultiFilter.multiFilter(filter, {
-            matchesSingleFilter(filter, state) ||
-                state != null && hasTagUnique(filter, state) ||
-                state == null && hasTagUnique(filter)
+            matchesSingleFilter(it, state) ||
+                state != null && hasTagUnique(it, state) ||
+                state == null && hasTagUnique(it)
         })
         else matchesSingleFilter(filter, state) ||
             state != null && hasTagUnique(filter, state) ||
@@ -87,7 +87,7 @@ class Belief() : RulesetObject() {
             yieldAll(matchingBeliefs.map { FormattedLine(it.name, link = it.makeLink(), indent = 1) })
         }
 
-        fun getCivilopediaBeliefsEntry(ruleset: Ruleset) = Belief().apply {
+        fun getCivilopediaBeliefsEntry() = Belief().apply {
             name = "Beliefs"
             val lines = ArrayList<FormattedLine>()
             lines += FormattedLine("There are four types of beliefs: Pantheon, Founder, Follower and Enhancer beliefs.")

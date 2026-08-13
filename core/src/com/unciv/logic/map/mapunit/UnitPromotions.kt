@@ -6,6 +6,7 @@ import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.ruleset.unit.Promotion
 import com.unciv.ui.components.extensions.toPercent
+import com.unciv.utils.hashOf
 import yairm210.purity.annotations.LocalState
 import yairm210.purity.annotations.Readonly
 
@@ -217,4 +218,6 @@ class UnitPromotions : IsPartOfGameInfoSerialization {
         if (other !is UnitPromotions) return false
         return XP == other.XP && promotions == other.promotions && numberOfPromotions == other.numberOfPromotions
     }
+
+    override fun hashCode(): Int = java.util.Objects.hash(XP, promotions, numberOfPromotions)
 }

@@ -114,7 +114,7 @@ class LongPriorityQueue(
             bubbleUp(i)
         }
         ++mutCounter
-        return false
+        return true
     }
 
     fun addAll(c: LongArray) : Boolean {
@@ -130,7 +130,7 @@ class LongPriorityQueue(
             bubbleUp(i)
         }
         ++mutCounter
-        return false
+        return true
     }
 
     @Readonly
@@ -148,9 +148,14 @@ class LongPriorityQueue(
     
     fun remove(value: Long) : Boolean {
         if (size == 0) return false
-        fillHole(0)
-        ++mutCounter
-        return true
+        for (i in 0..<size) {
+            if (queue[i] == value) {
+                fillHole(i)
+                ++mutCounter
+                return true
+            }
+        }
+        return false
     }
     
     fun removeAll(c: Collection<Long>) : Boolean {

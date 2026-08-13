@@ -161,7 +161,7 @@ object TradeAutomation {
             }
         }
 
-        tradeLogic.currentTrade.theirOffers.addAll(counterofferAsks.keys)
+        tradeLogic.currentTrade.theirOffers.addAll(counterofferAsks.keys.filterNot { it in toRemove })
         tradeLogic.currentTrade.ourOffers.addAll(counterofferGifts)
 
         // Trades reversed, because when *they* get it then the 'ouroffers' become 'theiroffers'
