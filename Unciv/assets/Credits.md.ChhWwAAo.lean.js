@@ -1,1 +1,0 @@
-import{_ as r,o as t,c as a,ag as o}from"./chunks/framework.D9ghT4bC.js";const m=JSON.parse('{"title":"Credits","description":"","frontmatter":{},"headers":[],"relativePath":"Credits.md","filePath":"Credits.md"}'),n={name:"Credits.md"};function l(i,e,h,c,s,f){return t(),a("div",null,[...e[0]||(e[0]=[o("",132)])])}const u=r(n,[["render",l]]);export{m as __pageData,u as default};
