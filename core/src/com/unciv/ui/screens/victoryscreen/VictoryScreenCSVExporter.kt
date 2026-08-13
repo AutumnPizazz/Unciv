@@ -32,7 +32,7 @@ object VictoryScreenCSVExporter {
             return
         }
 
-        val csv = buildCSV(majorCivs, turns, gameInfo)
+        val csv = buildCSV(majorCivs, turns)
         copyToClipboard(csv, onComplete, turns.size)
     }
 
@@ -46,8 +46,7 @@ object VictoryScreenCSVExporter {
      */
     private fun buildCSV(
         majorCivs: List<Civilization>,
-        turns: List<Int>,
-        gameInfo: com.unciv.logic.GameInfo
+        turns: List<Int>
     ): String {
         val rows = mutableListOf<List<String>>()
 

@@ -170,7 +170,7 @@ object LuaScriptManager {
             return emptyList()
         }
 
-        val globals = createSandboxedGlobals(modName, ruleset)
+        val globals = createSandboxedGlobals(modName)
         modGlobals[modName] = globals
 
         val budget = modInstructionBudgets[modName] ?: InstructionBudgetDebugLib().also {
@@ -359,7 +359,7 @@ object LuaScriptManager {
         return regex.find(message)?.groupValues?.get(1)?.toIntOrNull()
     }
 
-    private fun createSandboxedGlobals(modName: String, ruleset: Ruleset): Globals {
+    private fun createSandboxedGlobals(modName: String): Globals {
         val globals = JsePlatform.standardGlobals()
 
         // Remove dangerous standard libraries and functions

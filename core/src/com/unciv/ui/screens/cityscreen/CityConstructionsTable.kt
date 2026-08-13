@@ -295,7 +295,8 @@ class CityConstructionsTable(private val cityScreen: CityScreen) {
             // This is however rare enough and short enough in duration that a second run will work
             val buttonText = try {
                 cityConstructions.getTurnsToConstructionString(entry, useStoredProduction).trim()
-            } catch (_: Exception){
+            } catch (_: Exception) {
+                // Retry once - a comodification failure during the first call is transient and the second call usually succeeds
                 cityConstructions.getTurnsToConstructionString(entry, useStoredProduction).trim()
             }
 

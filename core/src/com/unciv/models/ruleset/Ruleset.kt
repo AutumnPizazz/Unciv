@@ -257,7 +257,7 @@ class Ruleset {
                 val resolvedList = resolveConditionals(rawJson, mergeContext)
                 if (resolvedList.isNotEmpty()) {
                     val deserialized = deserializeResolvedList<T>(resolvedList, arrayClass)
-                    processObjects(targetMap, deserialized, this)
+                    processObjects(targetMap, deserialized)
                 }
             } else {
                 targetMap.putAll(sourceMap)
@@ -359,12 +359,15 @@ class Ruleset {
         victories.putAll(ruleset.victories)
         cityStateTypes.putAll(ruleset.cityStateTypes)
 
-        ruleset.modOptions.unitsToRemove
-            .flatMap { unitToRemove ->
-                units.filter { it.apply { value.setRuleset(this@Ruleset) }.value.matchesFilter(unitToRemove) }.keys
-            }.toSet().forEach {
-                units.remove(it)
+        if (ruleset.modOptions.unitsToRemove.isNotEmpty()) {
+            for (unit in units.values) unit.setRuleset(this)
+            val unitsToRemove = ruleset.modOptions.unitsToRemove
+                .flatMap { unitToRemove -> units.filter { it.value.matchesFilter(unitToRemove) }.keys }
+                .toSet()
+            for (unitName in unitsToRemove) {
+                units.remove(unitName)
             }
+        }
         mergeOrPutAll("Units.json", units, ruleset.units, Array<BaseUnit>::class.java)
 
         mergeOrPutAll("Personalities.json", personalities, ruleset.personalities, Array<Personality>::class.java)
@@ -683,8 +686,7 @@ class Ruleset {
     /** Process a list of objects against the target map, dispatching based on each object's _mergeAction. */
     fun <T : IRulesetObject> processObjects(
         target: LinkedHashMap<String, T>,
-        sourceList: List<T>,
-        ruleset: Ruleset
+        sourceList: List<T>
     ) {
         for (obj in sourceList) {
             val existing = target[obj.name]

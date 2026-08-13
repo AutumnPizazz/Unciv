@@ -461,10 +461,7 @@ class WorldMapHolder(
             val unitToTurnsToTile = HashMap<MapUnit, Int>()
             for (unit in selectedUnits) {
                 val shortestPath = ArrayList<Tile>()
-                val turnsToGetThere = if (unit.baseUnit.movesLikeAirUnits) {
-                    if (unit.movement.canReach(tile)) 1
-                    else 0
-                } else if (unit.isPreparingParadrop()) {
+                val turnsToGetThere = if (unit.baseUnit.movesLikeAirUnits || unit.isPreparingParadrop()) {
                     if (unit.movement.canReach(tile)) 1
                     else 0
                 } else {

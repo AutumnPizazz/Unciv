@@ -21,8 +21,6 @@ object Nuke {
      *  Checks whether [nuke] is allowed to nuke [targetTile]
      *  - Not if we would need to declare war on someone we can't.
      *  - Disallow nuking the tile the nuke is in, as per Civ5 (but not nuking your own tiles/units otherwise)
-     *
-     *  Both [BattleTable.simulateNuke] and [AirUnitAutomation.automateNukes] check range, so that check is omitted here.
      */
     @Readonly
     fun mayUseNuke(nuke: MapUnitCombatant, targetTile: Tile): Boolean {
@@ -237,7 +235,8 @@ object Nuke {
                 else -> 20 + rng.nextInt(30)
             } * buildingModifier * damageModifierFromMissingResource + 1f.ulp).toInt()
             if (unit.isCivilian()) {
-                if (unit.health - damage <= 40) unit.destroy()  // Civ5: NUKE_NON_COMBAT_DEATH_THRESHOLD = 60
+                // Civ5's NUKE_NON_COMBAT_DEATH_THRESHOLD is 60; Unciv uses 40 (units below this health die outright)
+                if (unit.health - damage <= 40) unit.destroy()
             } else {
                 defender.takeDamage(damage)
             }

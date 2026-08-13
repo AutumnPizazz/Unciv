@@ -518,7 +518,6 @@ object NextTurnAutomation {
                     && (it.currentTile.aerialDistanceTo(capitalTile) < tile.aerialDistanceTo(capitalTile))
                     && it.movement.canReach(tile) 
             }
-            .sortedBy { it.currentTile.aerialDistanceTo(tile) }
             .maxByOrNull { it.baseUnit.strength } // could be more sophisticated based on promotions, movement speed etc.
         
         val settlersToAccompany = civInfo.units.getCivUnits()

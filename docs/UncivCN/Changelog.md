@@ -2,6 +2,10 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+## Unreleased
+
+- Code cleanup: removed dead code, commented-out blocks and unused parameters found in a full-project review (see `.review-code-issues.md` for the audit list) - unused members in MapPathing/MapGenerator/City/Civilization/UncivJson/LongPriorityQueue/AStar/etc., unused loop variables, leftover comments in GithubAPI/DropBox; fixed real bugs found along the way - `ConditionalBuildingBuiltAll` city filters were silently ignored (missing `&&` in Building/BaseUnit), `TradeAutomation` gold-removal `toRemove` never applied, defensive-pact notifications skipped remaining spectators (`return` → `continue`), multi-segment `{A} {B}`/`non-[X]` filters always false/true in 5 rule classes, `LongPriorityQueue.remove` deleted the head instead of the value; `stateBasedRandom` no longer crashes in headless map-generation tests
+
 ## v4.21.7.2 (build 1252)
 
 - Android: the update popup now downloads the APK in-game (progress shown on the button) and hands it to the system installer via FileProvider - no more hunting for the file in the browser; the unknown-sources install permission (API 26+) is guided automatically on first install; on other platforms the popup now notes where the browser saves the installer

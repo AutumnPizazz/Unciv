@@ -101,7 +101,7 @@ enum class CivilopediaCategories (
         "ReligionIcons/Religion",
         { ruleset, _ -> (
             ruleset.beliefs.values.asSequence() +
-            BaseBelief.getCivilopediaBeliefsEntry(ruleset) +
+            BaseBelief.getCivilopediaBeliefsEntry() +
             BaseBelief.getCivilopediaReligionEntry(ruleset)
         ).toList() }
     ),

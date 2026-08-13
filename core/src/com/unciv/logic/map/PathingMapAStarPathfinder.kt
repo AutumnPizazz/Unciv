@@ -193,8 +193,6 @@ internal class AStarPathfinder(
                 Log.debug("#calculateAndQueue ${currentTile.position} stubbing ${neighborTile.position} as occupied, for $debugMapType $debugId (false)")
             val occupiedNode =  RouteNode(neighborTile, relationship, newMountainMovement, cost, currentNode.turns+1, currentTile, canMoveTo, damagingTiles)
             routeNodes[neighborTile.zeroBasedIndex] = occupiedNode.bits
-            cache.addedNeighborNodes.set(neighborTile.zeroBasedIndex)
-            cache.addedNeighborNodes.clear(neighborTile.zeroBasedIndex)
             return null
         } else if (currentNode.pbmMoveThisTurn < fpmFullMovement) {
             // If we could have moved here if we'd paused before entering mountains, then

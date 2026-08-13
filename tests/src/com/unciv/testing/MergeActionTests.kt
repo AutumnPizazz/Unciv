@@ -253,7 +253,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertEquals("Strength should be overwritten", 10, target["Warrior"]!!.strength)
         Assert.assertEquals("Should have 2 uniques", 2, target["Warrior"]!!.uniques.size)
@@ -275,7 +275,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertFalse("Warrior should NOT be created by TRY_INJECT", target.containsKey("Warrior"))
     }
@@ -294,7 +294,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertEquals("Strength should be replaced", 15, target["Warrior"]!!.strength)
     }
@@ -312,7 +312,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertFalse("Warrior should be removed", target.containsKey("Warrior"))
     }
@@ -336,7 +336,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertEquals("requiredResource reset", "", target["Swordsman"]!!.requiredResource)
         Assert.assertEquals("1 promotion left", 1, target["Swordsman"]!!.promotions.size)
@@ -354,7 +354,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertEquals("Strength updated", 10, target["Warrior"]!!.strength)
         Assert.assertEquals("Cost set to default -1 (entire object replaced)", -1, target["Warrior"]!!.cost)
@@ -372,7 +372,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertNull("_mergeAction should be cleared", target["NewUnit"]!!._mergeAction)
     }
@@ -404,7 +404,7 @@ class MergeActionTests {
         )
 
         val ruleset = Ruleset()
-        ruleset.processObjects(target, source, ruleset)
+        ruleset.processObjects(target, source)
 
         Assert.assertEquals("Strength is 10", 10, target["Warrior"]!!.strength)
         Assert.assertEquals("3 promotions", 3, target["Warrior"]!!.promotions.size)

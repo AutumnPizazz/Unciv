@@ -423,8 +423,7 @@ class WorldScreen(
             if (fogOfWar) minimapWrapper.update(selectedCiv)
             else minimapWrapper.update(viewingCiv)
 
-            if (fogOfWar) bottomTileInfoTable.civView = gameView.civView
-            else bottomTileInfoTable.civView = gameView.civView
+            bottomTileInfoTable.civView = gameView.civView
             bottomTileInfoTable.updateTileTable(mapHolder.selectedTile)
             bottomTileInfoTable.x = stage.width - bottomTileInfoTable.width
             bottomTileInfoTable.y = if (game.settings.showMinimap) minimapWrapper.height + 5f else 0f

@@ -8,6 +8,10 @@ title: UncivCN 更新日志
 
 详细历史记录见 [UncivCN 更新日志（社区归档）](/zh/UncivCN/Changelog)。
 
+## 未发布
+
+- 代码清理：按全项目代码审查清单（见 `.review-code-issues.md`）删除死代码、注释掉的代码块与未使用参数（MapPathing/MapGenerator/City/Civilization/UncivJson/LongPriorityQueue/AStar 等 30+ 处），清理无效循环变量与冗余分支；顺带修复审查中发现的问题——`ConditionalBuildingBuiltAll` 的城市过滤条件因缺少 `&&` 被静默忽略（Building/BaseUnit）、`TradeAutomation` 还价中应删除的黄金从未生效、防御条约通知因 `return` 中断跳过其余旁观者（改为 `continue`）、5 个规则集类的多段 `{A} {B}`/`non-[X]` 过滤恒假/恒真、`LongPriorityQueue.remove` 忽略参数误删队首；`stateBasedRandom` 不再于无头地图生成测试中崩溃
+
 ## v4.21.7.2（build 1252）
 
 - Android：更新弹窗改为游戏内直接下载 APK（按钮实时显示下载进度），下载完成后一键调起系统安装界面（FileProvider 共享文件），无需再去浏览器下载目录找安装包；首次安装会自动引导授权「安装未知来源应用」（Android 8+）；其他平台弹窗补充说明安装包将保存到浏览器下载文件夹

@@ -50,7 +50,7 @@ class BarbarianEncampment() : IsPartOfGameInfoSerialization {
 
     /** When a barbarian is spawned, seed the counter for next spawn */
     private fun resetCountdown() {
-        val rng = gameInfo.getBarbarianCivilization().state.stateBasedRandom("BarbarianManager.resetCooldown")
+        val rng = gameInfo.getBarbarianCivilization().state.stateBasedRandom("BarbarianManager.resetCountdown")
         // Base 8-12 turns
         countdown = 8 + rng.nextInt(5)
         // Quicker on Raging Barbarians

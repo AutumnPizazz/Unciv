@@ -276,7 +276,7 @@ object LuaMapGenAPI {
         t.set("generateRivers", luaFunction {
             val resultingTiles = mutableSetOf<Tile>()
             RiverGenerator(map, randomness, ruleset).spawnRivers(resultingTiles)
-            convertTerrains(map, ruleset, resultingTiles)
+            convertTerrains(ruleset, resultingTiles)
             LuaValue.NIL
         })
 
@@ -286,7 +286,7 @@ object LuaMapGenAPI {
         })
 
         t.set("convertTerrains", luaFunction {
-            convertTerrains(map, ruleset, map.values)
+            convertTerrains(ruleset, map.values)
             LuaValue.NIL
         })
 
@@ -475,7 +475,7 @@ object LuaMapGenAPI {
     }
 
     /** Applies "Changes Terrain Near" uniques to convert terrains. */
-    private fun convertTerrains(map: TileMap, ruleset: Ruleset, tiles: Iterable<Tile>) {
+    private fun convertTerrains(ruleset: Ruleset, tiles: Iterable<Tile>) {
         for (tile in tiles) {
             val conversionUnique = tile.getBaseTerrain()
                 .getMatchingUniques(UniqueType.ChangesTerrain, com.unciv.models.ruleset.unique.GameContext(tile = tile))
