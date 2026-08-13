@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- CI: detekt / Docker 发布工作流改在 UncivCN 分支触发（此前绑定上游 master 分支从未运行），Release 判定只认 4 段版本号；移除上游 uncivbot 自动发版机器人（CN 为手动发版）
+- 游戏内 wiki 链接改为 CN 文档站（club.unciv.cn），加载失败提示邮箱改为 hurxwork@qq.com
 - Code cleanup & bugfixes from the full-project code review: dead code and commented-out blocks removed, `ConditionalBuildingBuiltAll` city filters and multi-segment `{A} {B}`/`non-[X]` filters fixed, `LongPriorityQueue.remove` no longer deletes the wrong element, `stateBasedRandom` no longer crashes headless map-generation tests
 
 ## 4.21.7.2 (build 1252)

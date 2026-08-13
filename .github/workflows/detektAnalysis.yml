@@ -3,10 +3,10 @@ name: Detekt
 on:
   pull_request:
     branches:
-      - master
+      - UncivCN
   push:
     branches:
-      - master
+      - UncivCN
 
 jobs:
   detekt:

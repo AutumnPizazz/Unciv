@@ -143,7 +143,7 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 - **Release tag**: the MSI installer version comes from the git tag (`github.ref_name`, 4-segment form like `4.21.5.3`); every release must push a tag matching the version to trigger the Deploy workflow.
 - **Upstream changelog pages**: the English page `docs/Community/Upstream-changelog.md` embeds the full repo-root `changelog.md` at build time (the `upstream-changelog` container in `docs-vitepress/.vitepress/config.ts`), so it stays current automatically after every upstream merge — never maintain an English copy by hand. The Chinese page `docs/zh/Community/Upstream-changelog.md` is **human-translated only, no embedded English**: it covers recent versions (may lag) and links to the EN page for the full history; backfill translations gradually, newest versions first.
 
-### Release checklist & lessons learned (from the 4.21.6.x series)
+### Release checklist & lessons learned
 
 Before releasing, check off:
 - [ ] Version bump in `buildSrc/src/main/kotlin/BuildConfig.kt` (`appVersion` + `appCodeNumber` +1); after a build, confirm `syncGameVersion` mirrored it into `UncivGame.kt` (`VERSION = Version("x.y.z.n", NNNN)`)

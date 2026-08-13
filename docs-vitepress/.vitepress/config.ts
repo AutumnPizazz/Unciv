@@ -6,7 +6,7 @@ import taskLists from 'markdown-it-task-lists'
 import mathjax3 from 'markdown-it-mathjax3'
 import container from 'markdown-it-container'
 
-// 仓库根目录的上游官方更新日志（uncivbot 自动生成，merge 上游时自动更新）
+// 仓库根目录的上游官方更新日志（上游自动生成，merge 上游时自动更新）
 const upstreamChangelogPath = fileURLToPath(new URL('../../changelog.md', import.meta.url))
 
 /**

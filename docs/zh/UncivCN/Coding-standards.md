@@ -197,7 +197,7 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   中文页 `docs/zh/Community/Upstream-changelog.md` **只放人工翻译、不嵌入英文**，
   覆盖最近版本（允许滞后）并链接英文页看完整历史，翻译从最新版本往前补翻。
 
-### 发版检查清单与踩坑经验（4.21.6.x 系列总结）
+### 发版检查清单与踩坑经验
 
 发版前逐项核对：
 - [ ] 版本号：`buildSrc/src/main/kotlin/BuildConfig.kt`（`appVersion` + `appCodeNumber`+1），

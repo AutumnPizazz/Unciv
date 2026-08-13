@@ -4,11 +4,11 @@ on:
   schedule:
     - cron: '23 14 * * *'
   push:
-    branches: [ "master" ]
+    branches: [ "UncivCN" ]
     # Publish semver tags as releases.
-    tags: [ '*.*.*' ]
+    tags: [ '*.*.*.*' ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "UncivCN" ]
   # UncivCN: allow manual re-runs (e.g. after a transient build failure)
   workflow_dispatch:
 
