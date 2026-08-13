@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Difficulty: AI unhappiness modifier for King and above is now 100/90/85/75 (was 90/85/75/60), matching verified in-game values
 - Modding: unit max HP is now moddable - `maxHP` field in Units.json (default 100) plus the new `[relativeAmount] Max HP` unique; combat wounded penalty now scales with HP percentage, AI/UI thresholds made relative, Lua `unit.getMaxHealth()` reflects the moddable max HP
 - Main menu bottom-right buttons: the Discord entry is now a QQ group link (qm.qq.com), added a Baidu Tieba button, and the GitHub button points to the CN fork repository; the About page's repository/changelog/README links point to the UncivCN fork (with version anchors fixed)
 - Docs site links adapt to the client language: Simplified/Traditional Chinese clients jump to the Chinese section (/zh/), other languages jump to the English section

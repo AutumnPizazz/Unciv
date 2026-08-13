@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 难度：国王及以上难度的 AI 不满修正改为 100/90/85/75（原 90/85/75/60），以实机数值为准
 - 模组支持：单位血量上限可模组化——Units.json 新增 `maxHP` 字段（默认 100）+ 新 unique `[relativeAmount] Max HP`；残血减伤按血量百分比缩放，AI/UI 阈值全部相对化，Lua 的 `unit.getMaxHealth()` 返回动态上限
 - 主菜单右下角按钮：Discord 改为 QQ 群入口（qm.qq.com），新增百度贴吧按钮，GitHub 按钮改指 CN 分支仓库；关于页仓库/更新日志/README 链接改指 UncivCN 分支（含版本锚点修正）
 - 文档站链接按客户端语言自适应：简体/繁体中文客户端跳中文区（/zh/），其余语言跳英文区
