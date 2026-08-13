@@ -88,14 +88,6 @@ object UniqueTriggerActivation {
             ?: Countables.getCountableAmount(param, GameContext(civInfo, city))
     }
 
-    /** Resolve a parameter as a Float amount (for fractional params).
-     *  Tries plain float parsing first, then falls back to Countable (rounded to Int). */
-    @Readonly
-    private fun resolveFloatAmount(param: String, civInfo: Civilization, city: City? = null): Float? {
-        return param.toFloatOrNull()
-            ?: Countables.getCountableAmount(param, GameContext(civInfo, city))?.toFloat()
-    }
-
     /** Check if a parameter is a valid amount (plain number or valid Countable expression) */
     @Readonly
     private fun isValidAmount(param: String, ruleset: Ruleset): Boolean =
@@ -1153,9 +1145,11 @@ object UniqueTriggerActivation {
                 return {
                     val positiveAmount = resolveAmount(unique.params[0], civInfo, city) ?: 0
                     for (applicableCity in applicableCities) {
-                        for (i in 1..positiveAmount) {
+                        var tilesToTake = positiveAmount
+                        while (tilesToTake > 0) {
                             val tileToOwn = applicableCity.expansion.chooseNewTileToOwn() ?: break
                             applicableCity.expansion.takeOwnership(tileToOwn)
+                            tilesToTake--
                         }
                     }
                     if (notification != null)
