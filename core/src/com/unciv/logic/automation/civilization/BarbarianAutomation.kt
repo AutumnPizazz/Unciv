@@ -49,7 +49,7 @@ class BarbarianAutomation(val civInfo: Civilization) {
 
     private fun automateCombatUnit(unit: MapUnit) {
         // 1 - Try pillaging to restore health (barbs don't auto-heal)
-        if (unit.health < 50 && UnitAutomation.tryPillageImprovement(unit, true) && !unit.hasMovement()) return
+        if (unit.health < unit.getMaxHealth() / 2 && UnitAutomation.tryPillageImprovement(unit, true) && !unit.hasMovement()) return
 
         // 2 - trying to upgrade
         if (UnitAutomation.tryUpgradeUnit(unit)) return

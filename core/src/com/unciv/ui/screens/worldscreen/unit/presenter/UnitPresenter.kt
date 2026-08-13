@@ -161,7 +161,7 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
     @Readonly
     private fun buildNameLabelText(unit: MapUnit) : String {
         var nameLabelText = unit.displayName().tr(true)
-        if (unit.health < 100) nameLabelText += " (${unit.health.tr()})"
+        if (unit.health < unit.getMaxHealth()) nameLabelText += " (${unit.health.tr()})"
         return nameLabelText
     }
 

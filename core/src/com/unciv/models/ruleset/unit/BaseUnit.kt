@@ -45,6 +45,7 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
     var religiousStrength: Int = 0
     var range: Int = 2
     var interceptRange = 0
+    var maxHP: Int = 100
     var unitType: String = ""
 
     val type by lazy { ruleset.unitTypes[unitType]
@@ -143,6 +144,7 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
         // must be after setting name & civInfo because it sets the baseUnit according to the name
         // and the civInfo is required for using `hasUnique` when determining its movement options
         unit.setTransients(civInfo.gameInfo.ruleset)
+        unit.health = unit.getMaxHealth()
 
         return unit
     }

@@ -442,7 +442,7 @@ object NextTurnAutomation {
         val stateForConditionals = unit.cache.state
         while (unit.promotions.canBePromoted()) {
             val promotions = unit.promotions.getAvailablePromotions()
-            val availablePromotions = if (unit.health <= 60
+            val availablePromotions = if (unit.health <= unit.getMaxHealth() * 3 / 5
                 && promotions.any { it.hasUnique(UniqueType.OneTimeUnitHeal) }
                 && !(unit.baseUnit.isAirUnit() || unit.hasUnique(UniqueType.CanMoveAfterAttacking))
             ) {
@@ -464,7 +464,7 @@ object NextTurnAutomation {
     /** All units will continue after this to the regular automation, so units not moved in this function will still move */
     private fun automateCityConquer(civInfo: Civilization, city: City){
         @Readonly fun ourUnitsInRange(range: Int) = city.getCenterTile().getTilesInDistance(range)
-            .mapNotNull { it.militaryUnit }.filter { it.civ == civInfo && (!it.baseUnit.isMelee() || it.health > 30) }.toList()
+            .mapNotNull { it.militaryUnit }.filter { it.civ == civInfo && (!it.baseUnit.isMelee() || it.health > it.getMaxHealth() * 3 / 10) }.toList()
         
         
         fun attackIfPossible(unit: MapUnit, tile: Tile){
@@ -513,7 +513,7 @@ object NextTurnAutomation {
         @Readonly fun bestUnitInRange(tile: Tile, range: Int) = tile.getTilesInDistance(range)
             .mapNotNull { it.militaryUnit }.filter {
                 it.civ == civInfo
-                    && it.health >= 100
+                    && it.health >= it.getMaxHealth()
                     // only draft a unit from the core of the empire, or it'll interfere with other anti-barb activities
                     && (it.currentTile.aerialDistanceTo(capitalTile) < tile.aerialDistanceTo(capitalTile))
                     && it.movement.canReach(tile) 
@@ -546,7 +546,7 @@ object NextTurnAutomation {
         }
         val distance = if (!isAtWar) 0 else unit.civ.threatManager.getDistanceToClosestEnemyUnit(unit.getTile(),6)
         // Lower health units should move earlier to swap with higher health units
-        return distance + (unit.health / 10) - unit.promotions.numberOfPromotions + when {
+        return distance + (unit.health * 10 / unit.getMaxHealth()) - unit.promotions.numberOfPromotions + when {
             unit.baseUnit.isRanged() -> 10
             unit.baseUnit.isMelee() -> 30
             unit.isGreatPersonOfType("War") -> 100 // Generals move after military units

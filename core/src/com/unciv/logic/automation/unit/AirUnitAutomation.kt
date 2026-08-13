@@ -15,7 +15,7 @@ import yairm210.purity.annotations.Readonly
 object AirUnitAutomation {
 
     fun automateFighter(unit: MapUnit) {
-        if (unit.health < 75) return // Wait and heal
+        if (unit.health < unit.getMaxHealth() * 3 / 4) return // Wait and heal
 
         val tilesWithEnemyUnitsInRange = unit.civ.threatManager.getTilesWithEnemyUnitsInDistance(unit.getTile(), unit.getRange())
         // TODO: Optimize [friendlyAirUnitsInRange] by creating an alternate [ThreatManager.getTilesWithEnemyUnitsInDistance] that handles only friendly units
@@ -47,7 +47,7 @@ object AirUnitAutomation {
             }
         }
 
-        if (unit.health < 80) {
+        if (unit.health < unit.getMaxHealth() * 4 / 5) {
             return // Wait and heal up, no point in moving closer to battle if we aren't healed
         }
 
@@ -92,11 +92,11 @@ object AirUnitAutomation {
     }
 
     fun automateBomber(unit: MapUnit) {
-        if (unit.health < 75) return // Wait and heal
+        if (unit.health < unit.getMaxHealth() * 3 / 4) return // Wait and heal
 
         if (BattleHelper.tryAttackNearbyEnemy(unit)) return
 
-        if (unit.health <= 90 || (unit.health < 100 && !unit.civ.isAtWar())) {
+        if (unit.health <= unit.getMaxHealth() * 9 / 10 || (unit.health < unit.getMaxHealth() && !unit.civ.isAtWar())) {
             return // Wait and heal
         }
 

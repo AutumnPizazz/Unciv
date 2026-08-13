@@ -244,7 +244,7 @@ object LuaApiDocs {
         q("getMovement", "fun(): number", "Maximum movement", "最大移动力"),
         q("getCurrentMovement", "fun(): number", "Remaining movement", "剩余移动力"),
         q("getXP", "fun(): number", "Experience points", "经验值"),
-        q("getMaxHealth", "fun(): number", "100 (max HP)", "100（最大生命）"),
+        q("getMaxHealth", "fun(): number", "Max HP", "最大生命值"),
         q("getDamage", "fun(): number", "Max health minus current health", "最大生命减当前生命"),
         q("getAttacksLeft", "fun(): number", "Attacks remaining this turn", "本回合剩余攻击次数"),
         q("getVisibilityRange", "fun(): number", "Sight range in tiles", "视野范围（格）"),

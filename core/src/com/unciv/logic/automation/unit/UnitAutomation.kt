@@ -81,10 +81,10 @@ object UnitAutomation {
 
         if (tryGoToRuin(unit) && !unit.hasMovement()) return
 
-        if (unit.health < 50 && (tryRetreat(unit) || tryHealUnit(unit))) return // do nothing but heal
+        if (unit.health < unit.getMaxHealth() / 2 && (tryRetreat(unit) || tryHealUnit(unit))) return // do nothing but heal
 
         // If there are no enemies nearby and we can heal here, wait until we are at full health
-        if (unit.health < 100 && canUnitHealInTurnsOnCurrentTile(unit,2, 3)) return
+        if (unit.health < unit.getMaxHealth() && canUnitHealInTurnsOnCurrentTile(unit,2, 3)) return
 
         if (tryHeadTowardsOurSiegedCity(unit)) return
 
@@ -103,12 +103,12 @@ object UnitAutomation {
 
         if (tryGarrisoningLandUnit(unit)) return
 
-        if (unit.health < 80 && tryHealUnit(unit)) return
+        if (unit.health < unit.getMaxHealth() * 4 / 5 && tryHealUnit(unit)) return
 
         // move towards the closest reasonably attackable enemy unit within 3 turns of movement (and 5 tiles range)
         if (tryAdvanceTowardsCloseEnemy(unit)) return
 
-        if (unit.health < 100 && tryHealUnit(unit)) return
+        if (unit.health < unit.getMaxHealth() && tryHealUnit(unit)) return
 
         if (tryPrepare(unit)) return
 
@@ -277,7 +277,7 @@ object UnitAutomation {
         repeat(unit.maxAttacksPerTurn() - unit.attacksThisTurn) {
             if (BattleHelper.tryAttackNearbyEnemy(unit)) return true
             // Calvary style tctic, attack and then retreat
-            if (unit.health < 50 && tryRetreat(unit)) return true
+            if (unit.health < unit.getMaxHealth() / 2 && tryRetreat(unit)) return true
         }
         return false
     }
@@ -333,7 +333,7 @@ object UnitAutomation {
                 return true
             } else if (otherUnit.civ == unit.civ) {
                 // The tile is taken, lets see if we want to swap retreat to it
-                if (otherUnit.health <= 80) continue
+                if (otherUnit.health <= otherUnit.getMaxHealth() * 4 / 5) continue
                 if (otherUnit.baseUnit.isRanged()) {
                     // Don't swap ranged units closer than they have to be
                     val range = otherUnit.baseUnit.range
@@ -360,7 +360,7 @@ object UnitAutomation {
         // Try pillage improvements until healed
         while (tryPillageImprovement(unit, true)) {
             // If we are fully healed and can still do things, lets keep on going by returning false
-            if (!unit.hasMovement() || unit.health == 100) return !unit.hasMovement()
+            if (!unit.hasMovement() || unit.health == unit.getMaxHealth()) return !unit.hasMovement()
         }
 
         val unitDistanceToTiles = unit.movement.getDistanceToTiles()
@@ -675,7 +675,7 @@ object UnitAutomation {
     It also explores, but also has other functions, like healing if necessary. */
     fun automatedExplore(unit: MapUnit) {
         if (tryGoToRuin(unit) && (!unit.hasMovement() || unit.isDestroyed)) return
-        if (unit.health < 80 && tryHealUnit(unit)) return
+        if (unit.health < unit.getMaxHealth() * 4 / 5 && tryHealUnit(unit)) return
         if (tryExplore(unit)) return
         unit.civ.addNotification("${unit.shortDisplayName()} finished exploring.", MapUnitAction(unit), NotificationCategory.Units, unit.name, "OtherIcons/Sleep")
         unit.action = null

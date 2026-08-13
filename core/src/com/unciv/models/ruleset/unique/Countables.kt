@@ -72,7 +72,7 @@ enum class Countables(
         override fun eval(parameterText: String, gameContext: GameContext) =
             gameContext.civInfo?.cities?.sumOf { it.population.population }
     },
-    UnitHealth("Unit Health", shortDocumentation = "The current health of the relevant Unit (0-100)") {
+    UnitHealth("Unit Health", shortDocumentation = "The current health of the relevant Unit (0 to its Max HP)") {
         override fun eval(parameterText: String, gameContext: GameContext) =
             gameContext.relevantUnit?.health
     },

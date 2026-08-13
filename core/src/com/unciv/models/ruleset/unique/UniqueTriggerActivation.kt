@@ -1237,7 +1237,7 @@ object UniqueTriggerActivation {
 
             UniqueType.OneTimeUnitHeal -> {
                 if (unit == null) return null
-                if (unit.health == 100) return null
+                if (unit.health == unit.getMaxHealth()) return null
                 return {
                     unit.healBy(unique.params[1].toInt())
                     if (notification != null)

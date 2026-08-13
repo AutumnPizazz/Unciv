@@ -315,7 +315,7 @@ class UniqueDocsWriter : DocsWriter() {
             "The number of units the relevant Civilization owns" -> "相关文明拥有的单位数量"
             "The population of the relevant City" -> "相关城市的人口"
             "The total population of the relevant Civilization" -> "相关文明的总人口"
-            "The current health of the relevant Unit (0-100)" -> "相关单位的当前生命值（0-100）"
+            "The current health of the relevant Unit (0 to its Max HP)" -> "相关单位的当前生命值（0 到其最大生命值）"
             "The accumulated experience of the relevant Unit" -> "相关单位累计的经验"
             "The level of the relevant Unit (number of promotions + 1)" -> "相关单位的等级（晋升次数 + 1）"
             "The stored happiness points towards the next Golden Age" -> "为下一次黄金时代累积的笑脸点数"

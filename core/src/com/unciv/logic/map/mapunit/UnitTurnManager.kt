@@ -153,7 +153,7 @@ class UnitTurnManager(val unit: MapUnit) {
                 }
         )  unit.action = null
 
-        if (unit.action != null && unit.health > 99 && unit.isActionUntilHealed()) {
+        if (unit.action != null && unit.health >= unit.getMaxHealth() && unit.isActionUntilHealed()) {
             unit.action = null // wake up when healed
             unit.civ.addNotification("[${unit.shortDisplayName()}] has fully healed",
                 MapUnitAction(unit), NotificationCategory.Units, unit.name)

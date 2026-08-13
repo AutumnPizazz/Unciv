@@ -492,10 +492,22 @@ class MapUnit : IsPartOfGameInfoSerialization {
         return getMatchingUniques(UniqueType.HealAdjacentUnits).sumOf { it.params[0].toInt() }
     }
 
+    /** The max HP of this unit, from [com.unciv.models.ruleset.unit.BaseUnit.maxHP] plus Max HP uniques.
+     * Only unmodified uniques or ones carrying just the targeting "for [mapUnitFilter] units" conditional count -
+     * other conditionals are ignored so that Max HP cannot depend on combat state or current health. */
+    @Readonly
+    fun getMaxHealth(): Int {
+        val state = cache.state
+        val bonus = getMatchingUniques(UniqueType.MaxHealth, state, checkCivInfoUniques = true)
+            .filter { it.modifiers.all { modifier -> modifier.type == UniqueType.ConditionalOurUnit } }
+            .sumOf { it.params[0].toInt() }
+        return (baseUnit.maxHP + bonus).coerceAtLeast(1)
+    }
+
     @Readonly
     fun getHealAmountForCurrentTile() = when {
         isEmbarked() -> 0 // embarked units can't heal
-        health >= 100 -> 0 // No need to heal if at max health
+        health >= getMaxHealth() -> 0 // No need to heal if at max health
         hasUnique(UniqueType.HealOnlyByPillaging, checkCivInfoUniques = true) -> 0
         else -> rankTileForHealing(getTile())
     }
@@ -648,7 +660,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
     private fun matchesSingleFilter(filter: String, state: GameContext = GameContext.EmptyState): Boolean {
         return when (filter) {
             "other" -> state.unit != this
-            Constants.wounded, "wounded units" -> health < 100
+            Constants.wounded, "wounded units" -> health < getMaxHealth()
             Constants.barbarians, "Barbarian" -> civ.isBarbarian
             "City-State" -> civ.isCityState
             Constants.embarked -> isEmbarked()
@@ -707,7 +719,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
         val promotionBonus = (promotions.numberOfPromotions + 1).toFloat().pow(0.3f)
         var power = (baseUnit.getForceEvaluation() * promotionBonus).toInt()
         power *= health
-        power /= 100
+        power /= getMaxHealth()
         return power
     }
 
@@ -748,6 +760,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
 
         for (status in statusMap.values) status.setTransients(this)
         updateUniques()
+        if (health > getMaxHealth()) health = getMaxHealth() // Max HP may be lower than current health for old saves or changed mods
         if (action == UnitActionType.Automate.value){
             automated = true
             action = null
@@ -779,6 +792,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
         newUnit.action = action // Needed too for Unit Overview action column
 
         newUnit.updateUniques()
+        newUnit.health = newUnit.health.coerceAtMost(newUnit.getMaxHealth())
         newUnit.updateVisibleTiles()
     }
 
@@ -889,13 +903,15 @@ class MapUnit : IsPartOfGameInfoSerialization {
         health += amount *
                 if (hasUnique(UniqueType.HealingEffectsDoubled, checkCivInfoUniques = true)) 2
                 else 1
-        if (health > 100) health = 100
+        val maxHealth = getMaxHealth()
+        if (health > maxHealth) health = maxHealth
         cache.updateUniques()
     }
 
     fun takeDamage(amount: Int) {
         health -= amount
-        if (health > 100) health = 100 // For cheating modders, e.g. negative tile damage
+        val maxHealth = getMaxHealth()
+        if (health > maxHealth) health = maxHealth // For cheating modders, e.g. negative tile damage
         if (health < 0) health = 0
         if (health == 0) destroy()
         else cache.updateUniques()
@@ -1050,7 +1066,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
             goldGained += unique.params[0].toInt()
             val recruitedUnit = civ.gameInfo.barbarians.spawnBarbarian(tile, civ)
                 ?: continue
-            recruitedUnit.health = 50
+            recruitedUnit.health = recruitedUnit.getMaxHealth() / 2
             recruitedUnit.currentMovement = 0f
             civ.addNotification(
                 "An enemy [${recruitedUnit.name}] has joined us!",

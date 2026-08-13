@@ -114,7 +114,7 @@ object UnitActions {
         },
         UnitActionType.Fortify to { unit ->
             // Fortify moves to second page if current action is FortifyUntilHealed or if unit is wounded and it's not already the current action
-            if (unit.isFortifyingUntilHealed() || unit.health < 100 && !(unit.isFortified() && !unit.isActionUntilHealed())) 1 else 0
+            if (unit.isFortifyingUntilHealed() || unit.health < unit.getMaxHealth() && !(unit.isFortified() && !unit.isActionUntilHealed())) 1 else 0
         },
         UnitActionType.FortifyUntilHealed to { unit ->
             // FortifyUntilHealed only moves to the second page if Fortify is the current action
@@ -122,7 +122,7 @@ object UnitActions {
         },
         UnitActionType.Sleep to { unit ->
             // Sleep moves to second page if current action is SleepUntilHealed or if unit is wounded and it's not already the current action
-            if (unit.isSleepingUntilHealed() || unit.health < 100 && !(unit.isSleeping() && !unit.isActionUntilHealed())) 1 else 0
+            if (unit.isSleepingUntilHealed() || unit.health < unit.getMaxHealth() && !(unit.isSleeping() && !unit.isActionUntilHealed())) 1 else 0
         },
         UnitActionType.SleepUntilHealed to { unit ->
             // SleepUntilHealed only moves to the second page if Sleep is the current action
@@ -289,7 +289,7 @@ object UnitActions {
             useFrequency = 30f
         ))
 
-        if (unit.health == 100) return
+        if (unit.health == unit.getMaxHealth()) return
         yield(UnitAction(UnitActionType.FortifyUntilHealed,
             action = { unit.fortifyUntilHealed() }
                 .takeIf { !unit.isFortifyingUntilHealed() && unit.canHealInCurrentTile() },
@@ -306,7 +306,7 @@ object UnitActions {
             action = { unit.action = UnitActionType.Sleep.value }.takeIf { !unit.isSleeping() || unit.isSleepingUntilHealed() }
         ))
 
-        if (unit.health == 100) return
+        if (unit.health == unit.getMaxHealth()) return
         yield(UnitAction(UnitActionType.SleepUntilHealed,
             useFrequency = if (!unit.isSleepingUntilHealed()) 44f else 20f,
             action = { unit.action = UnitActionType.SleepUntilHealed.value }

@@ -228,15 +228,15 @@ object Nuke {
             val attackContext = GameContext(attacker.getCivInfo(), ourCombatant = attacker, theirCombatant = defender, tile = tile)
             val rng = attackContext.stateBasedRandom("Nuke.doNukeExplosionForTile")
             val damage = (when {
-                isGroundZero || nukeStrength >= 2 -> 100
+                isGroundZero || nukeStrength >= 2 -> unit.getMaxHealth()
                 // The following constants are NUKE_UNIT_DAMAGE_BASE / NUKE_UNIT_DAMAGE_RAND_1 / NUKE_UNIT_DAMAGE_RAND_2 in Civ5
                 nukeStrength == 1 -> 30 + rng.nextInt(40) + rng.nextInt(40)
                 // Level 0 does not exist in Civ5 (it treats units same as level 2)
                 else -> 20 + rng.nextInt(30)
             } * buildingModifier * damageModifierFromMissingResource + 1f.ulp).toInt()
             if (unit.isCivilian()) {
-                // Civ5's NUKE_NON_COMBAT_DEATH_THRESHOLD is 60; Unciv uses 40 (units below this health die outright)
-                if (unit.health - damage <= 40) unit.destroy()
+                // Civ5's NUKE_NON_COMBAT_DEATH_THRESHOLD is 60% (of max HP); Unciv uses 40% (units below this health die outright)
+                if (unit.health - damage <= unit.getMaxHealth() * 0.4f) unit.destroy()
             } else {
                 defender.takeDamage(damage)
             }

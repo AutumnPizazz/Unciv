@@ -9,6 +9,7 @@ open class ForeignMapUnitView(internal open val unit: MapUnit, internal open val
     val name: String get() = unit.name
     val civName: String get() = unit.civ.civName
     val health: Int get() = unit.health
+    val maxHealth: Int get() = unit.getMaxHealth()
 
     // Navigation
     @Readonly fun getUnit(): MapUnit = unit

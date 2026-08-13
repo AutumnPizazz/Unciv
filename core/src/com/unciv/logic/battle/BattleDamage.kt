@@ -257,8 +257,12 @@ object BattleDamage {
         return if (combatant !is MapUnitCombatant
             || combatant.unit.hasUnique(UniqueType.NoDamagePenaltyWoundedUnits, checkCivInfoUniques = true)
         ) 1f
-        // Each 3 points of health reduces damage dealt by 1%
-        else 1 - (100 - combatant.getHealth()) / BattleConstants.DAMAGE_REDUCTION_WOUNDED_UNIT_RATIO_PERCENTAGE
+        else {
+            // Each 3% of missing health reduces damage dealt by 1%
+            val maxHealth = combatant.getMaxHealth()
+            val missingHealthPercent = (maxHealth - combatant.getHealth()) * 100f / maxHealth
+            1 - missingHealthPercent / BattleConstants.DAMAGE_REDUCTION_WOUNDED_UNIT_RATIO_PERCENTAGE
+        }
     }
 
 
