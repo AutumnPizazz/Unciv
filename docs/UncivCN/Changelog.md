@@ -5,10 +5,10 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 ## Unreleased
 
 - Modding: unit max HP is now moddable - `maxHP` field in Units.json (default 100) plus the new `[relativeAmount] Max HP` unique; combat wounded penalty now scales with HP percentage, AI/UI thresholds made relative, Lua `unit.getMaxHealth()` reflects the moddable max HP
-- 主菜单右下角按钮：Discord 改为 QQ 群入口（qm.qq.com），新增百度贴吧按钮，GitHub 按钮改指 CN 分支仓库；关于页仓库/更新日志/README 链接改指 UncivCN 分支（含版本锚点修正）
-- 文档站链接按客户端语言自适应：简体/繁体中文客户端跳中文区（/zh/），其余语言跳英文区
-- CI: detekt / Docker 发布工作流改在 UncivCN 分支触发（此前绑定上游 master 分支从未运行），Release 判定只认 4 段版本号；移除上游 uncivbot 自动发版机器人（CN 为手动发版）
-- 游戏内 wiki 链接改为 CN 文档站（club.unciv.cn），加载失败提示邮箱改为 hurxwork@qq.com
+- Main menu bottom-right buttons: the Discord entry is now a QQ group link (qm.qq.com), added a Baidu Tieba button, and the GitHub button points to the CN fork repository; the About page's repository/changelog/README links point to the UncivCN fork (with version anchors fixed)
+- Docs site links adapt to the client language: Simplified/Traditional Chinese clients jump to the Chinese section (/zh/), other languages jump to the English section
+- CI: detekt / Docker release workflows now trigger on the UncivCN branch (previously bound to upstream master and never ran), and release detection only accepts 4-segment version numbers; removed the upstream uncivbot auto-release bot (CN releases manually)
+- In-game wiki links now point to the CN docs site (club.unciv.cn), and the load-failure notice email is now hurxwork@qq.com
 - Code cleanup & bugfixes from the full-project code review: dead code and commented-out blocks removed, `ConditionalBuildingBuiltAll` city filters and multi-segment `{A} {B}`/`non-[X]` filters fixed, `LongPriorityQueue.remove` no longer deletes the wrong element, `stateBasedRandom` no longer crashes headless map-generation tests
 
 ## 4.21.7.2 (build 1252)
