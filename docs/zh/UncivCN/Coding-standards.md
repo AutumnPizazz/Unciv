@@ -178,7 +178,12 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   （`docs/UncivCN/Changelog.md` 与 `docs/zh/UncivCN/Changelog.md`）
   顶部的「未发布（Unreleased）」小节各加一行；条目只积累，发版前不删除。
 - **发版整合**：发版时把「未发布」小节整体移入新版本条目
-  （`## vX.Y.Z.N（build NNNN）`），措辞保持不变，然后清空「未发布」小节。
+  （`## X.Y.Z.N（build NNNN）`，无 v 前缀），措辞保持不变，然后清空「未发布」小节。
+- **更新日志写作规范**：条目一行一条、短句要点（学习上游 `changelog.md` 风格），
+  不写长篇解释、不留空话；需要署名时按 `- By 作者` 格式。
+- **发版提交**：提交信息只写版本号（如 `4.21.7.2`），不带 v 前缀、build 号或说明文字。
+- **Release 标题**：Deploy 工作流按 tag 名设置（`name: github.ref_name`），
+  因此 tag 必须为纯 4 段版本号，release 标题即纯版本号，不带其他字符。
 - **版本号提升**：只改 `buildSrc/src/main/kotlin/BuildConfig.kt` 的
   `appVersion` 与 `appCodeNumber`（+1）；每次构建 core 前 `syncGameVersion`
   任务会自动把版本号镜像到 `UncivGame.kt` 的
@@ -198,7 +203,7 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
 - [ ] 版本号：`buildSrc/src/main/kotlin/BuildConfig.kt`（`appVersion` + `appCodeNumber`+1），
       `syncGameVersion` 自动同步 `UncivGame.kt`，构建后确认 `VERSION = Version("x.y.z.n", NNNN)`
 - [ ] 更新日志：Unreleased 整体移入新版本条目（中英两份），措辞不变
-- [ ] 版本引用：`docs/{,zh/}UncivCN/index.md` 的当前版本行
+- [ ] 发版提交：`git commit -m "4.21.7.2"`（仅版本号）；tag 与提交同名推送
 - [ ] 本地验证：`./gradlew tests:test` **与** `cd docs-vitepress && npm run docs:build`
       （后者漏跑会导致 CI 的 docs 构建在发版后才发现问题）
 - [ ] 推送：分支与 **tag 分开推送**（`git push origin <分支>` + `git push origin <tag>`）；

@@ -4,222 +4,169 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Code cleanup: removed dead code, commented-out blocks and unused parameters found in a full-project review (see `.review-code-issues.md` for the audit list) - unused members in MapPathing/MapGenerator/City/Civilization/UncivJson/LongPriorityQueue/AStar/etc., unused loop variables, leftover comments in GithubAPI/DropBox; fixed real bugs found along the way - `ConditionalBuildingBuiltAll` city filters were silently ignored (missing `&&` in Building/BaseUnit), `TradeAutomation` gold-removal `toRemove` never applied, defensive-pact notifications skipped remaining spectators (`return` → `continue`), multi-segment `{A} {B}`/`non-[X]` filters always false/true in 5 rule classes, `LongPriorityQueue.remove` deleted the head instead of the value; `stateBasedRandom` no longer crashes in headless map-generation tests
+- Code cleanup & bugfixes from the full-project code review: dead code and commented-out blocks removed, `ConditionalBuildingBuiltAll` city filters and multi-segment `{A} {B}`/`non-[X]` filters fixed, `LongPriorityQueue.remove` no longer deletes the wrong element, `stateBasedRandom` no longer crashes headless map-generation tests
 
-## v4.21.7.2 (build 1252)
+## 4.21.7.2 (build 1252)
 
-- Android: the update popup now downloads the APK in-game (progress shown on the button) and hands it to the system installer via FileProvider - no more hunting for the file in the browser; the unknown-sources install permission (API 26+) is guided automatically on first install; on other platforms the popup now notes where the browser saves the installer
-- Android: update downloads are now interruption-safe - the package downloads to a `.part` file and is renamed only when complete (an interrupted download just leaves a half file that is simply downloaded again), completed APKs offer Install plus Redownload, a copy is also saved to the public Downloads folder (Android 10+) so players can install from their file manager even outside the game, and leftover packages of older releases are cleaned up when the popup opens
-- Fixed the "Download latest version" button on the main menu opening the release page in the browser instead of downloading the installer - it now lists the platform's packages from the release assets (Windows gets the full choice of MSI installer / portable zip / universal jar, other platforms their own packages, server jar and helper files excluded) and opens the chosen direct download URL through the active download source; the update popup now also shows the real file names and the actual version numbers
+- Android: update popup downloads the APK in-game with progress and installs it via FileProvider (unknown-sources permission guided)
+- Android: downloads are interruption-safe (`.part` + atomic rename), Install/Redownload buttons, copy to the public Downloads folder, old packages cleaned up
+- Main menu "Download latest version" now lists the platform's installers from the release assets and downloads the chosen one directly
 
-## v4.21.7.1 (build 1251)
+## 4.21.7.1 (build 1251)
 
-- CI: fixed the release pipeline - the `unciv-lua-api` VSCode extension packaging step used `vsce package --cwd` (unsupported option, first release after the extension was added); now builds inside the extension directory with an explicit `mkdir -p` for the output folder
-- Merged upstream 4.21.7 / 4.21.7-patch1 / patch2 (41 commits): the `View` refactor continues (#15280) - `TradeApi` views, unified city-internals visibility (`ForeignCityView.tryGetCityView`), `WorldMapHolder`/`WorldTileGroup`/`TileLayerUnitFlag` migrated to `TileView`, unclickable unexplored tiles fixed; AI no longer accepts gold for suicidal wars ("kamikaze wars" disallowed), more AI bug fixes; Stealth Bomber gains Evasion and no longer takes negative damage from interception; MP preview shows players' average turn times (hidden until a full turn is played); carrier payloads survive paradrop/transform; minimap only rebuilt on drag when its size actually changed (ANR fix); Gradle 8.11 → 9.4.1 with AGP/Kotlin upgrades, LibGDX 1.14.2, Android target SDK 36
-- Conflict resolution on merge: CN version bumped to 4.21.7.1 (build 1251); CN features kept - map/unit notes (`editNoteAt` Alt+click & long-press, note bubbles, `updateTileNoteLabel`) adapted to the new `ForeignMapUnitView`/`TileView` APIs, city auto-lock-tiles merged with the upstream tileView click path; `removeMissingModReferences` moved out of `TileGroup` to the map editor following upstream; Gradle 9.4.1 fetched from the Tencent Cloud mirror; translation files merged without conflicts
+- Merged upstream 4.21.7 / 4.21.7-patch1 / patch2 (41 commits): View refactor continues (#15280), AI war-logic fixes, Stealth Bomber Evasion, MP average turn times, minimap ANR fix, Gradle 9.4.1 + LibGDX 1.14.2 + target SDK 36; CN notes/pins and auto-lock adapted to the new View APIs
+- CI: fixed `unciv-lua-api` vsix packaging
+- Modder tooling: Lua API definitions auto-deployed to the docs site; `unciv-lua-api` VSCode extension syncs them into LuaLS
+- Docs: Lua API and map-script references generated from Kotlin data tables; toolchain no longer needs Python
+- Lua API: added `unit.getEraNumber()` and `civ.discoverTech()`
+- Mods: CoeHarMod now a git submodule (standalone repo), rules consolidated via Lua
 
-- Modder tooling: Lua API definitions now reach mod authors fully automatically - the generated `lua-api.lua` / `lua-map-api.lua` are deployed to the docs site on every release and the new `unciv-lua-api` VSCode extension (thin cloud puller, vsix attached to each release) syncs them into `~/.unciv/lua-api/` on every editor start and wires them into LuaLS with a one-click command; no more manual update checks. Generated files carry a `-- Unciv version:` header for instant staleness checks
+## 4.21.6.6 (build 1250)
 
-- Docs: the Lua **map-script** API docs are now generated from a Kotlin data table (`LuaMapGenApiDocs`) too - `lua-map-api.lua` (previously hand-maintained) and the new `Lua-Map-API-Reference.md` (EN + ZH) regenerate via `./gradlew desktop:generateDocs`; the map-script section of the `Lua-Modding.md` tutorial now links to the generated reference; the type-definition generator loop is shared between both API writers (sync tests added, the regex-based definitions test retired)
+- Automatic update check on the main menu (mirror fallback); "Mod download source" renamed "Download source"
+- Fixed Lua runtime crash on function-call arguments in custom API functions
+- Lua API expansion (~100 new methods), `ConditionalLuaCheck` unique, `TriggerUponTradeMade` hook
+- Lua map scripts: mods can ship a map generator (`scripts/`), new "Lua Generated" map type
+- Lua sandbox hardening; mod checker covers map-script APIs
 
-- Docs: the Lua API reference is now generated from a Kotlin data table (`LuaApiDocs`) like the uniques docs - `lua-api.lua` and the new `Lua-API-Reference.md` (EN + ZH) are regenerated by `./gradlew desktop:generateDocs` whenever an API is added, so the modder-facing docs can no longer drift from the implementation (sync tests added); the tutorial `Lua-Modding.md` (EN + ZH) now links to the generated reference; `UniqueDocsWriter` shares a new `DocsWriter` base class with the Lua doc writer
-- Tooling: the docs toolchain no longer requires Python - CI link checking (`check-docs-links.mjs`) and the local preview server (`preview-server.mjs`) are Node scripts, the one-time migration scripts and upstream `mkdocs.yml`/mkdocs workflow were removed (JDK + Node only)
-- Lua API: added `unit.getEraNumber()` (minimum era number of the unit's required techs, matching the `{Era.X}` unit filter semantics) and `civ.discoverTech()` (equivalent to the `Discover [tech]` unique - unlocks directly, bypassing research-ability checks, idempotent); synced to the EmmyLua type definitions
-- Mods: CoeHarMod now leverages the Lua system to cut redundancy - the general/admiral aura unique went from 9 per-era lines per unit to a single Lua condition; the AI fixes (60 civic Discover + 11 resource/policy-slot Provides entries) were merged into 2 turn-start hooks, with civics unlocked incrementally per era (progress kept in ctx.store); ~1900 lines of commented-out legacy rules were removed
+## 4.21.6.5 (build 1249)
 
-- Mods: CoeHarMod is now bundled as a git submodule pointing to its standalone repository (AutumnPizazz/CoeHarMod) - the in-tree copy was replaced by a submodule reference (currently v3.3.9+), so the bundled mod tracks the upstream repo
+- Docs: Lua sections rewritten, EmmyLua type definitions + `LuaStarterMod` template, mod-ci CLI
+- Lua runtime errors show line numbers; sandbox escape via `package.loaded` closed; instruction budget against runaway loops
+- New: multiplayer restart votes (host enables, everyone votes, timeout = agree, auto-restart)
+- CI: Release title is the plain version number
 
-## v4.21.6.6 (build 1250)
-- Game updates: added automatic update checking - on entering the main menu the game queries the latest GitHub release of the CN fork repository (AutumnPizazz/Unciv), routed through the active download source like everything else; when a newer version exists, the version label at the bottom of the main menu shows a "New version available" hint and clicking it opens a popup with the current vs. latest version and a download button; if the check fails due to network problems, the game offers a one-click switch to a mirror download source (same interaction as the mod list)
-- Settings: renamed the "Mod download source" option to "Download source" (it now also covers the update check); the source SelectBox now shows display names (e.g. "GitHub (official)") instead of raw enum names; fixed the "Custom download prefix" row blowing up the options table width - the label now sits in the left column and the text field + Enter button in the right column with a width cap
-- Fixed a Lua runtime crash affecting every mod script: custom Lua API functions (`luaFunction`) now override luaj's `invoke()`, so calls whose argument list contains a function-call expression (e.g. `ctx.store.set("k", tostring(1))`, `ctx.log(tostring(x))`, `civ.addNotification(makeText())`) no longer throw "attempt to call function" - previously only literal arguments worked; regression test added
-- Fixed the `testMOD` example script `hello.lua` using nonexistent API fields (`civ.gold` / `civ.cityCount` / `civ.era`) that silently evaluated to nil - now uses `civ.getGold()` / `civ.getCityCount()` / `civ.getEra()`
-- Lua API expansion (~100 new methods across all context tables): civ gained identity/rankings (getNation/getLeaderName/getScore/getForce), per-turn yields (getSciencePerTurn/getCulturePerTurn/getFoodPerTurn/getProductionPerTurn), tech cost, next-policy culture cost, diplomacy table (getDiplomaticStatuses/getProximityTo/hasEmbassyWith/makePeaceWith), city lists (getCityNames/getTotalPopulation/getWondersBuilt), resource stockpiles, spy details & addSpy, setGold; city gained food/growth (getFood/getFoodSurplus/getFoodStorage/getFoodNeeded), production info (getProductionProgress/getProductionCost/getTurnsToCompletion), garrison/strength/specialists/unemployed/resistance/wonders and writes (setPopulation/addFood/addProduction/addHealth/setName/sellBuilding); unit gained combat info (getMaxHealth/getDamage/getAttacksLeft/getVisibilityRange/getAction/canAttack/canPillage), territory checks (isInEnemyTerritory/isInFriendlyTerritory), great-person/religion queries and writes (setHealth/setXP/setStatus/setAttacksLeft/fortify/moveByPath); tile gained roads (hasRoad/hasRailroad), natural wonders, territory checks, distance/adjacency queries and setExplored; game gained civ lists (getCivNames/getHumanCivs/getCurrentPlayerCiv), map info (getMapName/getMapType), ruleset lists (terrains/resources/improvements/nations/religions/beliefs/events/naturalWonders/unitTypes, era names, victory types, mods, base ruleset) and 10 existence checks; ctx gained deterministic random (random/randomInt, online-multiplayer safe). All new APIs are synced to the static API catalog, the EmmyLua type definitions and the CLI static checker, covered by the extended testMOD suite (testNewApi.lua) - note context-table properties (e.g. city.name, unit.health) are snapshots taken when the table is built; use query methods to see writes
-- Lua conditions: new `ConditionalLuaCheck` unique - `<if [myMod:myFunction] returns true>` evaluates a Lua function from a loaded mod as a unique condition (the function gets the usual ctx table and must return true); missing functions evaluate to false and are reported by the mod checker (validated in-game and via mod-ci)
-- New lifecycle hook: `TriggerUponTradeMade` - `<upon completing a trade with [civFilter] Civilizations>` fires (for both sides) whenever an accepted trade completes, including AI auto-accepted trades; combined with TriggerLuaFunction this gives mods a trade-completed Lua hook
-- Lua map scripts: mods can now ship a map generator in `scripts/` (functions `GetMapScriptInfo` returning `{name, description}` + `GenerateMap(ctx)`); the new-game screen gains a "Lua Generated" map type listing discovered scripts; the generator gets a dedicated sandboxed ctx (`params`/`seed`/`perlin`/`random`/`randomInt`/`log`/`map` with tile access, continent assignment, starting locations, climate/mountains/coasts/rivers/ice generation, flood fill, terrain normalization and start-plot balancing helpers); `params.bounds` exposes the real (possibly negative) tile coordinate range; `GenerateMap`/`GetMapScriptInfo` are reserved and rejected by the mod checker for in-game TriggerLuaFunction; example mod `docs/Modders/examples/LuaMapScriptExample/` plus 77 API tests and an end-to-end example test; also fixed the same luaj invoke() quirk in the Perlin noise function (4-arg calls)
-- Lua hardening pass before release: `city.sellBuilding` no longer throws on unknown buildings (guarded existence check); circular Lua conditions (A evaluates B, B evaluates A via `ctx.evaluateConditional`) are depth-limited and evaluate to false instead of overflowing the JVM stack; the Lua map-script UI no longer renders a wrong Kotlin-generated example map for "Lua Generated" and imported setups with a Lua map script restore the Lua Generated map type; the CLI static checker (mod-ci) now also covers map-script APIs (`ctx.map`/`ctx.params`/`ctx.size`/`ctx.bounds`, tile API checked against the union of both contexts) backed by a static catalog kept in sync with the runtime registration by tests; new EmmyLua type definitions for map scripts (`docs/Modders/lua-map-api.lua`, drift-guarded by a test)
-- Translations: added Simplified Chinese entries (and template placeholders) for the new Lua UI strings and uniques - `Lua Generated`, `Scripted`, `Map Script:`, `if [luaFunction] returns true`, `upon completing a trade with [civFilter] Civilizations`
+## 4.21.6.4 (build 1248)
 
-## v4.21.6.5 (build 1249)
-- Docs: reflected the Lua overhaul across the docs site - Coding-standards generator list now includes `LuaApiDefinitionWriter`/`lua-api.lua`; the Features page's Lua section rewritten (triggers, safety sandbox, error reporting, tooling); Differences table updated with Lua checks and tooling rows; the Mods intro page got a Lua scripting entry pointing to the tutorial and the starter template (EN/ZH kept in sync)
-- Lua modding editor support: new generated EmmyLua type definitions (`docs/Modders/lua-api.lua`, generated by `LuaApiDefinitionWriter` from the API catalog via `./gradlew desktop:generateDocs`, kept in sync by tests) - mod authors get autocompletion, hover docs and instant typo detection by pointing the LuaLS language server at the file; signatures are curated for the common patterns
-- Lua modding starter: new copy-and-rename template mod `docs/Modders/examples/LuaStarterMod/` (per-turn hooks, parameter example, API smoke test) and an "Editor setup" section in the Lua-Modding docs (EN/ZH) covering the LuaLS extension, `.luarc.json` and the template; a test keeps the template healthy against the same checks a mod author would run
-- Docs: Lua-Modding page re-synced between EN/ZH - EN now has the common-mistakes warning (ctx vs globals), a `game.findTiles` criteria table and the missing civ APIs (getAdoptedPolicyCount / getAvailablePolicyBranches / getLeaderTitle / getTechCount); both versions document the return-value truthiness pitfall (`return 0`/`nil` count as failure), the function-name rules, the sandbox hardening and runaway-loop budget, and a new "Checking Your Mod" section covering the in-game mod checker and the `mod-ci` CLI
-- Removed the `testMapScript` example mod - its Lua map-generation API (`ctx.map`, `ctx.perlin`, `GenerateMap`) was never implemented in the engine, so the example was broken dead code
-- Lua modding robustness & tooling: runtime Lua errors now show the script line number in the player popup; errors raised during AI turns are recorded in the in-game mod checker instead of only the log; NaN/Infinity float arguments are sanitized in Lua API calls (addInfluence / addMovement / useMovement); new static API spelling check (`ctx.civ.addGoldd(...)` typos, with suggestions) runs in the in-game mod checker and in the `mod-ci` CLI, backed by a static API catalog kept in sync with the runtime registration by tests
-- Lua modding security: closed a sandbox escape - the `package` library's `package.loaded` table still exposed full `io`/`os`/`luajava` references after the globals were nilled out, allowing arbitrary file access, process execution and Java reflection from mod scripts (the library is now removed entirely); added an instruction budget per script load and per function call so runaway loops (`while true do end`) are interrupted with a clear error instead of freezing the game
-- Online multiplayer: added restart votes - the host can enable "Restart vote turn" and "Restart vote timeout" in the game setup; from exactly that turn on, any player can start a vote to restart the game with the same setup, all players (including offline ones, who keep their vote until they come back) are asked to vote yes/no, votes settle when everyone voted or on timeout (non-voters count as agreeing), restart passes unless more than half explicitly vote no, and once approved the game restarts with the same setup under a new gameId - all clients switch over automatically; while a vote is open, players who haven't voted yet cannot end their turn
-- CI: GitHub Release title is now set explicitly to the plain version number (e.g. "4.21.6.4") instead of whatever the upload action auto-filled
-## v4.21.6.4 (build 1248)
+- CI: Release notes now contain the CN changelog in EN + ZH
+- New: "Mod download source" setting with China mirror support
+- New-game screen: save/load setups to named slots; clipboard buttons moved; "Reset to defaults" replaced by a built-in "Default setup"
+- Docs: release checklist & lessons learned added to Coding-standards
 
-- CI: GitHub Release notes now contain the release's changelog in both English and Chinese - the deploy workflow pulls the matching version section from the CN changelogs (docs/UncivCN + docs/zh/UncivCN) instead of the upstream changelog.md, which has no 4-part CN version tags (previously the Release description was empty)
-- Mod management: added a "Mod download source" setting (Options → Advanced) so players with restricted access to github.com (e.g. in mainland China) can route the mod list, preview images and downloads through public GitHub proxy mirrors (gh-proxy.com / ghfast.top / ghproxy.net, or any custom prefix); when loading the mod list fails on the official source, the game offers a one-click switch to a mirror and retries automatically; new guide page "Installing mods from mainland China"
-- Removed the "Reset to defaults" button on the new-game screen: the load-setup picker now always offers a built-in, non-deletable "Default setup" entry that restores the exact same default options (with the same confirmation dialog)
-- Added "Save current setup" / "Load saved setup" buttons on the new-game screen, right of the clipboard buttons: the setup is stored in named slots under SaveFiles/GameSetup (same format as the clipboard export) and a picker popup loads or deletes slots; on narrow screens the buttons get their own row between the clipboard row and the Start button row
-- Moved the copy/paste game-setup-to-clipboard buttons on the new-game screen from the top-left (top of the Game Options column) to the bottom-right next to "Start game!" - same row on wide screens, their own row above it on narrow screens to avoid overflowing the bottom bar
-- Docs: added a release checklist and lessons-learned section (tag push, docs build verification, no bare angle brackets, Maven Central 403, stale Unciv.jar names, continue-on-error jobs, CN translation completeness) to Coding-standards
+## 4.21.6.3 (build 1247)
 
-## v4.21.6.3 (build 1247)
+- Fixed Docker build copying stale `Unciv.jar` name; fixed MSI missing from releases
 
-- Fixed Docker build: Dockerfile copied `Unciv.jar` while the CN build produces `UncivCN.jar` (failing the image build since the app rename)
-- Fixed MSI release: `wix build` default output is `unciv.msi` (named after the source file) but the upload expected `UncivCN.msi` - the `build-msi` job had `continue-on-error: true`, so releases never contained an MSI; now the output name is explicit
+## 4.21.6.2 (build 1246)
 
-## v4.21.6.2 (build 1246)
+- Fixed 47 missing + 10 empty Simplified Chinese translations for CN-specific UI strings
 
-- Fixed missing Simplified Chinese translations for CN-specific UI strings (47 missing + 10 empty entries): clipboard game-setup copy/paste, polling multiplayer (polling interval, refresh, online players, turn timers), mirrored-map symmetry modes, auto-lock, map-pin note labels, save-reload RNG variance, Countables, Boreal/Spiral map types and more - they were showing in English
-## v4.21.6.1 (build 1245)
+## 4.21.6.1 (build 1245)
 
-- Fixed notes leaking across saves: notes are now keyed by gameId ("notes_{gameId}") instead of the save file name - one game shares notes through manual/auto saves and save-as copies, different games are strictly isolated (the shared "Autosave" name previously leaked notes between games, and unsaved new games lost theirs); legacy "{saveName}_notes" files are migrated on first load, save deletion cleans up both namings, and the save list filters the new naming
-- Map/unit pins UX overhaul: mobile long-press and desktop Alt+click edit notes without any mode toggle (plain clicks are never hijacked; the legacy toggles remain as an alternative); note bubbles truncated to 8 chars with tap-to-view-full-note popup (Edit/Delete); tile-notes toggle now uses a star icon, both toggles got desktop tooltips
-- Fixed map/unit pin window localization: added the missing Simplified Chinese translations for the note UI strings ("Add note for tile", "Note for [unitName]", "Note for", "Notes", "Show unit/tile notes") - they were showing in English
-- Fixed crash when opening the map pin editor on a tile: the tile texture preview used TileMapView sized by tile count, which overflowed for real game tiles with a non-zero index (now sized by highest index too, with regression tests)
-- Map pin editor popup: removed the tile coordinates from the title and replaced the placeholder icon with a live preview of the selected tile's texture set (terrain/resources/improvements/rivers)
-- Aligned bundled base rulesets (Vanilla / Gods & Kings) with upstream: removed the CN-only "Allow cities to claim tiles" from the G&K ModOptions (tile-claim is now opt-in via mod ModOptions) and the CN-only Great General 8-turn Golden Age unique (upstream #13308)
-- Fixed new-game screen: setting world size to Custom and toggling symmetry repeatedly stacked duplicate radius/width/height input rows (the hexagonal/rectangular size tables were rebuilt without clearing)
-- New: mod version requirements in `ModOptions.json` — `modVersion` (n.n.n, default 0.0.1), `gameVersionRange` (min~max, empty = all versions) and `modDependencies` (exact or ranged version requirements); unsatisfied requirements show warnings in the mod manager, new-game mod selection and mod checker, never blocking
-- Fixed dead links across the docs site: 14 broken `](`-corrupted links in the Chinese UncivCN pages, plus ~250 wrong heading anchors (VitePress slug format) in the Modders docs (both EN and ZH, incl. the doc generators `UniqueType.kt` / `Countables.kt` / `UniqueDocsWriter` / `MergeActionDocsWriter`); verified against a fresh VitePress build
-- Merged upstream 4.21.6: CPU performance improvements (city baseline computed once, ~20% faster next-turn in some saves), AI workers consider future adjacencies for improvements, visually indicate failed MP upload, nation-colored chat names, OneTimeGainStat re-parameterized to `[civWideStat]` with a modding warning, test runner overhaul (see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))
-- Fixed the docs site showing unstyled text under the custom domain: site artifacts are now deployed to the `Unciv/` subdirectory with a root redirect page
-- Fixed duplicate `/Unciv` prefix in the navbar logo path
-- In-game version display is now synced automatically from `BuildConfig.kt` to `UncivGame.kt` at build time (previously a manual release could forget this and ship a stale in-game version)
-- Slimmed down `AGENTS.md` to behavior rules only; development reference (build commands, project structure, game state model, assets) moved into Coding-standards, which is now the engineering handbook (bilingual)
-- Added upstream-merge convention: resolve merge conflicts with upstream master yourself and fully integrate its features; when upstream and CN implement the same feature differently, ask the user which implementation to adopt
+- Notes keyed by gameId (no more leaking across saves)
+- Map/unit pins: long-press / Alt+click editing, note bubbles, crash fix, CN translations
+- ModOptions.json: `modVersion` / `gameVersionRange` / `modDependencies`
+- Fixed duplicate size rows on the new-game screen; aligned bundled rulesets with upstream
+- Merged upstream 4.21.6 (CPU perf, AI worker adjacency, MP upload indicator)
+- Docs site fixes (~250 anchors), in-game version auto-synced from BuildConfig.kt
 
-## v4.21.5.3 (build 1244)
+## 4.21.5.3 (build 1244)
 
-- Fixed CI test failures: 13 translation templates were missing the trailing space (breaking `TranslationTests`); test mods `testMOD` / `testMapScript` are now tracked in the repo (previously git-ignored, which broke Lua-script and merge-action tests in CI), with `testMOD/jsons/Buildings.json` added
-- Deploy workflow no longer posts release announcements to Discord (GitHub Release upload kept)
+- Fixed CI test failures (translation template spaces, test mods tracked in repo)
+- Deploy no longer posts to Discord
 
-## v4.21.5.2 (build 1243)
+## 4.21.5.2 (build 1243)
 
-- Official docs site launched: a brand-new VitePress site (replacing mkdocs) with full-text Chinese search, one-click EN/CN switching, and one-click copy on unique listings
-  - The English section fully reuses upstream docs; the Chinese section is a complete translation mirror (Modders / Developers / Translating / Other and all other pages)
-  - New UncivCN section (about / features / changelog / differences / coding standards / polling multiplayer) and community section (guides / mods / code analysis / upstream changelog), all bilingual
-- Unique documentation now in Chinese: new `docDescriptionZh` mechanism — modders can read Chinese explanations of uniques on the docs site
-- Build & release pipeline adapted: local APK signing (zipalign + apksigner V3), artifacts named UncivCN; new signing regression CI
+- Official VitePress docs site (Chinese full-text search, EN/CN switch)
+- `docDescriptionZh`: unique docs in Chinese
+- Local APK signing, UncivCN artifact names
 
-## v4.21.5.1 (build 1242)
+## 4.21.5.1 (build 1242)
 
+- Merged upstream 4.21.5 (AI war-logic fixes, CPU perf)
+- Unbundled the UCCC mod; new: export/import game setup to clipboard; citizen auto-lock tweaks; stats-display bug fixed
 
-- Merged upstream 4.21.5 (AI gold/war logic fixes, CPU performance improvements, city-state start optimizations, etc.; see upstream [changelog.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/changelog.md))
-- Reverted the bundled UCCC mod — the game no longer bundles any mods
-- New: export/import new game settings to clipboard
-- Adjusted the citizen auto-lock button logic
-- Fixed a stats-display cascade bug, aligned with upstream master
+## 4.21.0.2 (2026-08-01)
 
-## v4.21.0.2 (2026-08-01)
+- Fixed UCCC mod bugs
 
-- Fixed some UCCC mod bugs
+## 4.21.0.1 (2026-08-01)
 
-## v4.21.0.1 (2026-08-01)
+- Synced recent upstream (mirror maps, stats panel); completed Chinese localization
+- Default MP server `sp.unciv.cn:30123`; citizen auto-lock button; bundled UCCC mod
+- RNG re-roll on load disabled in multiplayer
 
-- Followed recent upstream updates (incl. symmetric/mirror maps, stats panel merged from upstream)
-- Since both branches made similar changes to the victory panel, reverted "disable experimental stats panel when civ-score panel is disabled" — upstream wins
-- Completed missing Chinese localization
-- Default multiplayer server changed to `http://sp.unciv.cn:30123`
-- New citizen auto-lock shortcut button ("Auto lock" at the bottom-right of the city screen; permanently toggles unlocked/locked citizens)
-- Bundled the UCCC mod
-- RNG re-roll on load no longer available in multiplayer
+## 4.20.17.2 (2026-07-12)
 
-## v4.20.17.2 (2026-07-12)
+- New: unit/map pins; radius parity restriction lifted; save version isolation; no more starvation when training settlers
 
-- New unit pins / map pins features (see [Features](./Features#unit-pins-map-pins-4-20-17-2))
-- Lifted the radius parity restriction for rotationally symmetric maps
-- Disabling the civ-score panel also disables the experimental stats panel
-- Save version isolation (old clients can't load new saves)
-- Citizens no longer starve when training settlers and other food→production units
+## 4.20.17.1 (2026-07-04)
 
-## v4.20.17.1 (2026-07-04)
+- Followed a month of upstream updates
 
-- Followed over a month of upstream updates
+## 4.20.8.4 (2026-05-26)
 
-## v4.20.8.4 (2026-05-26)
+- Mod checker lints Lua errors; polling MP shows online status
 
-- The built-in mod checker can lint Lua errors in mods
-- Polling multiplayer shows other players' online status
+## 4.20.8.3 (2026-05-23)
 
-## v4.20.8.3 (2026-05-23)
+- Lua system enhanced; events hookable with Lua
 
-- Enhanced the Lua system
-- Events can be hooked with Lua
-
-## v4.20.8.2 (2026-05-22)
+## 4.20.8.2 (2026-05-22)
 
 - Mods support [Lua scripting](/Modders/Lua-Modding)
-- Fixed a bug where the "Elite Education" policy in Gods & Kings didn't grant great people
-- Amount parameters accept Countables; several new Countables parameter types
-- Fixed a bug where TRY_INJECT units had their cost overwritten to 0
+- Fixed G&K "Elite Education" not granting great people; TRY_INJECT cost bug
+- Amount parameters accept Countables
 
-## v4.20.8.1 (2026-05-21)
+## 4.20.8.1 (2026-05-21)
 
-- Major: new [polling multiplayer](./Polling-multiplayer)
+- New: [polling multiplayer](./Polling-multiplayer)
 
-## v4.20.7.4 (2026-05-19)
+## 4.20.7.4 (2026-05-19)
 
-- Center-symmetric maps now distribute resources symmetrically too
+- Center-symmetric maps distribute resources symmetrically
 
-## v4.20.7.3 (2026-05-19)
+## 4.20.7.3 (2026-05-19)
 
-- Extended the mod JSON system; see [MergeAction tutorial](/Modders/Mod-file-structure/6-MergeActions)
+- Extended mod JSON system, see [MergeAction tutorial](/Modders/Mod-file-structure/6-MergeActions)
 
----
-
-## v4.20.7.2
+## 4.20.7.2
 
 **Released**: 2026-05-19
 
-- Android builds no longer bundle the CoeHarMod mod
-- New three mirrored map modes, center-symmetric in 2/3/6-fold patterns
+- Android builds no longer bundle CoeHarMod
+- New: three mirrored map modes (2/3/6-fold center symmetry)
 
-## v4.20.6.3
+## 4.20.6.3
 
 **Released**: 2026-05-17
 
-- New mod features:
+- New mod uniques:
 
 | English text | Meaning |
 | --- | --- |
 | `Hidden from city screen` | No longer shown in the city panel |
 | `Can be built [amount] times in each city` | Can be built [amount] times in a single city |
 
-## v4.20.6.1
+## 4.20.6.1
 
 **Released**: 2026-05-16
 
 - Synced two months of upstream updates
-- Folded the previous random-result-variability changes into a settings toggle
+- Random-result variability folded into a settings toggle
 
-## v4.19.16.2
+## 4.19.16.2
 
 **Released**: 2026-03-02
 
-- Ancient-ruin random results can be re-rolled by reloading a save
+- Ancient-ruin results re-rollable by reloading a save
 
-## v4.19.16.1
+## 4.19.16.1
 
 **Released**: 2026-03-01
 
-- City-state quest random results can be re-rolled by reloading a save
+- City-state quest results re-rollable by reloading a save
 
-## v4.19.15-cn2
+## 4.19.15-cn2
 
 **Released**: 2026-02-28
 
-- New mod features:
+- New area-attack mod uniques (multi-target, distance falloff, self/counter damage)
+- Stats panel CSV export
 
-| English text | Meaning |
-| --- | --- |
-| `Attacks also target [mapUnitFilter] units within [positiveAmount] tiles` | Attacks also hit [mapUnitFilter] units within [positiveAmount] tiles |
-| `Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance` | Attacks also hit [mapUnitFilter] units within [positiveAmount] tiles, damage decreasing with distance |
-| `Takes [relativeAmount]% damage from own area attacks` | Takes only [relativeAmount]% damage from its own area attacks |
-| `Takes [relativeAmount]% counter damage from each unit hit by its area attacks` | Takes [relativeAmount]% counter damage from each unit hit by its area attacks |
-
-- Added stats panel data export to CSV
-
-## v4.19.15
+## 4.19.15
 
 **Released**: 2026-02-26
 
-- Android builds bundled the [CoeHarMod](https://github.com/AutumnPizazz/CoeHarMod) mod
-- Adjacent cities can swap tiles; mods must declare the unique "Allow cities to claim tiles" in their ModOptions.json
+- Android bundles [CoeHarMod](https://github.com/AutumnPizazz/CoeHarMod)
+- Adjacent cities can swap tiles (opt-in via ModOptions unique)

@@ -135,7 +135,10 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 ## 8. Changelog & release process
 
 - **Log every change, not just releases**: any non-release change (feature / bugfix / CI / docs site) merged into the branch must add one line to the **Unreleased** section at the top of both `docs/UncivCN/Changelog.md` and `docs/zh/UncivCN/Changelog.md`, in the same commit as the change itself. Entries only accumulate there until the next release.
-- **Consolidate on release**: when releasing, move the whole Unreleased section into the new version entry (`## vX.Y.Z.N (build NNNN)`), keeping the same wording, then empty the Unreleased section.
+- **Consolidate on release**: when releasing, move the whole Unreleased section into the new version entry (`## X.Y.Z.N (build NNNN)`, no `v` prefix), keeping the same wording, then empty the Unreleased section.
+- **Changelog style**: one line per entry, short bullet points (follow upstream `changelog.md` style) - no long-winded explanations, no filler; credit with `- By author` when applicable.
+- **Release commit**: commit message is the bare version number (e.g. `4.21.7.2`) - no `v` prefix, build number or explanation.
+- **Release title**: the Deploy workflow sets it from the tag (`name: github.ref_name`), so the tag must be a plain 4-segment version and the release title is exactly that version, nothing else.
 - **Version bump**: only edit `buildSrc/src/main/kotlin/BuildConfig.kt` (`appVersion` + `appCodeNumber` +1). The `syncGameVersion` Gradle task runs before every core build and automatically mirrors the values into the `AUTOMATICALLY GENERATED VERSION DATA` region of `UncivGame.kt` (the in-game version display) — never hand-edit that region.
 - **Release tag**: the MSI installer version comes from the git tag (`github.ref_name`, 4-segment form like `4.21.5.3`); every release must push a tag matching the version to trigger the Deploy workflow.
 - **Upstream changelog pages**: the English page `docs/Community/Upstream-changelog.md` embeds the full repo-root `changelog.md` at build time (the `upstream-changelog` container in `docs-vitepress/.vitepress/config.ts`), so it stays current automatically after every upstream merge — never maintain an English copy by hand. The Chinese page `docs/zh/Community/Upstream-changelog.md` is **human-translated only, no embedded English**: it covers recent versions (may lag) and links to the EN page for the full history; backfill translations gradually, newest versions first.
@@ -145,7 +148,7 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 Before releasing, check off:
 - [ ] Version bump in `buildSrc/src/main/kotlin/BuildConfig.kt` (`appVersion` + `appCodeNumber` +1); after a build, confirm `syncGameVersion` mirrored it into `UncivGame.kt` (`VERSION = Version("x.y.z.n", NNNN)`)
 - [ ] Changelog: move the whole Unreleased section into the new version entry (both EN and ZH), wording unchanged
-- [ ] Version references: the current-version line in `docs/{,zh/}UncivCN/index.md`
+- [ ] Release commit: `git commit -m "4.21.7.2"` (bare version); push the tag under the same name
 - [ ] Local verification: `./gradlew tests:test` **and** `cd docs-vitepress && npm run docs:build` (skipping the latter only surfaces docs failures in CI after the release)
 - [ ] Push both the branch **and the tag separately** (`git push origin <branch>` + `git push origin <tag>`); the Deploy workflow triggers on tags only — pushing the branch alone does not release
 
