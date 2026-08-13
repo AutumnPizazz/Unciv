@@ -32,14 +32,14 @@ jobs:
         shell: bash
         run: |
           ## UncivCN tags are 4-part (e.g. 4.21.6.3) and only exist in docs/UncivCN/Changelog.md
-          ## and docs/zh/UncivCN/Changelog.md (titles carry a "v" prefix, hence the v?)
+          ## and docs/zh/UncivCN/Changelog.md
           TAG=${{ github.ref_name }}
 
           ## English: CN changelog first, upstream changelog.md as fallback
-          en=$(grep -Pzo '\#{2}.v?'"$TAG"'[^\#]*\#{2}' docs/UncivCN/Changelog.md || \
-               grep -Pzo '\#{2}.v?'"$TAG"'[^\#]*\#{2}' changelog.md || true)
+          en=$(grep -Pzo '\#{2}.'"$TAG"'[^\#]*\#{2}' docs/UncivCN/Changelog.md || \
+               grep -Pzo '\#{2}.'"$TAG"'[^\#]*\#{2}' changelog.md || true)
           ## Chinese: CN zh changelog
-          zh=$(grep -Pzo '\#{2}.v?'"$TAG"'[^\#]*\#{2}' docs/zh/UncivCN/Changelog.md || true)
+          zh=$(grep -Pzo '\#{2}.'"$TAG"'[^\#]*\#{2}' docs/zh/UncivCN/Changelog.md || true)
 
           ## Drop the section header line and the trailing "##" matched by the pattern
           en=$(echo "$en" | head -n -2 | tail -n +3)

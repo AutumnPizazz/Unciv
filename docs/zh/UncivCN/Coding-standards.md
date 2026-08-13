@@ -178,10 +178,10 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   （`docs/UncivCN/Changelog.md` 与 `docs/zh/UncivCN/Changelog.md`）
   顶部的「未发布（Unreleased）」小节各加一行；条目只积累，发版前不删除。
 - **发版整合**：发版时把「未发布」小节整体移入新版本条目
-  （`## X.Y.Z.N（build NNNN）`，无 v 前缀），措辞保持不变，然后清空「未发布」小节。
+  （`## X.Y.Z.N（build NNNN）`），措辞保持不变，然后清空「未发布」小节。
 - **更新日志写作规范**：条目一行一条、短句要点（学习上游 `changelog.md` 风格），
   不写长篇解释、不留空话；需要署名时按 `- By 作者` 格式。
-- **发版提交**：提交信息只写版本号（如 `4.21.7.2`），不带 v 前缀、build 号或说明文字。
+- **发版提交**：提交信息只写版本号（如 `4.21.7.2`）。
 - **Release 标题**：Deploy 工作流按 tag 名设置（`name: github.ref_name`），
   因此 tag 必须为纯 4 段版本号，release 标题即纯版本号，不带其他字符。
 - **版本号提升**：只改 `buildSrc/src/main/kotlin/BuildConfig.kt` 的
