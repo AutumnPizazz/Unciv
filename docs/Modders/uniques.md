@@ -1301,6 +1301,14 @@ Example: "[+20] Strength"
 Applicable to: Global, Unit
 
 :::
+::: details [relativeAmount] Max HP
+Negative amounts are allowed; a resulting Max HP of 0 or less is reset to 1. Only plain or "for [mapUnitFilter] units"-conditional uniques count: other conditionals are ignored so that Max HP stays constant.
+
+Example: "[+20] Max HP"
+
+Applicable to: Global, Unit
+
+:::
 ::: details [relativeAmount]% Strength decreasing with distance from the capital
 Example: "[+20]% Strength decreasing with distance from the capital"
 
@@ -2595,6 +2603,14 @@ Applicable to: Global, Unit
 :::
 ::: details [relativeAmount] Strength
 Example: "[+20] Strength"
+
+Applicable to: Global, Unit
+
+:::
+::: details [relativeAmount] Max HP
+Negative amounts are allowed; a resulting Max HP of 0 or less is reset to 1. Only plain or "for [mapUnitFilter] units"-conditional uniques count: other conditionals are ignored so that Max HP stays constant.
+
+Example: "[+20] Max HP"
 
 Applicable to: Global, Unit
 

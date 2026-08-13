@@ -385,7 +385,7 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 示例：`Only available <when number of [City Population] is more than [0]>`
 -   `Total Population` - 相关文明的总人口
     - 示例：`Only available <when number of [Total Population] is more than [0]>`
--   `Unit Health` - 相关单位的当前生命值（0-100）
+-   `Unit Health` - 相关单位的当前生命值（0 到其最大生命值）
     - 示例：`Only available <when number of [Unit Health] is more than [0]>`
 -   `Unit Experience` - 相关单位累计的经验
     - 示例：`Only available <when number of [Unit Experience] is more than [0]>`

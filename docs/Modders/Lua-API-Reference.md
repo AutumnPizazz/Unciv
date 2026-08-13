@@ -181,7 +181,7 @@ unit.getEraNumber()              -- 0-based era index of the unit's owner civili
 unit.getMovement()               -- Maximum movement
 unit.getCurrentMovement()        -- Remaining movement
 unit.getXP()                     -- Experience points
-unit.getMaxHealth()              -- 100 (max HP)
+unit.getMaxHealth()              -- Max HP
 unit.getDamage()                 -- Max health minus current health
 unit.getAttacksLeft()            -- Attacks remaining this turn
 unit.getVisibilityRange()        -- Sight range in tiles

@@ -1308,6 +1308,14 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Global，Unit
 
 :::
+::: details [relativeAmount] Max HP
+允许负值倒扣；结果不大于 0 时重置为 1。只有无条件或带「for [mapUnitFilter] units」修饰的 unique 才生效：其余条件会被忽略以保证最大生命恒定。
+
+示例："[+20] Max HP"
+
+适用范围：Global，Unit
+
+:::
 ::: details [relativeAmount]% Strength decreasing with distance from the capital
 示例："[+20]% Strength decreasing with distance from the capital"
 
@@ -2602,6 +2610,14 @@ These resources are removed *when work begins* on the construction. Do not confu
 :::
 ::: details [relativeAmount] Strength
 示例："[+20] Strength"
+
+适用范围：Global，Unit
+
+:::
+::: details [relativeAmount] Max HP
+允许负值倒扣；结果不大于 0 时重置为 1。只有无条件或带「for [mapUnitFilter] units」修饰的 unique 才生效：其余条件会被忽略以保证最大生命恒定。
+
+示例："[+20] Max HP"
 
 适用范围：Global，Unit
 

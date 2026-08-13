@@ -180,7 +180,7 @@ unit.getEraNumber()              -- 所属文明的时代序号（0-based）
 unit.getMovement()               -- 最大移动力
 unit.getCurrentMovement()        -- 剩余移动力
 unit.getXP()                     -- 经验值
-unit.getMaxHealth()              -- 100（最大生命）
+unit.getMaxHealth()              -- 最大生命值
 unit.getDamage()                 -- 最大生命减当前生命
 unit.getAttacksLeft()            -- 本回合剩余攻击次数
 unit.getVisibilityRange()        -- 视野范围（格）

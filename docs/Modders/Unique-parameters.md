@@ -382,7 +382,7 @@ Allowed values:
     - Example: `Only available <when number of [City Population] is more than [0]>`
 -   `Total Population` - The total population of the relevant Civilization
     - Example: `Only available <when number of [Total Population] is more than [0]>`
--   `Unit Health` - The current health of the relevant Unit (0-100)
+-   `Unit Health` - The current health of the relevant Unit (0 to its Max HP)
     - Example: `Only available <when number of [Unit Health] is more than [0]>`
 -   `Unit Experience` - The accumulated experience of the relevant Unit
     - Example: `Only available <when number of [Unit Experience] is more than [0]>`
