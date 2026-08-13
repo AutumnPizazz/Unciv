@@ -570,12 +570,14 @@ style:
         value: 'java.lang.annotation.Inherited'
   ForbiddenComment:
     active: false
-    values:
-      - 'FIXME:'
-      - 'STOPSHIP:'
-      - 'TODO:'
+    comments:
+      - reason: 'Forbidden FIXME comment.'
+        value: 'FIXME:'
+      - reason: 'Forbidden STOPSHIP comment.'
+        value: 'STOPSHIP:'
+      - reason: 'Forbidden TODO comment.'
+        value: 'TODO:'
     allowedPatterns: ''
-    customMessage: ''
   ForbiddenImport:
     active: false
     imports: []
@@ -666,8 +668,6 @@ style:
   OptionalAbstractKeyword:
     active: true
   OptionalUnit:
-    active: false
-  OptionalWhenBraces:
     active: false
   PreferToOverPairSyntax:
     active: false

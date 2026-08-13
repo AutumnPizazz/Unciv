@@ -10,6 +10,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 - CI: detekt / Docker release workflows now trigger on the UncivCN branch (previously bound to upstream master and never ran), and release detection only accepts 4-segment version numbers; removed the upstream uncivbot auto-release bot (CN releases manually)
 - In-game wiki links now point to the CN docs site (club.unciv.cn), and the load-failure notice email is now hurxwork@qq.com
 - Code cleanup & bugfixes from the full-project code review: dead code and commented-out blocks removed, `ConditionalBuildingBuiltAll` city filters and multi-segment `{A} {B}`/`non-[X]` filters fixed, `LongPriorityQueue.remove` no longer deletes the wrong element, `stateBasedRandom` no longer crashes headless map-generation tests
+- CI: fixed detekt analysis failures - removed deprecated config properties (`OptionalWhenBraces`; `ForbiddenComment` `values`/`customMessage` now `comments`) and added the missing end-of-file newline in `UnitPresenter.kt`
 
 ## 4.21.7.2 (build 1252)
 
