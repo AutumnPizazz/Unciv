@@ -135,7 +135,7 @@ object Constants {
 
     /** URL to the root of the Unciv repository, including trailing slash */
     // Note: Should the project move, this covers external links, but not comments e.g. mentioning issues
-    const val uncivRepoURL = "https://github.com/yairm210/Unciv/"
+    const val uncivRepoURL = "https://github.com/AutumnPizazz/Unciv/"
     /** URL to the wiki, including trailing slash */
     const val wikiURL = "https://club.unciv.cn/Unciv/"
 

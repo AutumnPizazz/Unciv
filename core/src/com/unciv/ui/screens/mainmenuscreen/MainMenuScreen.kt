@@ -234,17 +234,23 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         stage.addActor(civilopediaButton)
 
         val rightSideButtons = Table().apply { defaults().space(10f) }
-        val discordButton = ImageGetter.getImage("OtherIcons/Discord")
+        val qqGroupButton = ImageGetter.getExternalImage("QQ.png")
             .surroundWithCircle(buttonsSize, color = skinStrings.skinConfig.baseColor)
             .surroundWithThinCircle(Color.WHITE)
-            .onActivation { Gdx.net.openURI("https://discord.gg/bjrB4Xw") }
-        rightSideButtons.add(discordButton)
+            .onActivation { Gdx.net.openURI("https://qm.qq.com/q/j92c3iUnZ0") }
+        rightSideButtons.add(qqGroupButton)
 
         val githubButton = ImageGetter.getImage("OtherIcons/Github")
             .surroundWithCircle(buttonsSize, color = skinStrings.skinConfig.baseColor)
             .surroundWithThinCircle(Color.WHITE)
             .onActivation { Gdx.net.openURI(Constants.uncivRepoURL) }
         rightSideButtons.add(githubButton)
+
+        val tiebaButton = ImageGetter.getExternalImage("Tieba.png")
+            .surroundWithCircle(buttonsSize, color = skinStrings.skinConfig.baseColor)
+            .surroundWithThinCircle(Color.WHITE)
+            .onActivation { Gdx.net.openURI("https://tieba.baidu.com/f?kw=unciv&fr=personalize_page") }
+        rightSideButtons.add(tiebaButton)
 
         rightSideButtons.pack()
         rightSideButtons.setPosition(stage.width - buttonsPosFromEdge, buttonsPosFromEdge, Align.bottomRight)

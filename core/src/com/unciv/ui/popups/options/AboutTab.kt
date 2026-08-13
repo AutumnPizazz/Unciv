@@ -21,12 +21,13 @@ internal class AboutTab(
         private fun renderTo(table: Table) {
             table.pad(20f)
             // The changelog has no patches, and anchors per release tag omit the dots
-            val versionAnchor = Regex("""\.|-patch\d+$""").replace(UncivGame.VERSION.text, "")
+            // CN changelog titles carry the build number: "## 4.21.7.2 (build 1252)" → anchor "42172-build-1252"
+            val versionAnchor = Regex("""\.|-patch\d+$""").replace(UncivGame.VERSION.text, "") + "-build-" + UncivGame.VERSION.number
             val lines = sequence {
                 yield(FormattedLine(extraImage = "banner", imageSize = 240f, centered = true))
                 yield(FormattedLine())
-                yield(FormattedLine("{Version}: ${UncivGame.VERSION.toNiceString()}", link = "${Constants.uncivRepoURL}blob/master/changelog.md#$versionAnchor"))
-                yield(FormattedLine("See online Readme", link = "${Constants.uncivRepoURL}blob/master/README.md#unciv---foss-civ-v-for-androiddesktop"))
+                yield(FormattedLine("{Version}: ${UncivGame.VERSION.toNiceString()}", link = "${Constants.uncivRepoURL}blob/UncivCN/docs/UncivCN/Changelog.md#$versionAnchor"))
+                yield(FormattedLine("See online Readme", link = "${Constants.uncivRepoURL}blob/UncivCN/README.md#unciv---foss-civ-v-for-androiddesktop"))
                 yield(FormattedLine("Visit repository", link = Constants.uncivRepoURL))
                 yield(FormattedLine("Visit the wiki", link = Constants.wikiURL))
             }
