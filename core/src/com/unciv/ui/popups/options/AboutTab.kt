@@ -29,7 +29,7 @@ internal class AboutTab(
                 yield(FormattedLine("{Version}: ${UncivGame.VERSION.toNiceString()}", link = "${Constants.uncivRepoURL}blob/UncivCN/docs/UncivCN/Changelog.md#$versionAnchor"))
                 yield(FormattedLine("See online Readme", link = "${Constants.uncivRepoURL}blob/UncivCN/README.md#unciv---foss-civ-v-for-androiddesktop"))
                 yield(FormattedLine("Visit repository", link = Constants.uncivRepoURL))
-                yield(FormattedLine("Visit the wiki", link = Constants.wikiURL))
+                yield(FormattedLine("Visit the wiki", link = Constants.wikiURLForLanguage()))
             }
             MarkupRenderer.renderTo(table, lines.asIterable())
         }

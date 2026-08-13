@@ -9,6 +9,7 @@ title: UncivCN 更新日志
 ## 未发布
 
 - 主菜单右下角按钮：Discord 改为 QQ 群入口（qm.qq.com），新增百度贴吧按钮，GitHub 按钮改指 CN 分支仓库；关于页仓库/更新日志/README 链接改指 UncivCN 分支（含版本锚点修正）
+- 文档站链接按客户端语言自适应：简体/繁体中文客户端跳中文区（/zh/），其余语言跳英文区
 - CI：detekt / Docker 发布工作流改在 UncivCN 分支触发（此前绑定上游 master 分支从未运行），Release 判定只认 4 段版本号；移除上游 uncivbot 自动发版机器人（CN 为手动发版）
 - 游戏内 wiki 链接改为 CN 文档站（club.unciv.cn），加载失败提示邮箱改为 hurxwork@qq.com
 - 代码清理与审查修复：删除全项目审查发现的死代码与注释代码，修复 `ConditionalBuildingBuiltAll` 城市过滤失效、多段 `{A} {B}`/`non-[X]` 过滤恒错、`LongPriorityQueue.remove` 误删队首、`stateBasedRandom` 无头测试崩溃等问题

@@ -139,6 +139,13 @@ object Constants {
     /** URL to the wiki, including trailing slash */
     const val wikiURL = "https://club.unciv.cn/Unciv/"
 
+    /** Chinese-language setting names (file names without .properties) */
+    val chineseLanguages = setOf("Simplified_Chinese", "Traditional_Chinese")
+
+    /** Docs site root adjusted to the current client language - Chinese clients get the zh/ section */
+    fun wikiURLForLanguage(): String =
+        if (UncivGame.Current.settings.language in chineseLanguages) "${wikiURL}zh/" else wikiURL
+
     /** Owner/Repo ("owner/repoName") whose [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)
      *  is checked by the in-game update checker.
      *  UncivCN builds publish their own releases to the CN fork repository,

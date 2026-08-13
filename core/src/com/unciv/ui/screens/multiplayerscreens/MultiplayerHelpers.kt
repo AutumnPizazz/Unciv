@@ -94,7 +94,9 @@ object MultiplayerHelpers {
             "Consider using a custom server instead."
         ).colspan(2).row()
         dropboxWarning.addButton("Open Documentation") {
-            Gdx.net.openURI("${Constants.wikiURL}zh/Other/Multiplayer/#架设多人游戏服务器")
+            val docsURL = Constants.wikiURLForLanguage()
+            val hostingAnchor = if (docsURL.endsWith("zh/")) "#架设多人游戏服务器" else "#hosting-a-multiplayer-server"
+            Gdx.net.openURI("${docsURL}Other/Multiplayer/$hostingAnchor")
         }.colspan(2).row()
 
         val checkBox = "Don't show again".toCheckBox()
