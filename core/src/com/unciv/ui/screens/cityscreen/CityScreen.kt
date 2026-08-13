@@ -50,12 +50,13 @@ import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.basescreen.RecreateOnResize
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.view.CityView
+import com.unciv.view.TileView
 import kotlin.math.max
 
 class CityScreen(
     val cityView: CityView,
     initSelectedConstruction: IConstruction? = null,
-    initSelectedTile: Tile? = null,
+    initSelectedTile: TileView? = null,
     /** City ambience sound player proxies can be passed from one CityScreen instance to the next
      *  to avoid premature stops or rewinds. Only the fresh CityScreen from WorldScreen or Overview
      *  will instantiate a new CityAmbiencePlayer and start playing. */
@@ -131,7 +132,7 @@ class CityScreen(
     // The following fields control what the user selects
     var selectedConstruction: IConstruction? = initSelectedConstruction
         private set
-    var selectedTile: Tile? = initSelectedTile
+    var selectedTile: TileView? = initSelectedTile
         private set
     /** If set, we are waiting for the user to pick a tile for [UniqueType.CreatesOneImprovement] */
     var pickTileData: PickTileForImprovementData? = null
@@ -198,7 +199,7 @@ class CityScreen(
 
     internal fun updateWithoutConstructionAndMap() {
         // Bottom right: Tile or selected construction info
-        tileTable.update(selectedTile)
+        tileTable.update(selectedTile?.getTile())
         tileTable.setPosition(stage.width - posFromEdge, posFromEdge, Align.bottomRight)
         selectedConstructionTable.update(selectedConstruction)
         selectedConstructionTable.setPosition(stage.width - posFromEdge, posFromEdge, Align.bottomRight)
@@ -283,7 +284,7 @@ class CityScreen(
                 displayTutorial(TutorialTrigger.CityTileBlockade)
 
             when {
-                tileGroup.tile == nextTileToOwn ->
+                tileGroup.tileView == nextTileToOwn ->
                     tileGroup.layerMisc.addHexOutline(colorFromRGB(200, 20, 220))
                 /** Support for [UniqueType.CreatesOneImprovement] */
                 tileGroup.tile == selectedQueueEntryTargetTile ->
@@ -534,7 +535,7 @@ class CityScreen(
             return
         }
 
-        selectTile(tileInfo)
+        selectTile(tileGroup.tileView)
         update()
     }
 
@@ -559,7 +560,7 @@ class CityScreen(
         }
         selectedTile = null
     }
-    private fun selectTile(newTile: Tile?) {
+    private fun selectTile(newTile: TileView?) {
         selectedConstruction = null
         selectedQueueEntryTargetTile = null
         pickTileData = null

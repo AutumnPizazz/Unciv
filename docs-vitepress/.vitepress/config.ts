@@ -191,6 +191,7 @@ export default defineConfig({
               { text: 'Project Structure', link: '/Developers/Project-structure-and-major-classes' },
               { text: 'Saved Games and Transients', link: '/Developers/Saved-games-and-transients' },
               { text: 'Building for and Testing on Android', link: '/Developers/Testing-Android-Builds' },
+              { text: 'Testing AI Changes', link: '/Developers/Testing-AI-changes' },
               { text: 'Translations, Mods, and Modding Freedom', link: '/Developers/Translations,-mods,-and-modding-freedom-in-Open-Source' },
               { text: 'UI Development', link: '/Developers/UI-development' },
               { text: 'Unique Replacement Process', link: '/Developers/Unique-replacement-process' },
@@ -214,8 +215,6 @@ export default defineConfig({
               { text: 'Installing on macOS', link: '/Other/Installing-on-macOS' },
               { text: 'Intentional Departures from Civ V', link: '/Other/Intentional-departures-from-Civ-V' },
               { text: 'Multiplayer', link: '/Other/Multiplayer' },
-              { text: 'Regions', link: '/Other/Regions' },
-              { text: 'Simulations', link: '/Other/Simulations' },
             ]
           },
           {
@@ -223,7 +222,6 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Credits', link: '/Credits' },
-              { text: 'Trailer Audio Credits', link: '/Credits_trailer' },
               { text: 'Guiding Principles', link: '/Guiding-Principles' },
               { text: 'Privacy Policy', link: '/Privacy-Policy' },
             ],
@@ -411,6 +409,7 @@ export default defineConfig({
               { text: '项目结构', link: '/zh/Developers/Project-structure-and-major-classes' },
               { text: '存档与瞬态', link: '/zh/Developers/Saved-games-and-transients' },
               { text: '构建与测试 Android 版', link: '/zh/Developers/Testing-Android-Builds' },
+              { text: '测试 AI 改动', link: '/zh/Developers/Testing-AI-changes' },
               { text: '翻译、模组与模组自由', link: '/zh/Developers/Translations,-mods,-and-modding-freedom-in-Open-Source' },
               { text: 'UI 开发', link: '/zh/Developers/UI-development' },
               { text: 'Unique 替换流程', link: '/zh/Developers/Unique-replacement-process' },
@@ -434,8 +433,6 @@ export default defineConfig({
               { text: 'macOS 安装', link: '/zh/Other/Installing-on-macOS' },
               { text: '与文明5的有意差异', link: '/zh/Other/Intentional-departures-from-Civ-V' },
               { text: '多人游戏', link: '/zh/Other/Multiplayer' },
-              { text: '区域', link: '/zh/Other/Regions' },
-              { text: '模拟', link: '/zh/Other/Simulations' },
             ],
           },
           {
@@ -443,7 +440,6 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: '致谢', link: '/zh/Credits' },
-              { text: '预告片音频致谢', link: '/zh/Credits_trailer' },
               { text: '指导原则', link: '/zh/Guiding-Principles' },
               { text: '隐私政策', link: '/zh/Privacy-Policy' },
             ],

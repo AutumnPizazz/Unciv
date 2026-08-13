@@ -9,6 +9,7 @@
 * CC BY 4.0: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
 * CC BY-SA 4.0 [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/)
 * Public domain: The work has been released into the public domain.
+* Unknown license: A few works have unknown authorship and/or licensing.
 
 ## 图标致谢
 
@@ -22,7 +23,21 @@
 -   [Galician flag] made from [wikipedia asset for the civil flag of Galicia](https://en.wikipedia.org/wiki/File:Flag_of_Galicia_(civil).svg): (public domain)
 -   [Hindi flag] made from [wikipedia asset for India's flag](https://en.wikipedia.org/w/index.php?curid=23473510): (public domain)
 
-新 Unciv logo 由 Discord 上的 u-ndefined 制作
+Unciv logo（例如 `extraImages/Icons/Unciv icon v6.png`、`android/assets/ExtraImages/Icons/Unciv128.png` 及其他文件）由 yairm210 与 u-ndefine 制作，采用 CC BY 4.0 许可。该 logo 包含以下图标：
+- [Gear](https://thenounproject.com/term/gear/29368) by Alex Bickov (CC BY 3.0)
+- [Apple](https://thenounproject.com/term/apple/1139396) by Pedro Gonçalves (CC BY 3.0)
+- [gold](https://thenounproject.com/term/gold/25438) by Eliricon (CC BY 3.0)
+- [Beaker](https://thenounproject.com/term/beaker/621510) by Delwar Hossain (CC BY 3.0)
+- [Music](https://thenounproject.com/term/music/5611/) by Naomi Atkinson (CC BY 3.0)
+- [Smiley](https://thenounproject.com/term/smiley/1024026) by Alexander Skowalsky (CC BY 3.0)
+- [City](https://thenounproject.com/icon/city-1765370/) by Muhajir ila Robbi (CC BY 3.0)
+
+以下文件包含 Unciv logo：
+
+- `extraImages` 中的各种文件包含同一 logo 的不同渲染版本
+- `android/assets/ExtraImages/banner.png` 由 letstalkaboutdune 制作；包含 The Bucketeer / @GeneralWadaling（地块）以及 yairm210 和 u-ndefine（Unciv logo）的作品，以 CC BY-SA 3.0 发布
+- `extraImages/Feature graphic - Google Play.png` 由 letstalkaboutdune 制作；包含 yairm210 和 u-ndefine 的 Unciv logo。由于背景（`extraImages/Steam/library_hero.png`）的作者与许可未知，其许可为未知（UNKNOWN）
+- 在 `extraImages/Steam/` 中，`library_capsule.png`、`store_capsule_header.png`、`store_capsule_main.png`、`store_capsule_small.png`、`store_capsule_vertical.png` 包含 yairm210 和 u-ndefine 的 Unciv logo。由于背景的作者与许可未知，这些文件的完整许可与作者为未知（UNKNOWN）
 
 "Fantasy Hex" 地形集的基础地块图标由 CuddlyClover 在 <https://cuddlyclover.itch.io/fantasy-hex-tiles> 创建，并由多位贡献者做了一些补充，采用 CC BY 4.0 许可。
 
@@ -653,7 +668,7 @@ HexaRealm tileset images by legacymtgsalvationuser69544 [here](https://github.co
     -   [Spear](https://thenounproject.com/term/spear/3930020/) by Firza Alamsyah
     -   [pennant](https://thenounproject.com/term/pennant/194797/) by Sara Jeffries
 -   [Maya civilization](https://thenounproject.com/term/maya-civilization/1715786/) by Olena Panasovska for The Maya
--   Aztec icon by Kāne, on Unciv Discord server
+-   Aztec icon by Kāne, on Unciv Discord server (CC BY 3.0)
 -   [Questionmark](https://thenounproject.com/icon/questionmark-4248169/) by YURR.studio for Random nation indicator
 -   [View](https://thenounproject.com/icon/view-4211245/) by Adrien Coquet for Spectator
 
@@ -798,7 +813,7 @@ HexaRealm tileset images by legacymtgsalvationuser69544 [here](https://github.co
 - [RobotArm](https://thenounproject.com/icon/robot-7300306/) by Faizal khusein
 - [RobotHeadSquare](https://thenounproject.com/icon/robot-head-6356754/) by Ahmad Arzaha
 - [RobotHeadRect](https://thenounproject.com/icon/robot-1704106/) by suib icon
-- Bobot by reallybasicname in the Discord
+- Bobot by reallybasicname in the Discord (CC BY 3.0)
 - [DollarSign](https://thenounproject.com/icon/dollar-sign-6466560/) by Ahmad Arzaha
 - Spy hideout is gimped from [hide](https://thenounproject.com/icon/hide-8013/) by Luis Prado and the one listed for Spy
 - [hold](https://thenounproject.com/icon/hold-222516/) by icon 54 as long-press indicator
@@ -907,3 +922,25 @@ See a human readable version here: https://creativecommons.org/licenses/by/4.0/
 
 ------------------------------------------------------------------------------------------
 ```
+
+# 预告片音频致谢
+
+这些是 Unciv 游戏玩法预告片视频的音频致谢。该视频及其所有声音文件*独立于*主游戏仓库发布。
+
+以下曲目和音效用于 Unciv 游戏玩法预告片视频（括号内为许可证名称）：
+
+* [Beyond New Horizons - Free Epic Viking Medieval Soundtrack](https://pixabay.com/music/main-title-beyond-new-horizons-free-epic-viking-medieval-soundtrack-22081/) 由 GioeleFazzeri 创作，用作背景音乐（Pixabay License）
+* [Beep 6](https://freesound.org/people/CogFireStudios/sounds/528866/) 由 Eponn 创作，用于跨平台游玩部分中的哔声（CC0）
+* [Cinematic Boom](https://freesound.org/people/Rizzard/sounds/559529/) 由 Rizzard 创作，用于结尾轰鸣（CC0）
+* [Cymbal Swell 2](https://freesound.org/people/rubberduckie/sounds/219835/) 由 rubberduckie 创作，用于镲片渐强（CC0）
+* [hit of orchestral cymbals and bass drum](https://freesound.org/people/Selector/sounds/385011/) 由 Selector 创作，用于开场撞击（CC0）
+
+由于视频及其音频完全独立于游戏仓库发布，这里的许可*不影响* Unciv 游戏仓库的整体许可。
+请注意 Pixabay 内容许可证是**专有许可证**，意味着 Unciv 游戏玩法预告片*不能*自由分享。
+
+## 许可证
+
+使用的许可证如下：
+
+* CC0: [Creative Commons Zero 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/)
+* Pixabay License: [Pixabay Content License](https://pixabay.com/service/license-summary/)
