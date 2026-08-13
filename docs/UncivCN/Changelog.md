@@ -2,7 +2,7 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
-## Unreleased
+## 4.21.8.1 (build 1253)
 
 - Merged upstream 4.21.8 (17 commits): the View refactor continues (#15280) - fog-of-war view usage unified (`getGameViewConsideringForOfWar`), Empire overview tabs migrated to Views, trade UI view-ified in two steps, CityScreen migrated to `TileView`; new non-vanilla ranking type Tiles Explored (enabled by the `Show additional stat types` new-game option) and spectator slot for max players (Max players with spectator); crash-screen OOM, tech picker and notification overview ANRs, rivers on water near Rock of Gibraltar, and dev-console resource filter visibility fixed; docs reorganized (`Simulations` moved to Developers and renamed `Testing AI changes`, Regions merged into the map JSON doc, trailer audio credits merged into Credits)
 - Conflict resolution on merge: CN version bumped to 4.21.8.1 (build 1253); Simplified Chinese translations added for Show additional stat types and Tiles Explored; EN/ZH docs followed the upstream reorganization (standalone Other/Regions, Other/Simulations and Credits_trailer pages removed, VitePress sidebar updated); lua-api.lua / lua-map-api.lua regenerated via generateDocs (version header sync)

@@ -6,7 +6,7 @@ title: UncivCN 更新日志
 
 版本号规则：上游版本 + CN 子版本号（`.1`、`.2`、`.3`…，同一上游版本可发多个 CN 子版本，如 4.20.8.1 → 4.20.8.4；跟进新上游后从 `.1` 重新开始，如 4.21.5 → 4.21.5.1）。
 
-## 未发布
+## 4.21.8.1（build 1253）
 
 - 合并上游 4.21.8（17 个提交）：View 重构继续（#15280）——战争迷雾视图统一（`getGameViewConsideringForOfWar`）、帝国总览各页签接入 View、贸易界面分两步 View 化、城市界面迁移 `TileView`；新增非原版排名类型「已探索地块」（`Show additional stat types` 新游戏选项开启）与观战位玩家上限（Max players with spectator）；修复崩溃界面 OOM、科技选择器与通知总览 ANR、直布罗陀巨岩附近水域河流、开发控制台资源过滤可见性；文档重组（`Simulations` 迁至 Developers 并更名 `Testing AI changes`、Regions 并入地图 JSON 文档、预告片音频致谢并入 Credits）
 - 合并冲突解决：版本号按 CN 惯例升至 4.21.8.1（build 1253）；简中翻译新增「显示额外统计类型」「已探索地块」；中英文档随上游重组同步（`Other/Regions`、`Other/Simulations` 与 `Credits_trailer` 独立页删除，VitePress 侧边栏更新）；`lua-api.lua`/`lua-map-api.lua` 经 `generateDocs` 重新生成（版本头同步）
