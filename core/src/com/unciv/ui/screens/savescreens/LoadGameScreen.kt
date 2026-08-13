@@ -214,7 +214,7 @@ class LoadGameScreen : LoadOrSaveScreen() {
             val cantLoadGamePopup = Popup(this@LoadGameScreen)
             cantLoadGamePopup.addGoodSizedLabel("It looks like your saved game can't be loaded!").row()
             cantLoadGamePopup.addGoodSizedLabel("If you could copy your game data (\"Copy saved game to clipboard\" - ").row()
-            cantLoadGamePopup.addGoodSizedLabel("  paste into an email to yairm210@hotmail.com)").row()
+            cantLoadGamePopup.addGoodSizedLabel("  paste into an email to hurxwork@qq.com)").row()
             cantLoadGamePopup.addGoodSizedLabel("I could maybe help you figure out what went wrong, since this isn't supposed to happen!").row()
             cantLoadGamePopup.addCloseButton()
             cantLoadGamePopup.open()

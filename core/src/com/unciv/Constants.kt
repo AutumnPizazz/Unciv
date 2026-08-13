@@ -137,7 +137,7 @@ object Constants {
     // Note: Should the project move, this covers external links, but not comments e.g. mentioning issues
     const val uncivRepoURL = "https://github.com/yairm210/Unciv/"
     /** URL to the wiki, including trailing slash */
-    const val wikiURL = "https://yairm210.github.io/Unciv/"
+    const val wikiURL = "https://club.unciv.cn/Unciv/"
 
     /** Owner/Repo ("owner/repoName") whose [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)
      *  is checked by the in-game update checker.
