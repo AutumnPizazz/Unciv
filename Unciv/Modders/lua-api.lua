@@ -335,6 +335,11 @@
 ---@field tile UncivTile
 ---@field civ UncivCiv
 ---@field game UncivGame
+---@field otherCiv UncivCiv|nil
+---@field attacker UncivUnit|UncivCity|nil
+---@field defender UncivUnit|UncivCity|nil
+---@field target UncivUnit|UncivCity|nil
+---@field combatAction string|nil
 ---@field log fun(msg: string)
 ---@field count fun(expr: string): string
 ---@field evaluateConditional fun(condition: string): boolean
