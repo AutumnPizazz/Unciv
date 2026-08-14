@@ -1323,6 +1323,30 @@ Example: "[+20]% to Flank Attack bonuses"
 Applicable to: Global, Unit
 
 :::
+::: details Combat strength is modified by [luaFunction]
+The [luaFunction] receives the current combat strength via `ctx.value` and must return the new value (returning nil leaves it unchanged). Runs as a pure query on the combat hot path - keep it fast and side-effect-free.
+
+Example: "Combat strength is modified by [myMod:myFunction]"
+
+Applicable to: Global, Unit
+
+:::
+::: details Combat damage dealt is modified by [luaFunction]
+The [luaFunction] receives the current damage via `ctx.value` and must return the new value (returning nil leaves it unchanged).
+
+Example: "Combat damage dealt is modified by [myMod:myFunction]"
+
+Applicable to: Global, Unit
+
+:::
+::: details Combat damage received is modified by [luaFunction]
+The [luaFunction] receives the current incoming damage via `ctx.value` and must return the new value (returning nil leaves it unchanged). Applied after the attacker's damage modifier.
+
+Example: "Combat damage received is modified by [myMod:myFunction]"
+
+Applicable to: Global, Unit
+
+:::
 ::: details [amount] additional attacks per turn
 Example: "[3] additional attacks per turn"
 
@@ -2639,6 +2663,30 @@ Applicable to: Unit
 Example: "[+20]% Strength bonus for [Wounded] units within [3] tiles"
 
 Applicable to: Unit
+
+:::
+::: details Combat strength is modified by [luaFunction]
+The [luaFunction] receives the current combat strength via `ctx.value` and must return the new value (returning nil leaves it unchanged). Runs as a pure query on the combat hot path - keep it fast and side-effect-free.
+
+Example: "Combat strength is modified by [myMod:myFunction]"
+
+Applicable to: Global, Unit
+
+:::
+::: details Combat damage dealt is modified by [luaFunction]
+The [luaFunction] receives the current damage via `ctx.value` and must return the new value (returning nil leaves it unchanged).
+
+Example: "Combat damage dealt is modified by [myMod:myFunction]"
+
+Applicable to: Global, Unit
+
+:::
+::: details Combat damage received is modified by [luaFunction]
+The [luaFunction] receives the current incoming damage via `ctx.value` and must return the new value (returning nil leaves it unchanged). Applied after the attacker's damage modifier.
+
+Example: "Combat damage received is modified by [myMod:myFunction]"
+
+Applicable to: Global, Unit
 
 :::
 ::: details [amount] additional attacks per turn

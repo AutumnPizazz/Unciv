@@ -466,6 +466,15 @@ enum class UniqueType(
         docDescription = MULTIPLICATIVE_BONUS_EXPLANATION, docDescriptionZh = MULTIPLICATIVE_BONUS_EXPLANATION_ZH),
     StrengthForAdjacentEnemies("[relativeAmount]% Strength for enemy [mapUnitFilter] units in adjacent [tileFilter] tiles", UniqueTarget.Unit),
     StrengthBonusInRadius("[relativeAmount]% Strength bonus for [mapUnitFilter] units within [amount] tiles", UniqueTarget.Unit),
+    LuaModifyCombatStrength("Combat strength is modified by [luaFunction]", UniqueTarget.Unit, UniqueTarget.Global,
+        docDescription = "The [luaFunction] receives the current combat strength via `ctx.value` and must return the new value (returning nil leaves it unchanged). Runs as a pure query on the combat hot path - keep it fast and side-effect-free.",
+        docDescriptionZh = "[luaFunction] 通过 `ctx.value` 接收当前战斗力并须返回新值（返回 nil 则保持不变）。作为战斗热路径上的纯查询运行——请保持轻量、无副作用。"),
+    LuaModifyCombatDamage("Combat damage dealt is modified by [luaFunction]", UniqueTarget.Unit, UniqueTarget.Global,
+        docDescription = "The [luaFunction] receives the current damage via `ctx.value` and must return the new value (returning nil leaves it unchanged).",
+        docDescriptionZh = "[luaFunction] 通过 `ctx.value` 接收当前伤害并须返回新值（返回 nil 则保持不变）。"),
+    LuaModifyCombatDamageReceived("Combat damage received is modified by [luaFunction]", UniqueTarget.Unit, UniqueTarget.Global,
+        docDescription = "The [luaFunction] receives the current incoming damage via `ctx.value` and must return the new value (returning nil leaves it unchanged). Applied after the attacker's damage modifier.",
+        docDescriptionZh = "[luaFunction] 通过 `ctx.value` 接收当前受到的伤害并须返回新值（返回 nil 则保持不变）。在攻击方伤害修正之后应用。"),
 
     // Stat bonuses
     AdditionalAttacks("[amount] additional attacks per turn", UniqueTarget.Unit, UniqueTarget.Global),

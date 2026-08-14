@@ -1330,6 +1330,30 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Global，Unit
 
 :::
+::: details Combat strength is modified by [luaFunction]
+[luaFunction] 通过 `ctx.value` 接收当前战斗力并须返回新值（返回 nil 则保持不变）。作为战斗热路径上的纯查询运行——请保持轻量、无副作用。
+
+示例："Combat strength is modified by [myMod:myFunction]"
+
+适用范围：Global，Unit
+
+:::
+::: details Combat damage dealt is modified by [luaFunction]
+[luaFunction] 通过 `ctx.value` 接收当前伤害并须返回新值（返回 nil 则保持不变）。
+
+示例："Combat damage dealt is modified by [myMod:myFunction]"
+
+适用范围：Global，Unit
+
+:::
+::: details Combat damage received is modified by [luaFunction]
+[luaFunction] 通过 `ctx.value` 接收当前受到的伤害并须返回新值（返回 nil 则保持不变）。在攻击方伤害修正之后应用。
+
+示例："Combat damage received is modified by [myMod:myFunction]"
+
+适用范围：Global，Unit
+
+:::
 ::: details [amount] additional attacks per turn
 示例："[3] additional attacks per turn"
 
@@ -2646,6 +2670,30 @@ These resources are removed *when work begins* on the construction. Do not confu
 示例："[+20]% Strength bonus for [Wounded] units within [3] tiles"
 
 适用范围：Unit
+
+:::
+::: details Combat strength is modified by [luaFunction]
+[luaFunction] 通过 `ctx.value` 接收当前战斗力并须返回新值（返回 nil 则保持不变）。作为战斗热路径上的纯查询运行——请保持轻量、无副作用。
+
+示例："Combat strength is modified by [myMod:myFunction]"
+
+适用范围：Global，Unit
+
+:::
+::: details Combat damage dealt is modified by [luaFunction]
+[luaFunction] 通过 `ctx.value` 接收当前伤害并须返回新值（返回 nil 则保持不变）。
+
+示例："Combat damage dealt is modified by [myMod:myFunction]"
+
+适用范围：Global，Unit
+
+:::
+::: details Combat damage received is modified by [luaFunction]
+[luaFunction] 通过 `ctx.value` 接收当前受到的伤害并须返回新值（返回 nil 则保持不变）。在攻击方伤害修正之后应用。
+
+示例："Combat damage received is modified by [myMod:myFunction]"
+
+适用范围：Global，Unit
 
 :::
 ::: details [amount] additional attacks per turn

@@ -263,6 +263,40 @@ object LuaScriptManager {
         }
     }
 
+    /**
+     * Calls [func] with [ctxTable] and delivers its numeric return value, unlike [callFunction]
+     * which only reports boolean success. [onResult] receives null when the function returns
+     * nil/non-number or throws - the caller then treats the value as "unchanged". Used by the
+     * combat strength/damage hooks, which run on the hot path, so error reporting is deduplicated
+     * per function name to avoid flooding the mod checker during AI turn processing.
+     */
+    private val reportedValueHookErrors = HashSet<String>()
+
+    fun callFunctionForValue(
+        func: LuaFunction,
+        ctxTable: LuaValue,
+        civInfo: Civilization? = null,
+        functionName: String = "",
+        modName: String = "",
+        onResult: (Double?) -> Unit
+    ) {
+        modInstructionBudgets[modName]?.reset(INSTRUCTION_BUDGET)
+        try {
+            val result = func.call(ctxTable)
+            onResult(if (result.isnumber()) result.todouble() else null)
+        } catch (ex: LuaError) {
+            Log.error("Lua runtime error: ${ex.message}", ex)
+            if (reportedValueHookErrors.add(functionName))
+                reportLuaError(civInfo, functionName, ex.message ?: "Unknown Lua runtime error", modName)
+            onResult(null)
+        } catch (ex: Exception) {
+            Log.error("Unexpected Lua error: ${ex.message}", ex)
+            if (reportedValueHookErrors.add(functionName))
+                reportLuaError(civInfo, functionName, ex.message ?: "Unknown error", modName)
+            onResult(null)
+        }
+    }
+
     private fun reportLuaError(civInfo: Civilization?, functionName: String, message: String, modName: String = "") {
         val lineNum = extractLineNumber(message)
         val displayMessage = if (functionName.isNotEmpty())

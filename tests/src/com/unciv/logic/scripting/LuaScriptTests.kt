@@ -1,6 +1,7 @@
 package com.unciv.logic.scripting
 
 import com.badlogic.gdx.Gdx
+import com.unciv.logic.battle.BattleDamage
 import com.unciv.logic.battle.CombatAction
 import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.map.HexCoord
@@ -286,6 +287,38 @@ class LuaScriptTests {
         Assert.assertTrue("target should be visible, got: '$stored'", stored.contains("target=Warrior"))
         Assert.assertTrue("otherCiv should be the opponent, got: '$stored'", stored.contains("other=${civB.civName}"))
         Assert.assertTrue("combatAction should be Attack, got: '$stored'", stored.contains("action=Attack"))
+    }
+
+    @Test
+    fun luaOverridesCombatStrengthAndDamage() {
+        // Absolute-override Lua hooks for combat strength and combat damage
+        loadLuaScriptToMod("combatMod", "combat.lua", """
+            function fixedStrength(ctx)
+                return 100
+            end
+            function fixedDamage(ctx)
+                return 42
+            end
+        """.trimIndent())
+
+        val game = TestGame(
+            "Combat strength is modified by [combatMod:fixedStrength]",
+            "Combat damage dealt is modified by [combatMod:fixedDamage]"
+        )
+        game.makeHexagonalMap(5, "Grassland")
+        val civA = game.addCiv(isPlayer = true)
+        val civB = game.addCiv(isPlayer = false)
+        val unitA = game.addUnit("Warrior", civA, game.getTile(HexCoord(0, 0)))
+        val unitB = game.addUnit("Warrior", civB, game.getTile(HexCoord(1, 0)))
+
+        val attacker = MapUnitCombatant(unitA)
+        val defender = MapUnitCombatant(unitB)
+
+        val strength = BattleDamage.getAttackingStrength(attacker, defender, unitA.currentTile)
+        Assert.assertEquals("Lua should override combat strength to 100", 100f, strength, 0.01f)
+
+        val damage = BattleDamage.calculateDamageToDefender(attacker, defender)
+        Assert.assertEquals("Lua should override combat damage to 42", 42, damage)
     }
 
     @Test
