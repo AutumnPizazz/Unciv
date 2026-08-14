@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组/Lua：扩展战斗支持——单位新增只读战斗预测查询（getAttackingStrengthAgainst / getDefendingStrengthAgainst / predictDamageTo / predictDamageFrom），新增触发 unique（upon bombarding / upon being bombarded / upon withdrawing from melee combat）
 - 模组/Lua：Lua 现可接管战斗力与伤害公式——新增 unique「Combat strength is modified by [luaFunction]」「Combat damage dealt is modified by [luaFunction]」「Combat damage received is modified by [luaFunction]」；Lua 收到原始战斗参数（战斗力钩子：基础力 + 修正倍率 + 逐项修正表；伤害钩子：攻防双方战斗力 + 随机因子 + 受伤惩罚系数 + 伤害方向），返回 nil 则回退引擎公式
 - 模组/Lua：战斗触发的 Lua 现在能看到对手——`ctx.otherCiv`（外交与战斗）、`ctx.attacker`/`ctx.defender`/`ctx.target` 与 `ctx.combatAction` 已对 `TriggerLuaFunction`/`ConditionalLuaCheck` 开放
 - 模组/Lua：新增单位触发 unique：俘获单位时 / 被俘获时 / 拦截单位时 / 被拦截时

@@ -5033,6 +5033,10 @@ Applicable to: TriggerCondition, UnitTriggerCondition
 Applicable to: TriggerCondition
 
 :::
+::: details &lt;upon bombarding&gt;
+Applicable to: TriggerCondition
+
+:::
 ::: details &lt;upon founding a city&gt;
 Applicable to: TriggerCondition
 
@@ -5156,6 +5160,14 @@ Applicable to: UnitTriggerCondition
 
 :::
 ::: details &lt;upon being intercepted&gt;
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon being bombarded&gt;
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon withdrawing from melee combat&gt;
 Applicable to: UnitTriggerCondition
 
 :::

@@ -2,6 +2,7 @@ package com.unciv.logic.scripting
 
 import com.unciv.Constants
 import com.unciv.logic.battle.Battle
+import com.unciv.logic.battle.BattleDamage
 import com.unciv.logic.battle.CityCombatant
 import com.unciv.logic.battle.CombatAction
 import com.unciv.logic.battle.ICombatant
@@ -40,7 +41,7 @@ object LuaAPI {
         "store" to setOf("get", "set"),
         "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getNation", "getLeaderName", "getScore", "getForce", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getSciencePerTurn", "getCulturePerTurn", "getFoodPerTurn", "getProductionPerTurn", "getResourceAmount", "hasResource", "getResourceStockpiles", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "getTechCost", "grantTech", "discoverTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "getCultureNeededForNextPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getDiplomaticStatuses", "getProximityTo", "hasEmbassyWith", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "makePeaceWith", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getCityNames", "getTotalPopulation", "getWondersBuilt", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getSpies", "addSpy", "getLeaderTitle", "hasUnique", "addGold", "setGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
         "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "getFood", "getFoodSurplus", "getFoodStorage", "getFoodNeeded", "getProductionProgress", "getProductionCost", "getTurnsToCompletion", "getGarrisonedUnit", "getStrength", "getSpecialistCount", "getUnemployedCount", "getBuiltWonders", "isInResistance", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "setPopulation", "addFood", "addProduction", "addHealth", "setName", "addBuilding", "removeBuilding", "sellBuilding", "setProduction", "addToQueue", "clearQueue"),
-        "unit" to setOf("id", "name", "instanceName", "isCivilian", "isMilitary", "isRanged", "isEmbarked", "isFortified", "isAutomated", "base", "health", "getRange", "getEraNumber", "getMovement", "getCurrentMovement", "getXP", "getMaxHealth", "getDamage", "getAttacksLeft", "getVisibilityRange", "getAction", "canAttack", "canPillage", "isInEnemyTerritory", "isInFriendlyTerritory", "isGreatPerson", "getReligionDisplayName", "hasPromotion", "hasUnique", "getPromotions", "getPromotionCount", "hasStatus", "getStatusTurns", "getPosition", "canMoveTo", "getOwner", "isOwnedBy", "healBy", "takeDamage", "addXP", "setXP", "setHealth", "addPromotion", "removePromotion", "addMovement", "useMovement", "setStatus", "setAttacksLeft", "fortify", "moveByPath", "upgrade", "destroy", "attackTile", "teleportTo", "findPathTo", "canReach"),
+        "unit" to setOf("id", "name", "instanceName", "isCivilian", "isMilitary", "isRanged", "isEmbarked", "isFortified", "isAutomated", "base", "health", "getRange", "getEraNumber", "getMovement", "getCurrentMovement", "getXP", "getMaxHealth", "getDamage", "getAttacksLeft", "getVisibilityRange", "getAction", "canAttack", "canPillage", "isInEnemyTerritory", "isInFriendlyTerritory", "isGreatPerson", "getReligionDisplayName", "hasPromotion", "hasUnique", "getPromotions", "getPromotionCount", "hasStatus", "getStatusTurns", "getPosition", "canMoveTo", "getOwner", "isOwnedBy", "healBy", "takeDamage", "addXP", "setXP", "setHealth", "addPromotion", "removePromotion", "addMovement", "useMovement", "setStatus", "setAttacksLeft", "fortify", "moveByPath", "upgrade", "destroy", "attackTile", "getAttackingStrengthAgainst", "getDefendingStrengthAgainst", "predictDamageTo", "predictDamageFrom", "teleportTo", "findPathTo", "canReach"),
         "tile" to setOf("position", "getX", "getY", "baseTerrain", "isLand", "isWater", "isCoast", "isHill", "isMountain", "hasTerrainFeature", "getTerrainFeatures", "isImpassable", "isRiver", "isAdjacentToCoast", "hasRoad", "hasRailroad", "hasNaturalWonder", "getNaturalWonder", "hasResource", "resourceName", "resourceAmount", "hasImprovement", "improvementName", "isPillaged", "getYield", "isOwned", "getOwner", "isOwnedBy", "isFriendlyTerritory", "isEnemyTerritory", "isCityCenter", "getOwningCity", "isExploredBy", "getDistanceTo", "isAdjacentTo", "hasMilitaryUnit", "hasCivilianUnit", "getUnits", "getNeighbors", "getNeighborAt", "getTilesInDistance", "setExplored", "setTerrain", "addTerrainFeature", "removeTerrainFeature", "setImprovement", "removeImprovement", "removeResource", "setResource", "setRoad", "setRailroad", "removeRoad"),
         "game" to setOf("turn", "getYear", "speed", "difficulty", "getCurrentPlayer", "getCurrentPlayerCiv", "getCiv", "getCivById", "getAllCivs", "getCivNames", "getHumanCivs", "getAliveMajorCivs", "getAliveCityStates", "getBarbarianCiv", "getTile", "findTiles", "getMapWidth", "getMapHeight", "getMapName", "getMapType", "isWrapped", "getTilesNear", "getEraNames", "getVictoryTypes", "getMods", "getBaseRuleset", "getRulesetBuildings", "getRulesetUnits", "getRulesetTechs", "getRulesetPolicies", "getRulesetEras", "getRulesetPromotions", "getRulesetTerrains", "getRulesetResources", "getRulesetImprovements", "getRulesetNations", "getRulesetReligions", "getRulesetBeliefs", "getRulesetEvents", "getRulesetNaturalWonders", "getRulesetUnitTypes", "doesBuildingExist", "doesUnitExist", "doesTechExist", "doesPolicyExist", "doesEraExist", "doesPromotionExist", "doesTerrainExist", "doesResourceExist", "doesImprovementExist", "doesNationExist", "doesBeliefExist", "doesEventExist", "addGlobalNotification", "revealEntireMap", "revealTilesAround"),
     )
@@ -1071,6 +1072,36 @@ object LuaAPI {
             resultTable.set("attackerDamage", LuaValue.valueOf(result.attackerDealt))
             resultTable.set("defenderDamage", LuaValue.valueOf(result.defenderDealt))
             resultTable
+        })
+        // Combat prediction queries - reuse the same strength/damage computation as actual combat,
+        // including any Lua combat formula hooks.
+        t.registerApi("unit", "getAttackingStrengthAgainst", luaFunction { args ->
+            val tile = unit.civ.gameInfo.tileMap[HexCoord(args.arg(1).safeToInt(), args.arg(2).safeToInt())]
+            if (tile == null) return@luaFunction LuaValue.valueOf(0)
+            val enemy = Battle.getMapCombatantOfTile(tile) ?: return@luaFunction LuaValue.valueOf(0)
+            val strength = BattleDamage.getAttackingStrength(MapUnitCombatant(unit), enemy, unit.currentTile)
+            LuaValue.valueOf(strength.toDouble())
+        })
+        t.registerApi("unit", "getDefendingStrengthAgainst", luaFunction { args ->
+            val tile = unit.civ.gameInfo.tileMap[HexCoord(args.arg(1).safeToInt(), args.arg(2).safeToInt())]
+            if (tile == null) return@luaFunction LuaValue.valueOf(0)
+            val enemy = Battle.getMapCombatantOfTile(tile) ?: return@luaFunction LuaValue.valueOf(0)
+            val strength = BattleDamage.getDefendingStrength(enemy, MapUnitCombatant(unit), enemy.getTile())
+            LuaValue.valueOf(strength.toDouble())
+        })
+        t.registerApi("unit", "predictDamageTo", luaFunction { args ->
+            val tile = unit.civ.gameInfo.tileMap[HexCoord(args.arg(1).safeToInt(), args.arg(2).safeToInt())]
+            if (tile == null) return@luaFunction LuaValue.valueOf(0)
+            val enemy = Battle.getMapCombatantOfTile(tile) ?: return@luaFunction LuaValue.valueOf(0)
+            val damage = BattleDamage.calculateDamageToDefender(MapUnitCombatant(unit), enemy)
+            LuaValue.valueOf(damage.toDouble())
+        })
+        t.registerApi("unit", "predictDamageFrom", luaFunction { args ->
+            val tile = unit.civ.gameInfo.tileMap[HexCoord(args.arg(1).safeToInt(), args.arg(2).safeToInt())]
+            if (tile == null) return@luaFunction LuaValue.valueOf(0)
+            val enemy = Battle.getMapCombatantOfTile(tile) ?: return@luaFunction LuaValue.valueOf(0)
+            val damage = BattleDamage.calculateDamageToAttacker(enemy, MapUnitCombatant(unit))
+            LuaValue.valueOf(damage.toDouble())
         })
         t.registerApi("unit", "teleportTo", luaFunction { args ->
             val x = args.arg(1).safeToInt()

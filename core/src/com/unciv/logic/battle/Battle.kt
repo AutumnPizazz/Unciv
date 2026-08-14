@@ -349,6 +349,16 @@ object Battle {
                 else defender.unit
                 UniqueTriggerActivation.triggerUnique(unique, unit, gameContext = defenderContext)
             }
+
+        // City bombardment triggers: cities don't fire TriggerUponCombat (units only), so expose
+        // dedicated "upon bombarding" (civ-level) and "upon being bombarded" (unit-level) hooks.
+        if (attacker is CityCombatant) {
+            for (unique in attacker.getCivInfo().getTriggeredUniques(UniqueType.TriggerUponBombarding, attackerContext))
+                UniqueTriggerActivation.triggerUnique(unique, attacker.getCivInfo(), gameContext = attackerContext)
+            if (defender is MapUnitCombatant)
+                for (unique in defender.unit.getTriggeredUniques(UniqueType.TriggerUponBeingBombarded, defenderContext))
+                    UniqueTriggerActivation.triggerUnique(unique, defender.unit, gameContext = defenderContext)
+        }
     }
 
 
@@ -903,6 +913,10 @@ object Battle {
         val locations = LocationAction(toTile.position, attacker.getTile().position)
         defender.getCivInfo().addNotification(notificationString, locations, NotificationCategory.War, defenderName, NotificationIcon.War, attackerName)
         attacker.getCivInfo().addNotification(notificationString, locations, NotificationCategory.War, defenderName, NotificationIcon.War, attackerName)
+
+        val withdrawContext = GameContext(defender.getCivInfo(), ourCombatant = defender, theirCombatant = attacker, tile = fromTile, combatAction = CombatAction.Defend)
+        for (unique in defender.unit.getTriggeredUniques(UniqueType.TriggerUponWithdrawing, withdrawContext))
+            UniqueTriggerActivation.triggerUnique(unique, defender.unit, gameContext = withdrawContext)
         return true
     }
 

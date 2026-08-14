@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding/Lua: more combat support - new read-only combat prediction queries on units (getAttackingStrengthAgainst / getDefendingStrengthAgainst / predictDamageTo / predictDamageFrom) and new trigger uniques (upon bombarding / upon being bombarded / upon withdrawing from melee combat)
 - Modding/Lua: Lua can now take over the combat strength and damage formulas - new uniques "Combat strength is modified by [luaFunction]", "Combat damage dealt is modified by [luaFunction]" and "Combat damage received is modified by [luaFunction]"; Lua receives the raw combat inputs (base strength + modifier factor + individual modifier list for strength; attacker/defender strength + randomness factor + health ratio + damage direction for damage) and returning nil falls back to the engine formula
 - Modding/Lua: combat-fired Lua triggers can now see the opponent - `ctx.otherCiv` (diplomacy & combat), `ctx.attacker`/`ctx.defender`/`ctx.target` and `ctx.combatAction` are exposed to `TriggerLuaFunction`/`ConditionalLuaCheck`
 - Modding/Lua: new unit trigger uniques: upon capturing a unit / upon being captured / upon intercepting a unit / upon being intercepted

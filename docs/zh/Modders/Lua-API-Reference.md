@@ -175,34 +175,38 @@ city.clearQueue()                 -- 清空整个建造队列
 **查询方法**:
 
 ```lua
-unit.getRange()                  -- 射程
-unit.getEraNumber()              -- 所属文明的时代序号（0-based）
-unit.getMovement()               -- 最大移动力
-unit.getCurrentMovement()        -- 剩余移动力
-unit.getXP()                     -- 经验值
-unit.getMaxHealth()              -- 最大生命值
-unit.getDamage()                 -- 最大生命减当前生命
-unit.getAttacksLeft()            -- 本回合剩余攻击次数
-unit.getVisibilityRange()        -- 视野范围（格）
-unit.getAction()                 -- 当前行动字符串（"Fortify"、"moveTo x,y" 等）
-unit.canAttack()                 -- 本回合能否攻击
-unit.canPillage()                -- 当前地块是否可掠夺
-unit.isInEnemyTerritory()        -- 是否处于敌方领土
-unit.isInFriendlyTerritory()     -- 是否处于己方领土
-unit.isGreatPerson()             -- 是否为伟人
-unit.getReligionDisplayName()    -- 单位宗教名（无则为 ""）
-unit.hasPromotion(promotionName) -- 是否有晋升
-unit.hasUnique(uniqueText)       -- 单位是否拥有此 unique（含 unit type + 晋升）
-unit.getPromotions()             -- 晋升名列表
-unit.getPromotionCount()         -- 晋升数量
-unit.hasStatus(statusName)       -- 是否有状态
-unit.getStatusTurns(statusName)  -- 状态剩余回合
-unit.getPosition()               -- {x, y} 坐标表
-unit.canMoveTo(x, y)             -- 能否移动到
-unit.getOwner()                  -- 所属文明名
-unit.isOwnedBy(civName)          -- 是否属于某文明
-unit.findPathTo(x, y)            -- 返回路径坐标列表 {{x,y}, {x,y}, ...} 或 nil（A* 多回合寻路）
-unit.canReach(x, y)              -- 能否到达目标坐标
+unit.getRange()                        -- 射程
+unit.getEraNumber()                    -- 所属文明的时代序号（0-based）
+unit.getMovement()                     -- 最大移动力
+unit.getCurrentMovement()              -- 剩余移动力
+unit.getXP()                           -- 经验值
+unit.getMaxHealth()                    -- 最大生命值
+unit.getDamage()                       -- 最大生命减当前生命
+unit.getAttacksLeft()                  -- 本回合剩余攻击次数
+unit.getVisibilityRange()              -- 视野范围（格）
+unit.getAction()                       -- 当前行动字符串（"Fortify"、"moveTo x,y" 等）
+unit.canAttack()                       -- 本回合能否攻击
+unit.canPillage()                      -- 当前地块是否可掠夺
+unit.isInEnemyTerritory()              -- 是否处于敌方领土
+unit.isInFriendlyTerritory()           -- 是否处于己方领土
+unit.isGreatPerson()                   -- 是否为伟人
+unit.getReligionDisplayName()          -- 单位宗教名（无则为 ""）
+unit.hasPromotion(promotionName)       -- 是否有晋升
+unit.hasUnique(uniqueText)             -- 单位是否拥有此 unique（含 unit type + 晋升）
+unit.getPromotions()                   -- 晋升名列表
+unit.getPromotionCount()               -- 晋升数量
+unit.hasStatus(statusName)             -- 是否有状态
+unit.getStatusTurns(statusName)        -- 状态剩余回合
+unit.getPosition()                     -- {x, y} 坐标表
+unit.canMoveTo(x, y)                   -- 能否移动到
+unit.getOwner()                        -- 所属文明名
+unit.isOwnedBy(civName)                -- 是否属于某文明
+unit.getAttackingStrengthAgainst(x, y) -- 对指定坐标单位/城市的预计最终攻击力（无目标为 0）
+unit.getDefendingStrengthAgainst(x, y) -- 对指定坐标攻击者的预计最终防御力（无目标为 0）
+unit.predictDamageTo(x, y)             -- 对指定坐标单位/城市的预计伤害（无目标为 0）
+unit.predictDamageFrom(x, y)           -- 来自指定坐标单位/城市的预计反击伤害（无目标为 0）
+unit.findPathTo(x, y)                  -- 返回路径坐标列表 {{x,y}, {x,y}, ...} 或 nil（A* 多回合寻路）
+unit.canReach(x, y)                    -- 能否到达目标坐标
 ```
 
 **写入方法**:

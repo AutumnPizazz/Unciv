@@ -176,34 +176,38 @@ city.clearQueue()                 -- Clear the whole construction queue
 **Query methods**:
 
 ```lua
-unit.getRange()                  -- Attack range
-unit.getEraNumber()              -- 0-based era index of the unit's owner civilization
-unit.getMovement()               -- Maximum movement
-unit.getCurrentMovement()        -- Remaining movement
-unit.getXP()                     -- Experience points
-unit.getMaxHealth()              -- Max HP
-unit.getDamage()                 -- Max health minus current health
-unit.getAttacksLeft()            -- Attacks remaining this turn
-unit.getVisibilityRange()        -- Sight range in tiles
-unit.getAction()                 -- Current action string ("Fortify", "moveTo x,y", ...)
-unit.canAttack()                 -- Can attack this turn
-unit.canPillage()                -- Current tile has something to pillage
-unit.isInEnemyTerritory()        -- Standing in enemy territory
-unit.isInFriendlyTerritory()     -- Standing in own territory
-unit.isGreatPerson()             -- Is a great person
-unit.getReligionDisplayName()    -- Religion of this unit ("" if none)
-unit.hasPromotion(promotionName) -- Has promotion
-unit.hasUnique(uniqueText)       -- Searches unit type + promotion uniques
-unit.getPromotions()             -- Promotion names
-unit.getPromotionCount()         -- Number of promotions
-unit.hasStatus(statusName)       -- Has status
-unit.getStatusTurns(statusName)  -- Status turns remaining
-unit.getPosition()               -- {x, y} coordinate table
-unit.canMoveTo(x, y)             -- Can move to tile
-unit.getOwner()                  -- Owner civilization name
-unit.isOwnedBy(civName)          -- Owned by civilization
-unit.findPathTo(x, y)            -- Returns path {{x,y}, {x,y}, ...} or nil (uses A* multi-turn pathfinding)
-unit.canReach(x, y)              -- Can reach target tile
+unit.getRange()                        -- Attack range
+unit.getEraNumber()                    -- 0-based era index of the unit's owner civilization
+unit.getMovement()                     -- Maximum movement
+unit.getCurrentMovement()              -- Remaining movement
+unit.getXP()                           -- Experience points
+unit.getMaxHealth()                    -- Max HP
+unit.getDamage()                       -- Max health minus current health
+unit.getAttacksLeft()                  -- Attacks remaining this turn
+unit.getVisibilityRange()              -- Sight range in tiles
+unit.getAction()                       -- Current action string ("Fortify", "moveTo x,y", ...)
+unit.canAttack()                       -- Can attack this turn
+unit.canPillage()                      -- Current tile has something to pillage
+unit.isInEnemyTerritory()              -- Standing in enemy territory
+unit.isInFriendlyTerritory()           -- Standing in own territory
+unit.isGreatPerson()                   -- Is a great person
+unit.getReligionDisplayName()          -- Religion of this unit ("" if none)
+unit.hasPromotion(promotionName)       -- Has promotion
+unit.hasUnique(uniqueText)             -- Searches unit type + promotion uniques
+unit.getPromotions()                   -- Promotion names
+unit.getPromotionCount()               -- Number of promotions
+unit.hasStatus(statusName)             -- Has status
+unit.getStatusTurns(statusName)        -- Status turns remaining
+unit.getPosition()                     -- {x, y} coordinate table
+unit.canMoveTo(x, y)                   -- Can move to tile
+unit.getOwner()                        -- Owner civilization name
+unit.isOwnedBy(civName)                -- Owned by civilization
+unit.getAttackingStrengthAgainst(x, y) -- Predicted final attack strength against the unit/city at a tile (0 if none)
+unit.getDefendingStrengthAgainst(x, y) -- Predicted final defence strength against the attacker at a tile (0 if none)
+unit.predictDamageTo(x, y)             -- Predicted damage dealt to the unit/city at a tile (0 if none)
+unit.predictDamageFrom(x, y)           -- Predicted counter-damage received from the unit/city at a tile (0 if none)
+unit.findPathTo(x, y)                  -- Returns path {{x,y}, {x,y}, ...} or nil (uses A* multi-turn pathfinding)
+unit.canReach(x, y)                    -- Can reach target tile
 ```
 
 **Write methods**:

@@ -1048,6 +1048,7 @@ enum class UniqueType(
     /** Can be placed upon both units and as global */
     TriggerUponConqueringCity("upon conquering a city", UniqueTarget.TriggerCondition, UniqueTarget.UnitTriggerCondition),
     TriggerUponLosingCity("upon losing a city", UniqueTarget.TriggerCondition),
+    TriggerUponBombarding("upon bombarding", UniqueTarget.TriggerCondition),
     TriggerUponFoundingCity("upon founding a city", UniqueTarget.TriggerCondition),
     TriggerUponBuildingImprovement("upon building a [improvementFilter] improvement", UniqueTarget.TriggerCondition, UniqueTarget.UnitTriggerCondition),
     TriggerUponDiscoveringNaturalWonder("upon discovering a Natural Wonder", UniqueTarget.TriggerCondition),
@@ -1076,6 +1077,8 @@ enum class UniqueType(
     TriggerUponBeingCaptured("upon being captured", UniqueTarget.UnitTriggerCondition),
     TriggerUponInterceptingUnit("upon intercepting a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition),
     TriggerUponBeingIntercepted("upon being intercepted", UniqueTarget.UnitTriggerCondition),
+    TriggerUponBeingBombarded("upon being bombarded", UniqueTarget.UnitTriggerCondition),
+    TriggerUponWithdrawing("upon withdrawing from melee combat", UniqueTarget.UnitTriggerCondition),
     TriggerUponExpendingUnit("upon expending a [mapUnitFilter] unit", UniqueTarget.TriggerCondition),
     TriggerUponDefeat("upon being defeated", UniqueTarget.UnitTriggerCondition),
     TriggerUponPromotion("upon being promoted", UniqueTarget.UnitTriggerCondition),

@@ -208,6 +208,10 @@
 ---@field upgrade fun()
 ---@field destroy fun()
 ---@field attackTile fun(x: number, y: number): table|false
+---@field getAttackingStrengthAgainst fun(x: number, y: number): number
+---@field getDefendingStrengthAgainst fun(x: number, y: number): number
+---@field predictDamageTo fun(x: number, y: number): number
+---@field predictDamageFrom fun(x: number, y: number): number
 ---@field teleportTo fun(x: number, y: number)
 ---@field findPathTo fun(x: number, y: number): table|nil
 ---@field canReach fun(x: number, y: number): boolean

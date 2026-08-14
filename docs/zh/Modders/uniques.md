@@ -5040,6 +5040,10 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition
 
 :::
+::: details &lt;upon bombarding&gt;
+适用范围：TriggerCondition
+
+:::
 ::: details &lt;upon founding a city&gt;
 适用范围：TriggerCondition
 
@@ -5163,6 +5167,14 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 
 :::
 ::: details &lt;upon being intercepted&gt;
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon being bombarded&gt;
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon withdrawing from melee combat&gt;
 适用范围：UnitTriggerCondition
 
 :::
