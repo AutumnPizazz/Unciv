@@ -11,6 +11,7 @@ import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import yairm210.purity.annotations.Readonly
 import kotlin.math.min
@@ -96,7 +97,24 @@ object BattleUnitCapture {
         if (addedUnit.getTile() != defenderTile && civilianUnit != null) {
             captureCivilianUnit(attacker, MapUnitCombatant(civilianUnit))
         }
+        triggerCaptureUniques(attacker, defender, defender.getCivInfo(), defenderTile)
         return true
+    }
+
+    /** Fires "upon capturing a unit" (on the capturer) and "upon being captured" (on the original owner). */
+    private fun triggerCaptureUniques(capturer: ICombatant, captured: MapUnitCombatant, capturedCiv: Civilization, attackedTile: Tile) {
+        val capturerContext = GameContext(capturer.getCivInfo(), ourCombatant = capturer, theirCombatant = captured, attackedTile = attackedTile)
+        for (unique in capturer.getTriggeredUniques(UniqueType.TriggerUponCapturingUnit, capturerContext)
+            { captured.matchesFilter(it.params[0]) }) {
+            if (capturer is MapUnitCombatant)
+                UniqueTriggerActivation.triggerUnique(unique, capturer.unit, gameContext = capturerContext)
+            else
+                UniqueTriggerActivation.triggerUnique(unique, capturer.getCivInfo(), gameContext = capturerContext)
+        }
+
+        val capturedContext = GameContext(capturedCiv, ourCombatant = captured, theirCombatant = capturer, attackedTile = attackedTile)
+        for (unique in captured.getTriggeredUniques(UniqueType.TriggerUponBeingCaptured, capturedContext))
+            UniqueTriggerActivation.triggerUnique(unique, capturedCiv, unit = captured.unit, tile = attackedTile, gameContext = capturedContext)
     }
 
 
@@ -176,6 +194,9 @@ object BattleUnitCapture {
             )
             Battle.triggerDefeatUniques(defender, attacker, capturedUnitTile)
         }
+
+        if (!wasDestroyedInstead)
+            triggerCaptureUniques(attacker, defender, defenderCiv, capturedUnitTile)
 
         if (checkDefeat)
             Battle.destroyIfDefeated(defenderCiv, attacker.getCivInfo())

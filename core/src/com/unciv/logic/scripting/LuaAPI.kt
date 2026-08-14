@@ -2,6 +2,9 @@ package com.unciv.logic.scripting
 
 import com.unciv.Constants
 import com.unciv.logic.battle.Battle
+import com.unciv.logic.battle.CityCombatant
+import com.unciv.logic.battle.CombatAction
+import com.unciv.logic.battle.ICombatant
 import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
@@ -33,7 +36,7 @@ object LuaAPI {
      * Kept in sync with the runtime registration by [LuaSecurityTests].
      */
     val apiCatalog: Map<String, Set<String>> = mapOf(
-        "ctx" to setOf("parameter", "city", "unit", "tile", "civ", "game", "log", "count", "evaluateConditional", "store", "random", "randomInt"),
+        "ctx" to setOf("parameter", "city", "unit", "tile", "civ", "game", "otherCiv", "attacker", "defender", "target", "combatAction", "log", "count", "evaluateConditional", "store", "random", "randomInt"),
         "store" to setOf("get", "set"),
         "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getNation", "getLeaderName", "getScore", "getForce", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getSciencePerTurn", "getCulturePerTurn", "getFoodPerTurn", "getProductionPerTurn", "getResourceAmount", "hasResource", "getResourceStockpiles", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "getTechCost", "grantTech", "discoverTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "getCultureNeededForNextPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getDiplomaticStatuses", "getProximityTo", "hasEmbassyWith", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "makePeaceWith", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getCityNames", "getTotalPopulation", "getWondersBuilt", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getSpies", "addSpy", "getLeaderTitle", "hasUnique", "addGold", "setGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
         "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "getFood", "getFoodSurplus", "getFoodStorage", "getFoodNeeded", "getProductionProgress", "getProductionCost", "getTurnsToCompletion", "getGarrisonedUnit", "getStrength", "getSpecialistCount", "getUnemployedCount", "getBuiltWonders", "isInResistance", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "setPopulation", "addFood", "addProduction", "addHealth", "setName", "addBuilding", "removeBuilding", "sellBuilding", "setProduction", "addToQueue", "clearQueue"),
@@ -104,6 +107,34 @@ object LuaAPI {
         if (tile != null) ctx.registerApi("ctx", "tile", buildTileTable(tile, civInfo))
         ctx.registerApi("ctx", "civ", buildCivTable(civInfo))
         ctx.registerApi("ctx", "game", buildGameTable(civInfo))
+
+        // Opposing party - nil when the trigger has no opponent (e.g. turn start, tech research).
+        // This is what lets a Lua hook see "the other side": the defender of an attack,
+        // the opponent of a trade/war, etc. In combat the opponent civ is derived from
+        // theirCombatant since the combat GameContexts don't set otherCiv directly.
+        val otherCiv = gameContext.otherCiv ?: gameContext.theirCombatant?.getCivInfo()
+        ctx.registerApi("ctx", "otherCiv", if (otherCiv != null) buildCivTable(otherCiv) else LuaValue.NIL)
+
+        var attacker: ICombatant? = null
+        var defender: ICombatant? = null
+        val target = gameContext.theirCombatant
+        if (gameContext.ourCombatant != null && gameContext.theirCombatant != null) {
+            // attacker/defender roles are only defined when the combat action disambiguates them.
+            attacker = when (gameContext.combatAction) {
+                CombatAction.Attack -> gameContext.ourCombatant
+                CombatAction.Defend -> gameContext.theirCombatant
+                else -> null
+            }
+            defender = when (gameContext.combatAction) {
+                CombatAction.Attack -> gameContext.theirCombatant
+                CombatAction.Defend -> gameContext.ourCombatant
+                else -> null
+            }
+        }
+        ctx.registerApi("ctx", "attacker", buildCombatantTable(attacker))
+        ctx.registerApi("ctx", "defender", buildCombatantTable(defender))
+        ctx.registerApi("ctx", "target", buildCombatantTable(target))
+        ctx.registerApi("ctx", "combatAction", if (gameContext.combatAction != null) LuaValue.valueOf(gameContext.combatAction.name) else LuaValue.NIL)
 
         ctx.registerApi("ctx", "log", luaFunction { args ->
             com.unciv.utils.Log.debug("Lua: ${args.arg(1).tojstring()}")
@@ -1485,6 +1516,13 @@ object LuaAPI {
         val arr = LuaTable()
         values.forEachIndexed { i, v -> arr.set(LuaValue.valueOf(i + 1), LuaValue.valueOf(v)) }
         return arr
+    }
+
+    /** Builds the ctx table for a combatant: a unit table for [MapUnitCombatant], a city table for [CityCombatant]. */
+    private fun buildCombatantTable(combatant: ICombatant?): LuaValue = when (combatant) {
+        is MapUnitCombatant -> buildUnitTable(combatant.unit)
+        is CityCombatant -> buildCityTable(combatant.city)
+        else -> LuaValue.NIL
     }
 
     private fun filterTilesByCriteria(

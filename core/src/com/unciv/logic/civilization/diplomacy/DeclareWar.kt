@@ -8,6 +8,7 @@ import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.civilization.NotificationIcon
 import com.unciv.logic.civilization.PopupAlert
 import com.unciv.models.ruleset.nation.PersonalityValue
+import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 
@@ -47,19 +48,19 @@ object DeclareWar {
 
         for (unique in warDeclarerCiv.getTriggeredUniques(UniqueType.TriggerUponDeclaringWarFiltered)
                 { otherCiv.matchesFilter(it.params[0])} )
-            UniqueTriggerActivation.triggerUnique(unique, warDeclarerCiv)
+            UniqueTriggerActivation.triggerUnique(unique, warDeclarerCiv, gameContext = GameContext(warDeclarerCiv, otherCiv))
 
         for (unique in otherCiv.getTriggeredUniques(UniqueType.TriggerUponBeingDeclaredWarUpon)
                 { warDeclarerCiv.matchesFilter(it.params[0])} ) 
-            UniqueTriggerActivation.triggerUnique(unique, otherCiv)
+            UniqueTriggerActivation.triggerUnique(unique, otherCiv, gameContext = GameContext(otherCiv, warDeclarerCiv))
 
         for (unique in warDeclarerCiv.getTriggeredUniques(UniqueType.TriggerUponEnteringWar)
                 {otherCiv.matchesFilter(it.params[0])})
-            UniqueTriggerActivation.triggerUnique(unique, warDeclarerCiv)
+            UniqueTriggerActivation.triggerUnique(unique, warDeclarerCiv, gameContext = GameContext(warDeclarerCiv, otherCiv))
 
         for (unique in otherCiv.getTriggeredUniques(UniqueType.TriggerUponEnteringWar)
                 {warDeclarerCiv.matchesFilter(it.params[0])})
-            UniqueTriggerActivation.triggerUnique(unique, otherCiv)
+            UniqueTriggerActivation.triggerUnique(unique, otherCiv, gameContext = GameContext(otherCiv, warDeclarerCiv))
     }
 
     private fun handleCityStateDirectAttack(diplomacyManager: DiplomacyManager) {

@@ -5091,6 +5091,26 @@ Example: "upon defeating a [Wounded] unit"
 Applicable to: UnitTriggerCondition
 
 :::
+::: details &lt;upon capturing a [mapUnitFilter] unit&gt;
+Example: "upon capturing a [Wounded] unit"
+
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon being captured&gt;
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon intercepting a [mapUnitFilter] unit&gt;
+Example: "upon intercepting a [Wounded] unit"
+
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon being intercepted&gt;
+Applicable to: UnitTriggerCondition
+
+:::
 ::: details &lt;upon being defeated&gt;
 Applicable to: UnitTriggerCondition
 

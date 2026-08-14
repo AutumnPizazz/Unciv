@@ -1,6 +1,8 @@
 package com.unciv.logic.scripting
 
 import com.badlogic.gdx.Gdx
+import com.unciv.logic.battle.CombatAction
+import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapSize
 import com.unciv.logic.map.TileMap
@@ -249,6 +251,41 @@ class LuaScriptTests {
             "Lua onTrade should have fired after the trade completed",
             "yes", civA.gameInfo.modLuaStorage["tradeMod"]?.get("trade_triggered")
         )
+    }
+
+    @Test
+    fun triggerLuaReceivesCombatOpponent() {
+        // P0: a combat-fired TriggerLuaFunction must see the opponent (defender/target/otherCiv)
+        loadLuaScriptToMod("combatMod", "combat.lua", """
+            function onCombat(ctx)
+                local result = ""
+                if ctx.defender ~= nil then result = result .. "defender=" .. ctx.defender.name .. ";" end
+                if ctx.target ~= nil then result = result .. "target=" .. ctx.target.name .. ";" end
+                if ctx.otherCiv ~= nil then result = result .. "other=" .. ctx.otherCiv.name .. ";" end
+                if ctx.combatAction ~= nil then result = result .. "action=" .. ctx.combatAction .. ";" end
+                ctx.store.set("combat_info", result)
+                return true
+            end
+        """.trimIndent())
+
+        val civA = testGame.addCiv(isPlayer = true)
+        val civB = testGame.addCiv(isPlayer = false)
+        val unitA = testGame.addUnit("Warrior", civA, testGame.getTile(HexCoord(0, 0)))
+        val unitB = testGame.addUnit("Warrior", civB, testGame.getTile(HexCoord(1, 0)))
+
+        val attacker = MapUnitCombatant(unitA)
+        val defender = MapUnitCombatant(unitB)
+        val context = GameContext(civA, ourCombatant = attacker, theirCombatant = defender,
+            tile = unitB.currentTile, combatAction = CombatAction.Attack)
+
+        val unique = Unique("Trigger the function [combatMod:onCombat] with []")
+        UniqueTriggerActivation.triggerUnique(unique, civA, unit = unitA, tile = unitA.currentTile, gameContext = context)
+
+        val stored = civA.gameInfo.modLuaStorage["combatMod"]?.get("combat_info") ?: ""
+        Assert.assertTrue("defender should be visible, got: '$stored'", stored.contains("defender=Warrior"))
+        Assert.assertTrue("target should be visible, got: '$stored'", stored.contains("target=Warrior"))
+        Assert.assertTrue("otherCiv should be the opponent, got: '$stored'", stored.contains("other=${civB.civName}"))
+        Assert.assertTrue("combatAction should be Attack, got: '$stored'", stored.contains("action=Attack"))
     }
 
     @Test

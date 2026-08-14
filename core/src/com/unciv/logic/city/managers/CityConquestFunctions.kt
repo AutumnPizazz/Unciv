@@ -143,7 +143,7 @@ class CityConquestFunctions(val city: City) {
         }
 
         for (unique in conqueredCiv.getTriggeredUniques(UniqueType.TriggerUponLosingCity, GameContext(civInfo = conqueredCiv))) {
-            UniqueTriggerActivation.triggerUnique(unique, civInfo = conqueredCiv)
+            UniqueTriggerActivation.triggerUnique(unique, civInfo = conqueredCiv, gameContext = GameContext(conqueredCiv, conqueringCiv))
         }
     }
 

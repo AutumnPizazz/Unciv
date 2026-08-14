@@ -359,7 +359,7 @@ game.revealTilesAround(civName, x, y, radius) -- Reveal tiles around a position 
 
 **Properties**:
 
-`parameter`, `city`, `unit`, `tile`, `civ`, `game`, `store`
+`parameter`, `city`, `unit`, `tile`, `civ`, `game`, `otherCiv`, `attacker`, `defender`, `target`, `combatAction`, `store`
 
 **Query methods**:
 

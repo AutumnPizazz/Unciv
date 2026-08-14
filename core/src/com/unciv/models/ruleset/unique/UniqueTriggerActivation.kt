@@ -49,23 +49,28 @@ object UniqueTriggerActivation {
         unique: Unique,
         city: City,
         notification: String? = null,
-        triggerNotificationText: String? = null
+        triggerNotificationText: String? = null,
+        gameContext: GameContext? = null
     ): Boolean {
         return triggerUnique(unique, city.civ, city, tile = city.getCenterTile(),
-            notification = notification, triggerNotificationText = triggerNotificationText)
+            notification = notification, triggerNotificationText = triggerNotificationText, gameContext = gameContext)
     }
     fun triggerUnique(
         unique: Unique,
         unit: MapUnit,
         notification: String? = null,
-        triggerNotificationText: String? = null
+        triggerNotificationText: String? = null,
+        gameContext: GameContext? = null
     ): Boolean {
         return triggerUnique(unique, unit.civ, unit =  unit, tile = unit.currentTile,
-            notification = notification, triggerNotificationText = triggerNotificationText)
+            notification = notification, triggerNotificationText = triggerNotificationText, gameContext = gameContext)
     }
 
     /** @return whether an action was successfully performed
-     * Assumes that conditional check has already been performed */
+     * Assumes that conditional check has already been performed
+     * @param gameContext The context this unique was selected with, carrying the "other party"
+     * (e.g. the defender in combat, or the other civ in a trade/war). When null it is rebuilt from
+     * the primitives, matching the historical behaviour. */
     fun triggerUnique(
         unique: Unique,
         civInfo: Civilization,
@@ -73,9 +78,10 @@ object UniqueTriggerActivation {
         unit: MapUnit? = null,
         tile: Tile? = city?.getCenterTile() ?: unit?.currentTile,
         notification: String? = null,
-        triggerNotificationText: String? = null
+        triggerNotificationText: String? = null,
+        gameContext: GameContext? = null
     ): Boolean {
-        val function = getTriggerFunction(unique, civInfo, city, unit, tile, notification, triggerNotificationText) ?: return false
+        val function = getTriggerFunction(unique, civInfo, city, unit, tile, notification, triggerNotificationText, gameContext) ?: return false
         return function.invoke()
     }
 
@@ -104,7 +110,8 @@ object UniqueTriggerActivation {
         unit: MapUnit? = null,
         tile: Tile? = city?.getCenterTile() ?: unit?.currentTile,
         notification: String? = null,
-        triggerNotificationText: String? = null
+        triggerNotificationText: String? = null,
+        providedGameContext: GameContext? = null
     ): (()->Boolean)? {
 
         val relevantCity by lazy {
@@ -124,7 +131,7 @@ object UniqueTriggerActivation {
             }
         }
 
-        val gameContext = GameContext(civInfo, city, unit, tile)
+        val gameContext = providedGameContext ?: GameContext(civInfo, city, unit, tile)
         val rng = gameContext.stateBasedRandom("UniqueTriggerActivation.getTriggerFunction", unique.text.hashCode())
 
         val chosenCity = relevantCity ?:

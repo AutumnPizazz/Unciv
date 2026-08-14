@@ -7,6 +7,7 @@ import com.unciv.logic.civilization.NotificationIcon
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import kotlin.random.Random
 
@@ -185,12 +186,29 @@ object AirInterception {
         damage = (damage.toFloat() * damageFactor).toInt().coerceAtMost(attacker.unit.health)
 
         attacker.takeDamage(damage)
-        if (damage > 0)
+        if (damage > 0) {
             Battle.addXp(MapUnitCombatant(interceptor), 2, attacker)
+            triggerInterceptionUniques(attacker, interceptor, attackedTile)
+        }
 
         addInterceptionNotifications(attacker, interceptor, damage)
 
         return Battle.DamageDealt(0, damage)
+    }
+
+    /** Fires "upon intercepting a unit" (on the interceptor) and "upon being intercepted" (on the attacker). */
+    private fun triggerInterceptionUniques(attacker: MapUnitCombatant, interceptor: MapUnit, attackedTile: Tile) {
+        val interceptorCombatant = MapUnitCombatant(interceptor)
+        val interceptorContext = GameContext(interceptor.civ, ourCombatant = interceptorCombatant, theirCombatant = attacker,
+            attackedTile = attackedTile, combatAction = CombatAction.Intercept)
+        for (unique in interceptor.getTriggeredUniques(UniqueType.TriggerUponInterceptingUnit, interceptorContext)
+            { attacker.matchesFilter(it.params[0]) })
+            UniqueTriggerActivation.triggerUnique(unique, interceptor, gameContext = interceptorContext)
+
+        val attackerContext = GameContext(attacker.getCivInfo(), ourCombatant = attacker, theirCombatant = interceptorCombatant,
+            attackedTile = attackedTile, combatAction = CombatAction.Intercept)
+        for (unique in attacker.unit.getTriggeredUniques(UniqueType.TriggerUponBeingIntercepted, attackerContext))
+            UniqueTriggerActivation.triggerUnique(unique, attacker.unit, gameContext = attackerContext)
     }
 
     private fun addInterceptionNotifications(

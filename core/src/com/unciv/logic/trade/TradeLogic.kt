@@ -11,6 +11,7 @@ import com.unciv.logic.civilization.diplomacy.DiplomacyManager
 import com.unciv.logic.civilization.diplomacy.DiplomaticModifiers
 import com.unciv.logic.civilization.diplomacy.WarType
 import com.unciv.models.ruleset.tile.ResourceType
+import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import yairm210.purity.annotations.Readonly
@@ -288,9 +289,9 @@ class TradeLogic(val ourCivilization: Civilization, val otherCivilization: Civil
         // Fires on every accepted trade - see the UniqueType doc for the full scope.
         for (unique in ourCivilization.getTriggeredUniques(UniqueType.TriggerUponTradeMade)
                 { otherCivilization.matchesFilter(it.params[0]) })
-            UniqueTriggerActivation.triggerUnique(unique, ourCivilization)
+            UniqueTriggerActivation.triggerUnique(unique, ourCivilization, gameContext = GameContext(ourCivilization, otherCivilization))
         for (unique in otherCivilization.getTriggeredUniques(UniqueType.TriggerUponTradeMade)
                 { ourCivilization.matchesFilter(it.params[0]) })
-            UniqueTriggerActivation.triggerUnique(unique, otherCivilization)
+            UniqueTriggerActivation.triggerUnique(unique, otherCivilization, gameContext = GameContext(otherCivilization, ourCivilization))
     }
 }

@@ -5098,6 +5098,26 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：UnitTriggerCondition
 
 :::
+::: details &lt;upon capturing a [mapUnitFilter] unit&gt;
+示例："upon capturing a [Wounded] unit"
+
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon being captured&gt;
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon intercepting a [mapUnitFilter] unit&gt;
+示例："upon intercepting a [Wounded] unit"
+
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon being intercepted&gt;
+适用范围：UnitTriggerCondition
+
+:::
 ::: details &lt;upon being defeated&gt;
 适用范围：UnitTriggerCondition
 

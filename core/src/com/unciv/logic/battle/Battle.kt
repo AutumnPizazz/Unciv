@@ -338,7 +338,7 @@ object Battle {
                 val unit = if (unique.params[0] == Constants.targetUnit && defender is MapUnitCombatant)
                     defender.unit
                 else attacker.unit
-                UniqueTriggerActivation.triggerUnique(unique, unit)
+                UniqueTriggerActivation.triggerUnique(unique, unit, gameContext = attackerContext)
             }
         val defenderContext = GameContext(defender.getCivInfo(),
             ourCombatant = defender, theirCombatant = attacker, tile = attackedTile, combatAction = CombatAction.Defend)
@@ -347,7 +347,7 @@ object Battle {
                 val unit = if (unique.params[0] == Constants.targetUnit && attacker is MapUnitCombatant)
                 attacker.unit
                 else defender.unit
-                UniqueTriggerActivation.triggerUnique(unique, unit)
+                UniqueTriggerActivation.triggerUnique(unique, unit, gameContext = defenderContext)
             }
     }
 
@@ -357,7 +357,7 @@ object Battle {
             ourCombatant = ourUnit, theirCombatant = enemy, tile = attackedTile)
         for (unique in ourUnit.unit.getTriggeredUniques(UniqueType.TriggerUponDefeatingUnit, gameContext)
         { enemy.unit.matchesFilter(it.params[0]) })
-            UniqueTriggerActivation.triggerUnique(unique, ourUnit.unit, triggerNotificationText = "due to ${ourUnit.getNotificationDisplay("our ")} defeating a [${enemy.getName()}]")
+            UniqueTriggerActivation.triggerUnique(unique, ourUnit.unit, triggerNotificationText = "due to ${ourUnit.getNotificationDisplay("our ")} defeating a [${enemy.getName()}]", gameContext = gameContext)
     }
 
     private fun triggerDamageUniquesForUnit(triggeringUnit: MapUnitCombatant, enemy: MapUnitCombatant, attackedTile: Tile, combatAction: CombatAction){
@@ -367,9 +367,9 @@ object Battle {
         for (unique in triggeringUnit.unit.getTriggeredUniques(UniqueType.TriggerUponDamagingUnit, gameContext)
         { enemy.matchesFilter(it.params[0]) }){
             if (unique.params[0] == Constants.targetUnit){
-                UniqueTriggerActivation.triggerUnique(unique, enemy.unit, triggerNotificationText = "due to ${enemy.getNotificationDisplay("our ")} being damaged by a [${triggeringUnit.getName()}]")
+                UniqueTriggerActivation.triggerUnique(unique, enemy.unit, triggerNotificationText = "due to ${enemy.getNotificationDisplay("our ")} being damaged by a [${triggeringUnit.getName()}]", gameContext = gameContext)
             } else {
-                UniqueTriggerActivation.triggerUnique(unique, triggeringUnit.unit, triggerNotificationText = "due to ${triggeringUnit.getNotificationDisplay("our ")} damaging a [${enemy.getName()}]")
+                UniqueTriggerActivation.triggerUnique(unique, triggeringUnit.unit, triggerNotificationText = "due to ${triggeringUnit.getNotificationDisplay("our ")} damaging a [${enemy.getName()}]", gameContext = gameContext)
             }
         }
     }
@@ -378,7 +378,7 @@ object Battle {
         val gameContext = GameContext(civInfo = ourUnit.getCivInfo(),
             ourCombatant = ourUnit, theirCombatant=enemy, tile = attackedTile)
         for (unique in ourUnit.unit.getTriggeredUniques(UniqueType.TriggerUponDefeat, gameContext))
-            UniqueTriggerActivation.triggerUnique(unique, ourUnit.unit, triggerNotificationText = "due to ${ourUnit.getNotificationDisplay("our ")} being defeated by a [${enemy.getName()}]")
+            UniqueTriggerActivation.triggerUnique(unique, ourUnit.unit, triggerNotificationText = "due to ${ourUnit.getNotificationDisplay("our ")} being defeated by a [${enemy.getName()}]", gameContext = gameContext)
     }
 
     private fun tryEarnFromKilling(civUnit: ICombatant, defeatedUnit: MapUnitCombatant) {
@@ -763,6 +763,8 @@ object Battle {
 
     private fun conquerCity(city: City, attacker: MapUnitCombatant) {
         val attackerCiv = attacker.getCivInfo()
+        // Captured before ownership changes below - the city still belongs to the defender here.
+        val defenderCiv = city.civ
 
         attackerCiv.addNotification("We have conquered the city of [${city.name}]!", city.location, NotificationCategory.War, NotificationIcon.War)
 
@@ -773,7 +775,7 @@ object Battle {
             for (airUnit in airUnits.toList()) airUnit.destroy()
         }
 
-        val gameContext = GameContext(civInfo = attackerCiv, city=city, unit = attacker.unit, ourCombatant = attacker, attackedTile = city.getCenterTile())
+        val gameContext = GameContext(civInfo = attackerCiv, city=city, unit = attacker.unit, ourCombatant = attacker, attackedTile = city.getCenterTile(), otherCiv = defenderCiv)
         for (unique in attacker.getMatchingUniques(UniqueType.CaptureCityPlunder, gameContext, true)) {
             val resource = attacker.getCivInfo().gameInfo.ruleset.getGameResource(unique.params[2])
                 ?: continue
@@ -803,7 +805,7 @@ object Battle {
 
         for (unique in attackerCiv.getTriggeredUniques(UniqueType.TriggerUponConqueringCity, gameContext)
                 + attacker.unit.getTriggeredUniques(UniqueType.TriggerUponConqueringCity, gameContext))
-            UniqueTriggerActivation.triggerUnique(unique, attacker.unit)
+            UniqueTriggerActivation.triggerUnique(unique, attacker.unit, gameContext = gameContext)
     }
 
     /** Handle decision-making after city conquest, namely whether the AI should liberate, puppet,

@@ -8,6 +8,8 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组/Lua：战斗触发的 Lua 现在能看到对手——`ctx.otherCiv`（外交与战斗）、`ctx.attacker`/`ctx.defender`/`ctx.target` 与 `ctx.combatAction` 已对 `TriggerLuaFunction`/`ConditionalLuaCheck` 开放
+- 模组/Lua：新增单位触发 unique：俘获单位时 / 被俘获时 / 拦截单位时 / 被拦截时
 - 文档：Units.json 字段参考补充 `maxHP` 字段说明（默认 100，可通过 `[relativeAmount] Max HP` unique 调整）；杂项 JSON 文档中的城市力量公式改为按驻军单位生命百分比计算，不再假设血量上限为 100
 - CI：精简分支推送触发的工作流——Docker 镜像发布不再随每次提交构建推送（保留每日定时、发版 tag、PR 构建验证与手动触发），冲突标记不再随分支推送重扫（PR 仍触发）；纯文档改动跳过代码测试工作流（Build and test / Detekt），由文档工作流的 generateDocs 兜底编译
 

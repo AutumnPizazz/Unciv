@@ -638,13 +638,13 @@ class DiplomacyManager() : IsPartOfGameInfoSerialization {
         
         for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUponSigningPeace)) {
             if (otherCiv.matchesFilter(unique.params[0])) {
-                UniqueTriggerActivation.triggerUnique(unique, civInfo)
+                UniqueTriggerActivation.triggerUnique(unique, civInfo, gameContext = GameContext(civInfo, otherCiv))
             }
         }
 
         for (unique in otherCiv.getTriggeredUniques(UniqueType.TriggerUponSigningPeace)) {
             if (civInfo.matchesFilter(unique.params[0])) {
-                UniqueTriggerActivation.triggerUnique(unique, otherCiv)
+                UniqueTriggerActivation.triggerUnique(unique, otherCiv, gameContext = GameContext(otherCiv, civInfo))
             }
         }
     }
@@ -712,9 +712,9 @@ class DiplomacyManager() : IsPartOfGameInfoSerialization {
         // Ignore contitionals as triggerUnique will check again, and that would break
         // UniqueType.ConditionalChance - 25% declared chance would work as 6% actual chance
         for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUponDeclaringFriendship, GameContext.IgnoreConditionals))
-            UniqueTriggerActivation.triggerUnique(unique, civInfo)
+            UniqueTriggerActivation.triggerUnique(unique, civInfo, gameContext = GameContext(civInfo, otherCiv))
         for (unique in otherCiv.getTriggeredUniques(UniqueType.TriggerUponDeclaringFriendship, GameContext.IgnoreConditionals))
-            UniqueTriggerActivation.triggerUnique(unique, otherCiv)
+            UniqueTriggerActivation.triggerUnique(unique, otherCiv, gameContext = GameContext(otherCiv, civInfo))
     }
 
     internal fun setFriendshipBasedModifier() {
@@ -762,9 +762,9 @@ class DiplomacyManager() : IsPartOfGameInfoSerialization {
         // Ignore contitionals as triggerUnique will check again, and that would break
         // UniqueType.ConditionalChance - 25% declared chance would work as 6% actual chance
         for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUponSigningDefensivePact, GameContext.IgnoreConditionals))
-            UniqueTriggerActivation.triggerUnique(unique, civInfo)
+            UniqueTriggerActivation.triggerUnique(unique, civInfo, gameContext = GameContext(civInfo, otherCiv))
         for (unique in otherCiv.getTriggeredUniques(UniqueType.TriggerUponSigningDefensivePact, GameContext.IgnoreConditionals))
-            UniqueTriggerActivation.triggerUnique(unique, otherCiv)
+            UniqueTriggerActivation.triggerUnique(unique, otherCiv, gameContext = GameContext(otherCiv, civInfo))
     }
 
     internal fun setDefensivePactBasedModifier() {
