@@ -208,3 +208,4 @@ docs-vitepress/node_modules/
 !docs-vitepress/package.json
 !docs-vitepress/package-lock.json
 /.dsh_research
+/docs_plan
