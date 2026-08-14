@@ -3,8 +3,9 @@ name: Docker
 on:
   schedule:
     - cron: '23 14 * * *'
+  # 分支推送不再触发：镜像由每日定时任务保持最新，发版时由 tag 发布，
+  # 避免每次提交都构建并推送镜像（平日分支推送只保留自测试与文档更新工作流）
   push:
-    branches: [ "UncivCN" ]
     # Publish semver tags as releases.
     tags: [ '*.*.*.*' ]
   pull_request:

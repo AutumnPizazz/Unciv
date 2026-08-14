@@ -7,6 +7,11 @@ on:
   push:
     branches:
       - UncivCN
+    # 纯文档改动跳过静态检查（与 buildAndTest.yml 一致，由 docs.yml 兜底编译）
+    paths-ignore:
+      - 'docs/**'
+      - 'docs-vitepress/**'
+      - 'changelog.md'
 
 jobs:
   detekt:

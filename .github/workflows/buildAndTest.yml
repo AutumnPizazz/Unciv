@@ -4,6 +4,12 @@ name: Build and test
 on:
   # Triggers the workflow on any push or pull request
   push:
+    # 纯文档改动由 docs.yml 负责（其 generateDocs 步骤会编译 Kotlin），
+    # 跳过全量测试，减少平日非发版提交触发的工作流
+    paths-ignore:
+      - 'docs/**'
+      - 'docs-vitepress/**'
+      - 'changelog.md'
   pull_request_target:
 
 env:

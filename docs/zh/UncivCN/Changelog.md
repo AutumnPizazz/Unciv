@@ -9,6 +9,7 @@ title: UncivCN 更新日志
 ## 未发布
 
 - 文档：Units.json 字段参考补充 `maxHP` 字段说明（默认 100，可通过 `[relativeAmount] Max HP` unique 调整）；杂项 JSON 文档中的城市力量公式改为按驻军单位生命百分比计算，不再假设血量上限为 100
+- CI：精简分支推送触发的工作流——Docker 镜像发布不再随每次提交构建推送（保留每日定时、发版 tag、PR 构建验证与手动触发），冲突标记不再随分支推送重扫（PR 仍触发）；纯文档改动跳过代码测试工作流（Build and test / Detekt），由文档工作流的 generateDocs 兜底编译
 
 ## 4.21.8.1（build 1253）
 

@@ -5,6 +5,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 ## Unreleased
 
 - Docs: the Units.json field reference now documents the `maxHP` field (default 100, adjustable via the `[relativeAmount] Max HP` unique); the city strength formula in Miscellaneous JSON files now uses the garrisoned unit's HP percentage instead of assuming a max HP of 100
+- CI: trimmed the workflows triggered by daily branch pushes - the Docker image publish workflow no longer runs on every push (kept the daily schedule, release tags, PR build check and manual dispatch), conflict marking no longer re-scans on branch pushes (still runs for PRs), and pure docs-only changes skip the code test workflows (Build and test / Detekt) since the docs workflow recompiles via generateDocs
 
 ## 4.21.8.1 (build 1253)
 
