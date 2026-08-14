@@ -19,6 +19,7 @@ Each unit has the following structure:
 | religiousStrength         | Integer         | 0        | The religious attack and defensive strength of the unit                                                                                             |
 | range                     | Integer         | 2        | The range from which ranged attacks can be preformed                                                                                                |
 | interceptRange            | Integer         | 0        | Air units attacking within in this range will be intercepted                                                                                        |
+| maxHP                     | Integer         | 100      | The maximum hit points of the unit. Defaults to 100. Can be increased or decreased with the `[relativeAmount] Max HP` unique (minimum 1)                                                                          |
 | requiredTech              | String          | none     | The tech required to build this unit. Must be in [Techs.json](2-Civilization-related-JSON-files.md#techs-json)                                       |
 | obsoleteTech              | String          | none     | After researching this tech, the unit can no longer be build. Must be in [Techs.json](2-Civilization-related-JSON-files.md#techs-json)               |
 | requiredResource          | String          | none     | Resource that is consumed by building this unit. Must be in [TileResources.json](3-Map-related-JSON-files.md#tileresources-json)                     |

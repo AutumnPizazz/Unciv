@@ -293,9 +293,10 @@ Unciv 已有声明式模组兼容 uniques（`ModRequires`、`ModIncompatibleWith
 - [^B]: <span>城市力量公式：</span>
     力量 = baseStrength + strengthPerPop + strengthFromTiles +
     ((%techs \* multiplier) ^ exponent) \* fullMultiplier +
-    (garrisonBonus \* garrisonUnitStrength \* garrisonUnitHealth/100) +
+    (garrisonBonus \* garrisonUnitStrength \* garrisonUnitHealth/garrisonUnitMaxHealth) +
     defensiveBuildingStrength
     其中 %techs 是科技树中已完成的科技的百分比
+    garrisonUnitHealth 为驻军单位当前生命值，garrisonUnitMaxHealth 为其最大生命值（可模组化，默认 100）——两者之比即驻军生命百分比
     如果此规则集中不存在科技，则 %techs = 0.5（=50%）
 - [^S]: <span>城市可以攻击的距离</span>
 - [^T]: <span>城市中人口可以工作的地块的距离。注意：较高的值可能会导致性能问题并可能导致错误。cityWorkRange 可以大于 cityExpandRange。</span>

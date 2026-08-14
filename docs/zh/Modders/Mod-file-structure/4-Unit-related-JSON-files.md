@@ -23,6 +23,7 @@ title: 单位相关 JSON 文件
 | religiousStrength | Integer | 0 | 单位的宗教攻击和防御力量 |
 | range | Integer | 2 | 可以进行远程攻击的范围 |
 | interceptRange | Integer | 0 | 在此范围内攻击的空中单位将被拦截 |
+| maxHP | Integer | 100 | 单位的最大生命值。默认 100。可通过 `[relativeAmount] Max HP` unique 增减（最低为 1） |
 | requiredTech | String | none | 建造此单位所需的技术。必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techs-json) 中 |
 | obsoleteTech | String | none | 研究此技术后，将无法建造该单位。必须在 [Techs.json](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#techs-json) 中 |
 | requiredResource | String | none | 建造此单位时消耗的资源。必须在 [TileResources.json](/zh/Modders/Mod-file-structure/3-Map-related-JSON-files#tileresources-json) 中 |

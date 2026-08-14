@@ -6,6 +6,10 @@ title: UncivCN 更新日志
 
 版本号规则：上游版本 + CN 子版本号（`.1`、`.2`、`.3`…，同一上游版本可发多个 CN 子版本，如 4.20.8.1 → 4.20.8.4；跟进新上游后从 `.1` 重新开始，如 4.21.5 → 4.21.5.1）。
 
+## 未发布
+
+- 文档：Units.json 字段参考补充 `maxHP` 字段说明（默认 100，可通过 `[relativeAmount] Max HP` unique 调整）；杂项 JSON 文档中的城市力量公式改为按驻军单位生命百分比计算，不再假设血量上限为 100
+
 ## 4.21.8.1（build 1253）
 
 - 合并上游 4.21.8（17 个提交）：View 重构继续（#15280）——战争迷雾视图统一（`getGameViewConsideringForOfWar`）、帝国总览各页签接入 View、贸易界面分两步 View 化、城市界面迁移 `TileView`；新增非原版排名类型「已探索地块」（`Show additional stat types` 新游戏选项开启）与观战位玩家上限（Max players with spectator）；修复崩溃界面 OOM、科技选择器与通知总览 ANR、直布罗陀巨岩附近水域河流、开发控制台资源过滤可见性；文档重组（`Simulations` 迁至 Developers 并更名 `Testing AI changes`、Regions 并入地图 JSON 文档、预告片音频致谢并入 Credits）

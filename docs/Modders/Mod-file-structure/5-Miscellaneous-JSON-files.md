@@ -300,9 +300,10 @@ Legend:
 - [^B]: Formula for city Strength:
     Strength = baseStrength + strengthPerPop + strengthFromTiles +
     ((%techs \* multiplier) ^ exponent) \* fullMultiplier +
-    (garrisonBonus \* garrisonUnitStrength \* garrisonUnitHealth/100) +
+    (garrisonBonus \* garrisonUnitStrength \* garrisonUnitHealth/garrisonUnitMaxHealth) +
     defensiveBuildingStrength
     where %techs is the percentage of techs in the tech tree that are complete
+    garrisonUnitHealth is the garrisoned unit's current HP and garrisonUnitMaxHealth its max HP (moddable, default 100) - the ratio is its HP percentage
     If no techs exist in this ruleset, %techs = 0.5 (=50%)
 - [^S]: The distance that cities can attack. Minimum 0.
 - [^T]: The tiles in distance that population in cities can work on. Note: Higher values may lead to performace issues and may cause bugs. cityWorkRange may be greater than cityExpandRange. Minimum 1, maximum 100.
