@@ -296,9 +296,16 @@ class LuaScriptTests {
         //   damage   = (attackerStrength - defenderStrength) * 5 + 10
         loadLuaScriptToMod("combatMod", "combat.lua", """
             function formulaStrength(ctx)
+                ctx.store.set("strength_has_modifiers", tostring(type(ctx.modifiers) == "table"))
                 return ctx.value * ctx.modifier * 2
             end
             function formulaDamage(ctx)
+                local hasParams = ctx.attackerStrength ~= nil
+                    and ctx.defenderStrength ~= nil
+                    and ctx.randomnessFactor ~= nil
+                    and ctx.healthRatio ~= nil
+                    and ctx.damageToAttacker ~= nil
+                ctx.store.set("damage_has_params", tostring(hasParams))
                 return (ctx.attackerStrength - ctx.defenderStrength) * 5 + 10
             end
         """.trimIndent())
@@ -323,6 +330,10 @@ class LuaScriptTests {
         // Both sides use formulaStrength (16 each) → Lua computes (16-16)*5+10 = 10
         val damage = BattleDamage.calculateDamageToDefender(attacker, defender)
         Assert.assertEquals("Lua should compute damage from attacker/defender strength", 10, damage)
+
+        val storage = civA.gameInfo.modLuaStorage["combatMod"]
+        Assert.assertEquals("strength hook should receive the modifiers table", "true", storage?.get("strength_has_modifiers"))
+        Assert.assertEquals("damage hook should receive all raw combat params", "true", storage?.get("damage_has_params"))
     }
 
     @Test

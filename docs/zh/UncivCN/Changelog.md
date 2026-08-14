@@ -8,7 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
-- 模组/Lua：Lua 现可接管战斗力与伤害公式——新增 unique「Combat strength is modified by [luaFunction]」（收到基础力 + 修正倍率）、「Combat damage dealt is modified by [luaFunction]」（收到攻防双方战斗力）、「Combat damage received is modified by [luaFunction]」（收到所受伤害）；返回 nil 则回退到引擎公式
+- 模组/Lua：Lua 现可接管战斗力与伤害公式——新增 unique「Combat strength is modified by [luaFunction]」「Combat damage dealt is modified by [luaFunction]」「Combat damage received is modified by [luaFunction]」；Lua 收到原始战斗参数（战斗力钩子：基础力 + 修正倍率 + 逐项修正表；伤害钩子：攻防双方战斗力 + 随机因子 + 受伤惩罚系数 + 伤害方向），返回 nil 则回退引擎公式
 - 模组/Lua：战斗触发的 Lua 现在能看到对手——`ctx.otherCiv`（外交与战斗）、`ctx.attacker`/`ctx.defender`/`ctx.target` 与 `ctx.combatAction` 已对 `TriggerLuaFunction`/`ConditionalLuaCheck` 开放
 - 模组/Lua：新增单位触发 unique：俘获单位时 / 被俘获时 / 拦截单位时 / 被拦截时
 - 文档：Units.json 字段参考补充 `maxHP` 字段说明（默认 100，可通过 `[relativeAmount] Max HP` unique 调整）；杂项 JSON 文档中的城市力量公式改为按驻军单位生命百分比计算，不再假设血量上限为 100

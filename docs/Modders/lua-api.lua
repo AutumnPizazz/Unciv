@@ -334,6 +334,10 @@
 ---@field modifier number|nil
 ---@field attackerStrength number|nil
 ---@field defenderStrength number|nil
+---@field modifiers table|nil
+---@field randomnessFactor number|nil
+---@field healthRatio number|nil
+---@field damageToAttacker boolean|nil
 ---@field city UncivCity
 ---@field unit UncivUnit
 ---@field tile UncivTile
