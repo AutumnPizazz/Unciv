@@ -290,20 +290,22 @@ class LuaScriptTests {
     }
 
     @Test
-    fun luaOverridesCombatStrengthAndDamage() {
-        // Absolute-override Lua hooks for combat strength and combat damage
+    fun luaTakesOverCombatFormulas() {
+        // Lua receives the raw combat inputs and owns the formula:
+        //   strength = base * modifier * 2
+        //   damage   = (attackerStrength - defenderStrength) * 5 + 10
         loadLuaScriptToMod("combatMod", "combat.lua", """
-            function fixedStrength(ctx)
-                return 100
+            function formulaStrength(ctx)
+                return ctx.value * ctx.modifier * 2
             end
-            function fixedDamage(ctx)
-                return 42
+            function formulaDamage(ctx)
+                return (ctx.attackerStrength - ctx.defenderStrength) * 5 + 10
             end
         """.trimIndent())
 
         val game = TestGame(
-            "Combat strength is modified by [combatMod:fixedStrength]",
-            "Combat damage dealt is modified by [combatMod:fixedDamage]"
+            "Combat strength is modified by [combatMod:formulaStrength]",
+            "Combat damage dealt is modified by [combatMod:formulaDamage]"
         )
         game.makeHexagonalMap(5, "Grassland")
         val civA = game.addCiv(isPlayer = true)
@@ -314,11 +316,13 @@ class LuaScriptTests {
         val attacker = MapUnitCombatant(unitA)
         val defender = MapUnitCombatant(unitB)
 
+        // Warrior base strength 8, modifier 1.0 → Lua computes 8 * 1 * 2 = 16
         val strength = BattleDamage.getAttackingStrength(attacker, defender, unitA.currentTile)
-        Assert.assertEquals("Lua should override combat strength to 100", 100f, strength, 0.01f)
+        Assert.assertEquals("Lua should compute strength from base * modifier * 2", 16f, strength, 0.01f)
 
+        // Both sides use formulaStrength (16 each) → Lua computes (16-16)*5+10 = 10
         val damage = BattleDamage.calculateDamageToDefender(attacker, defender)
-        Assert.assertEquals("Lua should override combat damage to 42", 42, damage)
+        Assert.assertEquals("Lua should compute damage from attacker/defender strength", 10, damage)
     }
 
     @Test

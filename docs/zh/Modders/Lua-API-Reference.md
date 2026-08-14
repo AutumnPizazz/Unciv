@@ -358,7 +358,7 @@ game.revealTilesAround(civName, x, y, radius) -- 对某文明揭示指定位置�
 
 **属性**:
 
-`parameter`, `value`, `city`, `unit`, `tile`, `civ`, `game`, `otherCiv`, `attacker`, `defender`, `target`, `combatAction`, `store`
+`parameter`, `value`, `modifier`, `attackerStrength`, `defenderStrength`, `city`, `unit`, `tile`, `civ`, `game`, `otherCiv`, `attacker`, `defender`, `target`, `combatAction`, `store`
 
 **查询方法**:
 

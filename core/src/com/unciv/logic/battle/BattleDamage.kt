@@ -279,8 +279,8 @@ object BattleDamage {
         tileToAttackFrom: Tile
     ): Float {
         val attackModifier = modifiersToFinalBonus(getAttackModifiers(attacker, defender, tileToAttackFrom))
-        val base = attacker.getAttackingStrength(defender) * attackModifier
-        val modified = applyLuaCombatModifier(attacker, defender, CombatAction.Attack, base, UniqueType.LuaModifyCombatStrength)
+        val base = attacker.getAttackingStrength(defender).toFloat()
+        val modified = applyLuaStrengthFormula(attacker, defender, CombatAction.Attack, base, attackModifier)
         return max(1f, modified)
     }
 
@@ -291,12 +291,12 @@ object BattleDamage {
     @Readonly
     fun getDefendingStrength(attacker: ICombatant, defender: ICombatant, tileToAttackFrom: Tile): Float {
         val defenceModifier = modifiersToFinalBonus(getDefenceModifiers(attacker, defender, tileToAttackFrom))
-        val base = defender.getDefendingStrength(attacker) * defenceModifier
-        val modified = applyLuaCombatModifier(defender, attacker, CombatAction.Defend, base, UniqueType.LuaModifyCombatStrength)
+        val base = defender.getDefendingStrength(attacker).toFloat()
+        val modified = applyLuaStrengthFormula(defender, attacker, CombatAction.Defend, base, defenceModifier)
         return max(1f, modified)
     }
 
-    // region Lua combat value hooks
+    // region Lua combat formula hooks
 
     /** Guards against re-entrant combat hooks (Lua → attackTile → combat → Lua). */
     private val luaCombatHookDepth = ThreadLocal.withInitial { 0 }
@@ -309,42 +309,79 @@ object BattleDamage {
         else -> emptySequence()
     }
 
-    private fun buildLuaCombatContext(owner: ICombatant, gameContext: GameContext, value: Double, modName: String): LuaValue {
+    private fun buildLuaCombatContext(
+        owner: ICombatant,
+        gameContext: GameContext,
+        value: Double?,
+        modifier: Double?,
+        attackerStrength: Double?,
+        defenderStrength: Double?,
+        modName: String
+    ): LuaValue {
         val city = (owner as? CityCombatant)?.city
         val unit = (owner as? MapUnitCombatant)?.unit
-        return LuaAPI.buildContext(owner.getCivInfo(), city, unit, owner.getTile(), "", gameContext, modName, value = value)
+        return LuaAPI.buildContext(owner.getCivInfo(), city, unit, owner.getTile(), "", gameContext, modName,
+            value = value, modifier = modifier, attackerStrength = attackerStrength, defenderStrength = defenderStrength)
     }
 
     /**
-     * Applies a Lua combat value modifier (strength or damage) to [current]. The [owner]'s matching
-     * [uniqueType] uniques are evaluated in order; each Lua function receives the current value via
-     * `ctx.value` and its returned number becomes the new value (nil = unchanged). Zero Lua overhead
-     * when no matching unique exists.
+     * Invokes the owner's first matching [uniqueType] Lua function with the raw combat inputs and
+     * returns its numeric result, or null when no matching unique exists / it returns nil / it throws.
+     * Lua receives the raw parameters (not pre-derived ratios) so it owns the whole formula.
      */
-    @Readonly @Suppress("purity") // running mod-provided code is inherently effectful - documented above
-    private fun applyLuaCombatModifier(owner: ICombatant, enemy: ICombatant, combatAction: CombatAction, current: Float, uniqueType: UniqueType): Float {
+    @Readonly @Suppress("purity") // running mod-provided code is inherently effectful
+    private fun invokeLuaCombatHook(
+        owner: ICombatant,
+        enemy: ICombatant,
+        combatAction: CombatAction,
+        uniqueType: UniqueType,
+        value: Double?,
+        modifier: Double?,
+        attackerStrength: Double?,
+        defenderStrength: Double?
+    ): Double? {
         val gameContext = getGameContext(combatAction, owner, enemy)
-        val uniques = getCombatLuaUniques(owner, uniqueType, gameContext).toList()
-        if (uniques.isEmpty()) return current
+        val unique = getCombatLuaUniques(owner, uniqueType, gameContext).firstOrNull() ?: return null
+        val (modName, functionName) = LuaScriptManager.parseLuaRef(unique.params[0])
+        val (foundMod, func) = LuaScriptManager.getFunction(modName, functionName) ?: return null
 
         val depth = luaCombatHookDepth.get()
-        if (depth >= MAX_LUA_COMBAT_HOOK_DEPTH) return current
+        if (depth >= MAX_LUA_COMBAT_HOOK_DEPTH) return null
         luaCombatHookDepth.set(depth + 1)
         try {
-            var value = current
-            for (unique in uniques) {
-                val (modName, functionName) = LuaScriptManager.parseLuaRef(unique.params[0])
-                val (foundMod, func) = LuaScriptManager.getFunction(modName, functionName) ?: continue
-                val ctx = buildLuaCombatContext(owner, gameContext, value.toDouble(), foundMod)
-                var result: Double? = null
-                LuaScriptManager.callFunctionForValue(func, ctx, owner.getCivInfo(), functionName, foundMod) { result = it }
-                val modified = result
-                if (modified != null) value = modified.toFloat()
-            }
-            return value
+            val ctx = buildLuaCombatContext(owner, gameContext, value, modifier, attackerStrength, defenderStrength, foundMod)
+            var result: Double? = null
+            LuaScriptManager.callFunctionForValue(func, ctx, owner.getCivInfo(), functionName, foundMod) { result = it }
+            return result
         } finally {
             luaCombatHookDepth.set(depth)
         }
+    }
+
+    /** Strength formula: Lua receives base strength + modifier factor; falls back to base * modifier. */
+    @Readonly
+    private fun applyLuaStrengthFormula(owner: ICombatant, enemy: ICombatant, combatAction: CombatAction, base: Float, modifier: Float): Float {
+        val result = invokeLuaCombatHook(owner, enemy, combatAction, UniqueType.LuaModifyCombatStrength,
+            value = base.toDouble(), modifier = modifier.toDouble(), attackerStrength = null, defenderStrength = null)
+        return result?.toFloat() ?: (base * modifier)
+    }
+
+    /** Damage formula: Lua receives the two final strengths; falls back to the engine damageModifier. */
+    @Readonly
+    private fun applyLuaDamageFormula(owner: ICombatant, enemy: ICombatant, combatAction: CombatAction,
+                                      attackerStrength: Float, defenderStrength: Float, damageToAttacker: Boolean, randomnessFactor: Float): Float {
+        val result = invokeLuaCombatHook(owner, enemy, combatAction, UniqueType.LuaModifyCombatDamage,
+            value = null, modifier = null, attackerStrength = attackerStrength.toDouble(), defenderStrength = defenderStrength.toDouble())
+        if (result != null) return result.toFloat()
+        return damageModifier(attackerStrength / defenderStrength, damageToAttacker, randomnessFactor)
+    }
+
+    /** Defensive reduction: Lua receives the incoming damage; falls back to leaving it unchanged. */
+    @Readonly
+    private fun applyLuaDamageReceived(owner: ICombatant, enemy: ICombatant, combatAction: CombatAction, damage: Float): Float {
+        val result = invokeLuaCombatHook(owner, enemy, combatAction, UniqueType.LuaModifyCombatDamageReceived,
+            value = damage.toDouble(), modifier = null, attackerStrength = null, defenderStrength = null)
+        return result?.toFloat() ?: damage
     }
 
     // endregion
@@ -372,12 +409,12 @@ object BattleDamage {
     ): Int {
         if (attacker.isRanged() && !attacker.isAirUnit()) return 0
         if (defender.isCivilian()) return 0
-        val ratio = getAttackingStrength(attacker, defender, tileToAttackFrom) / getDefendingStrength(
-                attacker, defender, tileToAttackFrom)
-        val base = (damageModifier(ratio, true, randomnessFactor) * getHealthDependantDamageRatio(defender)).roundToInt()
-        // Counter-damage is dealt by the defender and received by the attacker.
-        val afterDealer = applyLuaCombatModifier(defender, attacker, CombatAction.Defend, base.toFloat(), UniqueType.LuaModifyCombatDamage)
-        val afterReceiver = applyLuaCombatModifier(attacker, defender, CombatAction.Attack, afterDealer, UniqueType.LuaModifyCombatDamageReceived)
+        val attackerStrength = getAttackingStrength(attacker, defender, tileToAttackFrom)
+        val defenderStrength = getDefendingStrength(attacker, defender, tileToAttackFrom)
+        // Counter-damage formula is owned by the defender; the attacker may then reduce what it receives.
+        val raw = applyLuaDamageFormula(defender, attacker, CombatAction.Defend, attackerStrength, defenderStrength, damageToAttacker = true, randomnessFactor)
+        val afterHealth = raw * getHealthDependantDamageRatio(defender)
+        val afterReceiver = applyLuaDamageReceived(attacker, defender, CombatAction.Attack, afterHealth)
         return afterReceiver.roundToInt().coerceAtLeast(0)
     }
 
@@ -391,12 +428,12 @@ object BattleDamage {
         ,
     ): Int {
         if (defender.isCivilian()) return BattleConstants.DAMAGE_TO_CIVILIAN_UNIT
-        val ratio = getAttackingStrength(attacker, defender, tileToAttackFrom) /
-                getDefendingStrength(attacker, defender, tileToAttackFrom)
-        val base = (damageModifier(ratio, false, randomnessFactor) * getHealthDependantDamageRatio(attacker)).roundToInt()
-        // Damage is dealt by the attacker and received by the defender.
-        val afterDealer = applyLuaCombatModifier(attacker, defender, CombatAction.Attack, base.toFloat(), UniqueType.LuaModifyCombatDamage)
-        val afterReceiver = applyLuaCombatModifier(defender, attacker, CombatAction.Defend, afterDealer, UniqueType.LuaModifyCombatDamageReceived)
+        val attackerStrength = getAttackingStrength(attacker, defender, tileToAttackFrom)
+        val defenderStrength = getDefendingStrength(attacker, defender, tileToAttackFrom)
+        // Damage formula is owned by the attacker; the defender may then reduce what it receives.
+        val raw = applyLuaDamageFormula(attacker, defender, CombatAction.Attack, attackerStrength, defenderStrength, damageToAttacker = false, randomnessFactor)
+        val afterHealth = raw * getHealthDependantDamageRatio(attacker)
+        val afterReceiver = applyLuaDamageReceived(defender, attacker, CombatAction.Defend, afterHealth)
         return afterReceiver.roundToInt().coerceAtLeast(0)
     }
 

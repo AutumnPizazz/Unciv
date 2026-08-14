@@ -47,7 +47,10 @@ object LuaApiDocs {
 
     private val ctxEntries = listOf(
         p("parameter", "string", "Resolved [parameter] value from the trigger unique", "触发 unique 中 [parameter] 解析后的值"),
-        p("value", "number|nil", "Current numeric value being modified (combat strength/damage hooks); nil outside those hooks", "当前被修改的数值（战斗力/伤害钩子）；非此类钩子时为 nil"),
+        p("value", "number|nil", "Base strength (strength hook) or incoming damage (received-damage hook); nil elsewhere", "基础力（战斗力钩子）或受到的伤害（减伤钩子）；其余为 nil"),
+        p("modifier", "number|nil", "Total modifier factor from terrain/flanking/etc. (strength hook); nil elsewhere", "地形/夹击等修正的总倍率（战斗力钩子）；其余为 nil"),
+        p("attackerStrength", "number|nil", "Final attacker strength (damage hook); nil elsewhere", "攻击方最终战斗力（伤害钩子）；其余为 nil"),
+        p("defenderStrength", "number|nil", "Final defender strength (damage hook); nil elsewhere", "防守方最终战斗力（伤害钩子）；其余为 nil"),
         p("city", "UncivCity", "Triggering city (may be nil)", "触发城市（可能为 nil）"),
         p("unit", "UncivUnit", "Triggering unit (may be nil)", "触发单位（可能为 nil）"),
         p("tile", "UncivTile", "Triggering tile (may be nil)", "触发地块（可能为 nil）"),

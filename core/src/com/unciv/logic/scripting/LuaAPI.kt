@@ -36,7 +36,7 @@ object LuaAPI {
      * Kept in sync with the runtime registration by [LuaSecurityTests].
      */
     val apiCatalog: Map<String, Set<String>> = mapOf(
-        "ctx" to setOf("parameter", "value", "city", "unit", "tile", "civ", "game", "otherCiv", "attacker", "defender", "target", "combatAction", "log", "count", "evaluateConditional", "store", "random", "randomInt"),
+        "ctx" to setOf("parameter", "value", "modifier", "attackerStrength", "defenderStrength", "city", "unit", "tile", "civ", "game", "otherCiv", "attacker", "defender", "target", "combatAction", "log", "count", "evaluateConditional", "store", "random", "randomInt"),
         "store" to setOf("get", "set"),
         "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getNation", "getLeaderName", "getScore", "getForce", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getSciencePerTurn", "getCulturePerTurn", "getFoodPerTurn", "getProductionPerTurn", "getResourceAmount", "hasResource", "getResourceStockpiles", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "getTechCost", "grantTech", "discoverTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "getCultureNeededForNextPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getDiplomaticStatuses", "getProximityTo", "hasEmbassyWith", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "makePeaceWith", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getCityNames", "getTotalPopulation", "getWondersBuilt", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getSpies", "addSpy", "getLeaderTitle", "hasUnique", "addGold", "setGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
         "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "getFood", "getFoodSurplus", "getFoodStorage", "getFoodNeeded", "getProductionProgress", "getProductionCost", "getTurnsToCompletion", "getGarrisonedUnit", "getStrength", "getSpecialistCount", "getUnemployedCount", "getBuiltWonders", "isInResistance", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "setPopulation", "addFood", "addProduction", "addHealth", "setName", "addBuilding", "removeBuilding", "sellBuilding", "setProduction", "addToQueue", "clearQueue"),
@@ -99,11 +99,17 @@ object LuaAPI {
         resolvedParam: String,
         gameContext: GameContext,
         modName: String = "",
-        value: Double? = null
+        value: Double? = null,
+        modifier: Double? = null,
+        attackerStrength: Double? = null,
+        defenderStrength: Double? = null
     ): LuaValue {
         val ctx = LuaValue.tableOf()
         ctx.registerApi("ctx", "parameter", LuaValue.valueOf(resolvedParam))
         ctx.registerApi("ctx", "value", if (value != null) LuaValue.valueOf(value) else LuaValue.NIL)
+        ctx.registerApi("ctx", "modifier", if (modifier != null) LuaValue.valueOf(modifier) else LuaValue.NIL)
+        ctx.registerApi("ctx", "attackerStrength", if (attackerStrength != null) LuaValue.valueOf(attackerStrength) else LuaValue.NIL)
+        ctx.registerApi("ctx", "defenderStrength", if (defenderStrength != null) LuaValue.valueOf(defenderStrength) else LuaValue.NIL)
         if (city != null) ctx.registerApi("ctx", "city", buildCityTable(city))
         if (unit != null) ctx.registerApi("ctx", "unit", buildUnitTable(unit))
         if (tile != null) ctx.registerApi("ctx", "tile", buildTileTable(tile, civInfo))

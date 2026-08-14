@@ -331,6 +331,9 @@
 ---@class UncivCtx
 ---@field parameter string
 ---@field value number|nil
+---@field modifier number|nil
+---@field attackerStrength number|nil
+---@field defenderStrength number|nil
 ---@field city UncivCity
 ---@field unit UncivUnit
 ---@field tile UncivTile

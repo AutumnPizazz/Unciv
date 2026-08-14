@@ -4,7 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Modding/Lua: Lua can now take over combat strength and combat damage calculation - new uniques "Combat strength is modified by [luaFunction]", "Combat damage dealt is modified by [luaFunction]" and "Combat damage received is modified by [luaFunction]" (absolute override via `ctx.value`; returning nil leaves the value unchanged)
+- Modding/Lua: Lua can now take over the combat strength and damage formulas - new uniques "Combat strength is modified by [luaFunction]" (receives base strength + modifier factor), "Combat damage dealt is modified by [luaFunction]" (receives attacker/defender strength) and "Combat damage received is modified by [luaFunction]" (receives incoming damage); returning nil falls back to the engine formula
 - Modding/Lua: combat-fired Lua triggers can now see the opponent - `ctx.otherCiv` (diplomacy & combat), `ctx.attacker`/`ctx.defender`/`ctx.target` and `ctx.combatAction` are exposed to `TriggerLuaFunction`/`ConditionalLuaCheck`
 - Modding/Lua: new unit trigger uniques: upon capturing a unit / upon being captured / upon intercepting a unit / upon being intercepted
 - Docs: the Units.json field reference now documents the `maxHP` field (default 100, adjustable via the `[relativeAmount] Max HP` unique); the city strength formula in Miscellaneous JSON files now uses the garrisoned unit's HP percentage instead of assuming a max HP of 100
