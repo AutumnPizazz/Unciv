@@ -221,7 +221,7 @@ title: Unique 能力列表
 
 :::
 ::: details Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
-受影响的地块必须属于触发文明；城市中心及其第一环地块永远不会受影响
+受影响的地块必须属于触发文明；城市中心永远不会受影响
 
 示例："Lose control over [Farm] tiles in a [3]-tile radius"
 
@@ -235,7 +235,7 @@ title: Unique 能力列表
 
 :::
 ::: details Lose control over [positiveAmount] tiles [cityFilter]
-受影响的地块必须属于触发文明；城市第一环地块永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去
+受影响的地块必须属于触发文明；城市中心永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去
 
 示例："Lose control over [3] tiles [in all cities]"
 

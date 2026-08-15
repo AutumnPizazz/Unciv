@@ -1228,7 +1228,7 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeLoseTilesInCity -> {
                 val applicableCities = getApplicableCities(unique.params[1])
                 if (applicableCities.none()) return null
-                if (applicableCities.none { city -> city.getTiles().any { tile -> !tile.isCityCenter() && !city.expansion.isFirstRingTile(tile) } })
+                if (applicableCities.none { city -> city.getTiles().any { tile -> !tile.isCityCenter() } })
                     return null
 
                 return {
@@ -1238,7 +1238,7 @@ object UniqueTriggerActivation {
                         // Tiles are lost in reverse order of acquisition - the most recently acquired go first
                         for (tileToLose in applicableCity.getTiles().toList().asReversed()) {
                             if (tilesToLose <= 0) break
-                            if (tileToLose.isCityCenter() || applicableCity.expansion.isFirstRingTile(tileToLose)) continue
+                            if (tileToLose.isCityCenter()) continue
                             applicableCity.expansion.relinquishOwnership(tileToLose)
                             tilesToLose--
                         }
@@ -1574,9 +1574,8 @@ object UniqueTriggerActivation {
                 val tilesToLose = tile.getTilesInDistance(radius)
                     .filter {
                         val owningCity = it.getCity()
-                        // City centers and their first ring can never be lost - they are inherent to the city
+                        // City centers can never be lost - they are inherent to the city
                         !it.isCityCenter() && owningCity != null && owningCity.civ == civInfo
-                            && !owningCity.expansion.isFirstRingTile(it)
                             && it.matchesFilter(tileFilter)
                     }.toList()
                 if (tilesToLose.none()) return null

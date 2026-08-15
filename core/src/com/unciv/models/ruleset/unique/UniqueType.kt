@@ -971,12 +971,12 @@ enum class UniqueType(
 
     OneTimeTakeOverTilesInRadius("Gain control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius", UniqueTarget.Triggerable),
     OneTimeLoseTilesInRadius("Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius", UniqueTarget.Triggerable,
-        docDescription = "The affected tiles must belong to the triggering civilization; city centers and their first ring are never affected",
-        docDescriptionZh = "受影响的地块必须属于触发文明；城市中心及其第一环地块永远不会受影响"),
+        docDescription = "The affected tiles must belong to the triggering civilization; city centers are never affected",
+        docDescriptionZh = "受影响的地块必须属于触发文明；城市中心永远不会受影响"),
     OneTimeTakeOverTilesInCity("Gain control over [positiveAmount] tiles [cityFilter]", UniqueTarget.Triggerable),
     OneTimeLoseTilesInCity("Lose control over [positiveAmount] tiles [cityFilter]", UniqueTarget.Triggerable,
-        docDescription = "The affected tiles must belong to the triggering civilization; the first ring of a city can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first",
-        docDescriptionZh = "受影响的地块必须属于触发文明；城市第一环地块永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去"),
+        docDescription = "The affected tiles must belong to the triggering civilization; city centers can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first",
+        docDescriptionZh = "受影响的地块必须属于触发文明；城市中心永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去"),
 
     // todo: The "up to [All]" used in vanilla json is not nice to read. Split?
     // Or just reword it without the 'up to', so it reads "Reveal [amount/'all'] [tileFilter] tiles within [amount] tiles"

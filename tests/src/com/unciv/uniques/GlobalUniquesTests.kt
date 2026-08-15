@@ -749,14 +749,14 @@ class GlobalUniquesTests {
         city.expansion.takeOwnership(farTile)
         Assert.assertEquals(8, city.getTiles().count())
 
-        // 触发「失去控制」：半径 3 内、属于本文明且非第一环的地块全部变为中立
+        // 触发「失去控制」：半径 3 内、属于本文明且非市中心的地块全部变为中立
         val building = game.createBuilding("Lose control over [all] tiles in a [3]-tile radius")
         city.cityConstructions.addBuilding(building)
 
-        Assert.assertEquals(7, city.getTiles().count())
+        Assert.assertEquals(1, city.getTiles().count())
         Assert.assertNull(farTile.getOwner())
-        // 第一环地块不受影响
-        Assert.assertTrue(city.getTiles().all { it == tile || it.aerialDistanceTo(tile) == 1 })
+        // 只有市中心保留
+        Assert.assertEquals(tile, city.getTiles().first())
     }
 
     @Test
@@ -772,13 +772,14 @@ class GlobalUniquesTests {
         for (farTile in farTiles) city.expansion.takeOwnership(farTile)
         Assert.assertEquals(9, city.getTiles().count())
 
-        val building = game.createBuilding("Lose control over [2] tiles [in this city]")
+        // 失去 8 块：按获得倒序——先两块远地，再六块第一环；只剩市中心
+        val building = game.createBuilding("Lose control over [8] tiles [in this city]")
         city.cityConstructions.addBuilding(building)
 
-        Assert.assertEquals(7, city.getTiles().count())
+        Assert.assertEquals(1, city.getTiles().count())
         Assert.assertTrue(farTiles.all { it.getOwner() == null })
-        // 第一环地块不受影响
-        Assert.assertTrue(city.getTiles().all { it == tile || it.aerialDistanceTo(tile) == 1 })
+        // 只有市中心保留
+        Assert.assertEquals(tile, city.getTiles().first())
     }
 
     @Test

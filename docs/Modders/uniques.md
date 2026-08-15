@@ -214,7 +214,7 @@ Applicable to: Triggerable
 
 :::
 ::: details Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
-The affected tiles must belong to the triggering civilization; city centers and their first ring are never affected
+The affected tiles must belong to the triggering civilization; city centers are never affected
 
 Example: "Lose control over [Farm] tiles in a [3]-tile radius"
 
@@ -228,7 +228,7 @@ Applicable to: Triggerable
 
 :::
 ::: details Lose control over [positiveAmount] tiles [cityFilter]
-The affected tiles must belong to the triggering civilization; the first ring of a city can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first
+The affected tiles must belong to the triggering civilization; city centers can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first
 
 Example: "Lose control over [3] tiles [in all cities]"
 
