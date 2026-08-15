@@ -1481,6 +1481,29 @@ object UniqueTriggerActivation {
                 }
             }
 
+            UniqueType.OneTimeLoseTilesInRadius -> {
+                if (tile == null) return null
+                if (civInfo.cities.isEmpty()) return null
+                val tileFilter = unique.params[0]
+                val radius = unique.params[1].toInt()
+                if (radius < 0) return null
+                val tilesToLose = tile.getTilesInDistance(radius)
+                    .filter {
+                        val owningCity = it.getCity()
+                        // City centers and their first ring can never be lost - they are inherent to the city
+                        !it.isCityCenter() && owningCity != null && owningCity.civ == civInfo
+                            && !owningCity.expansion.isFirstRingTile(it)
+                            && it.matchesFilter(tileFilter)
+                    }.toList()
+                if (tilesToLose.none()) return null
+
+                return {
+                    for (tileToLose in tilesToLose)
+                        tileToLose.getCity()!!.expansion.relinquishOwnership(tileToLose)
+                    true
+                }
+            }
+
             UniqueType.OneTimeUnitGetsName -> {
                 if (unit == null) return null
                 val unitNameGroup = unique.params[1]

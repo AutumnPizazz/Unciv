@@ -216,6 +216,14 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
+::: details Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
+受影响的地块必须属于触发文明；城市中心及其第一环地块永远不会受影响
+
+示例："Lose control over [Farm] tiles in a [3]-tile radius"
+
+适用范围：Triggerable
+
+:::
 ::: details Gain control over [positiveAmount] tiles [cityFilter]
 示例："Gain control over [3] tiles [in all cities]"
 

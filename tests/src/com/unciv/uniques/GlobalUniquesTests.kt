@@ -736,6 +736,29 @@ class GlobalUniquesTests {
         Assert.assertEquals(15, city.getTiles().count())
     }
 
+    @Test
+    fun loseTilesInRadius() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val tile = game.getTile(HexCoord.Zero)
+        val city = game.addCity(civInfo, tile, true)
+        Assert.assertEquals(7, city.getTiles().count())
+
+        // 先让城市获得第一环之外的地块
+        val farTile = tile.getTilesAtDistance(2).first()
+        city.expansion.takeOwnership(farTile)
+        Assert.assertEquals(8, city.getTiles().count())
+
+        // 触发「失去控制」：半径 3 内、属于本文明且非第一环的地块全部变为中立
+        val building = game.createBuilding("Lose control over [all] tiles in a [3]-tile radius")
+        city.cityConstructions.addBuilding(building)
+
+        Assert.assertEquals(7, city.getTiles().count())
+        Assert.assertNull(farTile.getOwner())
+        // 第一环地块不受影响
+        Assert.assertTrue(city.getTiles().all { it == tile || it.aerialDistanceTo(tile) == 1 })
+    }
+
     // endregion
 
     // region Can carry air units

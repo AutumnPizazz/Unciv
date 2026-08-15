@@ -969,6 +969,9 @@ enum class UniqueType(
     OneTimeGainTechPercent("Research [relativeAmount]% of [tech]", UniqueTarget.Triggerable),
 
     OneTimeTakeOverTilesInRadius("Gain control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius", UniqueTarget.Triggerable),
+    OneTimeLoseTilesInRadius("Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius", UniqueTarget.Triggerable,
+        docDescription = "The affected tiles must belong to the triggering civilization; city centers and their first ring are never affected",
+        docDescriptionZh = "受影响的地块必须属于触发文明；城市中心及其第一环地块永远不会受影响"),
     OneTimeTakeOverTilesInCity("Gain control over [positiveAmount] tiles [cityFilter]", UniqueTarget.Triggerable),
 
     // todo: The "up to [All]" used in vanilla json is not nice to read. Split?

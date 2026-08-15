@@ -209,6 +209,14 @@ Example: "Gain control over [Farm] tiles in a [3]-tile radius"
 Applicable to: Triggerable
 
 :::
+::: details Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
+The affected tiles must belong to the triggering civilization; city centers and their first ring are never affected
+
+Example: "Lose control over [Farm] tiles in a [3]-tile radius"
+
+Applicable to: Triggerable
+
+:::
 ::: details Gain control over [positiveAmount] tiles [cityFilter]
 Example: "Gain control over [3] tiles [in all cities]"
 

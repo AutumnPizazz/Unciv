@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: new unique "Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius" - tiles owned by the triggering civilization within the radius become unowned again; city centers and their first ring are never affected
 - Modding: the mod checker now whitelists `.luarc.json` in the mod root folder (LuaLS editor config - LuaLS only reads it from the workspace root); docs tell modders to keep this exact file name
 - Modding: `modDependencies` in ModOptions.json now use `recommendedVersion` (exact match, recommended wording) instead of the `version` range; the `ModVersionRange` helper class is removed
 - Modding: new `recommendedGameVersion` field in ModOptions.json - a mod version can declare the exact game version it was made for (exact match, `n.n.n`/`n.n.n.n`/`-patchN`); the installed mod list and the info pane show it right away (e.g. `Version 0.1.0 · game 4.21.7.1`), and a non-blocking warning appears when the running game version differs; the `gameVersionRange` field is removed
