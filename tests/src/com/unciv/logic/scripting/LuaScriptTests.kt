@@ -1069,5 +1069,42 @@ class LuaScriptTests {
             hasNonsense.toboolean())
     }
 
+    
+    @Test
+    fun luaModifyTileYield() {
+        val engineCiv = testGame.addCiv()
+        val luaCiv = testGame.addCiv("Tile yield is modified by [testMOD:testTileYield]")
+        val overrideCiv = testGame.addCiv("Tile yield is modified by [testMOD:testTileYieldOverride]")
+        val nilCiv = testGame.addCiv("Tile yield is modified by [testMOD:testTileYieldNil]")
+        val tile = testGame.getTile(3, 0) // 远离城市的中立地块
+
+        val engineStats = tile.stats.getTileStats(null, engineCiv)
+        Assert.assertTrue("Grassland should yield food", engineStats.food > 0)
+
+        // 全部 stat 翻倍
+        val luaStats = tile.stats.getTileStats(null, luaCiv)
+        Assert.assertEquals(engineStats.food * 2, luaStats.food, 0.01f)
+        Assert.assertEquals(engineStats.production * 2, luaStats.production, 0.01f)
+
+        // 只覆盖食物，其余保持引擎值
+        val overrideStats = tile.stats.getTileStats(null, overrideCiv)
+        Assert.assertEquals(99f, overrideStats.food, 0.01f)
+        Assert.assertEquals(engineStats.production, overrideStats.production, 0.01f)
+
+        // 返回 nil：产出不变
+        val nilStats = tile.stats.getTileStats(null, nilCiv)
+        Assert.assertEquals(engineStats.food, nilStats.food, 0.01f)
+        Assert.assertEquals(engineStats.production, nilStats.production, 0.01f)
+    }
+
+
+
+
+
+
+
+
+
     //endregion
 }
+

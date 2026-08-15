@@ -272,6 +272,35 @@ object LuaScriptManager {
      */
     private val reportedValueHookErrors = HashSet<String>()
 
+    /** Like [callFunctionForValue], but delivers the raw Lua return value - null on
+     *  nil/error/absent. Used by the tile yield hook, whose result is a stats table. */
+    private val reportedTableHookErrors = HashSet<String>()
+
+    fun callFunctionForLuaValue(
+        func: LuaFunction,
+        ctxTable: LuaValue,
+        civInfo: Civilization? = null,
+        functionName: String = "",
+        modName: String = "",
+        onResult: (LuaValue?) -> Unit
+    ) {
+        modInstructionBudgets[modName]?.reset(INSTRUCTION_BUDGET)
+        try {
+            val result = func.call(ctxTable)
+            onResult(if (result.isnil()) null else result)
+        } catch (ex: LuaError) {
+            Log.error("Lua runtime error: ${ex.message}", ex)
+            if (reportedTableHookErrors.add(functionName))
+                reportLuaError(civInfo, functionName, ex.message ?: "Unknown Lua runtime error", modName)
+            onResult(null)
+        } catch (ex: Exception) {
+            Log.error("Unexpected Lua error: ${ex.message}", ex)
+            if (reportedTableHookErrors.add(functionName))
+                reportLuaError(civInfo, functionName, ex.message ?: "Unknown error", modName)
+            onResult(null)
+        }
+    }
+
     fun callFunctionForValue(
         func: LuaFunction,
         ctxTable: LuaValue,

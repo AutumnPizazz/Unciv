@@ -475,6 +475,9 @@ enum class UniqueType(
     LuaModifyCombatDamageReceived("Combat damage received is modified by [luaFunction]", UniqueTarget.Unit, UniqueTarget.Global,
         docDescription = "The [luaFunction] receives the current incoming damage via `ctx.value` and must return the new value (returning nil leaves it unchanged). Applied after the attacker's damage modifier.",
         docDescriptionZh = "[luaFunction] 通过 `ctx.value` 接收当前受到的伤害并须返回新值（返回 nil 则保持不变）。在攻击方伤害修正之后应用。"),
+    LuaModifyTileYield("Tile yield is modified by [luaFunction]", UniqueTarget.Terrain, UniqueTarget.Global,
+        docDescription = "The [luaFunction] receives the engine-computed tile yield as `ctx.tileStats` (a table like `{food=2, production=1, gold=1}`) and may return a table with the new yields - stats present in the returned table override the engine values, stats absent keep them. Returning nil leaves the yield unchanged. Runs on every tile yield calculation - keep it fast and side-effect-free.",
+        docDescriptionZh = "[luaFunction] 通过 `ctx.tileStats` 接收引擎计算的地块产出（形如 `{food=2, production=1, gold=1}` 的表），可返回包含新产出的表——返回表中出现的属性覆盖引擎值，未出现的保持原值；返回 nil 则产出不变。每次计算地块产出时都会运行——请保持轻量、无副作用。"),
 
     // Stat bonuses
     AdditionalAttacks("[amount] additional attacks per turn", UniqueTarget.Unit, UniqueTarget.Global),

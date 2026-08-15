@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding/Lua: new "Tile yield is modified by [luaFunction]" unique - Lua receives the engine-computed tile yield as `ctx.tileStats` and may return a table with new yields (stats present override engine values, absent ones keep them, nil leaves the yield unchanged); `ctx.tileStats` is registered in the Lua API docs, testMOD gains tile yield hook tests
 - Modding: new trigger uniques - "upon attacking" / "upon being attacked" (attacker-only and defender-only combat hooks, covering melee, ranged and air attacks), "upon pillaging a [tileFilter] tile" (unit-level and civ-level) and "upon finishing razing a city"
 - Modding: new conditionals - "if unit is fortified", "if unit is embarked" and "if this city is being razed" - usable on any unique
 - Modding: new reverse uniques - "Lose control over [positiveAmount] tiles [cityFilter]" (city centers never lost, most recently acquired lost first), "Lose a spy" (prefers an idle spy), "End a golden age" (fires the golden-age-end triggers like a natural end), and "Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius" (un-explores tiles; tiles in unit/city sight range become visible again on the next update)

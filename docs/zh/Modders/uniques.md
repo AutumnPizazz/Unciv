@@ -1388,6 +1388,14 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Global，Unit
 
 :::
+::: details Tile yield is modified by [luaFunction]
+[luaFunction] 通过 `ctx.tileStats` 接收引擎计算的地块产出（形如 `{food=2, production=1, gold=1}` 的表），可返回包含新产出的表——返回表中出现的属性覆盖引擎值，未出现的保持原值；返回 nil 则产出不变。每次计算地块产出时都会运行——请保持轻量、无副作用。
+
+示例："Tile yield is modified by [myMod:myFunction]"
+
+适用范围：Global，Terrain
+
+:::
 ::: details [amount] additional attacks per turn
 示例："[3] additional attacks per turn"
 
@@ -3353,6 +3361,14 @@ These resources are removed *when work begins* on the construction. Do not confu
 示例："[+1 Gold, +2 Production]"
 
 适用范围：Global，Terrain，Improvement
+
+:::
+::: details Tile yield is modified by [luaFunction]
+[luaFunction] 通过 `ctx.tileStats` 接收引擎计算的地块产出（形如 `{food=2, production=1, gold=1}` 的表），可返回包含新产出的表——返回表中出现的属性覆盖引擎值，未出现的保持原值；返回 nil 则产出不变。每次计算地块产出时都会运行——请保持轻量、无副作用。
+
+示例："Tile yield is modified by [myMod:myFunction]"
+
+适用范围：Global，Terrain
 
 :::
 ::: details [amount] Sight

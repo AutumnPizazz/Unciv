@@ -1381,6 +1381,14 @@ Example: "Combat damage received is modified by [myMod:myFunction]"
 Applicable to: Global, Unit
 
 :::
+::: details Tile yield is modified by [luaFunction]
+The [luaFunction] receives the engine-computed tile yield as `ctx.tileStats` (a table like `{food=2, production=1, gold=1}`) and may return a table with the new yields - stats present in the returned table override the engine values, stats absent keep them. Returning nil leaves the yield unchanged. Runs on every tile yield calculation - keep it fast and side-effect-free.
+
+Example: "Tile yield is modified by [myMod:myFunction]"
+
+Applicable to: Global, Terrain
+
+:::
 ::: details [amount] additional attacks per turn
 Example: "[3] additional attacks per turn"
 
@@ -3346,6 +3354,14 @@ Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Un
 Example: "[+1 Gold, +2 Production]"
 
 Applicable to: Global, Terrain, Improvement
+
+:::
+::: details Tile yield is modified by [luaFunction]
+The [luaFunction] receives the engine-computed tile yield as `ctx.tileStats` (a table like `{food=2, production=1, gold=1}`) and may return a table with the new yields - stats present in the returned table override the engine values, stats absent keep them. Returning nil leaves the yield unchanged. Runs on every tile yield calculation - keep it fast and side-effect-free.
+
+Example: "Tile yield is modified by [myMod:myFunction]"
+
+Applicable to: Global, Terrain
 
 :::
 ::: details [amount] Sight

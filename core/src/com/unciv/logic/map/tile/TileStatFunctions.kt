@@ -4,6 +4,8 @@ import com.unciv.Constants
 import com.unciv.logic.automation.Timers.Companion.timeThis
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.scripting.LuaAPI
+import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.ruleset.tile.Terrain
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.unique.GameContext
@@ -12,6 +14,7 @@ import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
 import com.unciv.ui.components.extensions.toPercent
+import org.luaj.vm2.LuaValue
 import yairm210.purity.annotations.LocalState
 import yairm210.purity.annotations.Readonly
 import java.util.EnumMap
@@ -50,8 +53,64 @@ class TileStatFunctions(val tile: Tile) {
                 stats[stat] *= value.toPercent()
         }
 
-        return statsBreakdown.toStats()
+        val engineStats = statsBreakdown.toStats()
+        return applyLuaTileYieldHook(city, observingCiv, engineStats) ?: engineStats
     }
+
+    // region Lua tile yield hook
+
+    /** Converts [Stats] to a Lua table like {food=2, production=1}, omitting zero stats */
+    @Readonly @Suppress("purity") // building a Lua table for mod code - luaj's tableOf/set are not @Readonly
+    private fun statsToLuaTable(stats: Stats): LuaValue {
+        val table = LuaValue.tableOf()
+        for ((stat, value) in stats)
+            table.set(stat.name.lowercase(), LuaValue.valueOf(value.toDouble()))
+        return table
+    }
+
+    /** Collects the stats present in a Lua table returned by a tile yield hook - absent stats stay untouched */
+    @Readonly @Suppress("purity")
+    private fun luaTableToStatsOverrides(table: LuaValue): Stats {
+        val stats = Stats()
+        for (stat in Stat.entries) {
+            val value = table.get(stat.name.lowercase())
+            if (!value.isnil()) stats.add(stat, value.tofloat())
+        }
+        return stats
+    }
+
+    /**
+     * Invokes the tile's or the observing civilization's first matching [UniqueType.LuaModifyTileYield]
+     * Lua function with the engine-computed yield. The function receives it as `ctx.tileStats` and may
+     * return a table with new yields - stats present in the returned table override the engine values,
+     * absent stats keep them. Returning nil (or no matching unique / missing function) leaves the yield
+     * unchanged. Runs on every tile yield calculation, so it must be fast and side-effect-free.
+     */
+    @Readonly @Suppress("purity") // running mod-provided code is inherently effectful
+    private fun applyLuaTileYieldHook(city: City?, observingCiv: Civilization?, engineStats: Stats): Stats? {
+        if (observingCiv == null) return null
+        val gameContext = GameContext(civInfo = observingCiv, city = city, tile = tile)
+        val unique = tile.getMatchingUniques(UniqueType.LuaModifyTileYield, gameContext).firstOrNull()
+            ?: observingCiv.getMatchingUniques(UniqueType.LuaModifyTileYield, gameContext).firstOrNull()
+            ?: return null
+        val (modName, functionName) = LuaScriptManager.parseLuaRef(unique.params[0])
+        val (foundMod, func) = LuaScriptManager.getFunction(modName, functionName) ?: return null
+
+        val ctx = LuaAPI.buildContext(observingCiv, city, null, tile, "", gameContext, foundMod,
+            tileStats = statsToLuaTable(engineStats))
+        var result: LuaValue? = null
+        LuaScriptManager.callFunctionForLuaValue(func, ctx, observingCiv, functionName, foundMod) { result = it }
+        val returnedTable = result?.takeIf { it.istable() } ?: return null
+
+        val overrides = luaTableToStatsOverrides(returnedTable)
+        if (overrides.isEmpty()) return engineStats
+        val newStats = engineStats.clone()
+        for ((stat, value) in overrides)
+            newStats[stat] = value
+        return newStats
+    }
+
+    // endregion
 
     @Readonly
     fun getTileStatsBreakdown(city: City?, observingCiv: Civilization?): List<Pair<String, Stats>> {

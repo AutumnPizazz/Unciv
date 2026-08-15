@@ -55,6 +55,7 @@ object LuaApiDocs {
         p("randomnessFactor", "number|nil", "Randomness factor in [0,1) used by the engine damage formula", "引擎伤害公式所用的随机因子 [0,1)"),
         p("healthRatio", "number|nil", "Wounded-unit damage penalty ratio of the dealer", "造成方受伤单位的伤害惩罚系数"),
         p("damageToAttacker", "boolean|nil", "Whether this damage is counter-damage dealt to the attacker", "是否为对攻击方的反击伤害"),
+        p("tileStats", "table|nil", "Engine-computed tile yield {food=2, production=1, ...} (tile yield hook); nil elsewhere", "引擎计算的地块产出 {food=2, production=1, ...}（地块产出钩子）；其余为 nil"),
         p("city", "UncivCity", "Triggering city (may be nil)", "触发城市（可能为 nil）"),
         p("unit", "UncivUnit", "Triggering unit (may be nil)", "触发单位（可能为 nil）"),
         p("tile", "UncivTile", "Triggering tile (may be nil)", "触发地块（可能为 nil）"),

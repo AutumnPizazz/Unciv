@@ -342,6 +342,7 @@
 ---@field randomnessFactor number|nil
 ---@field healthRatio number|nil
 ---@field damageToAttacker boolean|nil
+---@field tileStats table|nil
 ---@field city UncivCity
 ---@field unit UncivUnit
 ---@field tile UncivTile
