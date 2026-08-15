@@ -203,7 +203,7 @@ title: 其他 JSON 文件
 |------|------|--------|------|
 | modVersion | String | 0.0.1 | 模组版本号，格式 `n.n.n`；显示在模组管理器中，并用于依赖版本检查 |
 | recommendedGameVersion | String | 空 | 本模组版本针对制作的游戏版本，精确匹配（`n.n.n`、`n.n.n.n` 或带 `-patchN` 后缀）；空 = 未声明 |
-| modDependencies | List | 空 | 依赖模组列表，每项为对象 `{ "name": ..., "version": ... }`；`version` 为精确版本或 `min~max` 范围，空 = 任意版本 |
+| modDependencies | List | 空 | 依赖模组列表，每项为对象 `{ "name": ..., "recommendedVersion": ... }`；`recommendedVersion` 为依赖模组应采用的精确版本（精确匹配），空 = 任意版本 |
 
 示例：
 
@@ -212,8 +212,8 @@ title: 其他 JSON 文件
   "modVersion": "0.1.0",
   "recommendedGameVersion": "4.21.7.1",
   "modDependencies": [
-    { "name": "UCCC", "version": "1.0.0~2.0.0" },
-    { "name": "MyOtherMod", "version": "3.0.0" }
+    { "name": "UCCC", "recommendedVersion": "1.5.0" },
+    { "name": "MyOtherMod", "recommendedVersion": "3.0.0" }
   ]
 }
 ```
@@ -221,7 +221,7 @@ title: 其他 JSON 文件
 #### 什么时候会看到警告？
 
 - **游戏版本**：当前游戏版本与 `recommendedGameVersion` 不完全一致时，例如模组声明 `recommendedGameVersion: "4.21.7.1"` 而玩家运行的是 4.21.7.2——模组管理器的已安装列表直接显示版本号与推荐游戏版本、该模组旁显示警告标记、信息面板显示黄色警告行，新建游戏模组选择时弹出提示，模组检查器（选项 → 定位模组错误）中也会列出该警告。
-- **依赖模组**：依赖模组未加载，或其 `modVersion` 不满足声明的版本要求。
+- **依赖模组**：依赖模组未加载，或其 `modVersion` 与声明的 `recommendedVersion` 不完全一致。
 - **声明格式错误**：版本号或范围写错（如笔误）也会被报告，方便模组作者发现并修正。
 
 所有情况下模组都保持可用——警告从不阻止任何操作。
@@ -233,11 +233,11 @@ title: 其他 JSON 文件
 - 接受任意数量的点分数字段（`1`、`1.2`、`1.2.3`、`4.21.5.3`），但 `modVersion` 建议使用 `n.n.n`。
 - 支持可选的 `-patchN` 后缀，作为附加段参与比较：`4.21.5.3` &lt; `4.21.5.3-patch1` &lt; `4.21.5.3-patch2` &lt; `4.21.6`。
 - 段数不足时按补 0 比较：`1.2` == `1.2.0`。
-- 范围内任意版本都可接受时用范围（`1.0.0~2.0.0`，适合频繁更新的依赖模组）；需要特定版本时用精确版本（`3.0.0`）。
+- 未声明 `recommendedVersion` 的依赖接受该模组的任意版本。
 
 #### 与 `ModRequires` / `ModIncompatibleWith` uniques 的关系
 
-Unciv 已有声明式模组兼容 uniques（`ModRequires`、`ModIncompatibleWith`）：不满足时模组在模组选择中**不可选**。上述版本要求是更柔和的一层（UncivCN 专属）：不满足只产生**警告**。用 `ModRequires` 表达"该模组需要另一个模组才能运行"，用 `modDependencies` 额外钉住所需版本。
+Unciv 已有声明式模组兼容 uniques（`ModRequires`、`ModIncompatibleWith`）：不满足时模组在模组选择中**不可选**。上述版本要求是更柔和的一层（UncivCN 专属）：不满足只产生**警告**。用 `ModRequires` 表达“该模组需要另一个模组才能运行”，用 `modDependencies` 额外推荐依赖模组的具体版本。
 
 #### 最佳实践
 

@@ -73,86 +73,6 @@ class ModVersionTests {
     }
     //endregion
 
-    //region ModVersionRange parsing
-    @Test
-    fun `range parse handles both-sided bounds`() {
-        val range = ModVersionRange.parse("1.0.0~2.0.0")!!
-        assertEquals(ModVersion.parse("1.0.0"), range.min)
-        assertEquals(ModVersion.parse("2.0.0"), range.max)
-    }
-
-    @Test
-    fun `range parse handles one-sided bounds`() {
-        val onlyMin = ModVersionRange.parse("1.0.0~")!!
-        assertNull(onlyMin.max)
-        val onlyMax = ModVersionRange.parse("~2.0.0")!!
-        assertNull(onlyMin.max)
-        assertNull(onlyMax.min)
-    }
-
-    @Test
-    fun `range parse handles exact version and empty`() {
-        val exact = ModVersionRange.parse("1.2.0")!!
-        assertEquals(ModVersion.parse("1.2.0"), exact.min)
-        assertEquals(ModVersion.parse("1.2.0"), exact.max)
-        assertEquals(ModVersionRange.ANY, ModVersionRange.parse(""))
-        assertEquals(ModVersionRange.ANY, ModVersionRange.parse("  "))
-    }
-
-    @Test
-    fun `range parse rejects invalid bounds`() {
-        assertNull(ModVersionRange.parse("abc"))
-        assertNull(ModVersionRange.parse("1.0.0~abc"))
-        assertNull(ModVersionRange.parse("abc~2.0.0"))
-    }
-    //endregion
-
-    //region ModVersionRange containment
-    @Test
-    fun `range contains versions within bounds`() {
-        val range = ModVersionRange.parse("1.0.0~2.0.0")!!
-        assertTrue(range.contains(ModVersion.parse("1.0.0")!!))
-        assertTrue(range.contains(ModVersion.parse("1.5.0")!!))
-        assertTrue(range.contains(ModVersion.parse("2.0.0")!!))
-        assertFalse(range.contains(ModVersion.parse("0.9.9")!!))
-        assertFalse(range.contains(ModVersion.parse("2.0.1")!!))
-    }
-
-    @Test
-    fun `one-sided ranges contain correctly`() {
-        val onlyMin = ModVersionRange.parse("1.0.0~")!!
-        assertTrue(onlyMin.contains(ModVersion.parse("1.0.0")!!))
-        assertTrue(onlyMin.contains(ModVersion.parse("9.9.9")!!))
-        assertFalse(onlyMin.contains(ModVersion.parse("0.9.9")!!))
-
-        val onlyMax = ModVersionRange.parse("~2.0.0")!!
-        assertTrue(onlyMax.contains(ModVersion.parse("0.0.1")!!))
-        assertTrue(onlyMax.contains(ModVersion.parse("2.0.0")!!))
-        assertFalse(onlyMax.contains(ModVersion.parse("2.0.1")!!))
-    }
-
-    @Test
-    fun `any range contains everything`() {
-        assertTrue(ModVersionRange.ANY.contains(ModVersion.parse("0.0.0")!!))
-        assertTrue(ModVersionRange.ANY.contains(ModVersion.parse("99.99.99-patch9")!!))
-    }
-
-    @Test
-    fun `exact range matches only that version`() {
-        val exact = ModVersionRange.parse("1.2.0")!!
-        assertTrue(exact.contains(ModVersion.parse("1.2.0")!!))
-        assertFalse(exact.contains(ModVersion.parse("1.2.1")!!))
-    }
-
-    @Test
-    fun `patch suffixes participate in range checks`() {
-        val range = ModVersionRange.parse("4.21.5.3~4.21.5.3-patch1")!!
-        assertTrue(range.contains(ModVersion.parse("4.21.5.3")!!))
-        assertTrue(range.contains(ModVersion.parse("4.21.5.3-patch1")!!))
-        assertFalse(range.contains(ModVersion.parse("4.21.5.3-patch2")!!))
-    }
-    //endregion
-
     //region ModOptions warnings
     private fun modOptions(
         version: String = "1.2.3",
@@ -165,7 +85,7 @@ class ModVersionTests {
         for ((depName, depVersion) in dependencies) {
             val dependency = ModDependency()
             dependency.name = depName
-            dependency.version = depVersion
+            dependency.recommendedVersion = depVersion
             options.modDependencies += dependency
         }
         return options
@@ -218,22 +138,15 @@ class ModVersionTests {
     }
 
     @Test
-    fun `dependency version range checked against loaded version`() {
-        val options = modOptions(dependencies = listOf("UCCC" to "1.0.0~2.0.0"))
+    fun `dependency recommended version matched exactly`() {
+        val options = modOptions(dependencies = listOf("UCCC" to "1.5.0"))
         assertTrue(options.getUnsatisfiedDependencies(mapOf("UCCC" to "1.5.0")).isEmpty())
-        assertEquals(listOf("UCCC"), options.getUnsatisfiedDependencies(mapOf("UCCC" to "2.1.0")).map { it.name })
-        assertEquals(listOf("UCCC"), options.getUnsatisfiedDependencies(mapOf("UCCC" to "0.9.0")).map { it.name })
+        assertEquals(listOf("UCCC"), options.getUnsatisfiedDependencies(mapOf("UCCC" to "1.5.1")).map { it.name })
+        assertEquals(listOf("UCCC"), options.getUnsatisfiedDependencies(mapOf("UCCC" to "1.4.9")).map { it.name })
     }
 
     @Test
-    fun `dependency exact version required`() {
-        val options = modOptions(dependencies = listOf("UCCC" to "1.2.0"))
-        assertTrue(options.getUnsatisfiedDependencies(mapOf("UCCC" to "1.2.0")).isEmpty())
-        assertEquals(listOf("UCCC"), options.getUnsatisfiedDependencies(mapOf("UCCC" to "1.2.1")).map { it.name })
-    }
-
-    @Test
-    fun `invalid dependency version requirement is unsatisfied`() {
+    fun `invalid recommended dependency version is unsatisfied`() {
         val options = modOptions(dependencies = listOf("UCCC" to "abc"))
         assertEquals(listOf("UCCC"), options.getUnsatisfiedDependencies(mapOf("UCCC" to "1.2.3")).map { it.name })
     }

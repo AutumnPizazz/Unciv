@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: `modDependencies` in ModOptions.json now use `recommendedVersion` (exact match, recommended wording) instead of the `version` range; the `ModVersionRange` helper class is removed
 - Modding: new `recommendedGameVersion` field in ModOptions.json - a mod version can declare the exact game version it was made for (exact match, `n.n.n`/`n.n.n.n`/`-patchN`); the installed mod list and the info pane show it right away (e.g. `Version 0.1.0 · game 4.21.7.1`), and a non-blocking warning appears when the running game version differs; the `gameVersionRange` field is removed
 - Modding/Lua: more combat support - new read-only combat prediction queries on units (getAttackingStrengthAgainst / getDefendingStrengthAgainst / predictDamageTo / predictDamageFrom) and new trigger uniques (upon bombarding / upon being bombarded / upon withdrawing from melee combat)
 - Modding/Lua: Lua can now take over the combat strength and damage formulas - new uniques "Combat strength is modified by [luaFunction]", "Combat damage dealt is modified by [luaFunction]" and "Combat damage received is modified by [luaFunction]"; Lua receives the raw combat inputs (base strength + modifier factor + individual modifier list for strength; attacker/defender strength + randomness factor + health ratio + damage direction for damage) and returning nil falls back to the engine formula

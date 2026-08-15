@@ -15,7 +15,7 @@ import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.EventChoice
 import com.unciv.models.ruleset.IRulesetObject
-import com.unciv.models.ruleset.ModVersionRange
+import com.unciv.models.ruleset.ModVersion
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.RulesetFile
@@ -317,15 +317,15 @@ open class RulesetValidator protected constructor(
                 val loadedVersion = loadedModVersions[dependency.name]
                 val text = when {
                     loadedVersion == null ->
-                        "Mod '[modName]' requires mod '[dependencyName]', which is not loaded"
+                        "Mod '[modName]' recommends mod '[dependencyName]', which is not loaded"
                             .replace("[modName]", "[${mod.name}]").replace("[dependencyName]", "[${dependency.name}]")
-                    ModVersionRange.parse(dependency.version) == null ->
-                        "Invalid version requirement '[version]' in mod '[modName]'"
-                            .replace("[version]", "[${dependency.version}]").replace("[modName]", "[${mod.name}]")
+                    ModVersion.parse(dependency.recommendedVersion) == null ->
+                        "Invalid recommendedVersion '[version]' in mod '[modName]'"
+                            .replace("[version]", "[${dependency.recommendedVersion}]").replace("[modName]", "[${mod.name}]")
                     else ->
-                        "Mod '[modName]' requires mod '[dependencyName]' version [version], current version is [current]"
+                        "Mod '[modName]' recommends mod '[dependencyName]' version [version], current version is [current]"
                             .replace("[modName]", "[${mod.name}]").replace("[dependencyName]", "[${dependency.name}]")
-                            .replace("[version]", "[${dependency.version}]")
+                            .replace("[version]", "[${dependency.recommendedVersion}]")
                             .replace("[current]", "[$loadedVersion]")
                 }
                 lines.add(text, RulesetErrorSeverity.Warning, sourceObject = modOptions)

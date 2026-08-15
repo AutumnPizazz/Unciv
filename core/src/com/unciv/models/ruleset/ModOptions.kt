@@ -66,8 +66,8 @@ class ModOptions : IHasUniques {
 
     /**
      * Returns the dependency declarations that are not satisfied:
-     * the dependency mod is not loaded, its version is outside the requirement,
-     * or the version requirement itself is invalid. Empty when no dependencies or all satisfied.
+     * the dependency mod is not loaded, its version differs from the recommended version,
+     * or the recommended version declaration itself is invalid. Empty when no dependencies or all satisfied.
      *
      * @param loadedModVersions map of loaded mod name to its declared [modVersion]
      */
@@ -76,10 +76,10 @@ class ModOptions : IHasUniques {
         return modDependencies.filter { dep ->
             val loadedVersion = loadedModVersions[dep.name]
             if (loadedVersion == null) return@filter true // not loaded
-            if (dep.version.isBlank()) return@filter false // any version
-            val required = ModVersionRange.parse(dep.version)
-                ?: return@filter true // invalid requirement -> treat as unsatisfied
-            !required.contains(ModVersion.parseOrDefault(loadedVersion))
+            if (dep.recommendedVersion.isBlank()) return@filter false // any version
+            val recommended = ModVersion.parse(dep.recommendedVersion)
+                ?: return@filter true // invalid declaration -> treat as unsatisfied
+            recommended != ModVersion.parseOrDefault(loadedVersion)
         }
     }
     //endregion
@@ -97,10 +97,10 @@ class ModOptions : IHasUniques {
     //endregion
 }
 
-/** A dependency mod with an optional version requirement (exact version or min~max range) */
+/** A dependency mod with an optional recommended version (exact match) */
 class ModDependency {
     /** Name of the dependency mod */
     var name = ""
-    /** Exact version (n.n.n) or range (min~max); empty = any version */
-    var version = ""
+    /** Recommended version of the dependency (exact match, n.n.n); empty = any version */
+    var recommendedVersion = ""
 }

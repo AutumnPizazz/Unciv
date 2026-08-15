@@ -205,7 +205,7 @@ Mods can declare a version and compatibility requirements, which are checked wit
 |-----------------|--------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
 | modVersion      | String | 0.0.1   | Mod version in `n.n.n` format; shown in the mod manager and used for dependency version checks                                                         |
 | recommendedGameVersion | String | empty | The game version this mod version was made for, exact match (`n.n.n`, `n.n.n.n` or `-patchN` suffix); empty = not declared |
-| modDependencies | List   | empty   | Dependency mods, each an object `{ "name": ..., "version": ... }`; `version` is an exact version or a `min~max` range, empty = any version          |
+| modDependencies | List   | empty   | Dependency mods, each an object `{ "name": ..., "recommendedVersion": ... }`; `recommendedVersion` is the exact version the dependency should have (exact match), empty = any version |
 
 Example:
 
@@ -214,8 +214,8 @@ Example:
   "modVersion": "0.1.0",
   "recommendedGameVersion": "4.21.7.1",
   "modDependencies": [
-    { "name": "UCCC", "version": "1.0.0~2.0.0" },
-    { "name": "MyOtherMod", "version": "3.0.0" }
+    { "name": "UCCC", "recommendedVersion": "1.5.0" },
+    { "name": "MyOtherMod", "recommendedVersion": "3.0.0" }
   ]
 }
 ```
@@ -223,7 +223,7 @@ Example:
 #### When are warnings shown?
 
 - **Game version**: when the current game version does not exactly match `recommendedGameVersion`, e.g. the mod declares `recommendedGameVersion: "4.21.7.1"` and the player runs 4.21.7.2 — the mod manager shows the version and the recommended game version right in the installed mod list, a warning mark next to the mod and a yellow warning line in the info pane, the new-game mod selection shows a toast, and the mod checker (Options → Locate mod errors) lists the warning.
-- **Dependencies**: when a dependency mod is not loaded at all, or its `modVersion` does not match the declared requirement.
+- **Dependencies**: when a dependency mod is not loaded at all, or its `modVersion` does not exactly match the declared `recommendedVersion`.
 - **Invalid declarations**: typos in the version or range format are also reported, so authors notice and fix them.
 
 In all cases the mod stays usable - warnings never block anything.
@@ -235,11 +235,11 @@ In all cases the mod stays usable - warnings never block anything.
 - Any number of dot-separated numeric segments is accepted (`1`, `1.2`, `1.2.3`, `4.21.5.3`), though `n.n.n` is recommended for `modVersion`.
 - An optional `-patchN` suffix is supported and compares as an extra segment: `4.21.5.3` &lt; `4.21.5.3-patch1` &lt; `4.21.5.3-patch2` &lt; `4.21.6`.
 - Shorter versions compare as if padded with zeros: `1.2` == `1.2.0`.
-- Prefer a range (`1.0.0~2.0.0`) when any version within a span is fine (e.g. dependency mods that update often); use an exact version (`3.0.0`) when a specific version is required.
+- A dependency without a `recommendedVersion` accepts any version of that mod.
 
 #### Relation to the `ModRequires` / `ModIncompatibleWith` uniques
 
-Unciv already has declarative mod compatibility uniques (`ModRequires`, `ModIncompatibleWith`): when they are not satisfied, the mod is **not selectable** in the mod selection. The version requirements above are a softer, UncivCN-specific layer: unsatisfied requirements only produce **warnings**. Use `ModRequires` to say "this mod needs another mod to function", and `modDependencies` to also pin the required versions.
+Unciv already has declarative mod compatibility uniques (`ModRequires`, `ModIncompatibleWith`): when they are not satisfied, the mod is **not selectable** in the mod selection. The version requirements above are a softer, UncivCN-specific layer: unsatisfied requirements only produce **warnings**. Use `ModRequires` to say "this mod needs another mod to function", and `modDependencies` to also recommend a specific version of the dependency.
 
 #### Good practice
 

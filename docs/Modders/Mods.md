@@ -57,7 +57,7 @@ This is done by adding a `"isBaseRuleset":true` configuration to your [modOption
 {
   "modVersion": "0.1.0",
   "recommendedGameVersion": "4.21.7.1",
-  "modDependencies": [ { "name": "UCCC", "version": "1.0.0~2.0.0" } ]
+  "modDependencies": [ { "name": "UCCC", "recommendedVersion": "1.5.0" } ]
 }
 ```
 
