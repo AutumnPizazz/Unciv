@@ -51,14 +51,14 @@ class BaseUnitDescriptionsTests {
         game.ruleset.modOptions.constants.unitMaintenanceBaseCost = 1.0
         val lines = civilopediaLines(maintenanceCost = 3f)
         Assert.assertTrue("expected maintenance line in: ${lines.map { it.text }}",
-            lines.any { it.text.contains("Maintenance cost") && it.text.contains("3") && it.text.contains("Gold") })
+            lines.any { it.text.contains("Unit upkeep") && it.text.contains("3") && it.text.contains("Gold") })
     }
 
     @Test
     fun `maintenance cost not shown without civ6 mode`() {
         val lines = civilopediaLines(maintenanceCost = 3f)
         Assert.assertFalse("legacy mode should not list maintenance, got: ${lines.map { it.text }}",
-            lines.any { it.text.contains("Maintenance cost") })
+            lines.any { it.text.contains("Unit upkeep") })
     }
 
     @Test
@@ -66,6 +66,6 @@ class BaseUnitDescriptionsTests {
         game.ruleset.modOptions.uniques.add("Uses the Civilization 6 style unit maintenance system")
         val lines = civilopediaLines(maintenanceCost = 0f)
         Assert.assertFalse("zero maintenance should not be listed, got: ${lines.map { it.text }}",
-            lines.any { it.text.contains("Maintenance cost") })
+            lines.any { it.text.contains("Unit upkeep") })
     }
 }

@@ -116,10 +116,11 @@ object BaseUnitDescriptions {
         }
 
         // Civilization 6 style unit maintenance (opt-in via ModOptions unique):
-        // show the per-unit maintenance cost in the Civilopedia
+        // show the per-unit upkeep in the Civilopedia - "Unit upkeep" is the established
+        // term for unit maintenance (see the city stats), as opposed to building maintenance
         if (baseUnit.maintenanceCost > 0 && ruleset.modOptions.hasUnique(UniqueType.UnitMaintenanceCiv6Style)) {
             val maintenanceGold = baseUnit.maintenanceCost * ruleset.modOptions.constants.unitMaintenanceBaseCost.toFloat()
-            textList += FormattedLine("{Maintenance cost}: ${maintenanceGold.toCleanNumber()} {Gold}")
+            textList += FormattedLine("{Unit upkeep}: ${maintenanceGold.toCleanNumber()} {Gold}")
         }
 
         if (baseUnit.interceptRange > 0) {
