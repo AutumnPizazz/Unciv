@@ -411,8 +411,8 @@ Allowed values:
 -   `[mapUnitFilter] Units`
     - Example: `Only available <when number of [[Wounded] Units] is more than [0]>`
     - The number of units the relevant Civilization owns that match the filter.
-    - Any custom tag unique on a unit also works as a filter - e.g. units carrying the unique "Class.QuanMinDongYuan" are counted by [{Class.QuanMinDongYuan} Units].
-    - This lets you merge identical per-object copies of an event unique (e.g. one 'Gain [1] [Gold] <upon turn end>' on each of 80 units) into a single Countable expression: 'Gain [[{Class.Tag} Units]] [Gold] <upon turn end>'.
+    - Any custom tag unique on a unit also works as a filter - e.g. units carrying the unique "Class.QuanMinDongYuan" are counted by [Class.QuanMinDongYuan] Units.
+    - This lets you merge identical per-object copies of an event unique (e.g. one 'Gain [1] [Gold] <upon turn end>' on each of 80 units) into a single Countable expression: 'Gain [[Class.Tag] Units] [Gold] <upon turn end>'.
 -   `Carried [mapUnitFilter] units` - The number of units being carried by this unit
     - Example: `Only available <when number of [Carried [Air] units] is more than [0]>`
     - Only counts transported units matching the filter. For use with 'when number of' conditionals.

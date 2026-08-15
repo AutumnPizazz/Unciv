@@ -211,5 +211,28 @@ class RulesetValidatorTests {
         assertFalse(hasRecursiveResourceUniqueError(game, "for every [Cities]"))
     }
 
+    @Test
+    fun `CoeHarMod quanMinDongYuan merged unique loads`() {
+        val coeHarDir = com.badlogic.gdx.Gdx.files.absolute(
+            System.getProperty("user.dir") + "/mods/CoeHarMod")
+        if (!coeHarDir.isDirectory) return // CoeHarMod 未检出（CI 环境）时跳过
+
+        val ruleset = com.unciv.models.ruleset.Ruleset().apply { name = "CoeHarMod" }
+        ruleset.load(coeHarDir.child("jsons"))
+
+        // 加载无 Error 级问题
+        val errors = ruleset.getErrorList().filter { it.errorSeverityToReport == RulesetErrorSeverity.Error }
+        assertTrue("CoeHarMod should load without errors, got: ${errors.map { it.text }.take(3)}", errors.isEmpty())
+
+        // 全民动员：新版为一条 Countable 表达式 + 单位 tag（submodule 指针可能未同步时旧版为逐单位 unique）
+        val building = ruleset.buildings["Mil.quanmindongyuan"]
+        assertTrue("Mil.quanmindongyuan missing", building != null)
+        assertTrue("QuanMinDongYuan mechanism missing", building!!.uniques.any {
+            it.contains("QuanMinDongYuan") && it.contains("Units] [Gold] <upon turn end>")
+        } || ruleset.units.values.any { unit ->
+            unit.uniques.any { it.contains("Gain [1] [Gold] <upon turn end>") }
+        })
+    }
+
     //endregion
 }

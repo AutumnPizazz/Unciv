@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：`[mapUnitFilter] Units` Countable 按自定义 tag 计数的文档示例修正为方括号语法（`[[Class.Tag] Units]`，`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag
 - 模组支持：`[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` 参数全面兑现文档承诺的 Countable 表达式支持——半径、数量、免费单位数、单位治疗/伤害/经验/状态回合数、回合条件等此前遇 Countable 表达式会崩溃或解析错误；`getResourceAmount` 两个重载统一（库存优先），Countable 资源引用在城市与文明上下文中解析一致
 - 模组支持：Countable 文档新增 `[mapUnitFilter] Units` 按自定义 tag unique 计数的说明（如 `[{Class.Tag} Units]`），模组可将逐对象重复的事件 unique 合并为一条 Countable 表达式
 - 测试：testMOD 夹具从 `android/assets/mods/` 迁至 `tests/src/test/resources/testMOD`（纯测试夹具，经测试 classpath 加载；新增 `TestAssets` 辅助类统一加载与仓库根目录定位。发布包本就排除 `mods/`，迁移主要让开发运行时的模组列表保持干净）

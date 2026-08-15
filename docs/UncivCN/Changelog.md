@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: `[mapUnitFilter] Units` Countable 支持自定义 tag 计数（如 `[[Class.Tag] Units]`）的文档示例修正为方括号语法（`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 的全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag
 - Modding: `[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` parameters now fully honor their documented Countable-expression support - radii, amounts, free-unit counts, unit heal/damage/XP/status values and turn conditions previously crashed or mis-parsed on Countable expressions; `getResourceAmount` overloads unified (stockpiles first) so Countable resource references resolve consistently in city and civ contexts
 - Modding: Countable docs now show how `[mapUnitFilter] Units` counts custom tag uniques (e.g. `[{Class.Tag} Units]`), letting mods merge identical per-object event uniques into one Countable expression
 - Tests: testMOD fixture moved from `android/assets/mods/` to `tests/src/test/resources/testMOD` (test-only fixture, loaded via classpath with a new `TestAssets` helper that also centralizes repo-root lookup; `mods/` was already excluded from release packaging, the move keeps the dev-runtime mod list clean)

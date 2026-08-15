@@ -962,6 +962,29 @@ class GlobalUniquesTests {
         Assert.assertEquals(7, city.getTiles().count())
     }
 
+    @Test
+    fun countablePerUnitGoldWithTag() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val city = game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        // 3 个带自定义 tag 的单位（模拟 CoeHarMod 的 Class.Unit.QuanMinDongYuan）
+        repeat(3) { i ->
+            game.addDefaultMeleeUnitWithUniques(civInfo, game.getTile(i + 1, 0), "Class.Unit.QuanMinDongYuan")
+        }
+
+        // 全民动员式补贴：一条 Countable 表达式替代逐单位重复 unique
+        val building = game.createBuilding("Gain [[Class.Unit.QuanMinDongYuan] Units] [Gold] <upon turn end> <hidden from users>")
+        city.cityConstructions.addBuilding(building)
+
+        CityTurnManager(city).endTurn()
+        Assert.assertEquals(3, civInfo.gold)
+
+        // 再建一个带 tag 的单位，下回合 +4
+        game.addDefaultMeleeUnitWithUniques(civInfo, game.getTile(4, 1), "Class.Unit.QuanMinDongYuan")
+        CityTurnManager(city).endTurn()
+        Assert.assertEquals(7, civInfo.gold)
+    }
+
     // endregion
 
     // region Trigger upon uniques
