@@ -944,6 +944,7 @@ enum class UniqueType(
     OneTimeAmountFreePolicies("[positiveAmount] Free Social Policies", UniqueTarget.Triggerable),  // Not used in Vanilla
     OneTimeEnterGoldenAge("Empire enters golden age", UniqueTarget.Triggerable),  // used in Policies, Buildings
     OneTimeEnterGoldenAgeTurns("Empire enters a [positiveAmount]-turn Golden Age", UniqueTarget.Triggerable),
+    OneTimeEndGoldenAge("End a golden age", UniqueTarget.Triggerable),
     OneTimeFreeGreatPerson("Free Great Person", UniqueTarget.Triggerable),  // used in Policies, Buildings
     OneTimeGainPopulation("[amount] population [cityFilter]", UniqueTarget.Triggerable),  // used in CN tower
     OneTimeGainPopulationRandomCity("[amount] population in a random city", UniqueTarget.Triggerable),
@@ -973,10 +974,16 @@ enum class UniqueType(
         docDescription = "The affected tiles must belong to the triggering civilization; city centers and their first ring are never affected",
         docDescriptionZh = "受影响的地块必须属于触发文明；城市中心及其第一环地块永远不会受影响"),
     OneTimeTakeOverTilesInCity("Gain control over [positiveAmount] tiles [cityFilter]", UniqueTarget.Triggerable),
+    OneTimeLoseTilesInCity("Lose control over [positiveAmount] tiles [cityFilter]", UniqueTarget.Triggerable,
+        docDescription = "The affected tiles must belong to the triggering civilization; the first ring of a city can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first",
+        docDescriptionZh = "受影响的地块必须属于触发文明；城市第一环地块永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去"),
 
     // todo: The "up to [All]" used in vanilla json is not nice to read. Split?
     // Or just reword it without the 'up to', so it reads "Reveal [amount/'all'] [tileFilter] tiles within [amount] tiles"
     OneTimeRevealSpecificMapTiles("Reveal up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius", UniqueTarget.Triggerable),
+    OneTimeHideSpecificMapTiles("Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius", UniqueTarget.Triggerable,
+        docDescription = "Un-explores the affected tiles. Tiles currently visible to the triggering civilization (e.g. in the sight range of its units or cities) become visible again on the next update, so hiding only persists for tiles that are out of sight",
+        docDescriptionZh = "取消受影响地块的已探索状态。当前处于触发文明视野内的地块（如单位/城市视野范围）会在下次更新时重新可见，因此隐藏只对视野之外的地块持续生效"),
     OneTimeRevealCrudeMap("From a randomly chosen tile [positiveAmount] tiles away from the ruins, reveal tiles up to [positiveAmount] tiles away with [positiveAmount]% chance", UniqueTarget.Ruins),
     OneTimeGlobalAlert("Triggers the following global alert: [comment]", UniqueTarget.Triggerable,
         docDescription = "Supported on Policies and Technologies.\n" +
@@ -987,6 +994,7 @@ enum class UniqueType(
     OneTimeGlobalSpiesWhenEnteringEra("Every major Civilization gains a spy once a civilization enters this era", UniqueTarget.Era),
     OneTimeSpiesLevelUp("Promotes all spies [positiveAmount] time(s)", UniqueTarget.Triggerable),  // used in Policies, Buildings
     OneTimeGainSpy("Gain an extra spy", UniqueTarget.Triggerable),  // used in Wonders
+    OneTimeLoseSpy("Lose a spy", UniqueTarget.Triggerable, docDescription = "Removes one spy, preferring one that is not currently on a mission", docDescriptionZh = "移除一名间谍，优先移除当前未执行任务的间谍"),
 
     SkipPromotion("Doing so will consume this opportunity to choose a Promotion", UniqueTarget.Promotion),
     FreePromotion("This Promotion is free", UniqueTarget.Promotion),

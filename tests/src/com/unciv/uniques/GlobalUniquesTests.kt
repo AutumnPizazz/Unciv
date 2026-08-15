@@ -759,6 +759,75 @@ class GlobalUniquesTests {
         Assert.assertTrue(city.getTiles().all { it == tile || it.aerialDistanceTo(tile) == 1 })
     }
 
+    @Test
+    fun loseTilesInCity() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val tile = game.getTile(HexCoord.Zero)
+        val city = game.addCity(civInfo, tile, true)
+        Assert.assertEquals(7, city.getTiles().count())
+
+        // 让城市获得两块第一环之外的地块
+        val farTiles = tile.getTilesAtDistance(2).take(2).toList()
+        for (farTile in farTiles) city.expansion.takeOwnership(farTile)
+        Assert.assertEquals(9, city.getTiles().count())
+
+        val building = game.createBuilding("Lose control over [2] tiles [in this city]")
+        city.cityConstructions.addBuilding(building)
+
+        Assert.assertEquals(7, city.getTiles().count())
+        Assert.assertTrue(farTiles.all { it.getOwner() == null })
+        // 第一环地块不受影响
+        Assert.assertTrue(city.getTiles().all { it == tile || it.aerialDistanceTo(tile) == 1 })
+    }
+
+    @Test
+    fun loseSpy() {
+        game.makeHexagonalMap(5)
+        game.gameInfo.gameParameters.espionageEnabled = true
+        val civInfo = game.addCiv()
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        civInfo.espionageManager.addSpy()
+        civInfo.espionageManager.addSpy()
+        Assert.assertEquals(2, civInfo.espionageManager.spyList.size)
+
+        val building = game.createBuilding("Lose a spy")
+        civInfo.cities.first().cityConstructions.addBuilding(building)
+
+        Assert.assertEquals(1, civInfo.espionageManager.spyList.size)
+    }
+
+    @Test
+    fun endGoldenAge() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        civInfo.goldenAges.enterGoldenAge(5)
+        Assert.assertTrue(civInfo.goldenAges.isGoldenAge())
+
+        val building = game.createBuilding("End a golden age")
+        civInfo.cities.first().cityConstructions.addBuilding(building)
+
+        Assert.assertFalse(civInfo.goldenAges.isGoldenAge())
+    }
+
+    @Test
+    fun hideTilesInRadius() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val tile = game.getTile(HexCoord.Zero)
+        val city = game.addCity(civInfo, tile, true)
+
+        val farTile = tile.getTilesAtDistance(2).first()
+        farTile.setExplored(civInfo, true)
+        Assert.assertTrue(farTile.isExplored(civInfo))
+
+        val building = game.createBuilding("Hide up to [all] [Terrain] within a [3] tile radius")
+        city.cityConstructions.addBuilding(building)
+
+        Assert.assertFalse(farTile.isExplored(civInfo))
+    }
+
     // endregion
 
     // region Can carry air units

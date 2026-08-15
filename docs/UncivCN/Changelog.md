@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: new reverse uniques - "Lose control over [positiveAmount] tiles [cityFilter]" (first-ring tiles never lost, most recently acquired lost first), "Lose a spy" (prefers an idle spy), "End a golden age" (fires the golden-age-end triggers like a natural end), and "Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius" (un-explores tiles; tiles in unit/city sight range become visible again on the next update)
 - Modding: new unique "Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius" - tiles owned by the triggering civilization within the radius become unowned again; city centers and their first ring are never affected
 - Modding: the mod checker now whitelists `.luarc.json` in the mod root folder (LuaLS editor config - LuaLS only reads it from the workspace root); docs tell modders to keep this exact file name
 - Modding: `modDependencies` in ModOptions.json now use `recommendedVersion` (exact match, recommended wording) instead of the `version` range; the `ModVersionRange` helper class is removed

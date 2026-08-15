@@ -6,6 +6,7 @@ import com.unciv.logic.city.managers.CityEspionageManager
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Spy
+import com.unciv.models.SpyAction
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.ui.screens.devconsole.ConsoleCivCommands
 import yairm210.purity.annotations.Readonly
@@ -60,6 +61,14 @@ class EspionageManager : IsPartOfGameInfoSerialization {
         newSpy.setTransients(civInfo)
         spyList.add(newSpy)
         return newSpy
+    }
+
+    /** Removes a spy from this civilization, preferring one that is not currently on a mission.
+     *  @return the removed spy, or null if there are no spies to remove */
+    fun removeSpy(): Spy? {
+        val spyToRemove = spyList.firstOrNull { it.action == SpyAction.None } ?: spyList.lastOrNull() ?: return null
+        spyList.remove(spyToRemove)
+        return spyToRemove
     }
 
     @Readonly

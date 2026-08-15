@@ -80,6 +80,10 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
+::: details End a golden age
+适用范围：Triggerable
+
+:::
 ::: details Free Great Person
 适用范围：Triggerable
 
@@ -230,8 +234,24 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
+::: details Lose control over [positiveAmount] tiles [cityFilter]
+受影响的地块必须属于触发文明；城市第一环地块永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去
+
+示例："Lose control over [3] tiles [in all cities]"
+
+适用范围：Triggerable
+
+:::
 ::: details Reveal up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
 示例："Reveal up to [3] [Farm] within a [3] tile radius"
+
+适用范围：Triggerable
+
+:::
+::: details Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
+取消受影响地块的已探索状态。当前处于触发文明视野内的地块（如单位/城市视野范围）会在下次更新时重新可见，因此隐藏只对视野之外的地块持续生效
+
+示例："Hide up to [3] [Farm] within a [3] tile radius"
 
 适用范围：Triggerable
 
@@ -255,6 +275,12 @@ title: Unique 能力列表
 
 :::
 ::: details Gain an extra spy
+适用范围：Triggerable
+
+:::
+::: details Lose a spy
+移除一名间谍，优先移除当前未执行任务的间谍
+
 适用范围：Triggerable
 
 :::

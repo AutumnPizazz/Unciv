@@ -73,6 +73,10 @@ Example: "Empire enters a [3]-turn Golden Age"
 Applicable to: Triggerable
 
 :::
+::: details End a golden age
+Applicable to: Triggerable
+
+:::
 ::: details Free Great Person
 Applicable to: Triggerable
 
@@ -223,8 +227,24 @@ Example: "Gain control over [3] tiles [in all cities]"
 Applicable to: Triggerable
 
 :::
+::: details Lose control over [positiveAmount] tiles [cityFilter]
+The affected tiles must belong to the triggering civilization; the first ring of a city can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first
+
+Example: "Lose control over [3] tiles [in all cities]"
+
+Applicable to: Triggerable
+
+:::
 ::: details Reveal up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
 Example: "Reveal up to [3] [Farm] within a [3] tile radius"
+
+Applicable to: Triggerable
+
+:::
+::: details Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
+Un-explores the affected tiles. Tiles currently visible to the triggering civilization (e.g. in the sight range of its units or cities) become visible again on the next update, so hiding only persists for tiles that are out of sight
+
+Example: "Hide up to [3] [Farm] within a [3] tile radius"
 
 Applicable to: Triggerable
 
@@ -248,6 +268,12 @@ Applicable to: Triggerable
 
 :::
 ::: details Gain an extra spy
+Applicable to: Triggerable
+
+:::
+::: details Lose a spy
+Removes one spy, preferring one that is not currently on a mission
+
 Applicable to: Triggerable
 
 :::

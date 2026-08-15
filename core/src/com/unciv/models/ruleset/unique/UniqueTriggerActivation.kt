@@ -574,6 +574,14 @@ object UniqueTriggerActivation {
                 }
             }
 
+            UniqueType.OneTimeEndGoldenAge -> {
+                if (!civInfo.goldenAges.isGoldenAge()) return null
+                return {
+                    civInfo.goldenAges.endGoldenAge()
+                    true
+                }
+            }
+
             UniqueType.OneTimeFreeGreatPerson -> {
                 if (civInfo.isSpectator()) return null
                 return {
@@ -1057,6 +1065,47 @@ object UniqueTriggerActivation {
                     true
                 }
             }
+
+            UniqueType.OneTimeHideSpecificMapTiles -> {
+                if (tile == null) return null
+
+                // "Hide up to [amount/'all'] [tileFilter] within a [amount] tile radius"
+                val amount = unique.params[0]
+                val filter = unique.params[1]
+                val radius = unique.params[2].toInt()
+
+                val isAll = amount in Constants.all
+                val positions = ArrayList<HexCoord>()
+
+                var hideableTiles = tile.getTilesInDistance(radius)
+                    .filter { it.isExplored(civInfo) && it.matchesFilter(filter) }
+
+                if (hideableTiles.none())
+                    return null
+
+                if (!isAll)
+                    hideableTiles = hideableTiles.shuffled(tileBasedRandom).take(amount.toInt())
+
+                return {
+                    for (hideableTile in hideableTiles) {
+                        hideableTile.setExplored(civInfo, false)
+                        // Tiles in the sight range of our units or cities become visible again on the next cache update
+                        civInfo.viewableTiles = civInfo.viewableTiles - hideableTile
+                        positions += hideableTile.position
+                    }
+
+                    if (notification != null) {
+                        civInfo.addNotification(
+                            notification,
+                            LocationAction(positions.asSequence()),
+                            NotificationCategory.War,
+                            NotificationIcon.Scout
+                        )
+                    }
+                    true
+                }
+            }
+
             UniqueType.OneTimeRevealCrudeMap -> {
                 if (tile == null) return null
 
@@ -1144,6 +1193,17 @@ object UniqueTriggerActivation {
                 }
             }
 
+            UniqueType.OneTimeLoseSpy -> {
+                if (!civInfo.isMajorCiv()) return null
+                if (!civInfo.gameInfo.isEspionageEnabled()) return null
+                if (civInfo.espionageManager.spyList.isEmpty()) return null
+
+                return {
+                    civInfo.espionageManager.removeSpy()
+                    true
+                }
+            }
+
             UniqueType.OneTimeTakeOverTilesInCity -> {
                 val applicableCities = getApplicableCities(unique.params[1])
                 if (applicableCities.none()) return null
@@ -1157,6 +1217,30 @@ object UniqueTriggerActivation {
                             val tileToOwn = applicableCity.expansion.chooseNewTileToOwn() ?: break
                             applicableCity.expansion.takeOwnership(tileToOwn)
                             tilesToTake--
+                        }
+                    }
+                    if (notification != null)
+                        civInfo.addNotification(notification, LocationAction(applicableCities.map { it.location.toHexCoord() }), NotificationCategory.Cities, NotificationIcon.City)
+                    true
+                }
+            }
+
+            UniqueType.OneTimeLoseTilesInCity -> {
+                val applicableCities = getApplicableCities(unique.params[1])
+                if (applicableCities.none()) return null
+                if (applicableCities.none { city -> city.getTiles().any { tile -> !tile.isCityCenter() && !city.expansion.isFirstRingTile(tile) } })
+                    return null
+
+                return {
+                    val positiveAmount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    for (applicableCity in applicableCities) {
+                        var tilesToLose = positiveAmount
+                        // Tiles are lost in reverse order of acquisition - the most recently acquired go first
+                        for (tileToLose in applicableCity.getTiles().toList().asReversed()) {
+                            if (tilesToLose <= 0) break
+                            if (tileToLose.isCityCenter() || applicableCity.expansion.isFirstRingTile(tileToLose)) continue
+                            applicableCity.expansion.relinquishOwnership(tileToLose)
+                            tilesToLose--
                         }
                     }
                     if (notification != null)

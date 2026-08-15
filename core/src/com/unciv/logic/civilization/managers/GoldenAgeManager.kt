@@ -71,8 +71,7 @@ class GoldenAgeManager : IsPartOfGameInfoSerialization {
         if (isGoldenAge()){
             turnsLeftForCurrentGoldenAge--
             if (turnsLeftForCurrentGoldenAge <= 0)
-                for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUpponEndingGoldenAge))
-                    UniqueTriggerActivation.triggerUnique(unique, civInfo)
+                endGoldenAge()
         }
                 
         else if (storedHappiness > happinessRequiredForNextGoldenAge()) {
@@ -80,6 +79,17 @@ class GoldenAgeManager : IsPartOfGameInfoSerialization {
             enterGoldenAge()
             numberOfGoldenAges++
         }
+    }
+
+    /** Ends the current golden age immediately - zeroes the countdown, fires
+     *  [UniqueType.TriggerUpponEndingGoldenAge] triggers and refreshes city stats,
+     *  mirroring the natural end of a golden age in [endTurn]. */
+    fun endGoldenAge() {
+        turnsLeftForCurrentGoldenAge = 0
+        for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUpponEndingGoldenAge))
+            UniqueTriggerActivation.triggerUnique(unique, civInfo)
+        for (city in civInfo.cities)
+            city.cityStats.update()
     }
 
 }
