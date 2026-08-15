@@ -207,9 +207,9 @@ class RulesetValidatorTests {
     fun `ruleset validator accepts resource unique for every non resource countable`() {
         val game = TestGame()
         val providedResource = game.createResource()
-
         game.createBuilding("Provides [1] [${providedResource.name}] <for every [Cities]>")
-
         assertFalse(hasRecursiveResourceUniqueError(game, "for every [Cities]"))
     }
+
+    //endregion
 }

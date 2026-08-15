@@ -8,6 +8,8 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：`[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` 参数全面兑现文档承诺的 Countable 表达式支持——半径、数量、免费单位数、单位治疗/伤害/经验/状态回合数、回合条件等此前遇 Countable 表达式会崩溃或解析错误；`getResourceAmount` 两个重载统一（库存优先），Countable 资源引用在城市与文明上下文中解析一致
+- 模组支持：Countable 文档新增 `[mapUnitFilter] Units` 按自定义 tag unique 计数的说明（如 `[{Class.Tag} Units]`），模组可将逐对象重复的事件 unique 合并为一条 Countable 表达式
 - 测试：testMOD 夹具从 `android/assets/mods/` 迁至 `tests/src/test/resources/testMOD`（纯测试夹具，经测试 classpath 加载；新增 `TestAssets` 辅助类统一加载与仓库根目录定位。发布包本就排除 `mods/`，迁移主要让开发运行时的模组列表保持干净）
 - 模组/Lua：新增 unique「Tile yield is modified by [luaFunction]」——Lua 通过 `ctx.tileStats` 接收引擎计算的地块产出，可返回新产出表（返回表中出现的属性覆盖引擎值、未出现的保持原值，返回 nil 则产出不变）；`ctx.tileStats` 已登记进 Lua API 文档，testMOD 新增地块产出钩子测试
 - 模组支持：新增四个触发器 unique——「upon attacking」「upon being attacked」（攻/防方各自的战斗钩子，覆盖近战、远程与空袭）、「upon pillaging a [tileFilter] tile」（单位级与文明级）、「upon finishing razing a city」（焚毁完成时）

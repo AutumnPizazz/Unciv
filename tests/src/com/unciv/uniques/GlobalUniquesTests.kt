@@ -907,6 +907,63 @@ class GlobalUniquesTests {
 
     // endregion
 
+    // region Countable parameters
+
+    @Test
+    fun countableRadius() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val tile = game.getTile(HexCoord.Zero)
+        val city = game.addCity(civInfo, tile, true)
+        val farTile = tile.getTilesAtDistance(2).first()
+        city.expansion.takeOwnership(farTile)
+        civInfo.resourceStockpiles["Iron"] = 2
+
+        // 半径参数支持 Countable 表达式：[[Iron]] = 2
+        val building = game.createBuilding("Lose control over [all] tiles in a [[Iron]]-tile radius")
+        city.cityConstructions.addBuilding(building)
+
+        Assert.assertEquals(1, city.getTiles().count()) // 半径 2 内非市中心地块全部失去
+        Assert.assertNull(farTile.getOwner())
+    }
+
+    @Test
+    fun countableFreeUnits() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        // 11 个 Warrior 分布在地图上（一格一个）
+        val tiles = game.tileMap.values.filter { it.getOwner() == null && !it.isCityCenter() }.take(11).toList()
+        for (tile in tiles) game.addUnit("Warrior", civInfo, tile)
+
+        civInfo.updateStatsForNextTurn()
+        val upkeepDefault = civInfo.stats.statsForNextTurn.gold // 默认免 3 个
+
+        // FreeUnits 数量支持 Countable：[[Iron] * 2] = 4 → 免 3+4=7 个
+        civInfo.resourceStockpiles["Iron"] = 2
+        val policy = game.createPolicy("[[Iron] * 2] units cost no maintenance")
+        civInfo.policies.adopt(policy, true)
+        civInfo.updateStatsForNextTurn()
+        val upkeepWithCountable = civInfo.stats.statsForNextTurn.gold
+
+        // 免 4 个额外单位 → 维护费减少 4 * 0.5 = 2
+        Assert.assertEquals(upkeepDefault + 2f, upkeepWithCountable, 0.01f)
+    }
+
+    @Test
+    fun countableExpressionErrorsDoNotCrash() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val city = game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+
+        // 非法 Countable 表达式：行动不可用（不触发），不崩溃
+        val building = game.createBuilding("Lose control over [all] tiles in a [[NotARealCountable]]-tile radius")
+        city.cityConstructions.addBuilding(building)
+        Assert.assertEquals(7, city.getTiles().count())
+    }
+
+    // endregion
+
     // region Trigger upon uniques
 
     @Test

@@ -94,6 +94,13 @@ object UniqueTriggerActivation {
             ?: Countables.getCountableAmount(param, GameContext(civInfo, city))
     }
 
+    /** Resolve a parameter as a non-negative Int amount (plain number or Countable expression).
+     *  Returns null when it can't be resolved or evaluates negative. */
+    @Readonly
+    private fun resolveNonNegativeAmount(param: String, gameContext: GameContext): Int? {
+        return Countables.getCountableAmount(param, gameContext)?.takeIf { it >= 0 }
+    }
+
     /** Check if a parameter is a valid amount (plain number or valid Countable expression) */
     @Readonly
     private fun isValidAmount(param: String, ruleset: Ruleset): Boolean =
@@ -240,7 +247,7 @@ object UniqueTriggerActivation {
                     return null
 
                 val limit = civUnit.getMatchingUniques(UniqueType.MaxNumberBuildable)
-                    .map { it.params[0].toInt() }.minOrNull()
+                    .mapNotNull { Countables.getCountableAmount(it.params[0], gameContext) }.minOrNull()
                 if (limit != null && limit <= civInfo.units.getCivUnits().count { it.name == civUnit.name })
                     return null
 
@@ -535,7 +542,7 @@ object UniqueTriggerActivation {
                     .getAdoptedPoliciesMatching(policyFilter, gameContext, forRemoval = true)
                 if (policiesToRemove.none()) return null
 
-                val refundPercentage = unique.params[1].toInt()
+                val refundPercentage = resolveAmount(unique.params[1], civInfo, city) ?: 0
                 val policiesToRemoveMap = civInfo.policies.getCultureRefundMap(policiesToRemove, refundPercentage)
 
                 return {
@@ -663,7 +670,7 @@ object UniqueTriggerActivation {
 
                 return {
                     val techsToResearch = researchableTechsFromThatEra.shuffled(tileBasedRandom)
-                        .take(unique.params[0].toInt())
+                        .take(resolveAmount(unique.params[0], civInfo, city) ?: 0)
                     for (tech in techsToResearch)
                         civInfo.tech.addTechnology(tech.name)
 
@@ -1032,7 +1039,7 @@ object UniqueTriggerActivation {
                 // "Reveal up to [amount/'all'] [tileFilter] within a [amount] tile radius"
                 val amount = unique.params[0]
                 val filter = unique.params[1]
-                val radius = unique.params[2].toInt()
+                val radius = resolveNonNegativeAmount(unique.params[2], gameContext) ?: return null
 
                 val isAll = amount in Constants.all
                 val positions = ArrayList<HexCoord>()
@@ -1072,7 +1079,7 @@ object UniqueTriggerActivation {
                 // "Hide up to [amount/'all'] [tileFilter] within a [amount] tile radius"
                 val amount = unique.params[0]
                 val filter = unique.params[1]
-                val radius = unique.params[2].toInt()
+                val radius = resolveNonNegativeAmount(unique.params[2], gameContext) ?: return null
 
                 val isAll = amount in Constants.all
                 val positions = ArrayList<HexCoord>()
@@ -1111,8 +1118,8 @@ object UniqueTriggerActivation {
 
                 // "From a randomly chosen tile [amount] tiles away from the ruins,
                 // reveal tiles up to [amount] tiles away with [amount]% chance"
-                val distance = unique.params[0].toInt()
-                val radius = unique.params[1].toInt()
+                val distance = resolveNonNegativeAmount(unique.params[0], gameContext) ?: return null
+                val radius = resolveNonNegativeAmount(unique.params[1], gameContext) ?: return null
                 val chance = unique.params[2].toFloat() / 100f
 
                 val revealCenter = tile.getTilesAtDistance(distance)
@@ -1177,7 +1184,7 @@ object UniqueTriggerActivation {
                 if (!civInfo.gameInfo.isEspionageEnabled()) return null
 
                 return {
-                    civInfo.espionageManager.spyList.forEach { it.levelUpSpy(unique.params[0].toInt()) }
+                    civInfo.espionageManager.spyList.forEach { it.levelUpSpy(resolveAmount(unique.params[0], civInfo, city) ?: 0) }
                     true
                 }
             }
@@ -1330,7 +1337,7 @@ object UniqueTriggerActivation {
                 if (unit == null) return null
                 if (unit.health == unit.getMaxHealth()) return null
                 return {
-                    unit.healBy(unique.params[1].toInt())
+                    unit.healBy(resolveAmount(unique.params[1], civInfo, city) ?: 0)
                     if (notification != null)
                         unit.civ.addNotification(notification, MapUnitAction(unit), NotificationCategory.Units, unit.name, "Heal Instantly")
                     true
@@ -1339,7 +1346,7 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeUnitDamage -> {
                 if (unit == null) return null
                 return {
-                    unit.takeDamage(unique.params[1].toInt())
+                    unit.takeDamage(resolveAmount(unique.params[1], civInfo, city) ?: 0)
                     if (notification != null)
                         unit.civ.addNotification(notification, MapUnitAction(unit), NotificationCategory.Units, unit.name)
                     true
@@ -1348,7 +1355,7 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeUnitGainXP -> {
                 if (unit == null) return null
                 return {
-                    unit.promotions.XP += unique.params[1].toInt()
+                    unit.promotions.XP += resolveAmount(unique.params[1], civInfo, city) ?: 0
                     if (notification != null)
                         unit.civ.addNotification(notification, MapUnitAction(unit), NotificationCategory.Units, unit.name, "UnitActionIcons/Promote")
                     true
@@ -1371,7 +1378,7 @@ object UniqueTriggerActivation {
                 if (unit == null) return null
                 if (unique.params[1] !in unit.civ.gameInfo.ruleset.unitPromotions) return null
                 return {
-                    unit.setStatus(unique.params[1], unique.params[2].toInt())
+                    unit.setStatus(unique.params[1], resolveAmount(unique.params[2], civInfo, city) ?: 0)
                     if (notification != null)
                         unit.civ.addNotification(notification, MapUnitAction(unit), NotificationCategory.Units, unit.name, unique.params[1])
                     true
@@ -1513,8 +1520,7 @@ object UniqueTriggerActivation {
                 if (tile == null) return null
                 if (civInfo.cities.isEmpty()) return null
                 val tileFilter = unique.params[0]
-                val radius = unique.params[1].toInt()
-                if (radius < 0) return null
+                val radius = resolveNonNegativeAmount(unique.params[1], gameContext) ?: return null
                 val tilesToTakeOver = tile.getTilesInDistance(radius)
                     .filter {
                         !it.isCityCenter() && it.matchesFilter(tileFilter) && it.getOwner() != civInfo
@@ -1569,8 +1575,7 @@ object UniqueTriggerActivation {
                 if (tile == null) return null
                 if (civInfo.cities.isEmpty()) return null
                 val tileFilter = unique.params[0]
-                val radius = unique.params[1].toInt()
-                if (radius < 0) return null
+                val radius = resolveNonNegativeAmount(unique.params[1], gameContext) ?: return null
                 val tilesToLose = tile.getTilesInDistance(radius)
                     .filter {
                         val owningCity = it.getCity()

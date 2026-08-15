@@ -567,7 +567,10 @@ class Civilization : IsPartOfGameInfoSerialization {
      * Returns 0 for undefined resources */
     @Readonly
     fun getResourceAmount(resource: TileResource): Int {
-        if (resource.isStockpiled) return resourceStockpiles[resource.name]
+        // Keep in sync with the String overload above: stockpiles first (mods may set any resource),
+        // then civ resource supply for non-stockpiled resources
+        val stockpileValue = resourceStockpiles[resource.name]
+        if (stockpileValue != 0) return stockpileValue
         return getCivResourceSupply().firstOrNull { it.resource == resource }?.amount ?: 0
     }
 

@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: `[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` parameters now fully honor their documented Countable-expression support - radii, amounts, free-unit counts, unit heal/damage/XP/status values and turn conditions previously crashed or mis-parsed on Countable expressions; `getResourceAmount` overloads unified (stockpiles first) so Countable resource references resolve consistently in city and civ contexts
+- Modding: Countable docs now show how `[mapUnitFilter] Units` counts custom tag uniques (e.g. `[{Class.Tag} Units]`), letting mods merge identical per-object event uniques into one Countable expression
 - Tests: testMOD fixture moved from `android/assets/mods/` to `tests/src/test/resources/testMOD` (test-only fixture, loaded via classpath with a new `TestAssets` helper that also centralizes repo-root lookup; `mods/` was already excluded from release packaging, the move keeps the dev-runtime mod list clean)
 - Modding/Lua: new "Tile yield is modified by [luaFunction]" unique - Lua receives the engine-computed tile yield as `ctx.tileStats` and may return a table with new yields (stats present override engine values, absent ones keep them, nil leaves the yield unchanged); `ctx.tileStats` is registered in the Lua API docs, testMOD gains tile yield hook tests
 - Modding: new trigger uniques - "upon attacking" / "upon being attacked" (attacker-only and defender-only combat hooks, covering melee, ranged and air attacks), "upon pillaging a [tileFilter] tile" (unit-level and civ-level) and "upon finishing razing a city"

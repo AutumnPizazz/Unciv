@@ -9,6 +9,7 @@ import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.models.ruleset.Policy
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.tile.TileImprovement
+import com.unciv.models.ruleset.unique.Countables
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTarget
@@ -37,7 +38,7 @@ class CivInfoStatsForNextTurn(val civInfo: Civilization) {
         val baseUnitCost = 0.5f
         var freeUnits = 3
         for (unique in civInfo.getMatchingUniques(UniqueType.FreeUnits, civInfo.state)) {
-            freeUnits += unique.params[0].toInt()
+            freeUnits += Countables.getCountableAmount(unique.params[0], civInfo.state) ?: 0
         }
 
         var unitsToPayFor = civInfo.units.getCivUnits()

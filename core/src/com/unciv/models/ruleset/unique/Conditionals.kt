@@ -163,9 +163,9 @@ object Conditionals {
 
         return when (conditional.type) {
             UniqueType.ConditionalChance -> getStateBasedRandom(state, unique) < conditional.params[0].toFloat() / 100f
-            UniqueType.ConditionalEveryTurns -> checkOnGameInfo { turns % conditional.params[0].toInt() == 0 }
-            UniqueType.ConditionalBeforeTurns -> checkOnGameInfo { turns < conditional.params[0].toInt() }
-            UniqueType.ConditionalAfterTurns -> checkOnGameInfo { turns >= conditional.params[0].toInt() }
+            UniqueType.ConditionalEveryTurns -> checkOnGameInfo { turns % (Countables.getCountableAmount(conditional.params[0], state) ?: return@checkOnGameInfo false) == 0 }
+            UniqueType.ConditionalBeforeTurns -> checkOnGameInfo { turns < (Countables.getCountableAmount(conditional.params[0], state) ?: return@checkOnGameInfo false) }
+            UniqueType.ConditionalAfterTurns -> checkOnGameInfo { turns >= (Countables.getCountableAmount(conditional.params[0], state) ?: return@checkOnGameInfo false) }
             UniqueType.ConditionalTutorialsEnabled -> UncivGame.Current.settings.showTutorials
             UniqueType.ConditionalTutorialCompleted -> conditional.params[0] in UncivGame.Current.settings.tutorialTasksCompleted
 
