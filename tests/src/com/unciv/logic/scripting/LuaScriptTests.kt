@@ -25,6 +25,7 @@ import com.unciv.logic.trade.TradeOfferType
 import com.unciv.models.ruleset.validation.RulesetErrorSeverity
 import com.unciv.models.ruleset.validation.RulesetValidator
 import com.unciv.testing.GdxTestRunner
+import com.unciv.testing.TestAssets
 import com.unciv.testing.TestGame
 import org.junit.Assert
 import org.junit.Before
@@ -45,14 +46,11 @@ class LuaScriptTests {
         testGame = TestGame()
         testGame.makeHexagonalMap(5, "Grassland")
 
-        // Find and load testMOD from disk
+        // Load the bundled testMOD fixture from the tests classpath
         modName = "testMOD"
-        val testModDir = sequenceOf(
-            Gdx.files.internal("mods/$modName"),
-            Gdx.files.absolute(System.getProperty("user.dir") + "/android/assets/mods/$modName")
-        ).firstOrNull { it.isDirectory }
+        val testModDir = TestAssets.testModDir()
 
-        if (testModDir != null && testModDir.child("jsons").isDirectory) {
+        if (testModDir.child("jsons").isDirectory) {
             val mod = Ruleset().apply { name = modName }
             mod.load(testModDir.child("jsons"))
             if (mod.buildings.isNotEmpty())
@@ -366,12 +364,7 @@ class LuaScriptTests {
 
         // Reload testMOD scripts so edits to testNewApi.lua take effect within a shared JVM
         LuaScriptManager.clearMod(modName)
-        val testModDir = sequenceOf(
-            Gdx.files.internal("mods/$modName"),
-            Gdx.files.absolute(System.getProperty("user.dir") + "/android/assets/mods/$modName")
-        ).firstOrNull { it.isDirectory }
-        if (testModDir != null)
-            LuaScriptManager.loadScripts(testModDir, modName, testGame.ruleset)
+        LuaScriptManager.loadScripts(TestAssets.testModDir(), modName, testGame.ruleset)
 
         val ctx = LuaAPI.buildContext(civ, city, unit, unit.currentTile, "", GameContext(civ, city, unit, unit.currentTile), modName)
         val (_, func) = LuaScriptManager.getFunction(modName, "testNewApi") ?: run {

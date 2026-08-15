@@ -2,6 +2,7 @@ package com.unciv.logic.scripting
 
 import com.badlogic.gdx.Gdx
 import com.unciv.testing.GdxTestRunner
+import com.unciv.testing.TestAssets
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,8 +17,7 @@ import org.junit.runner.RunWith
 class LuaApiDocsTests {
 
     private fun repoRoot() = run {
-        val testModFile = Gdx.files.internal("mods/testMOD").file().canonicalFile
-        testModFile.parentFile!!.parentFile!!.parentFile!!.parentFile!!
+        TestAssets.repoRoot()
     }
 
     /** LuaApiDocs 条目必须与 apiCatalog 一一对应（双向，防漏加/多删/拼写漂移） */

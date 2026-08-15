@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Tests: testMOD fixture moved out of `android/assets/mods/` (which ships to players) into `tests/src/test/resources/testMOD`, loaded from the tests classpath via a new `TestAssets` helper (also centralizes repo-root lookup for the Lua docs/catalog tests)
 - Modding/Lua: new "Tile yield is modified by [luaFunction]" unique - Lua receives the engine-computed tile yield as `ctx.tileStats` and may return a table with new yields (stats present override engine values, absent ones keep them, nil leaves the yield unchanged); `ctx.tileStats` is registered in the Lua API docs, testMOD gains tile yield hook tests
 - Modding: new trigger uniques - "upon attacking" / "upon being attacked" (attacker-only and defender-only combat hooks, covering melee, ranged and air attacks), "upon pillaging a [tileFilter] tile" (unit-level and civ-level) and "upon finishing razing a city"
 - Modding: new conditionals - "if unit is fortified", "if unit is embarked" and "if this city is being razed" - usable on any unique

@@ -8,6 +8,7 @@ import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.tile.TileNormalizer
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.testing.GdxTestRunner
+import com.unciv.testing.TestAssets
 import com.unciv.testing.TestGame
 import org.junit.Assert
 import org.junit.Before
@@ -1528,9 +1529,8 @@ class LuaMapGenAPITests {
     fun mapGenApiCatalogMatchesRuntimeRegistration() {
         // Every API the engine registers on the map-script context tables must be listed in the
         // static catalog consumed by the CLI mod checker - otherwise mod-ci misses typos.
-        // Locate the repo root by walking up from the bundled testMOD (android/assets/mods/testMOD)
-        val testModFile = Gdx.files.internal("mods/testMOD").file().canonicalFile
-        val repoRoot = testModFile.parentFile!!.parentFile!!.parentFile!!.parentFile!!
+        // Locate the repo root by walking up from the bundled testMOD resources
+        val repoRoot = TestAssets.repoRoot()
         val apiSource = java.nio.file.Files.readString(
             repoRoot.toPath().resolve("core/src/com/unciv/logic/scripting/LuaMapGenAPI.kt")
         )

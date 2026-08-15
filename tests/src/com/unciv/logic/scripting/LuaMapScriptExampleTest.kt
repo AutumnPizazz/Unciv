@@ -7,6 +7,7 @@ import com.unciv.logic.map.TileMap
 import com.unciv.logic.map.mapgenerator.MapGenerationRandomness
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.testing.GdxTestRunner
+import com.unciv.testing.TestAssets
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,9 +21,8 @@ import org.junit.runner.RunWith
 class LuaMapScriptExampleTest {
 
     private fun exampleDir() = run {
-        // Locate the repo root by walking up from the bundled testMOD (android/assets/mods/testMOD)
-        val testModFile = Gdx.files.internal("mods/testMOD").file().canonicalFile
-        val repoRoot = testModFile.parentFile!!.parentFile!!.parentFile!!.parentFile!!
+        // Locate the repo root by walking up from the bundled testMOD resources
+        val repoRoot = TestAssets.repoRoot()
         Gdx.files.absolute("${repoRoot.path}/docs/Modders/examples/LuaMapScriptExample")
     }
 

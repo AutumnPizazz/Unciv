@@ -779,11 +779,8 @@ class MergeActionTests {
             palaceBefore.uniques.contains("Indicates the capital city"))
         val uniquesBefore = ArrayList(palaceBefore.uniques)
 
-        // Load testMOD from actual file — try several paths
-        var testModDir = com.badlogic.gdx.Gdx.files.internal("mods/testMOD")
-        if (!testModDir.isDirectory)
-            testModDir = com.badlogic.gdx.Gdx.files.absolute(
-                System.getProperty("user.dir") + "/android/assets/mods/testMOD")
+        // Load testMOD from the bundled tests resources
+        val testModDir = TestAssets.testModDir()
         if (!testModDir.isDirectory) {
             println("Skipping test: testMOD directory not found at ${testModDir.path()}")
             return

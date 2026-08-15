@@ -5,6 +5,7 @@ import com.unciv.logic.map.HexCoord
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.testing.GdxTestRunner
+import com.unciv.testing.TestAssets
 import com.unciv.testing.TestGame
 import org.junit.Assert
 import org.junit.Before
@@ -209,10 +210,7 @@ class LuaApiRobustnessTests {
     @Test
     fun testModScriptsPassStaticCheck() {
         // The bundled testMOD scripts must be clean - keeps the checker honest about false positives
-        val testModDir = sequenceOf(
-            Gdx.files.internal("mods/testMOD"),
-            Gdx.files.absolute(System.getProperty("user.dir") + "/android/assets/mods/testMOD")
-        ).firstOrNull { it.isDirectory } ?: run { return }
+        val testModDir = TestAssets.testModDir()
         val errors = LuaModStaticChecker.checkApiUsage(testModDir.child("scripts"))
         Assert.assertTrue(
             "testMOD should pass the static Lua check, got: ${errors.map { it.message }}",
@@ -225,10 +223,7 @@ class LuaApiRobustnessTests {
         // Simulates the desktop `mod-ci` CLI flow (without image packing):
         // ruleset.load collects Lua syntax errors, the static checker collects API typos,
         // and RulesetValidator surfaces both as ruleset errors
-        val testModDir = sequenceOf(
-            Gdx.files.internal("mods/testMOD"),
-            Gdx.files.absolute(System.getProperty("user.dir") + "/android/assets/mods/testMOD")
-        ).firstOrNull { it.isDirectory } ?: run { return }
+        val testModDir = TestAssets.testModDir()
 
         val ruleset = Ruleset().apply { name = "testMOD" }
         ruleset.load(testModDir.child("jsons"))
@@ -271,9 +266,8 @@ class LuaApiRobustnessTests {
     fun starterModStaysHealthy() {
         // The LuaStarterMod template must stay loadable and pass the same checks a mod author
         // would run (mod-ci): no Lua errors, no API typos, no Error-level ruleset issues
-        // Locate the repo root by walking up from the bundled testMOD (android/assets/mods/testMOD)
-        val testModFile = Gdx.files.internal("mods/testMOD").file().canonicalFile
-        val repoRoot = testModFile.parentFile!!.parentFile!!.parentFile!!.parentFile!!
+        // Locate the repo root by walking up from the bundled testMOD resources
+        val repoRoot = TestAssets.repoRoot()
         val starterDir = Gdx.files.absolute("${repoRoot.path}/docs/Modders/examples/LuaStarterMod")
         if (!starterDir.isDirectory) {
             Assert.fail("LuaStarterMod template directory not found under $repoRoot"); return
