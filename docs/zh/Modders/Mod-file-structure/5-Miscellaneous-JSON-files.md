@@ -202,15 +202,15 @@ title: 其他 JSON 文件
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | modVersion | String | 0.0.1 | 模组版本号，格式 `n.n.n`；显示在模组管理器中，并用于依赖版本检查 |
-| gameVersionRange | String | 空 | 该模组可应用的游戏版本范围，格式 `min~max`（闭区间，`n.n.n.n` 可带 `-patchN` 后缀，任一侧可省略）；空 = 全版本可用 |
+| recommendedGameVersion | String | 空 | 本模组版本针对制作的游戏版本，精确匹配（`n.n.n`、`n.n.n.n` 或带 `-patchN` 后缀）；空 = 未声明 |
 | modDependencies | List | 空 | 依赖模组列表，每项为对象 `{ "name": ..., "version": ... }`；`version` 为精确版本或 `min~max` 范围，空 = 任意版本 |
 
 示例：
 
 ```json
 {
-  "modVersion": "1.2.3",
-  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modVersion": "0.1.0",
+  "recommendedGameVersion": "4.21.7.1",
   "modDependencies": [
     { "name": "UCCC", "version": "1.0.0~2.0.0" },
     { "name": "MyOtherMod", "version": "3.0.0" }
@@ -220,11 +220,13 @@ title: 其他 JSON 文件
 
 #### 什么时候会看到警告？
 
-- **游戏版本**：当前游戏版本超出 `gameVersionRange` 时，例如模组声明 `4.21.5.1~4.21.6.3` 而玩家运行的是 4.21.7——模组管理器中该模组旁显示警告标记、信息面板显示黄色警告行，新建游戏模组选择时弹出提示，模组检查器（选项 → 定位模组错误）中也会列出该警告。
+- **游戏版本**：当前游戏版本与 `recommendedGameVersion` 不完全一致时，例如模组声明 `recommendedGameVersion: "4.21.7.1"` 而玩家运行的是 4.21.7.2——模组管理器的已安装列表直接显示版本号与推荐游戏版本、该模组旁显示警告标记、信息面板显示黄色警告行，新建游戏模组选择时弹出提示，模组检查器（选项 → 定位模组错误）中也会列出该警告。
 - **依赖模组**：依赖模组未加载，或其 `modVersion` 不满足声明的版本要求。
 - **声明格式错误**：版本号或范围写错（如笔误）也会被报告，方便模组作者发现并修正。
 
 所有情况下模组都保持可用——警告从不阻止任何操作。
+
+`recommendedGameVersion` 表达"本模组版本是为游戏版本 X 制作的"——它直接显示在模组管理器中（如 `Version 0.1.0 · game 4.21.7.1`），警告文案也读作推荐而非要求。模组在所有游戏版本都能工作时留空。
 
 #### 版本格式细节
 
@@ -240,7 +242,7 @@ Unciv 已有声明式模组兼容 uniques（`ModRequires`、`ModIncompatibleWith
 #### 最佳实践
 
 - 每次发版都提升 `modVersion`，让依赖版本检查保持有意义。
-- 仅当模组确实依赖特定游戏版本时（例如用到了新特性）才声明 `gameVersionRange`；不填即全版本可用。
+- 用 `recommendedGameVersion` 钉住本模组版本制作的游戏版本（精确匹配）；模组在所有游戏版本都能工作时留空。
 
 ### ModConstants
 

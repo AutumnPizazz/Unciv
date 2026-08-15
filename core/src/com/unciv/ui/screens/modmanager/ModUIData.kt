@@ -19,7 +19,7 @@ class ModUIData private constructor(
     val repo: GithubAPI.Repo? = null,
     var isVisual: Boolean = false,
     var hasUpdate: Boolean = false,
-    /** True when the current game version is outside the mod's declared [gameVersionRange] */
+    /** True when the current game version does not exactly match the mod's declared [com.unciv.models.ruleset.ModOptions.recommendedGameVersion] */
     var hasVersionWarning: Boolean = false
 ) {
     // For deserialization from cache file 
@@ -49,6 +49,18 @@ class ModUIData private constructor(
         ruleset != null -> ModManagementScreen.cleanModName(ruleset.name)
         repo != null -> ModManagementScreen.cleanModName(repo.name) + (if (hasUpdate) " - {Updated}" else "")
         else -> ""
+    }
+
+    /**
+     * Short version line shown under the mod name in the installed list,
+     * e.g. "Version 0.1.0" or "Version 0.1.0 · game 4.21.7.1".
+     * Empty for online (not installed) mods - no modoptions data is available there.
+     */
+    fun versionLine(): String {
+        val modOptions = ruleset?.modOptions ?: return ""
+        val recommended = modOptions.recommendedGameVersion.trim()
+        return if (recommended.isEmpty()) "Version [$modOptions.modVersion]"
+            else "Version [$modOptions.modVersion] · game [$recommended]"
     }
 
     internal fun matchesFilter(filter: ModManagementOptions.Filter): Boolean = when {

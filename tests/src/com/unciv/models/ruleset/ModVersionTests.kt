@@ -154,10 +154,14 @@ class ModVersionTests {
     //endregion
 
     //region ModOptions warnings
-    private fun modOptions(version: String = "1.2.3", range: String = "", dependencies: List<Pair<String, String>> = emptyList()): ModOptions {
+    private fun modOptions(
+        version: String = "1.2.3",
+        recommended: String = "",
+        dependencies: List<Pair<String, String>> = emptyList()
+    ): ModOptions {
         val options = ModOptions()
         options.modVersion = version
-        options.gameVersionRange = range
+        options.recommendedGameVersion = recommended
         for ((depName, depVersion) in dependencies) {
             val dependency = ModDependency()
             dependency.name = depName
@@ -168,29 +172,37 @@ class ModVersionTests {
     }
 
     @Test
-    fun `no game version warning when range not declared`() {
-        assertNull(modOptions().getGameVersionWarning("4.21.5.3"))
+    fun `no recommended game version warning when not declared`() {
+        assertNull(modOptions().getGameVersionWarning("4.21.7.1"))
+        assertNull(modOptions().getGameVersionWarning(""))
     }
 
     @Test
-    fun `game version warning when outside declared range`() {
-        val options = modOptions(range = "4.21.5.1~4.21.5.3")
-        val warning = options.getGameVersionWarning("4.21.6")
-        assertEquals("Mod '[ModOptions]' requires game version [4.21.5.1~4.21.5.3], current version is [4.21.6]", warning)
-        assertNull(options.getGameVersionWarning("4.21.5.2"))
+    fun `recommended game version matches exactly`() {
+        val options = modOptions(recommended = "4.21.7.1")
+        assertNull(options.getGameVersionWarning("4.21.7.1"))
     }
 
     @Test
-    fun `game version warning on invalid range declaration`() {
-        val warning = modOptions(range = "not-a-range").getGameVersionWarning("4.21.6")
-        assertEquals("Invalid gameVersionRange '[not-a-range]' in mod '[ModOptions]'", warning)
+    fun `recommended game version warns on mismatch`() {
+        val options = modOptions(version = "0.1.0", recommended = "4.21.7.1")
+        assertEquals(
+            "Mod '[ModOptions]' version [0.1.0] recommends game version [4.21.7.1], you are running [4.21.7.2]",
+            options.getGameVersionWarning("4.21.7.2")
+        )
+        assertEquals(
+            "Mod '[ModOptions]' version [0.1.0] recommends game version [4.21.7.1], you are running [4.21.6]",
+            options.getGameVersionWarning("4.21.6")
+        )
     }
 
     @Test
-    fun `game version range includes patch versions`() {
-        val options = modOptions(range = "4.21.5.3~4.21.5.3-patch2")
-        assertNull(options.getGameVersionWarning("4.21.5.3-patch1"))
-        assertEquals("Mod '[ModOptions]' requires game version [4.21.5.3~4.21.5.3-patch2], current version is [4.21.5.3-patch3]", options.getGameVersionWarning("4.21.5.3-patch3"))
+    fun `recommended game version warns on invalid declaration`() {
+        val options = modOptions(recommended = "not-a-version")
+        assertEquals(
+            "Invalid recommendedGameVersion '[not-a-version]' in mod '[ModOptions]'",
+            options.getGameVersionWarning("4.21.7.1")
+        )
     }
 
     @Test

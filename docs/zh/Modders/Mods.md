@@ -56,12 +56,12 @@ title: 模组总览
 
 这是通过在你的 [modOptions 文件](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)中添加 `"isBaseRuleset":true` 配置来完成的，[像这样](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json)。
 
-**版本要求（UncivCN）**——可以在 `ModOptions.json` 中声明模组版本号、可应用的游戏版本范围、以及依赖模组的版本要求：
+**版本要求（UncivCN）**——可以在 `ModOptions.json` 中声明模组版本号、本模组版本针对制作的游戏版本、以及依赖模组的版本要求：
 
 ```json
 {
-  "modVersion": "1.2.3",
-  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modVersion": "0.1.0",
+  "recommendedGameVersion": "4.21.7.1",
   "modDependencies": [ { "name": "UCCC", "version": "1.0.0~2.0.0" } ]
 }
 ```

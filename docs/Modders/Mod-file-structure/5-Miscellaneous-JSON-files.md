@@ -204,15 +204,15 @@ Mods can declare a version and compatibility requirements, which are checked wit
 | Attribute       | Type   | Default | Notes                                                                                                                                                 |
 |-----------------|--------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
 | modVersion      | String | 0.0.1   | Mod version in `n.n.n` format; shown in the mod manager and used for dependency version checks                                                         |
-| gameVersionRange| String | empty   | Game versions this mod applies to, as `min~max` (inclusive, `n.n.n.n` with optional `-patchN` suffixes; either side may be omitted); empty = all versions |
+| recommendedGameVersion | String | empty | The game version this mod version was made for, exact match (`n.n.n`, `n.n.n.n` or `-patchN` suffix); empty = not declared |
 | modDependencies | List   | empty   | Dependency mods, each an object `{ "name": ..., "version": ... }`; `version` is an exact version or a `min~max` range, empty = any version          |
 
 Example:
 
 ```json
 {
-  "modVersion": "1.2.3",
-  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modVersion": "0.1.0",
+  "recommendedGameVersion": "4.21.7.1",
   "modDependencies": [
     { "name": "UCCC", "version": "1.0.0~2.0.0" },
     { "name": "MyOtherMod", "version": "3.0.0" }
@@ -222,11 +222,13 @@ Example:
 
 #### When are warnings shown?
 
-- **Game version**: when the current game version is outside `gameVersionRange`, e.g. the mod declares `4.21.5.1~4.21.6.3` and the player runs 4.21.7 — the mod manager shows a warning mark next to the mod and a yellow warning line in the info pane, the new-game mod selection shows a toast, and the mod checker (Options → Locate mod errors) lists the warning.
+- **Game version**: when the current game version does not exactly match `recommendedGameVersion`, e.g. the mod declares `recommendedGameVersion: "4.21.7.1"` and the player runs 4.21.7.2 — the mod manager shows the version and the recommended game version right in the installed mod list, a warning mark next to the mod and a yellow warning line in the info pane, the new-game mod selection shows a toast, and the mod checker (Options → Locate mod errors) lists the warning.
 - **Dependencies**: when a dependency mod is not loaded at all, or its `modVersion` does not match the declared requirement.
 - **Invalid declarations**: typos in the version or range format are also reported, so authors notice and fix them.
 
 In all cases the mod stays usable - warnings never block anything.
+
+`recommendedGameVersion` says "this mod version was made for game version X" - it shows up directly in the mod manager (e.g. `Version 0.1.0 · game 4.21.7.1`) and the warning text reads as a recommendation rather than a requirement. Leave it empty when the mod works on all game versions.
 
 #### Version format details
 
@@ -242,7 +244,7 @@ Unciv already has declarative mod compatibility uniques (`ModRequires`, `ModInco
 #### Good practice
 
 - Bump `modVersion` on every release, so dependency version checks stay meaningful.
-- Only declare `gameVersionRange` when the mod really depends on a specific game version (e.g. it uses a new feature); leaving it empty means all versions are supported.
+- Use `recommendedGameVersion` to pin the game version a mod version was made for (exact match); leave it empty when the mod works on all game versions.
 
 ::: note
 As an alternative to the `*ToRemove` lists, you can use [Merge Actions](6-MergeActions.md) with `"action": "REMOVE"` directly in the corresponding JSON file (e.g. `{ "name": "Scout", "_mergeAction": { "action": "REMOVE" } }` in `Units.json`). This keeps the removal declaration alongside the data it relates to, and also supports conditions (`"if"`). Both methods are supported and can be used together.

@@ -38,6 +38,10 @@ internal class ModDecoratedButton(private var modInfo: ModUIData) : Table() {
             textButton.row()
             textButton.add(topicString.toLabel(fontSize = 14))
         }
+        if (modInfo.ruleset != null) {
+            textButton.row()
+            textButton.add(modInfo.versionLine().tr().toLabel(fontSize = 14))
+        }
 
         add(textButton)
 

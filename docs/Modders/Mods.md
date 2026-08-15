@@ -51,12 +51,12 @@ In order to remove objects from the game, you'll need to create a ModOptions fil
 
 This is done by adding a `"isBaseRuleset":true` configuration to your [modOptions file](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json), [like so](https://github.com/k4zoo/Civilization-6-Mod/blob/master/jsons/ModOptions.json).
 
-**Version requirements (UncivCN)** — you can declare a mod version, the game versions it applies to, and required dependency versions in `ModOptions.json`:
+**Version requirements (UncivCN)** — you can declare a mod version, the game version it was made for, and required dependency versions in `ModOptions.json`:
 
 ```json
 {
-  "modVersion": "1.2.3",
-  "gameVersionRange": "4.21.5.1~4.21.6.3",
+  "modVersion": "0.1.0",
+  "recommendedGameVersion": "4.21.7.1",
   "modDependencies": [ { "name": "UCCC", "version": "1.0.0~2.0.0" } ]
 }
 ```

@@ -11,6 +11,7 @@ import com.unciv.UncivGame
 import com.unciv.logic.github.Github
 import com.unciv.logic.github.GithubAPI
 import com.unciv.models.metadata.BaseRuleset
+import com.unciv.models.ruleset.ModOptions
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.validation.ModCompatibility
 import com.unciv.models.translations.tr
@@ -69,12 +70,15 @@ internal class ModInfoAndActionPane : Table() {
             modName, modOptions.modUrl, modOptions.defaultBranch,
             modOptions.lastUpdated, modOptions.author, modOptions.modSize
         )
-        addVersionInfo(modOptions.modVersion, modOptions.getGameVersionWarning(UncivGame.VERSION.text))
+        addVersionInfo(modOptions, modOptions.getGameVersionWarning(UncivGame.VERSION.text))
     }
 
-    /** Adds the mod version and, when the current game version is outside the declared range, a warning line */
-    private fun addVersionInfo(modVersion: String, gameVersionWarning: String?) {
-        add("Version: [$modVersion]".toLabel()).row()
+    /** Adds the mod version, the recommended game version when declared, and a warning line when the current game version is outside the declared requirements */
+    private fun addVersionInfo(modOptions: ModOptions, gameVersionWarning: String?) {
+        add("Version: [${modOptions.modVersion}]".toLabel()).row()
+        val recommended = modOptions.recommendedGameVersion.trim()
+        if (recommended.isNotEmpty())
+            add("Recommended game version: [$recommended]".toLabel()).row()
         if (gameVersionWarning != null) {
             val warningLabel = gameVersionWarning.toLabel()
             warningLabel.color = Color.YELLOW

@@ -34,29 +34,34 @@ class ModOptions : IHasUniques {
     //region Version requirements
     /** Mod version, format n.n.n; defaults to 0.0.1 when missing */
     var modVersion = "0.0.1"
-    /** Game versions this mod applies to, format min~max; empty = all versions */
-    var gameVersionRange = ""
+    /**
+     * Recommended game version this mod version was made for, exact match (n.n.n / n.n.n.n / -patchN);
+     * empty = not declared.
+     */
+    var recommendedGameVersion = ""
     /** Dependency mods with version requirements */
     var modDependencies = mutableListOf<ModDependency>()
     //endregion
 
     //region Version requirement checks
     /**
-     * Returns a warning text when the current game version does not satisfy [gameVersionRange],
-     * or when the declared range is invalid. Returns null when no range is declared or it is satisfied.
+     * Returns a warning text when the current game version does not exactly match [recommendedGameVersion],
+     * or when the declared recommended version is invalid. Returns null when not declared or matched.
      *
      * The returned text keeps `[...]` placeholders filled with actual values, ready for `tr()`.
      */
     fun getGameVersionWarning(currentGameVersion: String): String? {
-        val rangeText = gameVersionRange.trim()
-        if (rangeText.isEmpty()) return null
-        val range = ModVersionRange.parse(rangeText)
-            ?: return "Invalid gameVersionRange '[range]' in mod '[modName]'"
-                .replace("[range]", "[$rangeText]").replace("[modName]", "[$name]")
+        val recommended = recommendedGameVersion.trim()
+        if (recommended.isEmpty()) return null
+        val recommendedVersion = ModVersion.parse(recommended)
+        if (recommendedVersion == null)
+            return "Invalid recommendedGameVersion '[version]' in mod '[modName]'"
+                .replace("[version]", "[$recommended]").replace("[modName]", "[$name]")
         val currentVersion = ModVersion.parse(currentGameVersion) ?: return null
-        if (range.contains(currentVersion)) return null
-        return "Mod '[modName]' requires game version [range], current version is [current]"
-            .replace("[modName]", "[$name]").replace("[range]", "[$rangeText]").replace("[current]", "[$currentGameVersion]")
+        if (currentVersion == recommendedVersion) return null
+        return "Mod '[modName]' version [modVersion] recommends game version [recommended], you are running [current]"
+            .replace("[modName]", "[$name]").replace("[modVersion]", "[$modVersion]")
+            .replace("[recommended]", "[$recommended]").replace("[current]", "[$currentGameVersion]")
     }
 
     /**
