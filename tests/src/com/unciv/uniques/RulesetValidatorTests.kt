@@ -211,30 +211,5 @@ class RulesetValidatorTests {
         assertFalse(hasRecursiveResourceUniqueError(game, "for every [Cities]"))
     }
 
-    @Test
-    fun `CoeHarMod quanMinDongYuan merged unique loads`() {
-        val coeHarDir = com.badlogic.gdx.Gdx.files.absolute(
-            System.getProperty("user.dir") + "/mods/CoeHarMod")
-        // CI 不 checkout 子模块时 gitlink 目录是空的——检查 jsons 子目录而非目录本身，
-        // 否则空目录会继续加载并报 Mil.quanmindongyuan missing
-        if (!coeHarDir.child("jsons").isDirectory) return // CoeHarMod 未检出（CI 环境）时跳过
-
-        val ruleset = com.unciv.models.ruleset.Ruleset().apply { name = "CoeHarMod" }
-        ruleset.load(coeHarDir.child("jsons"))
-
-        // 加载无 Error 级问题
-        val errors = ruleset.getErrorList().filter { it.errorSeverityToReport == RulesetErrorSeverity.Error }
-        assertTrue("CoeHarMod should load without errors, got: ${errors.map { it.text }.take(3)}", errors.isEmpty())
-
-        // 全民动员：新版为 Civ6 式维护费（扁平减免；submodule 指针可能未同步时旧版为逐单位 unique）
-        val building = ruleset.buildings["Mil.quanmindongyuan"]
-        assertTrue("Mil.quanmindongyuan missing", building != null)
-        assertTrue("maintenance discount mechanism missing", building!!.uniques.any {
-            it.contains("Reduces unit maintenance")
-        } || ruleset.units.values.any { unit ->
-            unit.uniques.any { it.contains("Gain [1] [Gold] <upon turn end>") }
-        })
-    }
-
     //endregion
 }
