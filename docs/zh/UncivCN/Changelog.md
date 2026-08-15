@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 4.21.8.2（build 1254）
 
+- 测试：CoeHarMod 加载测试的跳过条件改为检查 jsons 子目录——CI 不检出子模块时 gitlink 目录为空，原判断会误加载空规则集导致构建失败
 - 修复：地图钉（地块备注）编辑与查看弹窗的预览图不再提前渲染未揭示资源（如远古时代看不到石油），资源图标统一按当前玩家可见性过滤
 - 修复：Countable 文档示例中的 `&lt;upon turn end&gt;` 条件括号转义为 HTML 实体，文档站构建不再因未闭合标签失败
 - 模组支持：单位维护费与最大血量现显示在文明百科中——非默认 `maxHP` 出现在属性行；文明6式维护费体系下每个单位列出每回合维护费（`{Unit upkeep}: N {Gold}`，由 `maintenanceCost` × `unitMaintenanceBaseCost` 得出）

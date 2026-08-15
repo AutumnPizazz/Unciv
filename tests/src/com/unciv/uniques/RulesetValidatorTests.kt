@@ -215,7 +215,9 @@ class RulesetValidatorTests {
     fun `CoeHarMod quanMinDongYuan merged unique loads`() {
         val coeHarDir = com.badlogic.gdx.Gdx.files.absolute(
             System.getProperty("user.dir") + "/mods/CoeHarMod")
-        if (!coeHarDir.isDirectory) return // CoeHarMod 未检出（CI 环境）时跳过
+        // CI 不 checkout 子模块时 gitlink 目录是空的——检查 jsons 子目录而非目录本身，
+        // 否则空目录会继续加载并报 Mil.quanmindongyuan missing
+        if (!coeHarDir.child("jsons").isDirectory) return // CoeHarMod 未检出（CI 环境）时跳过
 
         val ruleset = com.unciv.models.ruleset.Ruleset().apply { name = "CoeHarMod" }
         ruleset.load(coeHarDir.child("jsons"))

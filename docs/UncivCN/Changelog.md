@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## 4.21.8.2 (build 1254)
 
+- Tests: the CoeHarMod load test now skips when its jsons subdirectory is missing - CI leaves empty gitlink dirs when submodules are not checked out, which made the old check load an empty ruleset and fail the build
 - Fix: map pin (tile note) edit/view popup previews no longer render unrevealed resources ahead of time (e.g. no oil in the Ancient era) - resource icons now consistently respect the viewing civ visibility
 - Fix: `&lt;upon turn end&gt;` condition brackets in Countable doc examples are now escaped as HTML entities so the docs site build no longer fails on unclosed tags
 - Modding: unit maintenance and max HP now show in the Civilopedia - non-default `maxHP` appears in the stats line, and in the Civilization 6 style maintenance system each unit lists its per-turn maintenance cost (`{Unit upkeep}: N {Gold}`, based on `maintenanceCost` × `unitMaintenanceBaseCost`)
