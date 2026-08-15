@@ -120,9 +120,9 @@ class TileView internal constructor(private val tile: Tile, val tileMapView: Til
 
     companion object {
         /** For icon/preview rendering of a single tile that has no backing [TileMap]. */
-        fun forSingleTile(tile: Tile): TileView {
+        fun forSingleTile(tile: Tile, viewer: Civilization? = null): TileView {
             val tileMap = TileMap(1).also { it.tileList.add(tile) }
-            return TileMapView(tileMap, null, false).getTile(tile)
+            return TileMapView(tileMap, viewer, false).getTile(tile)
         }
     }
 }

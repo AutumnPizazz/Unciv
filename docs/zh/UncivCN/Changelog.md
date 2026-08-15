@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 4.21.8.2（build 1254）
 
+- 修复：地图钉（地块备注）编辑与查看弹窗的预览图不再提前渲染未揭示资源（如远古时代看不到石油），资源图标统一按当前玩家可见性过滤
 - 修复：Countable 文档示例中的 `&lt;upon turn end&gt;` 条件括号转义为 HTML 实体，文档站构建不再因未闭合标签失败
 - 模组支持：单位维护费与最大血量现显示在文明百科中——非默认 `maxHP` 出现在属性行；文明6式维护费体系下每个单位列出每回合维护费（`{Unit upkeep}: N {Gold}`，由 `maintenanceCost` × `unitMaintenanceBaseCost` 得出）
 - 模组支持：文明6式单位维护费（ModOptions 加 unique「Uses the Civilization 6 style unit maintenance system」启用）——Units.json 新字段 `maintenanceCost`（按单位固定维护费）、可配置 `unitMaintenanceBaseCost` 常量、扁平金币减免（「Reduces unit maintenance by [amount] Gold」，可配单位过滤器）、无进度膨胀与默认免费单位；旧维护费体系不变

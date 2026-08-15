@@ -174,7 +174,9 @@ class TileLayerResource(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
     private fun updateResourceIcon(viewingCiv: CivView?, showResourceIcon: Boolean) {
         val tileView = tileGroup.tileView
         // This could change on any turn, since resources need certain techs to reveal them
-        val effectiveVisible = showResourceIcon && (tileGroup.isForceVisible || tileView.getViewableResource(viewingCiv) != null)
+        // Respect the viewing civ's resource visibility even when the tile group is force-visible
+        // (e.g. map pin previews must not show unrevealed resources like oil in the Ancient era)
+        val effectiveVisible = showResourceIcon && tileView.getViewableResource(viewingCiv) != null
 
         // If resource has changed (e.g. tech researched) - force new icon next time it's needed
         if (resourceName != tileView.resource || resourceAmount != tileView.resourceAmount) {
@@ -548,7 +550,7 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
             NoteViewPopup(
                 screen = worldScreen,
                 note = noteText,
-                icon = tile.getTileGroupIcon(60f),
+                icon = tile.getTileGroupIcon(60f, worldScreen.getGameViewConsideringForOfWar().civView),
                 onEdit = { TileNotePopup(worldScreen, tile, worldScreen.gameInfo) {} },
                 onDelete = {
                     UnitNotesManager.deleteTileNote(worldScreen.gameInfo, tile.position.x, tile.position.y)
