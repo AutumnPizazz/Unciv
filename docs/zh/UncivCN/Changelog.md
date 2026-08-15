@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：单位维护费与最大血量现显示在文明百科中——非默认 `maxHP` 出现在属性行；文明6式维护费体系下每个单位列出每回合维护费（`{Maintenance cost}: N {Gold}`，由 `maintenanceCost` × `unitMaintenanceBaseCost` 得出）
 - 模组支持：文明6式单位维护费（ModOptions 加 unique「Uses the Civilization 6 style unit maintenance system」启用）——Units.json 新字段 `maintenanceCost`（按单位固定维护费）、可配置 `unitMaintenanceBaseCost` 常量、扁平金币减免（「Reduces unit maintenance by [amount] Gold」，可配单位过滤器）、无进度膨胀与默认免费单位；旧维护费体系不变
 - 模组支持：修复 REMOVE_FIELD 合并按源值类型而非字段类型重置标量字段（float 字段如新 maintenanceCost 会崩溃）
 - 模组支持：`[mapUnitFilter] Units` Countable 按自定义 tag 计数的文档示例修正为方括号语法（`[[Class.Tag] Units]`，`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag

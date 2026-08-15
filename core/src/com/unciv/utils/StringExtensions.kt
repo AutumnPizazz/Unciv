@@ -20,6 +20,10 @@ fun String.toUUIDOrNull(): UUID? = try {
 @Pure
 fun String.isUUID(): Boolean = toUUIDOrNull() != null
 
+/** Renders a whole number as an integer ("2.0" → "2"), keeps decimals otherwise ("2.5" stays "2.5") */
+fun Float.toCleanNumber(): String =
+    if (this % 1f == 0f) toInt().toString() else toString()
+
 /** Determines if we're running from a jar, given an instance of any Unciv-specific class.
  *  (Not a String extension, but as long as we don't have a 'generic' extension file...) */
 fun isRunFromJar(obj: Any): Boolean = obj::class.java.`package`.specificationVersion != null

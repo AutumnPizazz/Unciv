@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: unit maintenance and max HP now show in the Civilopedia - non-default `maxHP` appears in the stats line, and in the Civilization 6 style maintenance system each unit lists its per-turn maintenance cost (`{Maintenance cost}: N {Gold}`, based on `maintenanceCost` × `unitMaintenanceBaseCost`)
 - Modding: Civilization 6 style unit maintenance (opt-in via the "Uses the Civilization 6 style unit maintenance system" ModOptions unique) - per-unit fixed maintenance from the new `maintenanceCost` Units.json field, configurable `unitMaintenanceBaseCost` constant, flat per-unit Gold reductions ("Reduces unit maintenance by [amount] Gold", combinable with unit filters), no game-progress inflation and no default free units; legacy maintenance unchanged
 - Modding: fix REMOVE_FIELD merge resetting scalar fields by source value type instead of field type (crashed on float fields like the new maintenanceCost)
 - Modding: `[mapUnitFilter] Units` Countable 支持自定义 tag 计数（如 `[[Class.Tag] Units]`）的文档示例修正为方括号语法（`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 的全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag

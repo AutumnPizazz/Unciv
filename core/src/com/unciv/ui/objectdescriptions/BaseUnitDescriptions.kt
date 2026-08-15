@@ -20,6 +20,7 @@ import com.unciv.ui.components.fonts.Fonts
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.screens.civilopediascreen.FormattedLine
 import com.unciv.ui.screens.civilopediascreen.MarkupRenderer
+import com.unciv.utils.toCleanNumber
 import yairm210.purity.annotations.Readonly
 
 object BaseUnitDescriptions {
@@ -101,6 +102,7 @@ object BaseUnitDescriptions {
         }
         if (baseUnit.movement != 0 && ruleset.unitTypes[baseUnit.unitType]?.isAirUnit() != true)
             stats += "${baseUnit.movement}${Fonts.movement}"
+        if (baseUnit.maxHP != 100) stats += "${baseUnit.maxHP}${Fonts.health}"
         if (stats.isNotEmpty())
             textList += FormattedLine(stats.joinToString(", "))
 
@@ -111,6 +113,13 @@ object BaseUnitDescriptions {
                 stats += "${baseUnit.getCivilopediaGoldCost()}${Fonts.gold}"
             }
             textList += FormattedLine(stats.joinToString("/", "{Cost}: "))
+        }
+
+        // Civilization 6 style unit maintenance (opt-in via ModOptions unique):
+        // show the per-unit maintenance cost in the Civilopedia
+        if (baseUnit.maintenanceCost > 0 && ruleset.modOptions.hasUnique(UniqueType.UnitMaintenanceCiv6Style)) {
+            val maintenanceGold = baseUnit.maintenanceCost * ruleset.modOptions.constants.unitMaintenanceBaseCost.toFloat()
+            textList += FormattedLine("{Maintenance cost}: ${maintenanceGold.toCleanNumber()} {Gold}")
         }
 
         if (baseUnit.interceptRange > 0) {
