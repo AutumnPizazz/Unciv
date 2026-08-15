@@ -304,6 +304,8 @@ object Conditionals {
                 checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) < conditional.params[0].toInt() }
             UniqueType.ConditionalWhenGarrisoned ->
                 checkOnCity { getCenterTile().militaryUnit?.canGarrison() == true }
+            UniqueType.ConditionalCityBeingRazed ->
+                checkOnCity { isBeingRazed }
 
             UniqueType.ConditionalVsCity -> state.theirCombatant?.matchesFilter("City", false) == true
             UniqueType.ConditionalVsUnits,  UniqueType.ConditionalVsCombatant -> state.theirCombatant?.matchesFilter(conditional.params[0]) == true
@@ -315,6 +317,8 @@ object Conditionals {
             UniqueType.ConditionalUnitWithoutPromotion -> state.relevantUnit != null &&
                     !(state.relevantUnit!!.promotions.promotions.contains(conditional.params[0])
                             || state.relevantUnit!!.hasStatus(conditional.params[0]) )
+            UniqueType.ConditionalUnitFortified -> state.relevantUnit?.isFortified() == true
+            UniqueType.ConditionalUnitEmbarked -> state.relevantUnit?.isEmbarked() == true
             UniqueType.ConditionalAttacking -> state.combatAction == CombatAction.Attack
             UniqueType.ConditionalDefending -> state.combatAction == CombatAction.Defend
             UniqueType.ConditionalAboveHP -> state.relevantUnit != null && state.relevantUnit!!.health > conditional.params[0].toInt()

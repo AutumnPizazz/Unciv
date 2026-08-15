@@ -5,6 +5,10 @@ import com.unciv.Constants
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.models.ruleset.BeliefType
+import com.unciv.models.ruleset.unique.Conditionals
+import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.ruleset.unique.Unique
+import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.stats.Stats
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
@@ -701,6 +705,57 @@ class GlobalUniquesTests {
             Assert.assertEquals("Conditional `$test` should be: $expected", civInfo.gold, expected)
             civInfo.addGold(-civInfo.gold) // Reset the gold
         }
+    }
+
+    @Test
+    fun conditionalUnitFortified() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        val unit = game.addDefaultMeleeUnitWithUniques(civInfo, game.getTile(HexCoord.Zero))
+        val unique = Unique("Gain [1] [Gold] <if unit is fortified>")
+        val conditional = unique.modifiers.first()
+
+        // 未驻防：条件不成立
+        Assert.assertFalse(Conditionals.conditionalApplies(unique, conditional, GameContext(unit)))
+
+        unit.fortify()
+        Assert.assertTrue(Conditionals.conditionalApplies(unique, conditional, GameContext(unit)))
+    }
+
+    @Test
+    fun conditionalUnitEmbarked() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv("Enables embarkation for land units")
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+
+        // 陆地上的单位：条件不成立
+        val landUnit = game.addDefaultMeleeUnitWithUniques(civInfo, game.getTile(HexCoord.Zero))
+        val unique = Unique("Gain [1] [Gold] <if unit is embarked>")
+        val conditional = unique.modifiers.first()
+        Assert.assertFalse(Conditionals.conditionalApplies(unique, conditional, GameContext(landUnit)))
+
+        // 把另一块地变成海岸，单位在水上自动登船
+        val waterTile = game.getTile(1, 0)
+        waterTile.setBaseTerrain(game.ruleset.terrains["Coast"]!!)
+        val embarkedUnit = game.addDefaultMeleeUnitWithUniques(civInfo, waterTile)
+        Assert.assertTrue(embarkedUnit.isEmbarked())
+        Assert.assertTrue(Conditionals.conditionalApplies(unique, conditional, GameContext(embarkedUnit)))
+    }
+
+    @Test
+    fun conditionalCityBeingRazed() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        val city = game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        val unique = Unique("Gain [1] [Gold] <if this city is being razed>")
+        val conditional = unique.modifiers.first()
+
+        // 未焚毁：条件不成立
+        Assert.assertFalse(Conditionals.conditionalApplies(unique, conditional, GameContext(city)))
+
+        city.isBeingRazed = true
+        Assert.assertTrue(Conditionals.conditionalApplies(unique, conditional, GameContext(city)))
     }
 
     // endregion

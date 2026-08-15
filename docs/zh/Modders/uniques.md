@@ -4768,6 +4768,10 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
+::: details &lt;if this city is being razed&gt;
+适用范围：Conditional
+
+:::
 ::: details &lt;for [mapUnitFilter] units&gt;
 示例："for [Wounded] units"
 
@@ -4793,6 +4797,14 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 
 示例："for units without [Shock I]"
 
+适用范围：Conditional
+
+:::
+::: details &lt;if unit is fortified&gt;
+适用范围：Conditional
+
+:::
+::: details &lt;if unit is embarked&gt;
 适用范围：Conditional
 
 :::

@@ -4761,6 +4761,10 @@ Applicable to: Conditional
 Applicable to: Conditional
 
 :::
+::: details &lt;if this city is being razed&gt;
+Applicable to: Conditional
+
+:::
 ::: details &lt;for [mapUnitFilter] units&gt;
 Example: "for [Wounded] units"
 
@@ -4786,6 +4790,14 @@ Also applies to units with temporary status
 
 Example: "for units without [Shock I]"
 
+Applicable to: Conditional
+
+:::
+::: details &lt;if unit is fortified&gt;
+Applicable to: Conditional
+
+:::
+::: details &lt;if unit is embarked&gt;
 Applicable to: Conditional
 
 :::

@@ -880,12 +880,15 @@ enum class UniqueType(
         docDescription = "'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.", docDescriptionZh = "'Between'（之间）是包含边界的——所以 'between 1 and 5' 包含 1 和 5。"),
     ConditionalBelowPopulationFilter("in cities with less than [amount] [populationFilter]", UniqueTarget.Conditional),
     ConditionalWhenGarrisoned("with a garrison", UniqueTarget.Conditional),
+    ConditionalCityBeingRazed("if this city is being razed", UniqueTarget.Conditional),
 
     /////// unit conditionals
     ConditionalOurUnit("for [mapUnitFilter] units", UniqueTarget.Conditional),
     ConditionalOurUnitOnUnit("when [mapUnitFilter]", UniqueTarget.Conditional), // Same but for the unit itself
     ConditionalUnitWithPromotion("for units with [promotion]", UniqueTarget.Conditional, docDescription = "Also applies to units with temporary status", docDescriptionZh = "也适用于带有临时状态的单位"),
     ConditionalUnitWithoutPromotion("for units without [promotion]", UniqueTarget.Conditional, docDescription = "Also applies to units with temporary status", docDescriptionZh = "也适用于带有临时状态的单位"),
+    ConditionalUnitFortified("if unit is fortified", UniqueTarget.Conditional),
+    ConditionalUnitEmbarked("if unit is embarked", UniqueTarget.Conditional),
     ConditionalVsCity("vs cities", UniqueTarget.Conditional),
     ConditionalVsUnits("vs [mapUnitFilter] units", UniqueTarget.Conditional),
     ConditionalVsCombatant("vs [combatantFilter]", UniqueTarget.Conditional),
