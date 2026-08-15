@@ -79,6 +79,10 @@ open class RulesetValidator protected constructor(
     private lateinit var textureNamesCache: AtlasPreview
 
     companion object {
+        /** JSON files that are legitimately located in the mod root folder - tooling configs, not ruleset files.
+         *  LuaLS reads `.luarc.json` from the workspace root only, so it cannot be moved into `jsons/`. */
+        val knownRootJsonFiles = listOf(".luarc.json")
+
         fun create(ruleset: Ruleset, tryFixUnknownUniques: Boolean = false): RulesetValidator {
             return if (ruleset.modOptions.isBaseRuleset)
                 BaseRulesetValidator(ruleset, tryFixUnknownUniques)
@@ -756,7 +760,8 @@ open class RulesetValidator protected constructor(
         lines: RulesetErrorList
     ) {
         for (child in folder.list()) {
-            if (child.name().endsWith("json") && !child.name().startsWith("Atlas"))
+            if (child.name().endsWith("json") && !child.name().startsWith("Atlas")
+                && child.name() !in knownRootJsonFiles)
                 lines.add("File ${child.name()} is located in the root folder - it should be moved to a 'jsons' folder")
         }
     }

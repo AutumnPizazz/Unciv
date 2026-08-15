@@ -95,6 +95,8 @@ In order to make your mod downloadable by anyone, you need to create a Github re
 
 The Images and jsons folders need to be in the root directory of the repo - see [here](https://github.com/yairm210/Unciv-IV-mod) for example.
 
+The mod checker requires every ruleset JSON to live inside `jsons/`. The **only** JSON file allowed in the repo root is `.luarc.json` (the LuaLS editor config - it is whitelisted because LuaLS only reads it from the workspace root). Do **not** rename it: LuaLS recognizes exactly this file name, and the checker would flag any other name as a misplaced ruleset file.
+
 You can then manually download the mod from within the Mod Manager in Unciv:
 
 -   From Unciv's main screen, click "Mods"

@@ -50,6 +50,8 @@ If you prefer not to use the extension, copy the definitions from the repo's `do
 }
 ```
 
+> The mod checker whitelists `.luarc.json` in the mod root - keep this exact file name (LuaLS only reads `.luarc.json` from the workspace root; renaming it breaks autocompletion and the checker reports it as misplaced).
+
 Remember to re-copy the files after each game update — this is exactly the chore the extension eliminates.
 
 ## FAQ

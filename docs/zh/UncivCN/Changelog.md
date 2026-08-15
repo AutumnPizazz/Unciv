@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：模组检查器白名单豁免根目录的 `.luarc.json`（LuaLS 编辑器配置——LuaLS 只从 workspace 根目录读取它）；文档提醒模组作者保持该确切文件名、不要重命名
 - 模组支持：modDependencies 的 `version` 范围改为 `recommendedVersion` 推荐版本（精确匹配、推荐语义词条）；删除 ModVersionRange 工具类
 - 模组支持：ModOptions.json 新增 `recommendedGameVersion` 字段——模组版本可声明其针对制作的精确游戏版本（精确匹配，`n.n.n`/`n.n.n.n`/`-patchN`）；已安装模组列表与信息面板直接显示（如 `Version 0.1.0 · game 4.21.7.1`），当前游戏版本不符时给出非阻塞警告；原 `gameVersionRange` 字段已移除
 - 模组/Lua：扩展战斗支持——单位新增只读战斗预测查询（getAttackingStrengthAgainst / getDefendingStrengthAgainst / predictDamageTo / predictDamageFrom），新增触发 unique（upon bombarding / upon being bombarded / upon withdrawing from melee combat）

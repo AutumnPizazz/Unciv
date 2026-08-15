@@ -309,6 +309,8 @@ If you prefer a fully manual setup, create `.luarc.json` in your mod folder and 
 }
 ```
 
+> **Mod checker note**: `.luarc.json` is the only JSON file allowed in the mod root folder (the checker whitelists it because LuaLS only reads it from the workspace root). Do **not** rename it - LuaLS recognizes exactly this file name, and the checker would flag any other name as a misplaced ruleset file.
+
 Optionally add this to `.vscode/extensions.json` so collaborators are prompted to install the language server:
 
 ```json

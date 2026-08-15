@@ -100,6 +100,8 @@ title: 模组总览
 
 Images 和 jsons 文件夹需要位于仓库的根目录中 - [这里](https://github.com/yairm210/Unciv-IV-mod)有一个示例。
 
+模组检查器要求所有规则集 JSON 都放在 `jsons/` 内。仓库根目录**唯一**允许的 JSON 文件是 `.luarc.json`（LuaLS 编辑器配置——它被白名单豁免，因为 LuaLS 只从 workspace 根目录读取它）。**不要重命名它**：LuaLS 只认这个确切文件名，改成任何其他名字都会被检查器当作放错位置的规则集文件报告。
+
 然后你可以从 Unciv 的模组管理器中手动下载模组：
 
 - 从 Unciv 的主屏幕，点击"Mods"
