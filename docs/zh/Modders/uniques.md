@@ -1508,12 +1508,6 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Global
 
 :::
-::: details Uses the Civilization 6 style unit maintenance system
-规则集可选用（放在 ModOptions.json 的 uniques 中）。启用 Units.json 的 maintenanceCost 字段（按单位固定维护费）、可配置的 unitMaintenanceBaseCost 常量、固定金币减免（见「Reduces unit maintenance by [amount] Gold」），并移除随游戏进度增长的维护费膨胀与默认 3 个免费单位。
-
-适用范围：Global
-
-:::
 ::: details [relativeAmount]% Gold cost of upgrading
 多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
@@ -4226,6 +4220,14 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ## ModOptions uniques（模组选项词条）
+::: details Uses the Civilization 6 style unit maintenance system
+规则集可选用（放在 ModOptions.json 的 uniques 中）。启用 Units.json 的 maintenanceCost 字段（按单位固定维护费）、可配置的 unitMaintenanceBaseCost 常量、固定金币减免（见「Reduces unit maintenance by [amount] Gold」），并移除随游戏进度增长的维护费膨胀与默认 3 个免费单位。
+
+此词条不支持条件。
+
+适用范围：ModOptions
+
+:::
 ::: details Diplomatic relationships cannot change
 此词条不支持条件。
 
