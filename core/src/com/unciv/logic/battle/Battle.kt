@@ -350,6 +350,14 @@ object Battle {
                 UniqueTriggerActivation.triggerUnique(unique, unit, gameContext = defenderContext)
             }
 
+        // Attacking / being attacked: attacker-only and defender-only hooks, distinct from the shared "upon entering combat"
+        if (attacker is MapUnitCombatant)
+            for (unique in attacker.unit.getTriggeredUniques(UniqueType.TriggerUponAttacking, attackerContext))
+                UniqueTriggerActivation.triggerUnique(unique, attacker.unit, gameContext = attackerContext)
+        if (defender is MapUnitCombatant)
+            for (unique in defender.unit.getTriggeredUniques(UniqueType.TriggerUponBeingAttacked, defenderContext))
+                UniqueTriggerActivation.triggerUnique(unique, defender.unit, gameContext = defenderContext)
+
         // City bombardment triggers: cities don't fire TriggerUponCombat (units only), so expose
         // dedicated "upon bombarding" (civ-level) and "upon being bombarded" (unit-level) hooks.
         if (attacker is CityCombatant) {

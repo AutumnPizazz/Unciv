@@ -7,6 +7,7 @@ import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.UnitAction
 import com.unciv.models.UnitActionType
+import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
@@ -36,7 +37,7 @@ object UnitActionsPillage {
         })
     }
 
-    internal fun getPillageAction(unit: MapUnit, tile: Tile): UnitAction? {
+    fun getPillageAction(unit: MapUnit, tile: Tile): UnitAction? {
         val improvementName = unit.currentTile.getImprovementToPillageName()
         if (unit.isCivilian() || improvementName == null || tile.getOwner() == unit.civ) return null
         return UnitAction(
@@ -57,6 +58,16 @@ object UnitActionsPillage {
                 )
 
                 pillageLooting(tile, unit)
+
+                // 在改进被标记为掠夺状态前触发，使 tileFilter 能匹配到被掠夺的改进
+                val stateForConditionals = unit.cache.state
+                for (unique in unit.getTriggeredUniques(UniqueType.TriggerUponPillaging, stateForConditionals)
+                    { tile.matchesFilter(it.params[0]) })
+                    UniqueTriggerActivation.triggerUnique(unique, unit)
+                for (unique in unit.civ.getTriggeredUniques(UniqueType.TriggerUponPillaging, stateForConditionals)
+                    { tile.matchesFilter(it.params[0]) })
+                    UniqueTriggerActivation.triggerUnique(unique, unit.civ, unit = unit, tile = tile)
+
                 tile.setPillaged()  // Also triggers reassignPopulation
                 if (tile.resource != null) tile.getOwner()?.cache?.updateCivResources()    // this might take away a resource
 

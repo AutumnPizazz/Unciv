@@ -5093,6 +5093,16 @@ Example: "upon building a [All Road] improvement"
 Applicable to: TriggerCondition, UnitTriggerCondition
 
 :::
+::: details &lt;upon pillaging a [tileFilter] tile&gt;
+Example: "upon pillaging a [Farm] tile"
+
+Applicable to: TriggerCondition, UnitTriggerCondition
+
+:::
+::: details &lt;upon finishing razing a city&gt;
+Applicable to: TriggerCondition
+
+:::
 ::: details &lt;upon discovering a Natural Wonder&gt;
 Applicable to: TriggerCondition
 
@@ -5163,6 +5173,12 @@ Example: "upon building a [All Road] improvement"
 Applicable to: TriggerCondition, UnitTriggerCondition
 
 :::
+::: details &lt;upon pillaging a [tileFilter] tile&gt;
+Example: "upon pillaging a [Farm] tile"
+
+Applicable to: TriggerCondition, UnitTriggerCondition
+
+:::
 ::: details &lt;upon turn end&gt;
 Applicable to: TriggerCondition, UnitTriggerCondition
 
@@ -5172,6 +5188,14 @@ Applicable to: TriggerCondition, UnitTriggerCondition
 
 :::
 ::: details &lt;upon entering combat&gt;
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon attacking&gt;
+Applicable to: UnitTriggerCondition
+
+:::
+::: details &lt;upon being attacked&gt;
 Applicable to: UnitTriggerCondition
 
 :::

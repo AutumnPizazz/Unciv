@@ -2,6 +2,9 @@
 package com.unciv.uniques
 
 import com.unciv.Constants
+import com.unciv.logic.battle.Battle
+import com.unciv.logic.battle.MapUnitCombatant
+import com.unciv.logic.city.managers.CityTurnManager
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.models.ruleset.BeliefType
@@ -12,6 +15,7 @@ import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.stats.Stats
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
+import com.unciv.ui.screens.worldscreen.unit.actions.UnitActionsPillage
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -899,6 +903,68 @@ class GlobalUniquesTests {
         Assert.assertEquals(12, city.getMaxAirUnits())
         city.cityConstructions.addBuilding(game.createBuilding("Can carry [-3] extra [Air] units <in this city>"))
         Assert.assertEquals(9, city.getMaxAirUnits())
+    }
+
+    // endregion
+
+    // region Trigger upon uniques
+
+    @Test
+    fun triggerUponAttackingAndBeingAttacked() {
+        game.makeHexagonalMap(5)
+        val attackerCiv = game.addCiv()
+        val defenderCiv = game.addCiv()
+
+        val attackerUnit = game.addDefaultMeleeUnitWithUniques(attackerCiv, game.getTile(1, 0),
+            "Gain [1] [Gold] <upon attacking>")
+        val defenderUnit = game.addDefaultMeleeUnitWithUniques(defenderCiv, game.getTile(HexCoord.Zero),
+            "Gain [1] [Gold] <upon being attacked>")
+        attackerUnit.currentMovement = 2f
+        defenderUnit.currentMovement = 2f
+
+        Battle.attack(MapUnitCombatant(attackerUnit), MapUnitCombatant(defenderUnit))
+
+        // 攻方只触发 upon attacking，守方只触发 upon being attacked
+        Assert.assertEquals(1, attackerCiv.gold)
+        Assert.assertEquals(1, defenderCiv.gold)
+    }
+
+    @Test
+    fun triggerUponPillaging() {
+        game.makeHexagonalMap(5)
+        val attackerCiv = game.addCiv()
+        game.addCity(attackerCiv, game.getTile(2, 0), true)
+
+        // 远离城市的中立地块上的改进可以被掠夺
+        val pillagedTile = game.getTile(4, 0)
+        pillagedTile.setImprovementBasic("Farm")
+
+        val attackerUnit = game.addDefaultMeleeUnitWithUniques(attackerCiv, pillagedTile,
+            "Gain [1] [Culture] <upon pillaging a [Farm] tile>")
+        attackerUnit.currentMovement = 2f
+
+        val pillageAction = UnitActionsPillage.getPillageAction(attackerUnit, pillagedTile)?.action
+        Assert.assertNotNull(pillageAction)
+        pillageAction!!.invoke()
+
+        Assert.assertEquals(1, attackerCiv.policies.storedCulture)
+        Assert.assertTrue(pillagedTile.isPillaged())
+    }
+
+    @Test
+    fun triggerUponFinishingRazingCity() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv("Gain [1] [Gold] <upon finishing razing a city>")
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true) // 首都，不可销毁
+        val razedCity = game.addCity(civInfo, game.getTile(2, 0))
+
+        razedCity.isBeingRazed = true // 默认人口 1，下一回合结束即完成焚毁
+
+        CityTurnManager(razedCity).endTurn()
+
+        // 城市已被焚毁，触发器已触发
+        Assert.assertFalse(civInfo.cities.contains(razedCity))
+        Assert.assertEquals(1, civInfo.gold)
     }
 
     // endregion

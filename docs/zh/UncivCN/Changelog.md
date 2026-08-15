@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：新增四个触发器 unique——「upon attacking」「upon being attacked」（攻/防方各自的战斗钩子，覆盖近战、远程与空袭）、「upon pillaging a [tileFilter] tile」（单位级与文明级）、「upon finishing razing a city」（焚毁完成时）
 - 模组支持：新增三个条件——「if unit is fortified」（单位处于驻防状态）、「if unit is embarked」（单位处于登船状态）、「if this city is being razed」（城市正在被焚毁），可搭配任意 unique 使用
 - 模组支持：新增四个反向 unique——「Lose control over [positiveAmount] tiles [cityFilter]」（市中心永不丢失，最近获得的最先失去）、「Lose a spy」（优先移除空闲间谍）、「End a golden age」（像自然结束一样触发黄金时代结束事件）、「Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius」（取消已探索状态；处于单位/城市视野内的地块下次更新会重新可见）
 - 模组支持：新增 unique「Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius」——半径内属于触发文明的地块会失去所有权变为中立；城市中心永远不会受影响

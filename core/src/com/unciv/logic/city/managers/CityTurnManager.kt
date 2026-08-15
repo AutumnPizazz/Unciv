@@ -151,6 +151,8 @@ class CityTurnManager(val city: City) {
 
             if (city.population.population <= removedPopulation) {
                 city.espionage.removeAllPresentSpies(SpyFleeReason.Other)
+                for (unique in city.civ.getTriggeredUniques(UniqueType.TriggerUponFinishingRazingCity))
+                    UniqueTriggerActivation.triggerUnique(unique, city.civ)
                 city.civ.addNotification(
                     "[${city.name}] has been razed to the ground!",
                     city.location, NotificationCategory.General,

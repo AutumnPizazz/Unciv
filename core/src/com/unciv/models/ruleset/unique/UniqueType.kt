@@ -1065,6 +1065,8 @@ enum class UniqueType(
     TriggerUponBombarding("upon bombarding", UniqueTarget.TriggerCondition),
     TriggerUponFoundingCity("upon founding a city", UniqueTarget.TriggerCondition),
     TriggerUponBuildingImprovement("upon building a [improvementFilter] improvement", UniqueTarget.TriggerCondition, UniqueTarget.UnitTriggerCondition),
+    TriggerUponPillaging("upon pillaging a [tileFilter] tile", UniqueTarget.TriggerCondition, UniqueTarget.UnitTriggerCondition),
+    TriggerUponFinishingRazingCity("upon finishing razing a city", UniqueTarget.TriggerCondition),
     TriggerUponDiscoveringNaturalWonder("upon discovering a Natural Wonder", UniqueTarget.TriggerCondition),
     TriggerUponConstructingBuilding("upon constructing [buildingFilter]", UniqueTarget.TriggerCondition),
     // We have a separate trigger to include the cityFilter, since '[in all cities]' can be read '*only* if it's in all cities'
@@ -1084,6 +1086,8 @@ enum class UniqueType(
     ///////////////////////////////////////// region 11 UNIT TRIGGERS /////////////////////////////////////////
 
     TriggerUponCombat("upon entering combat", UniqueTarget.UnitTriggerCondition),
+    TriggerUponAttacking("upon attacking", UniqueTarget.UnitTriggerCondition),
+    TriggerUponBeingAttacked("upon being attacked", UniqueTarget.UnitTriggerCondition),
     TriggerUponDamagingUnit("upon damaging a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition,
         docDescription = "Can apply triggers to to damaged unit by setting the first parameter to 'Target Unit'", docDescriptionZh = "将第一个参数设为 'Target Unit' 即可对受损单位应用触发效果"),
     TriggerUponDefeatingUnit("upon defeating a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition),

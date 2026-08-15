@@ -5100,6 +5100,16 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
+::: details &lt;upon pillaging a [tileFilter] tile&gt;
+示例："upon pillaging a [Farm] tile"
+
+适用范围：TriggerCondition，UnitTriggerCondition
+
+:::
+::: details &lt;upon finishing razing a city&gt;
+适用范围：TriggerCondition
+
+:::
 ::: details &lt;upon discovering a Natural Wonder&gt;
 适用范围：TriggerCondition
 
@@ -5170,6 +5180,12 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
+::: details &lt;upon pillaging a [tileFilter] tile&gt;
+示例："upon pillaging a [Farm] tile"
+
+适用范围：TriggerCondition，UnitTriggerCondition
+
+:::
 ::: details &lt;upon turn end&gt;
 适用范围：TriggerCondition，UnitTriggerCondition
 
@@ -5179,6 +5195,14 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 
 :::
 ::: details &lt;upon entering combat&gt;
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon attacking&gt;
+适用范围：UnitTriggerCondition
+
+:::
+::: details &lt;upon being attacked&gt;
 适用范围：UnitTriggerCondition
 
 :::
