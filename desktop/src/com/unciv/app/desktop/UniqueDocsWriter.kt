@@ -330,7 +330,7 @@ class UniqueDocsWriter : DocsWriter() {
             "The number of units being carried by this unit" -> "该单位携带的单位数量"
             "The number of units the relevant Civilization owns that match the filter." -> "相关文明拥有的、匹配过滤器的单位数量"
             "Any custom tag unique on a unit also works as a filter - e.g. units carrying the unique \"Class.QuanMinDongYuan\" are counted by [Class.QuanMinDongYuan] Units." -> "单位上的任意自定义 tag unique 也可作为过滤器——例如带有 unique \"Class.QuanMinDongYuan\" 的单位可用 [Class.QuanMinDongYuan] Units 计数。"
-            "This lets you merge identical per-object copies of an event unique (e.g. one 'Gain [1] [Gold] <upon turn end>' on each of 80 units) into a single Countable expression: 'Gain [[Class.Tag] Units] [Gold] <upon turn end>'." -> "这让你可以把逐对象重复的同一事件 unique（例如 80 个单位各带一条 'Gain [1] [Gold] <upon turn end>'）合并为一条 Countable 表达式：'Gain [[Class.Tag] Units] [Gold] <upon turn end>'。"
+            "This lets you merge identical per-object copies of an event unique (e.g. one 'Gain [1] [Gold] &lt;upon turn end&gt;' on each of 80 units) into a single Countable expression: 'Gain [[Class.Tag] Units] [Gold] &lt;upon turn end&gt;'." -> "这让你可以把逐对象重复的同一事件 unique（例如 80 个单位各带一条 'Gain [1] [Gold] &lt;upon turn end&gt;'）合并为一条 Countable 表达式：'Gain [[Class.Tag] Units] [Gold] &lt;upon turn end&gt;'。"
             "Only counts transported units matching the filter. For use with 'when number of' conditionals." ->
                 "仅计算匹配过滤器的运输单位。用于 'when number of' 条件。"
             "Counts researched matching technologies for the relevant Civilization" -> "统计相关文明已研究的匹配科技"

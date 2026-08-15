@@ -180,7 +180,7 @@ enum class Countables(
         override val documentationStrings = listOf(
             "The number of units the relevant Civilization owns that match the filter.",
             "Any custom tag unique on a unit also works as a filter - e.g. units carrying the unique \"Class.QuanMinDongYuan\" are counted by [Class.QuanMinDongYuan] Units.",
-            "This lets you merge identical per-object copies of an event unique (e.g. one 'Gain [1] [Gold] <upon turn end>' on each of 80 units) into a single Countable expression: 'Gain [[Class.Tag] Units] [Gold] <upon turn end>'."
+            "This lets you merge identical per-object copies of an event unique (e.g. one 'Gain [1] [Gold] &lt;upon turn end&gt;' on each of 80 units) into a single Countable expression: 'Gain [[Class.Tag] Units] [Gold] &lt;upon turn end&gt;'."
         )
         override fun eval(parameterText: String, gameContext: GameContext): Int? {
             val filter = parameterText.getPlaceholderParameters()[0]

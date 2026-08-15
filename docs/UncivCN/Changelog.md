@@ -2,8 +2,9 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
-## Unreleased
+## 4.21.8.2 (build 1254)
 
+- Fix: `&lt;upon turn end&gt;` condition brackets in Countable doc examples are now escaped as HTML entities so the docs site build no longer fails on unclosed tags
 - Modding: unit maintenance and max HP now show in the Civilopedia - non-default `maxHP` appears in the stats line, and in the Civilization 6 style maintenance system each unit lists its per-turn maintenance cost (`{Unit upkeep}: N {Gold}`, based on `maintenanceCost` × `unitMaintenanceBaseCost`)
 - Modding: Civilization 6 style unit maintenance (opt-in via the "Uses the Civilization 6 style unit maintenance system" ModOptions unique) - per-unit fixed maintenance from the new `maintenanceCost` Units.json field, configurable `unitMaintenanceBaseCost` constant, flat per-unit Gold reductions ("Reduces unit maintenance by [amount] Gold", combinable with unit filters), no game-progress inflation and no default free units; legacy maintenance unchanged
 - Modding: fix REMOVE_FIELD merge resetting scalar fields by source value type instead of field type (crashed on float fields like the new maintenanceCost)

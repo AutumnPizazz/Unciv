@@ -415,7 +415,7 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 示例：`Only available <when number of [[Wounded] Units] is more than [0]>`
     - 相关文明拥有的、匹配过滤器的单位数量
     - 单位上的任意自定义 tag unique 也可作为过滤器——例如带有 unique "Class.QuanMinDongYuan" 的单位可用 [Class.QuanMinDongYuan] Units 计数。
-    - 这让你可以把逐对象重复的同一事件 unique（例如 80 个单位各带一条 'Gain [1] [Gold] <upon turn end>'）合并为一条 Countable 表达式：'Gain [[Class.Tag] Units] [Gold] <upon turn end>'。
+    - 这让你可以把逐对象重复的同一事件 unique（例如 80 个单位各带一条 'Gain [1] [Gold] &lt;upon turn end&gt;'）合并为一条 Countable 表达式：'Gain [[Class.Tag] Units] [Gold] &lt;upon turn end&gt;'。
 -   `Carried [mapUnitFilter] units` - 该单位携带的单位数量
     - 示例：`Only available <when number of [Carried [Air] units] is more than [0]>`
     - 仅计算匹配过滤器的运输单位。用于 'when number of' 条件。
