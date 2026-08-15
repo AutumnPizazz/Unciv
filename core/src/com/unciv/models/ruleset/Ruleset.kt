@@ -804,10 +804,12 @@ class Ruleset {
                     }
                 } else {
                     // Reset scalar field to default
-                    val defaultValue = when (sourceValue) {
-                        is String -> ""
-                        is Number -> if (sourceValue is Double || sourceValue is Float) 0.0 else 0
-                        is Boolean -> false
+                    val defaultValue = when (field.type) {
+                        String::class.java -> ""
+                        Boolean::class.javaPrimitiveType, java.lang.Boolean::class.java -> false
+                        Float::class.javaPrimitiveType, java.lang.Float::class.java -> 0f
+                        Double::class.javaPrimitiveType, java.lang.Double::class.java -> 0.0
+                        Int::class.javaPrimitiveType, java.lang.Integer::class.java -> 0
                         else -> null
                     }
                     if (defaultValue != null)

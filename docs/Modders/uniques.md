@@ -1493,6 +1493,20 @@ Example: "[+20]% maintenance costs"
 Applicable to: Global, Unit
 
 :::
+::: details Reduces unit maintenance by [amount] Gold
+Flat per-unit gold reduction, applied after percentage discounts. Only takes effect in the Civilization 6 style maintenance system (see 'Uses the Civilization 6 style unit maintenance system'). Combine with unit filters like &lt;for [Military] units&gt; to discount only certain units.
+
+Example: "Reduces unit maintenance by [3] Gold"
+
+Applicable to: Global
+
+:::
+::: details Uses the Civilization 6 style unit maintenance system
+Opt-in for rulesets (put it in ModOptions.json uniques). Enables per-unit fixed maintenance costs from the Units.json 'maintenanceCost' field, the configurable 'unitMaintenanceBaseCost' constant, flat Gold reductions (see 'Reduces unit maintenance by [amount] Gold'), and removes the game-progress maintenance inflation and the 3 default free units.
+
+Applicable to: Global
+
+:::
 ::: details [relativeAmount]% Gold cost of upgrading
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 

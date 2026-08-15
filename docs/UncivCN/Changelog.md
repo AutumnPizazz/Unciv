@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Modding: Civilization 6 style unit maintenance (opt-in via the "Uses the Civilization 6 style unit maintenance system" ModOptions unique) - per-unit fixed maintenance from the new `maintenanceCost` Units.json field, configurable `unitMaintenanceBaseCost` constant, flat per-unit Gold reductions ("Reduces unit maintenance by [amount] Gold", combinable with unit filters), no game-progress inflation and no default free units; legacy maintenance unchanged
+- Modding: fix REMOVE_FIELD merge resetting scalar fields by source value type instead of field type (crashed on float fields like the new maintenanceCost)
 - Modding: `[mapUnitFilter] Units` Countable 支持自定义 tag 计数（如 `[[Class.Tag] Units]`）的文档示例修正为方括号语法（`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 的全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag
 - Modding: `[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` parameters now fully honor their documented Countable-expression support - radii, amounts, free-unit counts, unit heal/damage/XP/status values and turn conditions previously crashed or mis-parsed on Countable expressions; `getResourceAmount` overloads unified (stockpiles first) so Countable resource references resolve consistently in city and civ contexts
 - Modding: Countable docs now show how `[mapUnitFilter] Units` counts custom tag uniques (e.g. `[{Class.Tag} Units]`), letting mods merge identical per-object event uniques into one Countable expression

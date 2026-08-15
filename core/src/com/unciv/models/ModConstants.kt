@@ -34,6 +34,11 @@ class ModConstants {
     var cityStrengthFromTechsFullMultiplier = 1.0
     var cityStrengthFromGarrison = 0.2
 
+    /** Base gold cost per unit-maintenance point in the Civilization 6 style maintenance system
+     *  (enabled by the [UniqueType.UnitMaintenanceCiv6Style] mod option).
+     *  Legacy maintenance always uses 0.5. */
+    var unitMaintenanceBaseCost = 0.5
+
     // Formula for Unit Supply:
     // Supply = unitSupplyBase (difficulties.json)
     //          unitSupplyPerCity * amountOfCities + (difficulties.json)

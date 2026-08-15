@@ -35,8 +35,14 @@ class CivInfoStatsForNextTurn(val civInfo: Civilization) {
 
     @Readonly
     private fun getUnitMaintenance(): Int {
-        val baseUnitCost = 0.5f
-        var freeUnits = 3
+        // Civilization 6 style maintenance (opt-in via ModOptions uniques): per-unit fixed costs
+        // from the maintenanceCost field, configurable base cost, flat Gold reductions, no
+        // game-progress inflation, and no default free units.
+        val civ6Style = civInfo.gameInfo.ruleset.modOptions.hasUnique(UniqueType.UnitMaintenanceCiv6Style)
+        val baseUnitCost = if (civ6Style)
+            civInfo.gameInfo.ruleset.modOptions.constants.unitMaintenanceBaseCost.toFloat()
+        else 0.5f
+        var freeUnits = if (civ6Style) 0 else 3
         for (unique in civInfo.getMatchingUniques(UniqueType.FreeUnits, civInfo.state)) {
             freeUnits += Countables.getCountableAmount(unique.params[0], civInfo.state) ?: 0
         }
@@ -56,16 +62,29 @@ class CivInfoStatsForNextTurn(val civInfo: Civilization) {
         // This leads to massive memory and CPU time savings when calculating the maintenance!
         val civwideDiscountUniques = civInfo.getMatchingUniques(UniqueType.UnitMaintenanceDiscount, GameContext.IgnoreConditionals)
             .toList().asSequence()
+        val civwideFlatDiscountUniques = civInfo.getMatchingUniques(UniqueType.UnitMaintenanceDiscountFlat, GameContext.IgnoreConditionals)
+            .toList().asSequence()
 
         for (unit in unitsToPayFor) {
             val stateForConditionals = unit.cache.state
-            var unitMaintenance = 1f
+            var unitMaintenance = if (civ6Style) unit.baseUnit.maintenanceCost else 1f
             val uniquesThatApply = unit.getMatchingUniques(
                 UniqueType.UnitMaintenanceDiscount,
                 stateForConditionals
             ) + civwideDiscountUniques.filter { it.conditionalsApply(stateForConditionals) }
             for (unique in uniquesThatApply) {
                 unitMaintenance *= unique.params[0].toPercent()
+            }
+            if (civ6Style) {
+                // Flat per-unit Gold reductions, applied after percentage discounts
+                val flatDiscounts = unit.getMatchingUniques(
+                    UniqueType.UnitMaintenanceDiscountFlat,
+                    stateForConditionals
+                ) + civwideFlatDiscountUniques.filter { it.conditionalsApply(stateForConditionals) }
+                for (unique in flatDiscounts) {
+                    unitMaintenance -= Countables.getCountableAmount(unique.params[0], stateForConditionals)?.toFloat() ?: 0f
+                }
+                unitMaintenance = unitMaintenance.coerceAtLeast(0f)
             }
             costsToPay.add(unitMaintenance)
         }
@@ -77,10 +96,11 @@ class CivInfoStatsForNextTurn(val civInfo: Civilization) {
 
         // as game progresses Maintenance cost rises
         val turnLimit = civInfo.gameInfo.speed.numTotalTurns().toFloat()
-        val gameProgress = min(civInfo.gameInfo.turns / turnLimit, 1f)
+        val gameProgress = if (civ6Style) 0f else min(civInfo.gameInfo.turns / turnLimit, 1f)
 
         var cost = baseUnitCost * numberOfUnitsToPayFor * (1 + gameProgress)
-        cost = cost.pow(1 + gameProgress / 3) // Why 3? To spread 1 to 1.33
+        if (!civ6Style)
+            cost = cost.pow(1 + gameProgress / 3) // Why 3? To spread 1 to 1.33
 
         if (!civInfo.isHuman())
             cost *= civInfo.gameInfo.getDifficulty().aiUnitMaintenanceModifier

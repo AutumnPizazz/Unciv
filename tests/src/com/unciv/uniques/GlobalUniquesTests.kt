@@ -985,6 +985,63 @@ class GlobalUniquesTests {
         Assert.assertEquals(7, civInfo.gold)
     }
 
+    @Test
+    fun civ6StyleUnitMaintenance() {
+        // 开关必须在任何 modOptions 缓存访问（addCiv/addCity）之前添加
+        game.ruleset.modOptions.uniques.add("Uses the Civilization 6 style unit maintenance system")
+        game.ruleset.modOptions.constants.unitMaintenanceBaseCost = 1.0
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv("Reduces unit maintenance by [1] Gold <for [Military] units>")
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+
+        fun addUnitWithMaintenance(cost: Float, tileX: Int) {
+            val base = game.createBaseUnit()
+            base.maintenanceCost = cost
+            base.strength = 8
+            game.ruleset.units[base.name] = base
+            game.addUnit(base.name, civInfo, game.getTile(tileX, 0))
+        }
+        addUnitWithMaintenance(2f, 1)
+        addUnitWithMaintenance(3f, 2)
+
+        civInfo.updateStatsForNextTurn()
+        // 无默认免费单位：2×1 + 3×1 = 5；军事单位扁平减免 1×2 = 2 → 3 金
+        Assert.assertEquals(-3f, civInfo.stats.statsForNextTurn.gold, 0.01f)
+    }
+
+    @Test
+    fun legacyUnitMaintenanceIgnoresMaintenanceCostField() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv()
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        val base = game.createBaseUnit()
+        base.maintenanceCost = 100f // 旧模式应忽略该字段
+        base.strength = 8
+        game.ruleset.units[base.name] = base
+        game.addUnit(base.name, civInfo, game.getTile(1, 0))
+
+        civInfo.updateStatsForNextTurn()
+        // 旧公式：维护费系数被忽略，1 个单位在默认 3 个免费额度内 → 0
+        Assert.assertEquals(0f, civInfo.stats.statsForNextTurn.gold, 0.01f)
+    }
+
+    @Test
+    fun civ6StyleUnitMaintenanceFlatDiscountMinZero() {
+        game.makeHexagonalMap(5)
+        val civInfo = game.addCiv("Reduces unit maintenance by [5] Gold <for [Military] units>")
+        game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        val base = game.createBaseUnit()
+        base.maintenanceCost = 2f
+        base.strength = 8
+        game.ruleset.units[base.name] = base
+        game.addUnit(base.name, civInfo, game.getTile(1, 0))
+
+        game.ruleset.modOptions.uniques.add("Uses the Civilization 6 style unit maintenance system")
+        civInfo.updateStatsForNextTurn()
+        // 2 - 5 → 下限 0，维护费 0
+        Assert.assertEquals(0f, civInfo.stats.statsForNextTurn.gold, 0.01f)
+    }
+
     // endregion
 
     // region Trigger upon uniques

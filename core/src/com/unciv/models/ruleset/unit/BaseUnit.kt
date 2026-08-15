@@ -46,6 +46,12 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
     var range: Int = 2
     var interceptRange = 0
     var maxHP: Int = 100
+
+    /** Per-unit maintenance cost factor for the Civilization 6 style maintenance system
+     *  (enabled by the [UniqueType.UnitMaintenanceCiv6Style] mod option). Defaults to 1,
+     *  matching the legacy flat per-unit cost. */
+    var maintenanceCost: Float = 1f
+
     var unitType: String = ""
 
     val type by lazy { ruleset.unitTypes[unitType]

@@ -8,6 +8,8 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：文明6式单位维护费（ModOptions 加 unique「Uses the Civilization 6 style unit maintenance system」启用）——Units.json 新字段 `maintenanceCost`（按单位固定维护费）、可配置 `unitMaintenanceBaseCost` 常量、扁平金币减免（「Reduces unit maintenance by [amount] Gold」，可配单位过滤器）、无进度膨胀与默认免费单位；旧维护费体系不变
+- 模组支持：修复 REMOVE_FIELD 合并按源值类型而非字段类型重置标量字段（float 字段如新 maintenanceCost 会崩溃）
 - 模组支持：`[mapUnitFilter] Units` Countable 按自定义 tag 计数的文档示例修正为方括号语法（`[[Class.Tag] Units]`，`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag
 - 模组支持：`[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` 参数全面兑现文档承诺的 Countable 表达式支持——半径、数量、免费单位数、单位治疗/伤害/经验/状态回合数、回合条件等此前遇 Countable 表达式会崩溃或解析错误；`getResourceAmount` 两个重载统一（库存优先），Countable 资源引用在城市与文明上下文中解析一致
 - 模组支持：Countable 文档新增 `[mapUnitFilter] Units` 按自定义 tag unique 计数的说明（如 `[{Class.Tag} Units]`），模组可将逐对象重复的事件 unique 合并为一条 Countable 表达式

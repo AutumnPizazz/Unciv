@@ -1500,6 +1500,20 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Global，Unit
 
 :::
+::: details Reduces unit maintenance by [amount] Gold
+每单位固定金币减免，在百分比折扣之后应用。仅在文明6式维护费体系（见「Uses the Civilization 6 style unit maintenance system」）中生效。可与 &lt;for [Military] units&gt; 等单位过滤器组合，只减免特定单位。
+
+示例："Reduces unit maintenance by [3] Gold"
+
+适用范围：Global
+
+:::
+::: details Uses the Civilization 6 style unit maintenance system
+规则集可选用（放在 ModOptions.json 的 uniques 中）。启用 Units.json 的 maintenanceCost 字段（按单位固定维护费）、可配置的 unitMaintenanceBaseCost 常量、固定金币减免（见「Reduces unit maintenance by [amount] Gold」），并移除随游戏进度增长的维护费膨胀与默认 3 个免费单位。
+
+适用范围：Global
+
+:::
 ::: details [relativeAmount]% Gold cost of upgrading
 多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%
 
