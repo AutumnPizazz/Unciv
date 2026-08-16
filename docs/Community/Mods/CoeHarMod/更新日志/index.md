@@ -3,8 +3,30 @@
 ## 📌 Version history
 
 ::: tip Latest version
-**v3.3.10** - adapted for Unciv 4.19.15
+**v3.3.11** - adapted for Unciv 4.21.8.2
 :::
+
+## v3.3.11 - for 4.21.8.2
+
+### ⚖️ Maintenance system rework
+
+- Migrated to the Civilization 6 style unit maintenance system: the per-level tiered maintenance uniques gated by command level are gone, replaced by the `maintenanceCost` field + the `unitMaintenanceBaseCost` global constant - fixed per-unit upkeep, no game-progress inflation, no default free units
+- Cleaned up redundant Comments and orphan translations left over from the migration
+
+### 📜 National mobilization optimization
+
+- National mobilization subsidy: 80 per-unit repeated uniques merged into one Countable expression + a unit tag, greatly simplifying the ruleset
+
+### 🤖 Lua system rework
+
+- Made good use of the Lua system: the general/admiral aura (command level decides which eras it covers) and AI civic unlocking by era are now Lua implementations - the former per-era/per-entry 60+ uniques were removed
+- Resource data converted to tables; Lua functions renamed to PascalCase, eliminating LuaLS diagnostics
+
+### 🧹 Cleanup & tooling
+
+- Removed commented-out old rule definitions, 1700+ lines in total
+- GitHub Action no longer publishes Releases: any tag now syncs core files to main
+- Removed the outdated project-memory doc and the python helper tools; gitignore now ignores LuaLS local files
 
 ## v3.3.10 - for 4.19.15
 

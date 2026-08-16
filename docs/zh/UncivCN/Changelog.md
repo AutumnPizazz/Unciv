@@ -9,6 +9,7 @@ title: UncivCN 更新日志
 ## 未发布
 
 - 文档：新增子仓库模组（CoeHarMod）更新日志规范——每次改动模组须同步文档站模组板块日志 `docs/{,zh/}Community/Mods/CoeHarMod/更新日志/`（未发布小节积累 + 发版整合，emoji 分类风格），并写入 AGENTS.md 与 Coding-standards 第八节
+- 文档：补写文档站模组板块 CoeHarMod v3.3.11 更新日志（维护费体系重构、全民动员优化、Lua 重构、清理与流程，中英两份）
 
 ## 4.21.8.2（build 1254）
 
