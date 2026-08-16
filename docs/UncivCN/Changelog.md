@@ -6,6 +6,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 - Docs: new sub-module (CoeHarMod) changelog workflow - every mod change must also update the mod section changelog on the docs site (`docs/Community/Mods/CoeHarMod/更新日志/` and the Chinese copy under `docs/zh/`): Unreleased-section accumulation + consolidation on release, emoji category groups; documented in AGENTS.md and Coding-standards section 8
 - Docs: backfilled the CoeHarMod v3.3.11 changelog in the docs-site mod section (maintenance system rework, national mobilization optimization, Lua rework, cleanup & tooling - EN + ZH)
+- Mod: CoeHarMod fixed all 38 mod-checker warnings (removed the invalid VersionNotice event trigger, added the official suppression unique to the Reveal buildings, suppressed benign city-state translation collisions in ModOptions); submodule pointer updated
 
 ## 4.21.8.2 (build 1254)
 

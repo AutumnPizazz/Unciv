@@ -8,6 +8,10 @@ title: 更新日志
 **v3.3.11** - 适配 Unciv 4.21.8.2
 :::
 
+## 未发布
+
+- 修复模组检查器全部 38 条黄色警告：删除触发未定义事件 VersionNotice 的无效 unique；Mil/Eco/Dip/Gene.Reveal 建筑加官方压制 unique（Reveal/Hide 互斥开关设计）；ModOptions 压制城邦名=首都名的良性翻译碰撞警告（33 条，原版同结构）
+
 ## v3.3.11 - 适配 4.21.8.2
 
 ### ⚖️ 维护费体系重构

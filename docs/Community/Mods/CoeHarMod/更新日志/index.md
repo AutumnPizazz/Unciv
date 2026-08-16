@@ -6,6 +6,10 @@
 **v3.3.11** - adapted for Unciv 4.21.8.2
 :::
 
+## Unreleased
+
+- Fixed all 38 mod-checker warnings: removed the invalid "VersionNotice" event trigger (the event was never defined), added the official suppression unique to the Mil/Eco/Dip/Gene.Reveal buildings (mutually-exclusive Reveal/Hide toggle design), and suppressed the benign city-state-name = capital-name translation-collision warnings in ModOptions (33 entries, same pattern as vanilla)
+
 ## v3.3.11 - for 4.21.8.2
 
 ### ⚖️ Maintenance system rework
