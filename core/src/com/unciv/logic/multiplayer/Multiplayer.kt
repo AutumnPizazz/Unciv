@@ -494,7 +494,11 @@ class Multiplayer {
      * @throws MultiplayerFileNotFoundException if the file can't be found
      */
     suspend fun downloadGame(gameId: String) = coroutineScope {
-        val gameInfo = multiplayerServer.downloadGame(gameId)
+        val serverGame = multiplayerServer.downloadGame(gameId)
+        // With the "forbid reload" option, a player entering the game resumes their own turn from the
+        // locally saved snapshot (which is at least as new as the server's turn-start state for the same
+        // turn) instead of reloading the server state - this is what makes reload-to-undo impossible.
+        val gameInfo = localSnapshotForEntry(serverGame) ?: serverGame
         val preview = gameInfo.asPreview()
         val onlineGame = multiplayerFiles.getGameByGameId(gameId)
         val onlinePreview = onlineGame?.preview
@@ -504,6 +508,23 @@ class Multiplayer {
             onlineGame.updatePreview(preview)
         }
         UncivGame.Current.loadGame(gameInfo)
+    }
+
+    /**
+     * The local snapshot to resume from when entering a game, or null to use the server state:
+     * only for games with the "forbid reload" option, when no such game is currently running locally
+     * (i.e. this is a game *entry*, not an in-game sync), and when the snapshot is from the same
+     * turn as the server state - then the snapshot is at least as new as the server state, since the
+     * server only receives the turn-start upload while the player plays the turn locally.
+     */
+    private fun localSnapshotForEntry(serverGame: GameInfo): GameInfo? {
+        if (!serverGame.gameParameters.isOnlineMultiplayer || !serverGame.gameParameters.forbidReload) return null
+        val currentGame = UncivGame.Current.gameInfo
+        if (currentGame != null && currentGame.gameId == serverGame.gameId) return null // in-game update, keep server state
+        val localSnapshot = multiplayerFiles.loadLocalSnapshot(serverGame.gameId) ?: return null
+        if (localSnapshot.turns != serverGame.turns || localSnapshot.currentPlayer != serverGame.currentPlayer) return null
+        localSnapshot.isUpToDate = true
+        return localSnapshot
     }
 
     /**

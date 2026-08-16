@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 联机：新游戏选项「禁止读档」——开启后客户端在本方回合内持续保存本地快照，重新进入游戏时从本地快照继续而非服务器回合开始状态，退出重进无法再回到回合开始重新操作（不动服务器，近零带宽）
 - 模组支持：新增 ModOptions unique「Production overflow applies immediately to the next construction」——产能溢出无上限、不受已完成项目产能加成影响，当回合立即作用于队列下一个项目（享受其加成并可沿队列连锁推进），依靠即时溢出完成的单位可立即移动；未启用该 unique 时原版溢出机制不变
 - 文档：新增子仓库模组（CoeHarMod）更新日志规范——每次改动模组须同步文档站模组板块日志 `docs/{,zh/}Community/Mods/CoeHarMod/更新日志/`（未发布小节积累 + 发版整合，emoji 分类风格），并写入 AGENTS.md 与 Coding-standards 第八节
 - 文档：补写文档站模组板块 CoeHarMod v3.3.11 更新日志（维护费体系重构、全民动员优化、Lua 重构、清理与流程，中英两份）

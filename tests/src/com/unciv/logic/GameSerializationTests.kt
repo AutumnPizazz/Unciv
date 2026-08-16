@@ -93,6 +93,14 @@ class GameSerializationTests {
     }
 
     @Test
+    fun forbidReloadParameterSurvivesSerialization() {
+        game.gameParameters.forbidReload = true
+        val roundTripped = json().fromJson(GameInfo::class.java, json().toJson(game))
+        Assert.assertTrue("forbidReload must survive a save/load round trip", roundTripped.gameParameters.forbidReload)
+        Assert.assertFalse("forbidReload must default to false", GameParameters().forbidReload)
+    }
+
+    @Test
     fun serializedLaziesTest() {
         val jsonSerializer = Json().apply {
             setIgnoreDeprecated(true)

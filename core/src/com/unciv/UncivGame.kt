@@ -306,7 +306,15 @@ open class UncivGame(val isConsoleMode: Boolean = false) : Game(), PlatformSpeci
                 question = "Do you want to exit the game?",
                 confirmText = "Exit",
                 restoreDefault = { musicController.resumeFromShutdown() },
-                action = { Gdx.app.exit() }
+                action = {
+                    val currentWorldScreen = worldScreen
+                    if (currentWorldScreen != null && currentWorldScreen.localSnapshotHandler.isActive()) {
+                        // "Forbid reload" multiplayer: snapshot the latest state before shutting down
+                        currentWorldScreen.localSnapshotHandler.flush { Gdx.app.exit() }
+                    } else {
+                        Gdx.app.exit()
+                    }
+                }
             ).open(force = true)
             return null
         }

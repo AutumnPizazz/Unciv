@@ -73,6 +73,10 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
 
     /** If true, only clients with the same game version as the host can join this multiplayer game. */
     var requireSameVersion = false
+
+    /** If true, players cannot quit and reload the game to redo their turn: the client keeps a local
+     *  snapshot of the turn's progress and resumes from it instead of the server's turn-start state. */
+    var forbidReload = false
     /** Version string of the host that created this game. Set automatically by GameStarter. */
     var hostVersion: String? = null
 
@@ -122,6 +126,7 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
         parameters.minutesRecoveredPerTurn = minutesRecoveredPerTurn
         parameters.pollingIntervalSeconds = pollingIntervalSeconds
         parameters.requireSameVersion = requireSameVersion
+        parameters.forbidReload = forbidReload
         parameters.hostVersion = hostVersion
         parameters.restartVoteTurn = restartVoteTurn
         parameters.restartVoteTimeoutMinutes = restartVoteTimeoutMinutes

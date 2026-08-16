@@ -42,6 +42,8 @@ class MultiplayerFiles {
         val game = savedGames[fileHandle] ?: return
 
         debug("Deleting game %s with id %s", fileHandle.name(), game.preview?.gameId)
+        val gameId = game.preview?.gameId
+        if (gameId != null) deleteLocalSnapshot(gameId)
         savedGames.remove(game.fileHandle)
     }
 
@@ -69,6 +71,33 @@ class MultiplayerFiles {
     @Readonly
     fun getGameByGameId(gameId: String): MultiplayerGamePreview? {
         return savedGames.values.firstOrNull { it.preview?.gameId == gameId }
+    }
+
+    /**
+     * Local snapshot used by the "forbid reload" option: a full [GameInfo] saved locally during the
+     * player's turn, so that re-entering the game resumes the turn instead of reloading the server's
+     * turn-start state. These files are filtered out of [UncivFiles.getMultiplayerSaves] so they are
+     * never parsed as game previews.
+     */
+    private fun localSnapshotFile(gameId: String) = files.getMultiplayerSave("${gameId}_localstate")
+
+    fun saveLocalSnapshot(gameInfo: GameInfo) {
+        files.saveGame(gameInfo, localSnapshotFile(gameInfo.gameId))
+    }
+
+    fun loadLocalSnapshot(gameId: String): GameInfo? {
+        val file = localSnapshotFile(gameId)
+        if (!file.exists()) return null
+        return try {
+            files.loadGameFromFile(file)
+        } catch (ex: Exception) {
+            debug("Failed to load local snapshot for %s: %s", gameId, ex.message)
+            null
+        }
+    }
+
+    fun deleteLocalSnapshot(gameId: String) {
+        files.deleteSave(localSnapshotFile(gameId))
     }
 
 

@@ -178,6 +178,9 @@ class WorldScreen(
 
     internal val undoHandler = UndoHandler(this)
 
+    /** Local snapshot scheduling for the "forbid reload" multiplayer option. */
+    internal val localSnapshotHandler = LocalSnapshotHandler(this)
+
 
     init {
         // notifications are right-aligned, they take up only as much space as necessary.
@@ -986,6 +989,7 @@ class WorldScreen(
         //    otherwise images will not load properly!
         if (shouldUpdate && resizeDeferTimer == null) {
             shouldUpdate = false
+            localSnapshotHandler.markDirty()
 
             // Since updating the worldscreen can take a long time, *especially* the first time, we disable input processing to avoid ANRs
             Gdx.input.inputProcessor = null
@@ -994,6 +998,8 @@ class WorldScreen(
             if (Gdx.input.inputProcessor == null) // Update may have replaced the worldscreen with a GreatPersonPickerScreen etc, so the input would already be set
                 Gdx.input.inputProcessor = stage
         }
+
+        localSnapshotHandler.update()
 
         super.render(delta)
     }

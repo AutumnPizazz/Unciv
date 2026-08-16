@@ -133,7 +133,9 @@ class UncivFiles(
 
         val allFiles = localFiles + externalFiles
         // Filter out companion notes files (legacy "MyGame_notes" and current "notes_<gameId>")
-        val filtered = allFiles.filter { !it.name().endsWith("_notes") && !it.name().startsWith("notes_") }
+        // and local reload snapshots ("<gameId>_localstate") - the latter are full game states that must
+        // not be parsed as multiplayer game previews.
+        val filtered = allFiles.filter { !it.name().endsWith("_notes") && !it.name().startsWith("notes_") && !it.name().endsWith("_localstate") }
 
         debug("Local files: %s, external files: %s",
             { localFiles.joinToString(prefix = "[", postfix = "]", transform = { it.file().absolutePath }) },
@@ -519,6 +521,10 @@ class Autosaves(val files: UncivFiles) {
     }
 
     fun autoSave(gameInfo: GameInfo, nextTurn: Boolean = false) {
+        // "Forbid reload": never write a local copy of an online multiplayer game to the autosave
+        // slot - loading such a copy would bypass the local-snapshot mechanism and allow redoing the turn.
+        // The local snapshot (LocalSnapshotHandler) covers crash recovery instead.
+        if (gameInfo.gameParameters.isOnlineMultiplayer && gameInfo.gameParameters.forbidReload) return
         // get GameSettings to check the maxAutosavesStored in the autoSave function
         val settings = files.getGeneralSettings()
 

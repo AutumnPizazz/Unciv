@@ -106,7 +106,19 @@ class WorldScreenMenuPopup(
 
         addButton("Exit") {
             close()
-            Gdx.app.exit()
+            if (worldScreen.localSnapshotHandler.isActive()) {
+                // With the "forbid reload" option: make sure the latest turn state is snapshotted
+                // before the process shuts down, so quit-and-reload cannot fall back to turn start.
+                val savingPopup = Popup(worldScreen)
+                savingPopup.addGoodSizedLabel("Saving game state...")
+                savingPopup.open()
+                worldScreen.localSnapshotHandler.flush {
+                    savingPopup.close()
+                    Gdx.app.exit()
+                }
+            } else {
+                Gdx.app.exit()
+            }
         }.apply { actor.style = BaseScreen.skin.get("negative", TextButtonStyle::class.java) }
             .nextColumn()
 
