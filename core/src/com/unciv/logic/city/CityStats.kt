@@ -94,6 +94,20 @@ class CityStats(val city: City) {
 
     var currentCityStats: Stats = Stats()  // This is so we won't have to calculate this multiple times - takes a lot of time, especially on phones
 
+    /**
+     * Total production before percentage bonuses are applied (base tiles/buildings/specialists/uniques yields,
+     * plus excess-food conversion and the minimum-1 production floor, which do not receive percentage bonuses).
+     * Recalculated on every [update]; used by the immediate production overflow system
+     * ([UniqueType.ProductionOverflowImmediateTransfer]) to strip the completed construction's bonuses from overflow.
+     */
+    var unbuffedProduction = 0f
+
+    /**
+     * Weighted production multiplier of the current construction: [currentCityStats] production / [unbuffedProduction].
+     * 1 when there is nothing to divide. Recalculated on every [update].
+     */
+    var productionMultiplier = 1f
+
     //endregion
     //region Pure Functions
 
@@ -507,6 +521,11 @@ class CityStats(val city: City) {
         for (stat in finalStatList.values) newCurrentCityStats.add(stat)
         currentCityStats = newCurrentCityStats
 
+        // Weighted production multiplier of the current construction, used by the immediate-overflow system
+        productionMultiplier =
+            if (unbuffedProduction <= 0f) 1f
+            else currentCityStats.production / unbuffedProduction
+
         if (updateCivStats) city.civ.updateStatsForNextTurn()
     }
 
@@ -515,6 +534,9 @@ class CityStats(val city: City) {
 
         for ((key, value) in baseStatTree.children)
             newFinalStatList[key] = value.totalStats.clone()
+
+        // Track production before percentage bonuses for the immediate-overflow system (see [unbuffedProduction])
+        var unbuffedProduction = baseStatTree.totalStats.production
 
         val statPercentBonusesSum = statPercentBonusTree.totalStats
 
@@ -595,6 +617,7 @@ class CityStats(val city: City) {
         newFinalStatList["Maintenance"] = Stats(gold = -buildingsMaintenance.toInt().toFloat())
 
         if (canConvertFoodToProduction(totalFood, currentConstruction)) {
+            unbuffedProduction += getProductionFromExcessiveFood(totalFood)
             newFinalStatList["Excess food to production"] =
                 Stats(production = getProductionFromExcessiveFood(totalFood), food = -totalFood)
         }
@@ -617,11 +640,16 @@ class CityStats(val city: City) {
                 )
         }
 
-        if (city.isInResistance())
+        if (city.isInResistance()) {
             newFinalStatList.clear()  // NOPE
+            unbuffedProduction = 0f
+        }
 
-        if (newFinalStatList.values.map { it.production }.sum() < 1)  // Minimum production for things to progress
-            newFinalStatList["Production"] = Stats(production = 1f)
+        if (newFinalStatList.values.map { it.production }.sum() < 1) { // Minimum production for things to progress
+            newFinalStatList["Production"] = Stats(production = 1f)  // the floor itself does not receive percentage bonuses
+            unbuffedProduction += 1f
+        }
+        this.unbuffedProduction = unbuffedProduction
         finalStatList = newFinalStatList
     }
 

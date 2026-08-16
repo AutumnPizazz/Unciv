@@ -4279,6 +4279,14 @@ This unique does not support conditionals.
 Applicable to: ModOptions
 
 :::
+::: details Production overflow applies immediately to the next construction
+Production overflow is not capped, does not receive the completed construction's production bonuses, is applied to the next construction in the queue on the same turn (receiving that construction's production bonuses, chaining through the queue as needed), and units completed through such immediate overflow can move immediately.
+
+This unique does not support conditionals.
+
+Applicable to: ModOptions
+
+:::
 ::: details City-states search for first city location
 By default, city-state settlers with no cities yet found on their current tile when valid (predetermined map-gen / editor start). With this unique they use the same nearby-site search as major civs.
 

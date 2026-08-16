@@ -74,6 +74,11 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     @Readonly fun currentConstructionName() = if (constructionQueue.isEmpty()) "" else constructionQueue.first()
     fun setCurrentConstruction(value: String) {
         if (constructionQueue.isEmpty()) constructionQueue.add(value) else constructionQueue[0] = value
+        // Stored overflow can be used the same turn on the newly selected construction
+        if (useImmediateProductionOverflow && productionOverflow > 0) {
+            applyProductionOverflowToCurrentConstruction()
+            if (productionOverflow == 0) constructIfEnough() // may complete the new construction right away and chain further
+        }
     }
 
     //endregion
@@ -310,29 +315,34 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     }
 
     @Readonly
-    fun productionForConstruction(constructionName: String): Int {
-        val cityStatsForConstruction: Stats
-        if (currentConstructionName() == constructionName) cityStatsForConstruction = city.cityStats.currentCityStats
-        else {
-            /*
-            The ol' Switcharoo - what would our stats be if that was our current construction?
-            Since this is only ever used for UI purposes, I feel fine with having it be a bit inefficient
-            and recalculating the entire city stats
-            We don't want to change our current construction queue - what if we have an empty queue,
-             this can affect the city if we run it on another thread like in ConstructionsTable -
-            So we run the numbers for the other construction
-            ALSO apparently if we run on the actual cityStats from another thread,
-              we get all sorts of fun concurrency problems when accessing various parts of the cityStats.
-            SO, we create an entirely new CityStats and iterate there - problem solve!
-            */
-            @LocalState val cityStats = CityStats(city)
-            cityStats.statsFromTiles = city.cityStats.statsFromTiles // take as-is
-            val construction = city.cityConstructions.getConstruction(constructionName)
-            cityStats.update(construction, updateTileStats = false, updateCivStats = false)
-            cityStatsForConstruction = cityStats.currentCityStats
-        }
+    fun productionForConstruction(constructionName: String): Int =
+        withConstructionStats(constructionName) { it.currentCityStats.production.roundToInt() }
 
-        return cityStatsForConstruction.production.roundToInt()
+    /**
+     * Production multiplier (buffed / unbuffed production) for building [constructionName].
+     * Used by the immediate-overflow system ([UniqueType.ProductionOverflowImmediateTransfer]) to
+     * strip the completed construction's bonuses from overflow and to apply the next construction's bonuses.
+     */
+    @Readonly
+    fun productionMultiplierForConstruction(constructionName: String): Float =
+        withConstructionStats(constructionName) { it.productionMultiplier }
+
+    /**
+     * Runs [action] against the city stats as they would be if [constructionName] was the current construction.
+     * When it already is the current construction, the live stats are used.
+     * For other constructions we do the ol' Switcharoo - see the comment in the previous
+     * implementation of [productionForConstruction]: since this is only ever used for UI and overflow
+     * calculations, we recalculate the entire city stats on a throwaway [CityStats] instance to avoid
+     * touching the real one (also avoids concurrency problems when run from other threads).
+     */
+    @Readonly
+    private fun <T> withConstructionStats(constructionName: String, action: (CityStats) -> T): T {
+        if (currentConstructionName() == constructionName) return action(city.cityStats)
+
+        @LocalState val cityStats = CityStats(city)
+        cityStats.statsFromTiles = city.cityStats.statsFromTiles // take as-is
+        cityStats.update(getConstruction(constructionName), updateTileStats = false, updateCivStats = false)
+        return action(cityStats)
     }
 
     @Readonly
@@ -376,6 +386,22 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     }
 
     fun constructIfEnough():Unit = timeThis("constructIfEnough") {
+        if (useImmediateProductionOverflow) constructIfEnoughWithImmediateOverflow()
+        else constructIfEnoughVanilla()
+    }
+
+    /**
+     * Whether the immediate production overflow system is active
+     * (ModOptions unique [UniqueType.ProductionOverflowImmediateTransfer]):
+     * overflow is uncapped, does not receive the completed construction's production bonuses, is applied
+     * to the next construction in the queue on the same turn (receiving its bonuses), and units completed
+     * through immediate overflow can move immediately. Otherwise the vanilla system is used.
+     */
+    private val useImmediateProductionOverflow: Boolean
+        get() = city.getRuleset().modOptions.hasUnique(UniqueType.ProductionOverflowImmediateTransfer)
+
+    /** Vanilla overflow behavior: only the first queue entry is ever completed, overflow is capped and stored for next turn. */
+    private fun constructIfEnoughVanilla():Unit = timeThis("constructIfEnough") {
         validateConstructionQueue()
 
         // Update InProgressConstructions for any available refunds
@@ -404,6 +430,77 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         }
     }
 
+    /**
+     * Immediate-overflow system ([UniqueType.ProductionOverflowImmediateTransfer]):
+     * 1. Production already sitting in [productionOverflow] is immediately applied to the current
+     *    construction (receiving its production bonuses) - so overflow can be used the same turn.
+     * 2. When a construction completes, the overflow (computed WITHOUT the completed construction's
+     *    production bonuses, i.e. unbuffed, and uncapped) is rolled over to the next construction in
+     *    the queue on the same turn, receiving the next construction's bonuses, chaining through the
+     *    queue as needed. What is left after the queue is exhausted stays in [productionOverflow].
+     */
+    private fun constructIfEnoughWithImmediateOverflow():Unit = timeThis("constructIfEnoughWithImmediateOverflow") {
+        validateConstructionQueue()
+
+        // Update InProgressConstructions for any available refunds
+        validateInProgressConstructions()
+
+        while (true) {
+            // Overflow available since last turn - or produced by completing the previous construction -
+            // is usable right now, on the current construction (receiving its production bonuses)
+            applyProductionOverflowToCurrentConstruction()
+
+            val constructionName = currentConstructionName()
+            val construction = getConstruction(constructionName)
+            if (construction is PerpetualConstruction) {
+                // Same as vanilla: check every turn if we could be doing something better,
+                // because this doesn't end by itself (overflow keeps accumulating in the pool)
+                chooseNextConstruction()
+                return
+            }
+
+            val productionCost = (construction as INonPerpetualConstruction).getProductionCost(city.civ, city)
+            val workDone = inProgressConstructions[constructionName] ?: 0
+            if (workDone < productionCost) return // can't complete anything more - all overflow is already invested
+
+            val potentialOverflow = workDone - productionCost // buffed overflow - what's beyond the cost in invested production
+            // Capture the multiplier BEFORE completing: completing the construction triggers a stats update
+            // (addBuilding -> updateUniques -> cityStats.update) that switches the current construction
+            // and would lose the completed construction's production bonuses
+            val completedConstructionMultiplier = city.cityStats.productionMultiplier
+            if (completeConstruction(construction, grantFullMovementToUnit = true)) {
+                // Strip the completed construction's production bonuses from the overflow
+                // (the invested production was buffed at the time it was added)
+                productionOverflow += if (completedConstructionMultiplier > 0f)
+                    (potentialOverflow / completedConstructionMultiplier).roundToInt()
+                else potentialOverflow
+            }
+            else {
+                city.civ.addNotification("No space available to place [${construction.name}] near [${city.name}]",
+                    city.location, NotificationCategory.Production, construction.name)
+            }
+            city.civ.civConstructions.builtItemsWithIncreasingCost[construction.name] += 1
+            // Loop back: next iteration applies the overflow pool to the next construction in the queue,
+            // completes it if the overflow (with its bonuses) is enough, and chains further as needed
+        }
+    }
+
+    /**
+     * Immediately invests the unbuffed [productionOverflow] pool into the current construction,
+     * applying the current construction's production bonuses, so stored overflow is usable the same turn.
+     * Does nothing for perpetual constructions (they don't consume production) or when the pool is empty.
+     */
+    private fun applyProductionOverflowToCurrentConstruction() {
+        if (productionOverflow <= 0) return
+        val constructionName = currentConstructionName()
+        if (constructionName.isEmpty()) return
+        val construction = getConstruction(constructionName)
+        if (construction is PerpetualConstruction) return
+        if (getWorkDone(constructionName) == 0) constructionBegun(construction) // start the construction (deducts stockpiled resources)
+        addProductionPoints((productionOverflow * productionMultiplierForConstruction(constructionName)).roundToInt())
+        productionOverflow = 0
+    }
+
     fun endTurn(cityStats: Stats) {
         validateConstructionQueue()
         validateInProgressConstructions()
@@ -412,7 +509,16 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             if (getWorkDone( currentConstructionName()) == 0) {
                 constructionBegun(getConstruction( currentConstructionName()))
             }
-            addProductionPoints(cityStats.production.roundToInt() + productionOverflow)
+            // Capture the multiplier BEFORE adding: the pool is unbuffed, and applying the current
+            // construction's bonuses to it is the fallback for overflow that was not consumed by
+            // applyProductionOverflowToCurrentConstruction (e.g. queue edits like moveEntryToTop)
+            val constructionMultiplier = productionMultiplierForConstruction(currentConstructionName())
+            val productionToAdd = if (useImmediateProductionOverflow && productionOverflow > 0) {
+                cityStats.production.roundToInt() + (productionOverflow * constructionMultiplier).roundToInt()
+            } else {
+                cityStats.production.roundToInt() + productionOverflow
+            }
+            addProductionPoints(productionToAdd)
             productionOverflow = 0
         }
     }
@@ -538,13 +644,19 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         }
     }
 
-    /** Returns false if we tried to construct a unit but it has nowhere to go */
-    fun completeConstruction(construction: INonPerpetualConstruction): Boolean {
+    /**
+     * Returns false if we tried to construct a unit but it has nowhere to go.
+     * @param grantFullMovementToUnit when completing a unit through the immediate-overflow system
+     * ([UniqueType.ProductionOverflowImmediateTransfer]), the unit is finished during the current turn
+     * and should be able to move immediately instead of waiting for the next turn.
+     */
+    fun completeConstruction(construction: INonPerpetualConstruction, grantFullMovementToUnit: Boolean = false): Boolean {
         var unit: MapUnit? = null
         if (construction is Building) construction.construct(this)
         else if (construction is BaseUnit) {
             unit = construction.construct(this, null)
                 ?: return false // unable to place unit
+            if (grantFullMovementToUnit) unit.currentMovement = unit.getMaxMovement().toFloat()
 
             /* check if it's true that we should load saved promotion for the unitType,
                Then check if the player want to rebuild the unit the saved promotion,

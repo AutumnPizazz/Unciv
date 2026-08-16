@@ -8,6 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：新增 ModOptions unique「Production overflow applies immediately to the next construction」——产能溢出无上限、不受已完成项目产能加成影响，当回合立即作用于队列下一个项目（享受其加成并可沿队列连锁推进），依靠即时溢出完成的单位可立即移动；未启用该 unique 时原版溢出机制不变
 - 文档：新增子仓库模组（CoeHarMod）更新日志规范——每次改动模组须同步文档站模组板块日志 `docs/{,zh/}Community/Mods/CoeHarMod/更新日志/`（未发布小节积累 + 发版整合，emoji 分类风格），并写入 AGENTS.md 与 Coding-standards 第八节
 - 文档：补写文档站模组板块 CoeHarMod v3.3.11 更新日志（维护费体系重构、全民动员优化、Lua 重构、清理与流程，中英两份）
 - Mod：CoeHarMod 修复模组检查器全部 38 条黄色警告（删除无效 VersionNotice 事件触发、Reveal 建筑加官方压制 unique、ModOptions 压制城邦良性翻译碰撞），子模块指针同步更新

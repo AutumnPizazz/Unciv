@@ -1180,6 +1180,15 @@ enum class UniqueType(
     AllowRazeCapital("Allow raze capital", UniqueTarget.ModOptions, flags = UniqueFlag.setOfNoConditionals),
     AllowRazeHolyCity("Allow raze holy city", UniqueTarget.ModOptions, flags = UniqueFlag.setOfNoConditionals),
     AllowTileClaim("Allow cities to claim tiles", UniqueTarget.ModOptions, flags = UniqueFlag.setOfNoConditionals),
+    ProductionOverflowImmediateTransfer(
+        "Production overflow applies immediately to the next construction",
+        UniqueTarget.ModOptions,
+        flags = UniqueFlag.setOfNoConditionals,
+        docDescription = "Production overflow is not capped, does not receive the completed construction's production bonuses, " +
+            "is applied to the next construction in the queue on the same turn (receiving that construction's production bonuses, " +
+            "chaining through the queue as needed), and units completed through such immediate overflow can move immediately.",
+        docDescriptionZh = "产能溢出无上限，不受已完成项目产能加成的影响，并在当回合立即作用于建造队列中的下一个项目（享受该项目的产能加成，必要时沿队列连锁推进），依靠此类即时溢出完成的单位可立即移动。",
+    ),
     CityStatesSearchForFirstCitySite(
         "City-states search for first city location",
         UniqueTarget.ModOptions,

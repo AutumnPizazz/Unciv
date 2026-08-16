@@ -4286,6 +4286,14 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：ModOptions
 
 :::
+::: details Production overflow applies immediately to the next construction
+产能溢出无上限，不受已完成项目产能加成的影响，并在当回合立即作用于建造队列中的下一个项目（享受该项目的产能加成，必要时沿队列连锁推进），依靠此类即时溢出完成的单位可立即移动。
+
+此词条不支持条件。
+
+适用范围：ModOptions
+
+:::
 ::: details City-states search for first city location
 By default, city-state settlers with no cities yet found on their current tile when valid (predetermined map-gen / editor start). With this unique they use the same nearby-site search as major civs.
 
