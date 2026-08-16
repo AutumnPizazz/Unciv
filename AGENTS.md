@@ -39,6 +39,11 @@
 - 母仓库与 CN 分支对类似功能实现方式不同时，向用户提问决定采纳哪一方的实现
 - 母仓库改动架构时，需要评估 CN 分支新功能是否需要跟随架构改动，向用户提供评估报告并询问是否跟随改动
 
+## 子仓库模组（CoeHarMod）
+
+- CoeHarMod 是 `android/assets/mods/CoeHarMod` 的 git submodule（独立仓库 AutumnPizazz/CoeHarMod），**实际工作分支是 `workspace`**（`main` 由 GitHub Action 按标签同步核心文件生成）；模组改动在子模块目录内提交，再在主仓库提交更新 submodule 指针
+- **每次改动 CoeHarMod（功能/修复/CI/文档）时，必须在同一批改动中同步更新文档站模组板块更新日志 `docs/{,zh/}Community/Mods/CoeHarMod/更新日志/index.md`（中英两份）**：在顶部「未发布 / Unreleased」小节各加一条；发版时整合进版本条目并更新 `::: tip 最新版本 / Latest version` 提示块（详见 Coding-standards 第八节）
+
 ## 其他
 
 - 任何改动合入时，同步在中英 Changelog（`docs/{,zh/}UncivCN/Changelog.md`）顶部「未发布」小节各加一行（详见 Coding-standards 第八节）

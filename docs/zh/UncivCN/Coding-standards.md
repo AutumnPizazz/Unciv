@@ -197,6 +197,28 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   中文页 `docs/zh/Community/Upstream-changelog.md` **只放人工翻译、不嵌入英文**，
   覆盖最近版本（允许滞后）并链接英文页看完整历史，翻译从最新版本往前补翻。
 
+### 子仓库模组（CoeHarMod）更新日志
+
+- CoeHarMod 是 Unciv 的 submodule（`android/assets/mods/CoeHarMod`，独立仓库
+  AutumnPizazz/CoeHarMod），**实际工作分支是 `workspace`**（`main` 是 GitHub Action
+  按标签同步核心文件生成的发布分支）；模组版本号在 `jsons/ModOptions.json` 的
+  `modVersion`，适配的游戏版本在 `recommendedGameVersion`
+- **每次改动模组（功能/修复/CI/文档）时，必须在同一批改动中同步更新文档站**
+  模组板块更新日志 `docs/Community/Mods/CoeHarMod/更新日志/index.md` 与
+  `docs/zh/Community/Mods/CoeHarMod/更新日志/index.md`（中英两份）：顶部
+  「未发布 / Unreleased」小节各加一条（EN 用英文、ZH 用中文）
+- 条目风格：一行一条、短句要点；同一版本内按类别用 emoji 分组小节
+  （`### ⚖️ 快乐系统优化`、`### 🔧 开发工具` 等；EN 版章节标题用英文，如
+  `### ⚖️ Maintenance system rework`），参照现有日志
+- 发版整合：更新顶部 `::: tip 最新版本 / Latest version` 提示块
+  （`**vX.Y.Z** - 适配 Unciv A.B.C.D`，EN 版为 `- for A.B.C.D`），把「未发布」
+  小节整体移入 `## vX.Y.Z - 适配 A.B.C.D` 版本条目（EN 版为 `## vX.Y.Z - for A.B.C.D`，
+  措辞不变），然后清空未发布小节
+- 提交流程：模组改动先在 CoeHarMod 子模块（workspace 分支）目录内提交，
+  再在主仓库提交更新 submodule 指针；更新日志与模组改动在主仓库同一提交中完成
+- 模组依赖主仓库的 Modding 能力（unique/字段/常量），合并上游后如模组受影响，
+  需同步跟进模组版本并在更新日志记录
+
 ### 发版检查清单与踩坑经验
 
 发版前逐项核对：

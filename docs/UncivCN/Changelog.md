@@ -2,6 +2,10 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+## Unreleased
+
+- Docs: new sub-module (CoeHarMod) changelog workflow - every mod change must also update the mod section changelog on the docs site (`docs/Community/Mods/CoeHarMod/更新日志/` and the Chinese copy under `docs/zh/`): Unreleased-section accumulation + consolidation on release, emoji category groups; documented in AGENTS.md and Coding-standards section 8
+
 ## 4.21.8.2 (build 1254)
 
 - Tests: removed the load test that read CoeHarMod submodule content - main repo tests no longer depend on the sub-repo (behavior differed when CI skips submodule checkout); the QuanMinDongYuan tag-counting behavior stays covered by self-contained simulated tests
