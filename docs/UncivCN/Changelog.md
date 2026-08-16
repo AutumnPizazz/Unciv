@@ -4,14 +4,17 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+
+
+## 4.21.8.3 (build 1255)
+
 - Multiplayer: new game option "Forbid reloading" - with the option on, the client keeps a local snapshot of the player's turn and resumes from it on re-entry, so quitting and reloading can no longer return to the turn-start state to redo moves (server untouched, near-zero bandwidth)
 - Modding: new ModOptions unique "Production overflow applies immediately to the next construction" - uncapped overflow that does not receive the completed construction's production bonuses, applied to the next queue entry on the same turn (receiving its bonuses, chaining through the queue as needed), and units completed through immediate overflow can move immediately; vanilla overflow behavior stays unchanged without the unique
 - Docs: new sub-module (CoeHarMod) changelog workflow - every mod change must also update the mod section changelog on the docs site (`docs/Community/Mods/CoeHarMod/更新日志/` and the Chinese copy under `docs/zh/`): Unreleased-section accumulation + consolidation on release, emoji category groups; documented in AGENTS.md and Coding-standards section 8
 - Docs: backfilled the CoeHarMod v3.3.11 changelog in the docs-site mod section (maintenance system rework, national mobilization optimization, Lua rework, cleanup & tooling - EN + ZH)
 - Mod: CoeHarMod fixed all 38 mod-checker warnings (removed the invalid VersionNotice event trigger, added the official suppression unique to the Reveal buildings, suppressed benign city-state translation collisions in ModOptions); submodule pointer updated
 - Mod: CoeHarMod cleaned up all green mod-checker entries (deleted 167 lines of unused tags / empty unique, dropped the always-true Maori and Mech conditionals, object-level suppression for the Vampire conditional); submodule pointer updated
-
-## 4.21.8.2 (build 1254)
+# 4.21.8.2 (build 1254)
 
 - Tests: removed the load test that read CoeHarMod submodule content - main repo tests no longer depend on the sub-repo (behavior differed when CI skips submodule checkout); the QuanMinDongYuan tag-counting behavior stays covered by self-contained simulated tests
 - Fix: map pin (tile note) edit/view popup previews no longer render unrevealed resources ahead of time (e.g. no oil in the Ancient era) - resource icons now consistently respect the viewing civ visibility
