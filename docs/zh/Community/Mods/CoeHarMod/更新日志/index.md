@@ -10,6 +10,7 @@ title: 更新日志
 
 ## v3.3.12 - 适配 4.21.8.2
 
+- 启用产能溢出即时转移机制（新 ModOptions unique「Production overflow applies immediately to the next construction」）：溢出无上限且不享受已完成项目产能加成，当回合立即作用于队列下一个项目（享受其加成、可沿队列连锁推进），依靠即时溢出完成的单位可立即移动
 - 清理模组检查器全部绿色（OK 级）提示：删除 166 处未引用的 `Class.*` 自定义 tag 声明及空 unique、未注册 unique（如 Aircraft）；删除毛利人登船、机甲无视地形的恒真条件（只能远古开局 / Robotics 必然晚于 Cybernetics）；吸血鬼全地形 1 移动条件真实保留，加对象级压制 unique
 - 修复模组检查器全部 38 条黄色警告：删除触发未定义事件 VersionNotice 的无效 unique；Mil/Eco/Dip/Gene.Reveal 建筑加官方压制 unique（Reveal/Hide 互斥开关设计）；ModOptions 压制城邦名=首都名的良性翻译碰撞警告（33 条，原版同结构）
 

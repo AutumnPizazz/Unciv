@@ -8,6 +8,7 @@
 
 ## v3.3.12 - for 4.21.8.2
 
+- Enabled the immediate production overflow system (new ModOptions unique "Production overflow applies immediately to the next construction"): overflow is uncapped and does not receive the completed construction's production bonuses, is applied to the next queue entry on the same turn (receiving its bonuses, chaining through the queue), and units completed through it can move immediately
 - Cleaned up all green (OK-level) mod-checker entries: removed 166 unreferenced `Class.*` custom tag declarations plus an empty unique and unregistered uniques (e.g. `Aircraft`); dropped the always-true conditionals on Maori embarkation and Mech ignores-terrain-cost (games can only start in the Ancient era / Robotics is necessarily after Cybernetics); kept the Vampire all-tiles-1-movement conditional (real effect) with an object-level suppression unique
 - Fixed all 38 mod-checker warnings: removed the invalid "VersionNotice" event trigger (the event was never defined), added the official suppression unique to the Mil/Eco/Dip/Gene.Reveal buildings (mutually-exclusive Reveal/Hide toggle design), and suppressed the benign city-state-name = capital-name translation-collision warnings in ModOptions (33 entries, same pattern as vanilla)
 
