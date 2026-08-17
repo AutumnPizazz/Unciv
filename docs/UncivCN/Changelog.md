@@ -4,7 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Rotational symmetry map refactor (step 3): river generation picks canonical starts and replays rotated paths per sector, synced right after generation; continent IDs normalized per orbit (BFS assigns mirror continents different labels, affecting size-ordered / wonder rules); added river symmetry regression test (multi-seed sampling)
+- Rotational symmetry map refactor (step 4): natural wonders / resources / ancient ruins pick canonical spots and replay rotated copies per sector (wonder groups and neighbor conversions replicated); starting-location distribution rewritten on the MapSymmetry orbit model (wrap-aware) with symmetry tests; removed the editor "Apply rotational symmetry" step and all old post-hoc patch functions; added a DEBUG symmetry-verify hook after generation
 
 
 ## 4.21.8.3 (build 1255)

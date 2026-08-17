@@ -13,7 +13,11 @@ import com.unciv.utils.debug
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-class NaturalWonderGenerator(val ruleset: Ruleset, val randomness: MapGenerationRandomness) {
+class NaturalWonderGenerator(
+    val ruleset: Ruleset,
+    val randomness: MapGenerationRandomness,
+    private val symmetry: MapSymmetry
+) {
 
     private val blockedTiles = HashSet<Tile>()
 
@@ -94,7 +98,9 @@ class NaturalWonderGenerator(val ruleset: Ruleset, val randomness: MapGeneration
             fitsTerrainUniques(naturalWonder, tile)
         }
 
-        return suitableLocations
+        // 对称模式:候选收敛到规范格(每轨道一处奇观),放置后旋转重放到各扇区
+        return if (symmetry.isActive) suitableLocations.filter { symmetry.isCanonical(it) }
+            else suitableLocations
     }
 
 
@@ -129,6 +135,22 @@ class NaturalWonderGenerator(val ruleset: Ruleset, val randomness: MapGeneration
                     blockedTiles.addAll(tileToConvert.getTilesInDistance(tileToConvert.tileMap.mapParameters.mapSize.height / 5))
                 }
 
+                // 对称模式:把整组奇观旋转到轨道各扇区(含邻格转化与黑名单)
+                if (symmetry.isActive) {
+                    val orbit = symmetry.orbitOf(list.first()) ?: return true
+                    for ((steps, member) in orbit.members) {
+                        if (member === list.first()) continue
+                        for (tileToConvert in list) {
+                            val rotatedPos = rotateCoord(tileToConvert.position, steps)
+                            val rotatedTile = tileToConvert.tileMap.getIfTileExistsOrNull(rotatedPos.x, rotatedPos.y)
+                                ?: continue
+                            placeNaturalWonder(wonder, rotatedTile)
+                            blockedTiles.addAll(rotatedTile.getTilesInDistance(
+                                rotatedTile.tileMap.mapParameters.mapSize.height / 5))
+                        }
+                    }
+                }
+
                 debug("Natural Wonder %s @%s", wonder.name, location.position)
 
                 return true
@@ -137,6 +159,13 @@ class NaturalWonderGenerator(val ruleset: Ruleset, val randomness: MapGeneration
 
         debug("No suitable location for %s", wonder.name)
         return false
+    }
+
+    /** 轴向坐标顺时针旋转 [steps60] × 60°(与 MapSymmetry 一致) */
+    private fun rotateCoord(coord: com.unciv.logic.map.HexCoord, steps60: Int): com.unciv.logic.map.HexCoord {
+        var result = coord
+        repeat(steps60) { result = com.unciv.logic.map.HexCoord.of(result.x - result.y, result.x) }
+        return result
     }
 
     companion object {

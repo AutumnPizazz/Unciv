@@ -8,7 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
-- 旋转对称地图重构（第三步）：河流生成改为规范扇区选点+河道旋转重放，轨道同步后立即生效；大陆 ID 轨道规范化（BFS 会给镜像大陆分配不同标签，影响按大陆判定的大小/奇观规则）；新增河流对称回归测试（多 seed 抽查）
+- 旋转对称地图重构（第四步）：自然奇观/资源/远古遗迹改为规范扇区选点+旋转重放到各扇区（奇观组与邻格转化同步复制）；起点分布改用 MapSymmetry 轨道归一化（wrap 感知）并新增对称性测试；删除编辑器「Apply rotational symmetry」步骤与全部旧事后补丁函数（applyTerrainSymmetry/applyFeatureSymmetry/applySymmetry 等）；新增生成完成后的 DEBUG 对称校验钩子
 
 
 ## 4.21.8.3（build 1255）
