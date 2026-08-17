@@ -4,7 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Rotational symmetry map refactor (step 4): natural wonders / resources / ancient ruins pick canonical spots and replay rotated copies per sector (wonder groups and neighbor conversions replicated); starting-location distribution rewritten on the MapSymmetry orbit model (wrap-aware) with symmetry tests; removed the editor "Apply rotational symmetry" step and all old post-hoc patch functions; added a DEBUG symmetry-verify hook after generation
+- Rotational symmetry map refactor complete: symmetry now participates during generation instead of being patched after it - landmass / humidity-temperature / elevation / lakes-coasts / vegetation / ice / rivers / natural wonders / resources / ruins / starting locations all switched to canonical-sector decisions with instant orbit sync (new MapSymmetry orbit authority with world-wrap-aware cover-space orbit math); fixed three real flaws of the old implementation - silently broken 3/6-fold symmetry on wrapped maps (residual terrain/temperature asymmetries), mirror-continent ID mismatches affecting continent-ordered rules, and stale-transient copies for resources/wonders; removed all old post-hoc patch functions and the editor "Apply rotational symmetry" step; DEBUG symmetry-verify hook after generation; all fold x wrap combinations verify with zero asymmetries, no generation performance regression
 
 
 ## 4.21.8.3 (build 1255)
