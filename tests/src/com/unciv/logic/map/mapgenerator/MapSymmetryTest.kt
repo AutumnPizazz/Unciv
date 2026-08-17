@@ -10,8 +10,7 @@ import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.testing.BaseTestRunner
-import com.unciv.testing.RedirectOutput
-import com.unciv.testing.RedirectPolicy
+import com.unciv.ui.screens.mapeditorscreen.MapGeneratorSteps
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -156,11 +155,12 @@ class MapSymmetryTest {
         canonical.hasBottomRightRiver = true
         canonical.hasBottomRiver = true
 
-        // 同步到其余成员
+        // 同步到其余成员(河流边由 synchronizeRivers 统一处理)
         for (member in members) {
             if (member === canonical) continue
             sym.stampInto(member, canonical, sym.stepsFromCanonical(member))
         }
+        sym.synchronizeRivers()
 
         // 直接断言字段一致
         for (member in members) {
@@ -201,14 +201,12 @@ class MapSymmetryTest {
     }
 
     /**
-     * 对当前(仍为事后补丁式)管线生成的对称地图跑 verify():
-     * 暴露旧管线残留的不对称点——改造完成后该测试应保持通过。
-     * 当前阶段仅汇总输出(wrap 图存在已知的旧 mapping 静默失效),不做硬断言。
+     * 集成校验:对称地图经完整生成管线后,轨道内所有成员与规范格必须完全一致
+     * (地形/特征/资源/改良/温度/湿度/大陆/河流边)。管线改造前旧补丁式实现会在
+     * 3/6 折+环形地图上残留不对称;完整映射后应收敛为 0。
      */
     @Test
-    @RedirectOutput(RedirectPolicy.Show)
-    fun generatedMapsPassVerifyExceptContinents() {
-        val report = StringBuilder()
+    fun generatedMapsPassVerify() {
         for (mode in SymmetryMode.allValues.filter { it != SymmetryMode.none })
             for (worldWrap in listOf(false, true)) {
                 val mapParameters = MapParameters().apply {
@@ -222,13 +220,11 @@ class MapSymmetryTest {
                 val tileMap = MapGenerator(ruleset()).generateMap(mapParameters)
                 val sym = MapSymmetry(tileMap, tileMap.mapParameters.symmetryMode)
                 val errors = sym.verify()
-                val nonContinent = errors.filterNot { it.contains("continent") }
-                val continents = errors.filter { it.contains("continent") }
-                report.append("mode=$mode wrap=$worldWrap tiles=${tileMap.values.size} " +
-                    "nonContinentErrors=${nonContinent.size} continentErrors=${continents.size}\n")
-                for (e in errors.take(6)) report.append("    $e\n")
+                assertTrue(
+                    "generated map (mode=$mode, wrap=$worldWrap) has asymmetries:\n" +
+                        errors.joinToString("\n"),
+                    errors.isEmpty()
+                )
             }
-        println(report)
-        // 旧管线全量补丁后仍可能存在少量残留;管线改造完成(第 2~7 步)后此处应收敛为 0。
     }
 }

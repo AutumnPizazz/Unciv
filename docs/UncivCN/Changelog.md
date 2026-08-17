@@ -4,7 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Rotational symmetry map refactor (step 1): added MapSymmetry as the single orbit authority - canonical sector / orbit / steps / copy-stamp / verify primitives with world-wrap-aware orbit math and unit tests; groundwork for wiring symmetry into each generation step (no user-visible change yet)
+- Rotational symmetry map refactor (step 2): landmass / humidity-temperature / elevation / lakes-coasts / vegetation / rare features / ice all switched to canonical-sector decisions with instant orbit sync; rivers synchronized right after generation; removed the old Phase 1/1b post-hoc patches and replaced Phase 2/3 with a full-orbit enforceSymmetry (no more double pass); fixed stampInto copying stale terrain transients and the old applySymmetry silently missing wrap-map pairs - all fold x wrap combinations now verify with zero asymmetries
 
 
 ## 4.21.8.3 (build 1255)

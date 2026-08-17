@@ -144,11 +144,15 @@ class MapSymmetry(private val tileMap: TileMap, val mode: String) {
         orbitByTile[tile]?.members?.toSortedMap()?.values?.toList() ?: listOf(tile)
 
     /**
-     * 把 [source] 的生成状态完整复制到 [target],河流方向按 [steps60] 旋转。
-     * 这是轨道同步的唯一写入入口:地形/特征/自然奇观/资源/改良/温度/湿度 + 河流三向标志。
+     * 把 [source] 的生成状态完整复制到 [target](不含河流边,见 [synchronizeRivers])。
+     * 这是轨道同步的唯一写入入口:地形/特征/自然奇观/资源/改良/温度/湿度。
      */
     fun stampInto(target: Tile, source: Tile, steps60: Int) {
-        target.setBaseTerrain(source.getBaseTerrain())
+        // 先清除目标旧奇观,避免残留奇观在后续 normalize 里按 turnsInto 改回地形
+        target.naturalWonder = null
+        // 直接用字符串地形:生成阶段(如 applyTerrain)可能只赋值 baseTerrain 字符串而不刷新
+        // 瞬态,getBaseTerrain()(瞬态对象)可能过期;统一以字符串为准并在此刷新瞬态
+        target.baseTerrain = source.baseTerrain
         target.setTerrainFeatures(source.terrainFeatures)
         target.naturalWonder = source.naturalWonder
         target.tileResource = source.tileResource
@@ -157,21 +161,31 @@ class MapSymmetry(private val tileMap: TileMap, val mode: String) {
         target.temperature = source.temperature
         target.humidity = source.humidity
 
-        // 河流边:先清空目标,再按旋转方向从源复制
-        target.hasBottomRightRiver = false
-        target.hasBottomRiver = false
-        target.hasBottomLeftRiver = false
-        for (neighbor in source.neighbors) {
-            val clockPos = tileMap.getNeighborTileClockPosition(source, neighbor)
-            if (clockPos == -1) continue
-            val rotatedClockPos = rotateDirection(clockPos, steps60)
-            val rotatedNeighbor = tileMap.getClockPositionNeighborTile(target, rotatedClockPos) ?: continue
-            if (source.isConnectedByRiver(neighbor))
-                target.setConnectedByRiver(rotatedNeighbor, true)
-        }
-
         target.setTerrainTransients()
         TileNormalizer.normalizeToRuleset(target, target.ruleset)
+    }
+
+    /**
+     * 同步河流边到整个轨道:每条边以规范端为权威源,旋转后写到轨道成员间的对应边。
+     * 河流标志由边的"较低端"唯一持有(见 [Tile.isConnectedByRiver]),写入是确定性的;
+     * 从规范端读取时,若持有者在非规范格,需要先完成一轮写入(调用两次即可幂等收敛)。
+     */
+    fun synchronizeRivers() {
+        if (!isActive) return
+        for (canonical in canonicalTiles) {
+            val orbit = orbitByTile[canonical] ?: continue
+            for (neighbor in canonical.neighbors) {
+                val clockPos = tileMap.getNeighborTileClockPosition(canonical, neighbor)
+                if (clockPos == -1) continue
+                val hasRiver = canonical.isConnectedByRiver(neighbor)
+                for ((steps, member) in orbit.members) {
+                    if (member === canonical) continue
+                    val rotatedClockPos = rotateDirection(clockPos, steps)
+                    val rotatedNeighbor = tileMap.getClockPositionNeighborTile(member, rotatedClockPos) ?: continue
+                    member.setConnectedByRiver(rotatedNeighbor, hasRiver)
+                }
+            }
+        }
     }
 
     /**

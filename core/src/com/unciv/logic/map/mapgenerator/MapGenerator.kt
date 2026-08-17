@@ -187,19 +187,16 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         if (consoleTimings) debug("\nMapGenerator run with parameters %s", mapParameters)
         runAndMeasure("MapLandmassGenerator") {
-            MapLandmassGenerator(map, ruleset, randomness).generateLand()
+            MapLandmassGenerator(map, ruleset, randomness, symmetry).generateLand()
         }
         runAndMeasure("applyHumidityAndTemperature") {
             applyHumidityAndTemperature(map)
         }
         runAndMeasure("raiseMountainsAndHills") {
-            MapElevationGenerator(map, ruleset, terrainConditions, randomness).raiseMountainsAndHills()
+            MapElevationGenerator(map, ruleset, terrainConditions, randomness, symmetry).raiseMountainsAndHills()
         }
-        // Phase 1: Enforce base terrain symmetry BEFORE lakes/coasts/vegetation/ice.
-        // Coast transitions are then generated on symmetric terrain → naturally symmetric.
-        runAndMeasure("applyTerrainSymmetry") {
-            applyTerrainSymmetry(map)
-        }
+        // 陆地/温湿/起伏已按规范扇区生成并即时同步轨道 —— 无需再事后强制地形对称
+        // (原 Phase 1 调用已移除;Phase 1b 待湖泊/植被/冰改造后移除)
 
         runAndMeasure("spawnLakesAndCoasts") {
             spawnLakesAndCoasts(map)
@@ -213,12 +210,8 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         runAndMeasure("spawnIce") {
             spawnIce(map)
         }
-
-        // Phase 1b: Vegetation/ice use perlin noise which can be asymmetric for
-        // 3-fold and 6-fold. Re-symmetrize terrain features only (not base terrain).
-        runAndMeasure("applyFeatureSymmetry") {
-            applyFeatureSymmetry(map)
-        }
+        // 植被/冰/稀有特征已按规范扇区生成并即时同步轨道
+        // (原 Phase 1b 调用已移除)
 
         runAndMeasure("assignContinents") {
             map.assignContinents(TileMap.AssignContinentsMode.Assign)
@@ -227,12 +220,15 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         runAndMeasure("RiverGenerator") {
             RiverGenerator(map, randomness, ruleset).spawnRivers()
         }
+        // 河流生成后立即把边同步到轨道,后续阶段(convertTerrains 等)在对称状态上进行
+        if (symmetry.isActive)
+            symmetry.synchronizeRivers()
         convertTerrains(map.values)
 
-        // Phase 2: Comprehensive symmetry after rivers and terrain conversions,
-        // BEFORE region assignment so start position normalization works on symmetric terrain.
-        runAndMeasure("applySymmetry") {
-            applySymmetry(map)
+        // Phase 2: 全图对称同步(完整轨道映射)在区域分配之前执行,
+        // 使起始位置归一化在对称地形上进行。
+        runAndMeasure("enforceSymmetry") {
+            enforceSymmetry(map)
         }
 
         // Region based map generation - not used when generating maps in map editor
@@ -268,11 +264,9 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         if (map.mapParameters.symmetryMode != SymmetryMode.none)
             distributeStartingLocations(map)
 
-        // Phase 3: Final comprehensive symmetry enforcement after all generation steps.
-        // Called twice to ensure any tiles missed in the first pass are caught.
+        // Phase 3: 全部生成步骤完成后的最终对称同步(完整映射,一次到位)
         if (map.mapParameters.symmetryMode != SymmetryMode.none) {
-            applySymmetry(map)
-            applySymmetry(map)
+            enforceSymmetry(map)
         } else {
             mirror(map)
         }
@@ -346,6 +340,15 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     private fun rotateDirection(clockPos: Int, steps: Int): Int =
         ((clockPos - 2 + steps * 2) % 12 + 12) % 12 + 2
     // endregion
+
+    /** 全图对称同步:从规范格复制全字段到轨道成员,再统一同步河流边。
+     *  作为阶段兜底与最终校验前的收口(完整轨道映射,无需二次执行)。 */
+    private fun enforceSymmetry(map: TileMap) {
+        if (!symmetry.isActive) return
+        for (tile in symmetry.canonicalTiles)
+            stampSector(tile)
+        symmetry.synchronizeRivers()
+    }
 
     private fun mirror(map: TileMap) {
         val mirroringType = map.mapParameters.mirroring
@@ -575,9 +578,9 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             when (step) {
                 MapGeneratorSteps.None -> Unit
                 MapGeneratorSteps.All -> throw IllegalArgumentException("MapGeneratorSteps.All cannot be used in generateSingleStep")
-                MapGeneratorSteps.Landmass -> MapLandmassGenerator(map, ruleset, randomness).generateLand()
+                MapGeneratorSteps.Landmass -> MapLandmassGenerator(map, ruleset, randomness, symmetry).generateLand()
                 MapGeneratorSteps.HumidityAndTemperature -> applyHumidityAndTemperature(map)
-                MapGeneratorSteps.Elevation -> MapElevationGenerator(map, ruleset, terrainConditions, randomness).raiseMountainsAndHills()
+                MapGeneratorSteps.Elevation -> MapElevationGenerator(map, ruleset, terrainConditions, randomness, symmetry).raiseMountainsAndHills()
                 MapGeneratorSteps.LakesAndCoast -> spawnLakesAndCoasts(map)
                 MapGeneratorSteps.Vegetation -> spawnVegetation(map)
                 MapGeneratorSteps.RareFeatures -> spawnRareFeatures(map)
@@ -633,25 +636,29 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     private fun spreadCoast(map: TileMap, coasts: List<TerrainOccursRange>) {
         repeat(map.mapParameters.maxCoastExtension) {
             val toCoast = mutableListOf<Tile>()
-            for (tile in map.values.filter { it.isOcean }) {
-                val tilesInDistance = tile.getTilesInDistance(1)
-                for (neighborTile in tilesInDistance) {
+            // 决策只在规范格做(neighbor 判定在对称网格上对轨道等价;RNG 每轨道只消费一次)
+            for (tile in canonicalTiles(map)) {
+                if (!tile.isOcean) continue
+                var shouldCoast = false
+                for (neighborTile in tile.getTilesInDistance(1)) {
                     if (neighborTile.isLand) {
-                        toCoast.add(tile)
+                        shouldCoast = true
                         break
                     } else if (neighborTile.getBaseTerrain().isCoast) {
                         val randbool = randomness.RNG.nextBoolean()
                         if (randbool) {
-                            toCoast.add(tile)
+                            shouldCoast = true
                         }
                         break
                     }
                 }
+                if (shouldCoast) toCoast.add(tile)
             }
             for (tile in toCoast) {
                 val coast = coasts.filter { it.matchesHumidityAndTemp(tile) }.ifEmpty { coasts }.random(randomness.RNG)
                 tile.baseTerrain = coast.name
                 tile.setTransients()
+                stampClimate(tile)
             }
         }
     }
@@ -666,6 +673,10 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             val tilesToCheck = ArrayDeque<Tile>()
 
             val maxLakeSize = ruleset.modOptions.constants.maxLakeSize
+
+            // 对称模式下,聚类本身天然对称(地形对称);同一轨道上的湖簇共享一次随机抽取,
+            // 保证各扇区的湖地形一致
+            val lakeTerrainByOrbit = HashMap<Tile, TerrainOccursRange>()
 
             while (waterTiles.isNotEmpty()) {
                 val initialWaterTile = waterTiles.first()
@@ -685,9 +696,18 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                     }
                 }
 
-                val lakeTerrain = lakeTerrains.filter { it.matchesHumidityAndTemp(initialWaterTile) }
-                    .ifEmpty {lakeTerrains}
-                    .random(randomness.RNG)
+                val lakeTerrain = if (symmetry.isActive) {
+                    val canonical = symmetry.canonicalOf(initialWaterTile)
+                    lakeTerrainByOrbit.getOrPut(canonical) {
+                        lakeTerrains.filter { it.matchesHumidityAndTemp(initialWaterTile) }
+                            .ifEmpty {lakeTerrains}
+                            .random(randomness.RNG)
+                    }
+                } else {
+                    lakeTerrains.filter { it.matchesHumidityAndTemp(initialWaterTile) }
+                        .ifEmpty {lakeTerrains}
+                        .random(randomness.RNG)
+                }
                 if (tilesInArea.size <= maxLakeSize) {
                     for (tile in tilesInArea) {
                         tile.baseTerrain = lakeTerrain.name
@@ -794,6 +814,33 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
      * [MapParameters.temperatureintensity] to favor very high and very low temperatures
      * [MapParameters.temperatureShift] to shift temperature towards cold (negative) or hot (positive)
      */
+    /** 规范扇区迭代源:对称模式只轮询规范格,非对称退化为全图(行为与改造前一致) */
+    private fun canonicalTiles(tileMap: TileMap): Iterable<Tile> =
+        if (symmetry.isActive) symmetry.canonicalTiles else tileMap.values
+
+    /** 把规范格的完整生成状态同步到整个轨道(与装饰步骤共用) */
+    private fun stampSector(canonical: Tile) {
+        if (!symmetry.isActive) return
+        val orbit = symmetry.orbitOf(canonical) ?: return
+        for ((steps, member) in orbit.members) {
+            if (member === canonical) continue
+            symmetry.stampInto(member, canonical, steps)
+        }
+    }
+
+    /** 把规范格的温度/湿度/地形决策同步到整个轨道 */
+    private fun stampClimate(canonical: Tile) {
+        if (!symmetry.isActive) return
+        val orbit = symmetry.orbitOf(canonical) ?: return
+        for ((_, member) in orbit.members) {
+            if (member === canonical) continue
+            member.temperature = canonical.temperature
+            member.humidity = canonical.humidity
+            member.baseTerrain = canonical.baseTerrain
+            member.setTerrainTransients()
+        }
+    }
+
     private fun applyHumidityAndTemperature(tileMap: TileMap) {
         val humiditySeed = randomness.RNG.nextInt().toDouble()
         val temperatureSeed = randomness.RNG.nextInt().toDouble()
@@ -838,9 +885,11 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             }
         }
 
-        for (tile in tileMap.values.asSequence()) {
-            if (tile.baseTerrain in elevationTerrains)
+        for (tile in canonicalTiles(tileMap)) {
+            if (tile.baseTerrain in elevationTerrains) {
+                stampClimate(tile)
                 continue
+            }
 
             val humidityRandom = randomness.getPerlinNoise(tile, humiditySeed, scale = scale, nOctaves = 1)
             val humidity = ((humidityRandom + 1.0) / 2.0 + humidityShift).coerceIn(0.0..1.0)
@@ -862,6 +911,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                     temperature <= 1.0 -> if (humidity < 0.7) Constants.desert else Constants.plains
                     else -> {
                         debug("applyHumidityAndTemperature: Invalid temperature %s", temperature)
+                        stampClimate(tile)
                         continue
                     }
                 }
@@ -869,6 +919,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                     tile.baseTerrain = autoTerrain
                     tile.setTerrainTransients()
                 }
+                stampClimate(tile)
                 continue
             }
 
@@ -884,6 +935,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             } else {
                 debug("applyHumidityAndTemperature: No terrain found for temperature: %s, humidity: %s", temperature, humidity)
             }
+            stampClimate(tile)
         }
     }
 
@@ -900,8 +952,8 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
             MapType.boreal -> +0.10
             else -> 0.0
         }
-        // Checking it.baseTerrain in candidateTerrains to make sure forest does not spawn on desert hill
-        for (tile in tileMap.values.asSequence().filter { it.baseTerrain in candidateTerrains
+        // 植被决策只在规范格做:噪声按规范坐标评估,特征随机每轨道一次,随后同步轨道
+        for (tile in canonicalTiles(tileMap).filter { it.baseTerrain in candidateTerrains
                 && it.lastTerrain.name in candidateTerrains }) {
 
             val vegetation = (randomness.getPerlinNoise(tile, vegetationSeed, scale = 3.0, nOctaves = 1) + 1.0) / 2.0
@@ -914,6 +966,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                 val randomVegetation = possibleVegetation.random(randomness.RNG)
                 tile.hasVegetation = true
                 tile.addTerrainFeature(randomVegetation.name)
+                stampSector(tile)
             }
         }
     }
@@ -923,15 +976,17 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
      */
     private fun spawnRareFeatures(tileMap: TileMap) {
         val rareFeatures = terrainFeaturePicker.filter { it.rareFeature }
-        for (tile in tileMap.values.asSequence().filter { it.terrainFeatures.isEmpty() }) {
+        for (tile in canonicalTiles(tileMap).filter { it.terrainFeatures.isEmpty() }) {
             if (randomness.RNG.nextDouble() <= tileMap.mapParameters.rareFeaturesRichness) {
                 val hillFeature = tile.getHillTerrain()
                 val possibleFeatures = rareFeatures.filter { it.matchesTempAndTerrain(tile)
                     && (hillFeature == null || it.terrain.occursOn.contains(hillFeature.name))
                     && NaturalWonderGenerator.fitsTerrainUniques(it.terrain, tile)
                 }
-                if (possibleFeatures.any())
+                if (possibleFeatures.any()) {
                     tile.addTerrainFeature(possibleFeatures.random(randomness.RNG).name)
+                    stampSector(tile)
+                }
             }
         }
     }
@@ -952,7 +1007,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         tileMap.setTransients(ruleset)
         val temperatureSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles(tileMap)) {
             if (oceanTerrains.none { it.name == tile.baseTerrain} || tile.terrainFeatures.isNotEmpty())
                 continue
 
@@ -968,8 +1023,10 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                     && NaturalWonderGenerator.fitsTerrainUniques(it.terrain, tile)
                 }.map { it.terrain.name }
                 .randomOrNull(randomness.RNG)
-            if (iceTerrain != null)
+            if (iceTerrain != null) {
                 tile.addTerrainFeature(iceTerrain)
+                stampSector(tile)
+            }
         }
     }
 

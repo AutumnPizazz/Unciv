@@ -18,7 +18,8 @@ import kotlin.math.sqrt
 class MapLandmassGenerator(
     private val tileMap: TileMap,
     ruleset: Ruleset,
-    private val randomness: MapGenerationRandomness
+    private val randomness: MapGenerationRandomness,
+    private val symmetry: MapSymmetry
 ) {
     //region Fields
     private val landTerrainName = getInitializationTerrain(ruleset, TerrainType.Land)
@@ -69,6 +70,31 @@ class MapLandmassGenerator(
             generateFlatEarthExtraWater()
         }
     }
+
+    // region Symmetry support
+
+    /** 生成器只轮询规范扇区;非对称模式退化为全图迭代(行为与改造前完全一致) */
+    private val canonicalTiles: List<Tile>
+        get() = if (symmetry.isActive) symmetry.canonicalTiles else tileMap.values.toList()
+
+    /** 把规范格的陆地/海洋决策同步到整个轨道 */
+    private fun stampTerrain(canonical: Tile) {
+        if (!symmetry.isActive) return
+        val orbit = symmetry.orbitOf(canonical) ?: return
+        for ((_, member) in orbit.members) {
+            if (member === canonical) continue
+            member.baseTerrain = canonical.baseTerrain
+            member.setTerrainTransients()
+        }
+    }
+
+    /** 规范格决策 + 轨道即时同步的陆地/海洋落地 */
+    private fun spawnLandOrWaterSymmetric(tile: Tile, elevation: Double) {
+        spawnLandOrWater(tile, elevation)
+        stampTerrain(tile)
+    }
+
+    // endregion
 
     private fun generateFlatEarthExtraWater() {
         for (tile in tileMap.values) {
@@ -122,16 +148,16 @@ class MapLandmassGenerator(
     //region Type-specific generators
     private fun createPerlin() {
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             val elevation = randomness.getPerlinNoise(tile, elevationSeed)
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
     private fun createFractal() {
         retryLoweringWaterLevel {
             val elevationSeed = randomness.RNG.nextInt().toDouble()
-            for (tile in tileMap.values) {
+            for (tile in canonicalTiles) {
                 val maxdim = max(tileMap.maxLatitude, tileMap.maxLongitude)
                 var ratio = maxdim / 32.0 // change scale depending on map size so that average number of continents stay the same
                 if (tileMap.mapParameters.shape == MapShape.hexagonal || tileMap.mapParameters.shape == MapShape.flatEarth) {
@@ -142,7 +168,7 @@ class MapLandmassGenerator(
 
                 elevation += getOceanEdgesTransform(tile)
 
-                spawnLandOrWater(tile, elevation)
+                spawnLandOrWaterSymmetric(tile, elevation)
             }
         }
     }
@@ -169,7 +195,7 @@ class MapLandmassGenerator(
         // The broad noise layer scales sublinearly with map size (relatively less noisy on smaller maps)
         val broadNoiseScale = 3.0 * sqrt(tileMap.mapParameters.mapSize.radius.toDouble())
         
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             // In range -1.0 to +1.0
             val latitude =
                 if (tileMap.mapParameters.shape == MapShape.flatEarth)
@@ -191,7 +217,7 @@ class MapLandmassGenerator(
             
             val broadLayerImpact = 0.55
             elevation += broadLayerImpact * randomness.getPerlinNoise(tile, broadNoiseSeed, scale=broadNoiseScale)
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
     
@@ -206,7 +232,7 @@ class MapLandmassGenerator(
         val spinFactor = 4.5 * sqrt(radius) // how quickly the spiral spins
         val noiseScale = 0.5 * sqrt(radius) // lower means more grainy noise
         
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             val coordinate = HexMath.hex2WorldCoords(tile.position)
             val x = coordinate.x / coordinateDivisor * flipX
             val y = coordinate.y / coordinateDivisor * flipY
@@ -219,16 +245,16 @@ class MapLandmassGenerator(
             elevation += 0.15 // water level
             elevation += 0.18 * randomness.getPerlinNoise(tile, elevationSeed, scale=noiseScale)
             
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
     private fun createLakes() {
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             val elevation = 0.3 - getRidgedPerlinNoise(tile, elevationSeed, persistence=0.7, lacunarity=1.5)
 
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
@@ -236,10 +262,10 @@ class MapLandmassGenerator(
         val elevationSeed = randomness.RNG.nextInt().toDouble()
         waterThreshold += 0.25
         retryLoweringWaterLevel {
-            for (tile in tileMap.values) {
+            for (tile in canonicalTiles) {
                 var elevation = getRidgedPerlinNoise(tile, elevationSeed, scale = 22.0)
                 elevation += getOceanEdgesTransform(tile)
-                spawnLandOrWater(tile, elevation)
+                spawnLandOrWaterSymmetric(tile, elevation)
             }
         }
     }
@@ -247,9 +273,9 @@ class MapLandmassGenerator(
     private fun createArchipelago() {
         val elevationSeed = randomness.RNG.nextInt().toDouble()
         waterThreshold += 0.25
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             val elevation = getRidgedPerlinNoise(tile, elevationSeed)
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
@@ -262,10 +288,10 @@ class MapLandmassGenerator(
             largeContinents == 1 && waterPercent <= 0.7f
         }) {
             val elevationSeed = randomness.RNG.nextInt().toDouble()
-            for (tile in tileMap.values) {
+            for (tile in canonicalTiles) {
                 var elevation = randomness.getPerlinNoise(tile, elevationSeed)
                 elevation = elevation * (3 / 4f) + getEllipticContinent(tile) / 4
-                spawnLandOrWater(tile, elevation)
+                spawnLandOrWaterSymmetric(tile, elevation)
                 tile.setTerrainTransients() // necessary for assignContinents
             }
             tileMap.assignContinents(TileMap.AssignContinentsMode.Reassign) // to support largeContinents above
@@ -275,10 +301,10 @@ class MapLandmassGenerator(
 
     private fun createInnerSea() {
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             var elevation = randomness.getPerlinNoise(tile, elevationSeed)
             elevation -= getEllipticContinent(tile, 0.6) * 0.3
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
@@ -291,10 +317,10 @@ class MapLandmassGenerator(
                 else randomness.RNG.nextDouble() > 0.5f
 
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             var elevation = randomness.getPerlinNoise(tile, elevationSeed)
             elevation = (elevation + getContinentAndIslandsTransform(tile, isNorth, isLatitude)) / 2.0
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
@@ -306,10 +332,10 @@ class MapLandmassGenerator(
                 else randomness.RNG.nextDouble() > 0.5f
 
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             var elevation = randomness.getPerlinNoise(tile, elevationSeed)
             elevation = (elevation + getTwoContinentsTransform(tile, isLatitude)) / 2.0
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
@@ -319,19 +345,19 @@ class MapLandmassGenerator(
         val isEastWest = tileMap.mapParameters.shape == MapShape.flatEarth && randomness.RNG.nextDouble() > 0.5
 
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             var elevation = randomness.getPerlinNoise(tile, elevationSeed)
             elevation = (elevation + getThreeContinentsTransform(tile, isNorth, isEastWest)) / 2.0
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 
     private fun createFourCorners() {
         val elevationSeed = randomness.RNG.nextInt().toDouble()
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             var elevation = randomness.getPerlinNoise(tile, elevationSeed)
             elevation = elevation / 2 + getFourCornersTransform(tile) / 2
-            spawnLandOrWater(tile, elevation)
+            spawnLandOrWaterSymmetric(tile, elevation)
         }
     }
 

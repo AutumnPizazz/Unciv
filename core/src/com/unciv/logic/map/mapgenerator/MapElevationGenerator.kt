@@ -16,7 +16,8 @@ internal class MapElevationGenerator(
     private val tileMap: TileMap,
     private val ruleset: Ruleset,
     terrains: List<MapGenerator.TerrainOccursRange>,
-    private val randomness: MapGenerationRandomness
+    private val randomness: MapGenerationRandomness,
+    private val symmetry: MapSymmetry
 ) {
     companion object {
         private const val rising = "~Raising~"
@@ -26,6 +27,32 @@ internal class MapElevationGenerator(
     private val flats = terrains.filter {!it.terrain.impassable && it.terrain.type == TerrainType.Land && !it.rareFeature && !it.isRough  }
     private val hills = terrains.filter {(it.terrain.type == TerrainType.Land || it.terrain.type == TerrainType.TerrainFeature) && it.occursInGroups && !it.rareFeature}
     private val mountains = terrains.filter {(it.terrain.type == TerrainType.Land || it.terrain.type == TerrainType.TerrainFeature) && it.occursInChains && !it.rareFeature}
+
+    /** 生成器只轮询规范扇区;非对称模式退化为全图迭代(行为与改造前完全一致) */
+    private val canonicalTiles: List<Tile>
+        get() = if (symmetry.isActive) symmetry.canonicalTiles else tileMap.values.toList()
+
+    /** 规范格决策后把完整生成状态同步到整个轨道 */
+    private fun stampSector(canonical: Tile) {
+        if (!symmetry.isActive) return
+        val orbit = symmetry.orbitOf(canonical) ?: return
+        for ((steps, member) in orbit.members) {
+            if (member === canonical) continue
+            symmetry.stampInto(member, canonical, steps)
+        }
+    }
+
+    /** 把规范格的临时标记(rising/lowering)同步到轨道成员 */
+    private fun stampMarks() {
+        if (!symmetry.isActive) return
+        for (tile in symmetry.canonicalTiles) {
+            val orbit = symmetry.orbitOf(tile) ?: continue
+            for ((_, member) in orbit.members) {
+                if (member === tile) continue
+                member.setTerrainFeatures(tile.terrainFeatures)
+            }
+        }
+    }
 
     /**
      * [MapParameters.elevationExponent] favors high elevation
@@ -48,7 +75,7 @@ internal class MapElevationGenerator(
 
         tileMap.setTransients(ruleset)
 
-        for (tile in tileMap.values) {
+        for (tile in canonicalTiles) {
             if (tile.isWater) continue
             val elevation = randomness.getPerlinNoise(tile, elevationSeed, scale = 2.0).powSigned(exponent)
             if (elevation > 0.7 && mountains.isNotEmpty()) {
@@ -58,6 +85,7 @@ internal class MapElevationGenerator(
             } else {
                 applyTerrain(tile, flats)
             }
+            stampSector(tile)
         }
 
         cellularMountainRanges()
@@ -78,7 +106,9 @@ internal class MapElevationGenerator(
         for (i in 1..5) {
             var totalMountains = tileMap.values.count { it.isMountainTerrain()}  * 2
 
-            for (tile in tileMap.values) {
+            // 决策只在规范格做(RNG 每轨道只消费一次);邻域统计读全图(每轮开始时网格已对称,
+            // 计数天然对称),随后把标记同步到轨道,保证网格在下一轮保持对称。
+            for (tile in canonicalTiles) {
                 if (tile.isWater) continue
                 val isMountain = tile.isMountainTerrain()
                 val adjacentMountains = tile.neighbors.count { it.isMountainTerrain()}
@@ -97,20 +127,26 @@ internal class MapElevationGenerator(
                     tile.addTerrainFeature(lowering)
                 }
             }
+            stampMarks()
 
-            for (tile in tileMap.values) {
+            for (tile in canonicalTiles) {
                 if (tile.isWater) continue
                 if (tile.terrainFeatures.contains(rising)) {
                     tile.removeTerrainFeature(rising)
-                    if (totalMountains >= targetMountains) continue
-                    totalMountains++
-                    applyTerrain(tile, mountains)
+                    if (totalMountains < targetMountains) {
+                        totalMountains++
+                        applyTerrain(tile, mountains)
+                    }
+                    stampSector(tile)
+                    continue // 与原逻辑一致:本格处理完 rising 后跳过 lowering
                 }
                 if (tile.terrainFeatures.contains(lowering)) {
                     tile.removeTerrainFeature(lowering)
-                    if (totalMountains * 2 <= targetMountains) continue
-                    totalMountains--
-                    applyTerrain(tile, flats)
+                    if (totalMountains * 2 > targetMountains) {
+                        totalMountains--
+                        applyTerrain(tile, flats)
+                    }
+                    stampSector(tile)
                 }
             }
         }
@@ -125,7 +161,7 @@ internal class MapElevationGenerator(
         for (i in 1..5) {
             var totalHills = tileMap.values.count { it.isHillTerrain()}
 
-            for (tile in tileMap.values) {
+            for (tile in canonicalTiles) {
                 val isMountain = tile.hasTerrain(mountains)
                 if (tile.isWater || isMountain) continue
                 val isHill = tile.isHillTerrain()
@@ -141,13 +177,16 @@ internal class MapElevationGenerator(
                 }
 
             }
+            stampMarks()
 
-            for (tile in tileMap.values) {
+            for (tile in canonicalTiles) {
                 if (tile.terrainFeatures.contains(rising)) {
                     tile.removeTerrainFeature(rising)
-                    if (totalHills > targetHills && i != 1) continue
-                    totalHills++
-                    applyTerrain(tile, hills)
+                    if (totalHills <= targetHills || i == 1) {
+                        totalHills++
+                        applyTerrain(tile, hills)
+                    }
+                    stampSector(tile)
                 }
                 if (tile.terrainFeatures.contains(lowering)) {
                     tile.removeTerrainFeature(lowering)
@@ -155,6 +194,7 @@ internal class MapElevationGenerator(
                         totalHills--
                         applyTerrain(tile, flats)
                     }
+                    stampSector(tile)
                 }
             }
         }
