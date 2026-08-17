@@ -57,6 +57,11 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     }
 
     private var randomness = MapGenerationRandomness()
+
+    /** 旋转对称轨道权威,由 [generateMap] / [generateSingleStep] 按当前地图参数构造。
+     *  （管线改造进行中:当前仅构造,尚未接入各生成步骤） */
+    private lateinit var symmetry: MapSymmetry
+
     private val terrainConditions = ruleset.terrains.values.asSequence()
         .filter { !it.hasUnique(UniqueType.NoNaturalGeneration)}
         .flatMap { it.getGenerationConditions() }
@@ -169,6 +174,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         mapParameters.createdWithVersion = UncivGame.VERSION.toSerializeString()
         map.mapParameters = mapParameters
+        symmetry = MapSymmetry(map, mapParameters.symmetryMode)
 
         if (mapType == MapType.empty) {
             for (tile in map.values) {
@@ -562,6 +568,7 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
         if (map.mapParameters.seed == 0L)
             map.mapParameters.seed = System.currentTimeMillis()
 
+        symmetry = MapSymmetry(map, map.mapParameters.symmetryMode)
         randomness.seedRNG(map.mapParameters.seed)
 
         runAndMeasure("SingleStep $step") {

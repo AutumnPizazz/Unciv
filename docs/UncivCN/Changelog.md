@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Rotational symmetry map refactor (step 1): added MapSymmetry as the single orbit authority - canonical sector / orbit / steps / copy-stamp / verify primitives with world-wrap-aware orbit math and unit tests; groundwork for wiring symmetry into each generation step (no user-visible change yet)
 
 
 ## 4.21.8.3 (build 1255)
