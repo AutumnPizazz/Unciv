@@ -21,7 +21,8 @@ import kotlin.math.roundToInt
 class RiverGenerator(
     private val tileMap: TileMap,
     private val randomness: MapGenerationRandomness,
-    ruleset: Ruleset
+    ruleset: Ruleset,
+    private val symmetry: MapSymmetry
 ) {
     private val riverCountMultiplier = ruleset.modOptions.constants.riverCountMultiplier
     private val minRiverLength = ruleset.modOptions.constants.minRiverLength
@@ -41,8 +42,13 @@ class RiverGenerator(
                 tileMap.values.filter { it.isLand && it.isFarEnoughFromWater() }.toMutableList()
 
         val mapRadius = tileMap.mapParameters.mapSize.radius
-        val riverStarts =
-            randomness.chooseSpreadOutLocations(numberOfRivers, optionalTiles, mapRadius)
+        // 对称模式:只在规范格选起点(每轨道一个),河道生成后旋转重放到各扇区
+        val starts = if (symmetry.isActive)
+            optionalTiles.filter { symmetry.isCanonical(it) }
+        else optionalTiles
+        val riverStarts = randomness.chooseSpreadOutLocations(
+            if (symmetry.isActive) (numberOfRivers / symmetry.fold).coerceAtLeast(1) else numberOfRivers,
+            starts, mapRadius)
         for (tile in riverStarts) spawnRiver(tile, resultingTiles)
     }
 
@@ -69,12 +75,14 @@ class RiverGenerator(
     }
 
     /** Spawns a river from [initialPosition] to [endPosition].
-     *  If [resultingTiles] is supplied, it will contain all affected tiles, for map editor. */
+     *  If [resultingTiles] is supplied, it will contain all affected tiles, for map editor.
+     *  对称模式下,规范起点生成的河道会旋转重放到轨道各扇区。 */
     fun spawnRiver(initialPosition: Tile, endPosition: Tile, resultingTiles: MutableSet<Tile>?) {
         // Recommendation: Draw a bunch of hexagons on paper before trying to understand this, it's super helpful!
 
         var riverCoordinate = RiverCoordinate(tileMap, initialPosition.position,
                 RiverCoordinate.BottomRightOrLeft.entries.random(randomness.RNG))
+        val edges = mutableListOf<Pair<HexCoord, HexCoord>>()
 
         repeat(maxRiverLength) {     // Arbitrary max on river length, otherwise this will go in circles - rarely
             if (riverCoordinate.getAdjacentTiles().any { it.isWater }) return
@@ -89,11 +97,37 @@ class RiverGenerator(
                     .component2().random(randomness.RNG)
 
             // set one new river edge in place
-            riverCoordinate.paintTo(newCoordinate, resultingTiles)
+            riverCoordinate.paintTo(newCoordinate, resultingTiles)?.let { edges.add(it) }
             // Move on
             riverCoordinate = newCoordinate
         }
         debug("River reached max length!")
+
+        // 对称模式:把整条河道旋转到轨道各扇区
+        if (symmetry.isActive && edges.isNotEmpty()) {
+            val orbit = symmetry.orbitOf(initialPosition) ?: return
+            for ((steps, member) in orbit.members) {
+                if (member === initialPosition) continue
+                for ((a, b) in edges) {
+                    val rotatedA = rotateCoord(a, steps)
+                    val rotatedB = rotateCoord(b, steps)
+                    val tileA = tileMap.getIfTileExistsOrNull(rotatedA.x, rotatedA.y) ?: continue
+                    val tileB = tileMap.getIfTileExistsOrNull(rotatedB.x, rotatedB.y) ?: continue
+                    tileA.setConnectedByRiver(tileB, true)
+                    if (resultingTiles != null) {
+                        resultingTiles.add(tileA)
+                        resultingTiles.add(tileB)
+                    }
+                }
+            }
+        }
+    }
+
+    /** 轴向坐标顺时针旋转 [steps60] × 60° */
+    private fun rotateCoord(coord: HexCoord, steps60: Int): HexCoord {
+        var result = coord
+        repeat(steps60) { result = HexCoord.of(result.x - result.y, result.x) }
+        return result
     }
 
     /** Describes a _Vertex_ on our hexagonal grid via a neighboring hex and clock direction, normalized
@@ -151,8 +185,9 @@ class RiverGenerator(
                 myBottomRight?.let { yield(it) }  // tile to our bottom-right
         }
 
-        fun paintTo(newCoordinate: RiverCoordinate, resultingTiles: MutableSet<Tile>?) {
-            if (newCoordinate.position == position) // same tile, switched right-to-left
+        /** 画一条河岸边,返回该边两端的位置(供对称旋转重放);无法确定时返回 null */
+        fun paintTo(newCoordinate: RiverCoordinate, resultingTiles: MutableSet<Tile>?): Pair<HexCoord, HexCoord>? {
+            return if (newCoordinate.position == position) // same tile, switched right-to-left
                 paintBottom(resultingTiles)
             else if (bottomRightOrLeft == BottomRightOrLeft.BottomRight) {
                 if (newCoordinate.getAdjacentTiles().contains(myTile)) // moved from our 5 O'Clock to our 3 O'Clock
@@ -167,23 +202,26 @@ class RiverGenerator(
             }
         }
 
-        private fun paintBottom(resultingTiles: MutableSet<Tile>?) {
+        private fun paintBottom(resultingTiles: MutableSet<Tile>?): Pair<HexCoord, HexCoord>? {
             myTile.hasBottomRiver = true
-            if (resultingTiles == null) return
+            if (resultingTiles == null) return null
             resultingTiles.add(myTile)
             myBottomCenter?.let { resultingTiles.add(it) }
+            return myBottomCenter?.let { myTile.position to it.position }
         }
-        private fun paintBottomLeft(resultingTiles: MutableSet<Tile>?) {
+        private fun paintBottomLeft(resultingTiles: MutableSet<Tile>?): Pair<HexCoord, HexCoord>? {
             myTile.hasBottomLeftRiver = true
-            if (resultingTiles == null) return
+            if (resultingTiles == null) return null
             resultingTiles.add(myTile)
             myBottomLeft?.let { resultingTiles.add(it) }
+            return myBottomLeft?.let { myTile.position to it.position }
         }
-        private fun paintBottomRight(resultingTiles: MutableSet<Tile>?) {
+        private fun paintBottomRight(resultingTiles: MutableSet<Tile>?): Pair<HexCoord, HexCoord>? {
             myTile.hasBottomRightRiver = true
-            if (resultingTiles == null) return
+            if (resultingTiles == null) return null
             resultingTiles.add(myTile)
             myBottomRight?.let { resultingTiles.add(it) }
+            return myBottomRight?.let { myTile.position to it.position }
         }
 
         /** Count edges with a river from this vertex */

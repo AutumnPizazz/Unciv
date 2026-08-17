@@ -4,7 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
-- Rotational symmetry map refactor (step 2): landmass / humidity-temperature / elevation / lakes-coasts / vegetation / rare features / ice all switched to canonical-sector decisions with instant orbit sync; rivers synchronized right after generation; removed the old Phase 1/1b post-hoc patches and replaced Phase 2/3 with a full-orbit enforceSymmetry (no more double pass); fixed stampInto copying stale terrain transients and the old applySymmetry silently missing wrap-map pairs - all fold x wrap combinations now verify with zero asymmetries
+- Rotational symmetry map refactor (step 3): river generation picks canonical starts and replays rotated paths per sector, synced right after generation; continent IDs normalized per orbit (BFS assigns mirror continents different labels, affecting size-ordered / wonder rules); added river symmetry regression test (multi-seed sampling)
 
 
 ## 4.21.8.3 (build 1255)

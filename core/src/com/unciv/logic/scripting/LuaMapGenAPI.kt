@@ -5,6 +5,7 @@ import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapShape
 import com.unciv.logic.map.TileMap
 import com.unciv.logic.map.mapgenerator.MapGenerationRandomness
+import com.unciv.logic.map.mapgenerator.MapSymmetry
 import com.unciv.logic.map.mapgenerator.RiverGenerator
 import com.unciv.logic.map.tile.Tile
 import com.unciv.logic.map.tile.TileNormalizer
@@ -275,7 +276,7 @@ object LuaMapGenAPI {
 
         t.set("generateRivers", luaFunction {
             val resultingTiles = mutableSetOf<Tile>()
-            RiverGenerator(map, randomness, ruleset).spawnRivers(resultingTiles)
+            RiverGenerator(map, randomness, ruleset, MapSymmetry(map, map.mapParameters.symmetryMode)).spawnRivers(resultingTiles)
             convertTerrains(ruleset, resultingTiles)
             LuaValue.NIL
         })

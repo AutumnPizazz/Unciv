@@ -215,10 +215,11 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         runAndMeasure("assignContinents") {
             map.assignContinents(TileMap.AssignContinentsMode.Assign)
+            normalizeContinents(map)
         }
 
         runAndMeasure("RiverGenerator") {
-            RiverGenerator(map, randomness, ruleset).spawnRivers()
+            RiverGenerator(map, randomness, ruleset, symmetry).spawnRivers()
         }
         // 河流生成后立即把边同步到轨道,后续阶段(convertTerrains 等)在对称状态上进行
         if (symmetry.isActive)
@@ -340,6 +341,34 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
     private fun rotateDirection(clockPos: Int, steps: Int): Int =
         ((clockPos - 2 + steps * 2) % 12 + 12) % 12 + 2
     // endregion
+
+    /**
+     * 大陆 ID 轨道规范化:对称地形上 assignContinents 的 BFS 会给旋转对应的大陆分配
+     * 不同 ID(标签任意),而 NaturalWonderLargerLandmass 等规则按 ID 排序判定,必须统一。
+     * 每个轨道统一为成员中最小的 ID,并重算统计。仅对称模式生效。
+     */
+    private fun normalizeContinents(map: TileMap) {
+        if (!symmetry.isActive) return
+        for (tile in symmetry.canonicalTiles) {
+            val orbit = symmetry.orbitOf(tile) ?: continue
+            val target = orbit.members.values.minOf { it.getContinent() }
+            for (member in orbit.members.values) {
+                if (member.getContinent() != target) {
+                    member.clearContinent()
+                    member.setContinent(target)
+                }
+            }
+        }
+        map.continentSizes.clear()
+        map.continentsSortedBySize.clear()
+        for (tile in map.values) {
+            val continent = tile.getContinent()
+            if (continent != -1)
+                map.continentSizes[continent] = 1 + (map.continentSizes[continent] ?: 0)
+        }
+        map.continentsSortedBySize.addAll(
+            map.continentSizes.entries.sortedByDescending { it.value }.map { it.key })
+    }
 
     /** 全图对称同步:从规范格复制全字段到轨道成员,再统一同步河流边。
      *  作为阶段兜底与最终校验前的收口(完整轨道映射,无需二次执行)。 */
@@ -585,11 +614,14 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
                 MapGeneratorSteps.Vegetation -> spawnVegetation(map)
                 MapGeneratorSteps.RareFeatures -> spawnRareFeatures(map)
                 MapGeneratorSteps.Ice -> spawnIce(map)
-                MapGeneratorSteps.Continents -> map.assignContinents(TileMap.AssignContinentsMode.Reassign)
+                MapGeneratorSteps.Continents -> {
+                    map.assignContinents(TileMap.AssignContinentsMode.Reassign)
+                    normalizeContinents(map)
+                }
                 MapGeneratorSteps.NaturalWonders -> NaturalWonderGenerator(ruleset, randomness).spawnNaturalWonders(map)
                 MapGeneratorSteps.Rivers -> {
                     val resultingTiles = mutableSetOf<Tile>()
-                    RiverGenerator(map, randomness, ruleset).spawnRivers(resultingTiles)
+                    RiverGenerator(map, randomness, ruleset, symmetry).spawnRivers(resultingTiles)
                     convertTerrains(resultingTiles)
                 }
                 MapGeneratorSteps.Resources -> spreadResources(map)

@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.logic.map.BFS
 import com.unciv.logic.map.mapgenerator.MapGenerationRandomness
 import com.unciv.logic.map.mapgenerator.MapGenerator
+import com.unciv.logic.map.mapgenerator.MapSymmetry
 import com.unciv.logic.map.mapgenerator.RiverGenerator
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.Ruleset
@@ -216,7 +217,8 @@ class MapEditorEditTab(
             // Land means river from. Start the river if we have a 'to', choose a 'to' if not.
             riverStartTile = tile
             if (riverEndTile != null) return paintRiverFromTo()
-            val riverGenerator = RiverGenerator(editorScreen.tileMap, randomness, ruleset)
+            val riverGenerator = RiverGenerator(editorScreen.tileMap, randomness, ruleset,
+                MapSymmetry(editorScreen.tileMap, editorScreen.tileMap.mapParameters.symmetryMode))
             riverEndTile = riverGenerator.getClosestWaterTile(tile)
             if (riverEndTile != null) tilesToHighlight += riverEndTile!!
         } else {
@@ -230,7 +232,8 @@ class MapEditorEditTab(
         val resultingTiles = mutableSetOf<Tile>()
         randomness.seedRNG(editorScreen.newMapParameters.seed)
         try {
-            val riverGenerator = RiverGenerator(editorScreen.tileMap, randomness, ruleset)
+            val riverGenerator = RiverGenerator(editorScreen.tileMap, randomness, ruleset,
+                MapSymmetry(editorScreen.tileMap, editorScreen.tileMap.mapParameters.symmetryMode))
             riverGenerator.spawnRiver(riverStartTile!!, riverEndTile!!, resultingTiles)
             MapGenerator(ruleset).convertTerrains(resultingTiles)
         } catch (ex: Exception) {
