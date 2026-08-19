@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.logic.civilization.Civilization
+import com.unciv.models.ruleset.Variable
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.ruleset.unique.UniqueType
@@ -26,6 +27,8 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
     private val pollingLabel = "".toLabel()
     private data class ResourceActors(val resource: TileResource, val label: Label, val icon: Group)
     private val resourceActors = ArrayList<ResourceActors>(12)
+    private data class VariableActors(val variable: Variable, val label: Label, val icon: Group)
+    private val variableActors = ArrayList<VariableActors>(4)
     private val resourcesWrapper = Table()
     val worldScreen = topbar.worldScreen
 
@@ -71,12 +74,27 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
             resourceActors += ResourceActors(resource, resourceLabel, resourceImage)
         }
 
+        val displayVariables = worldScreen.gameInfo.ruleset.variables.values.filter { it.isDisplay }
+        val modOptions = worldScreen.gameInfo.ruleset.modOptions
+        val shownVariables = if (modOptions.variableMenuThreshold > 0 && displayVariables.size > modOptions.variableMenuThreshold) {
+            // Menu collapsed: keep only always-display variables (capped by alwaysDisplayVariableCount)
+            val alwaysDisplay = displayVariables.filter { it.isAlwaysDisplay }
+            if (modOptions.alwaysDisplayVariableCount > 0)
+                alwaysDisplay.take(modOptions.alwaysDisplayVariableCount)
+            else alwaysDisplay
+        } else displayVariables
+        for (variable in shownVariables) {
+            val variableIcon = ImageGetter.getVariableIcon(variable.name, iconSize)
+            val variableLabel = "0".toLabel()
+            variableActors += VariableActors(variable, variableLabel, variableIcon)
+        }
+
         add(turnsLabel)
         add(pollingLabel)
 
         // in case the icons are configured higher than a label, we add a dummy - height will be measured once before it's updated
-        if (resourceActors.isNotEmpty()) {
-            resourcesWrapper.add(resourceActors[0].icon)
+        if (resourceActors.isNotEmpty() || variableActors.isNotEmpty()) {
+            resourcesWrapper.add(resourceActors.firstOrNull()?.icon ?: variableActors.first().icon)
             add(resourcesWrapper)
         }
     }
@@ -128,6 +146,14 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
                 else label.setText("${amount.tr()} (${perTurn.toStringSigned()})")
             }
             resourcesWrapper.add(label).padTop(resourceAmountDescentTweak)  // digits don't have descenders, so push them down a little
+        }
+
+        for ((index, variableActors) in variableActors.withIndex()) {
+            val (variable, label, icon) = variableActors
+            val amount = civInfo.getVariable(variable.name)
+            resourcesWrapper.add(icon).padLeft(if (index == 0 && resourceActors.isEmpty()) 0f else extraPadBetweenResources)
+            label.setText(amount.tr())
+            resourcesWrapper.add(label).padTop(resourceAmountDescentTweak)
         }
 
         scaleTo(worldScreen.stage.width)

@@ -33,6 +33,8 @@ import com.unciv.models.ruleset.unit.Promotion
 import com.unciv.models.ruleset.unit.UnitMovementType
 import com.unciv.models.ruleset.validation.RulesetValidator.Companion.create
 import com.unciv.models.stats.INamed
+import com.unciv.models.stats.Stat
+import com.unciv.models.stats.SubStat
 import com.unciv.models.stats.Stats
 import com.unciv.models.tilesets.TileSetCache
 import com.unciv.models.tilesets.TileSetConfig
@@ -113,6 +115,7 @@ open class RulesetValidator protected constructor(
         addBuildingErrors(lines)
         addSpecialistErrors(lines)
         addResourceErrors(lines)
+        addVariableErrors(lines)
         addImprovementErrors(lines)
         addTerrainErrors(lines)
         addTechErrors(lines)
@@ -456,6 +459,17 @@ open class RulesetValidator protected constructor(
     protected open fun addResourceErrors(lines: RulesetErrorList) {
         for (resource in ruleset.tileResources.values) {
             uniqueValidator.checkUniques(resource, lines, reportRulesetSpecificErrors, tryFixUnknownUniques)
+        }
+    }
+
+    protected open fun addVariableErrors(lines: RulesetErrorList) {
+        for (variable in ruleset.variables.values) {
+            // Names must not collide with stats or tile resources, or getGameResource resolution becomes ambiguous
+            if (Stat.isStat(variable.name) || SubStat.safeValueOf(variable.name) != null)
+                lines.add("Variable ${variable.name} collides with a stat name!", sourceObject = variable)
+            if (ruleset.tileResources.containsKey(variable.name))
+                lines.add("Variable ${variable.name} collides with a tile resource name!", sourceObject = variable)
+            uniqueValidator.checkUniques(variable, lines, reportRulesetSpecificErrors, tryFixUnknownUniques)
         }
     }
 

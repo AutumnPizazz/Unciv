@@ -113,6 +113,16 @@ data class GameContext(
         }
     }
 
+    /** Amount of a mod-defined variable (see Variable.json) for the relevant civilization.
+     *  Variables are civ-level only, so a relevant city falls back to its civilization. */
+    @Readonly
+    fun getVariableAmount(variableName: String): Int {
+        return when {
+            relevantCiv != null -> relevantCiv!!.getVariable(variableName)
+            else -> 0
+        }
+    }
+
     companion object {
         val IgnoreConditionals = GameContext(ignoreConditionals = true)
         val EmptyState = GameContext()

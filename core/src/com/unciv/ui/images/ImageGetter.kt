@@ -239,6 +239,18 @@ object ImageGetter {
     fun getStatIcon(statName: String, size: Float = 20f): Image = getImage("StatIcons/$statName")
             .apply { setSize(size, size) }
 
+    /** Icon for a mod-defined variable (see Variables.json);
+     *  loads `image/Variable/<name>.png` and falls back to a short text label when no image is provided. */
+    fun getVariableIcon(variableName: String, size: Float = 20f): Group {
+        if (imageExists("Variable/$variableName"))
+            return getImage("Variable/$variableName").toGroup(size)
+        val label = variableName.take(2).toLabel(fontSize = (size * 0.6).toInt())
+        return Group().apply {
+            setSize(size, size)
+            addToCenter(label)
+        }
+    }
+
     fun wonderImageExists(wonderName: String) = imageExists("WonderImages/$wonderName")
     fun getWonderImage(wonderName: String) = getImage("WonderImages/$wonderName")
 

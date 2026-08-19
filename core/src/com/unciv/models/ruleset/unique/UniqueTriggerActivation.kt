@@ -710,13 +710,27 @@ object UniqueTriggerActivation {
 
             UniqueType.OneTimeProvideResources -> {
                 val resourceName = unique.params[1]
-                val resource = ruleset.tileResources[resourceName] ?: return null
-                if (!resource.isStockpiled) return null
+                val resource = ruleset.tileResources[resourceName]
+                if (resource != null) {
+                    if (!resource.isStockpiled) return null
+                    return {
+                        val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                        if (city != null) city.gainStockpiledResource(resource, amount)
+                        else civInfo.gainStockpiledResource(resource, amount)
 
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have gained [$amount] [$resourceName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, resourceName)
+                        true
+                    }
+                }
+                val variable = ruleset.variables[resourceName] ?: return null
                 return {
                     val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
-                    if (city != null) city.gainStockpiledResource(resource, amount)
-                    else civInfo.gainStockpiledResource(resource, amount)
+                    (city?.civ ?: civInfo).addVariable(variable.name, amount)
 
                     val notificationText = getNotificationText(
                         notification, triggerNotificationText,
@@ -730,13 +744,27 @@ object UniqueTriggerActivation {
 
             UniqueType.OneTimeConsumeResources -> {
                 val resourceName = unique.params[1]
-                val resource = ruleset.tileResources[resourceName] ?: return null
-                if (!resource.isStockpiled) return null
+                val resource = ruleset.tileResources[resourceName]
+                if (resource != null) {
+                    if (!resource.isStockpiled) return null
+                    return {
+                        val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                        if (city != null) city.gainStockpiledResource(resource, -amount)
+                        else civInfo.gainStockpiledResource(resource, -amount)
 
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have lost [$amount] [$resourceName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, resourceName)
+                        true
+                    }
+                }
+                val variable = ruleset.variables[resourceName] ?: return null
                 return {
                     val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
-                    if (city != null) city.gainStockpiledResource(resource, -amount)
-                    else civInfo.gainStockpiledResource(resource, -amount)
+                    (city?.civ ?: civInfo).addVariable(variable.name, -amount)
 
                     val notificationText = getNotificationText(
                         notification, triggerNotificationText,

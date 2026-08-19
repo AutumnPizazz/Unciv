@@ -39,11 +39,11 @@ object LuaAPI {
     val apiCatalog: Map<String, Set<String>> = mapOf(
         "ctx" to setOf("parameter", "value", "modifier", "attackerStrength", "defenderStrength", "modifiers", "randomnessFactor", "healthRatio", "damageToAttacker", "tileStats", "city", "unit", "tile", "civ", "game", "otherCiv", "attacker", "defender", "target", "combatAction", "log", "count", "evaluateConditional", "store", "random", "randomInt"),
         "store" to setOf("get", "set"),
-        "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getNation", "getLeaderName", "getScore", "getForce", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getSciencePerTurn", "getCulturePerTurn", "getFoodPerTurn", "getProductionPerTurn", "getResourceAmount", "hasResource", "getResourceStockpiles", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "getTechCost", "grantTech", "discoverTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "getCultureNeededForNextPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getDiplomaticStatuses", "getProximityTo", "hasEmbassyWith", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "makePeaceWith", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getCityNames", "getTotalPopulation", "getWondersBuilt", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getSpies", "addSpy", "getLeaderTitle", "hasUnique", "addGold", "setGold", "addStat", "addStats", "addResource", "consumeResource", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
+        "civ" to setOf("id", "name", "isHuman", "isAI", "isAlive", "isMajorCiv", "isCityState", "isBarbarian", "isSpectator", "getNation", "getLeaderName", "getScore", "getForce", "getGold", "getHappiness", "getStat", "getStatYield", "getGoldPerTurn", "getSciencePerTurn", "getCulturePerTurn", "getFoodPerTurn", "getProductionPerTurn", "getResourceAmount", "hasResource", "getResourceStockpiles", "getEra", "getEraNumber", "isResearched", "canResearch", "getResearchingTech", "getResearchProgress", "getTechCount", "getTechsResearched", "getAvailableTechs", "getTechCost", "grantTech", "discoverTech", "hasPolicy", "canAdoptPolicy", "getAdoptedPolicyCount", "getAdoptedPolicies", "getAvailablePolicyBranches", "grantPolicy", "getCultureNeededForNextPolicy", "isAtWarWith", "hasOpenBordersWith", "isAlliedWith", "getDiplomaticStatus", "getDiplomaticStatuses", "getProximityTo", "hasEmbassyWith", "getInfluence", "getKnownCivs", "addInfluence", "declareWarOn", "makePeaceWith", "hasReligion", "getReligionName", "getFaith", "getCities", "getCity", "getCapital", "getCityCount", "getCityNames", "getTotalPopulation", "getWondersBuilt", "getUnits", "getUnitsMatching", "getUnitCount", "isGoldenAge", "getGoldenAgeTurnsRemaining", "getSpyCount", "getSpies", "addSpy", "getLeaderTitle", "hasUnique", "addGold", "setGold", "addStat", "addStats", "addResource", "consumeResource", "getVariable", "setVariable", "addVariable", "getVariables", "triggerGoldenAge", "grantFreeGreatPerson", "setLeaderTitle", "addNotification", "addNotificationAt", "addFreeTech", "addUnit", "addUnitAtCity", "addUnitAtTile", "addRebelUnit"),
         "city" to setOf("id", "name", "isCapital", "isCoastal", "isPuppet", "isBeingRazed", "isConnectedToCapital", "population", "health", "getStatYield", "getAllYields", "getFood", "getFoodSurplus", "getFoodStorage", "getFoodNeeded", "getProductionProgress", "getProductionCost", "getTurnsToCompletion", "getGarrisonedUnit", "getStrength", "getSpecialistCount", "getUnemployedCount", "getBuiltWonders", "isInResistance", "hasBuilding", "getBuiltBuildings", "getBuildingCount", "getWonderCount", "getPosition", "getCenterTile", "getTiles", "getCurrentConstruction", "getConstructionQueue", "getMajorityReligion", "isHolyCity", "hasUnique", "addPopulation", "setPopulation", "addFood", "addProduction", "addHealth", "setName", "addBuilding", "removeBuilding", "sellBuilding", "setProduction", "addToQueue", "clearQueue"),
         "unit" to setOf("id", "name", "instanceName", "isCivilian", "isMilitary", "isRanged", "isEmbarked", "isFortified", "isAutomated", "base", "health", "getRange", "getEraNumber", "getMovement", "getCurrentMovement", "getXP", "getMaxHealth", "getDamage", "getAttacksLeft", "getVisibilityRange", "getAction", "canAttack", "canPillage", "isInEnemyTerritory", "isInFriendlyTerritory", "isGreatPerson", "getReligionDisplayName", "hasPromotion", "hasUnique", "getPromotions", "getPromotionCount", "hasStatus", "getStatusTurns", "getPosition", "canMoveTo", "getOwner", "isOwnedBy", "healBy", "takeDamage", "addXP", "setXP", "setHealth", "addPromotion", "removePromotion", "addMovement", "useMovement", "setStatus", "setAttacksLeft", "fortify", "moveByPath", "upgrade", "destroy", "attackTile", "getAttackingStrengthAgainst", "getDefendingStrengthAgainst", "predictDamageTo", "predictDamageFrom", "teleportTo", "findPathTo", "canReach"),
         "tile" to setOf("position", "getX", "getY", "baseTerrain", "isLand", "isWater", "isCoast", "isHill", "isMountain", "hasTerrainFeature", "getTerrainFeatures", "isImpassable", "isRiver", "isAdjacentToCoast", "hasRoad", "hasRailroad", "hasNaturalWonder", "getNaturalWonder", "hasResource", "resourceName", "resourceAmount", "hasImprovement", "improvementName", "isPillaged", "getYield", "isOwned", "getOwner", "isOwnedBy", "isFriendlyTerritory", "isEnemyTerritory", "isCityCenter", "getOwningCity", "isExploredBy", "getDistanceTo", "isAdjacentTo", "hasMilitaryUnit", "hasCivilianUnit", "getUnits", "getNeighbors", "getNeighborAt", "getTilesInDistance", "setExplored", "setTerrain", "addTerrainFeature", "removeTerrainFeature", "setImprovement", "removeImprovement", "removeResource", "setResource", "setRoad", "setRailroad", "removeRoad"),
-        "game" to setOf("turn", "getYear", "speed", "difficulty", "getCurrentPlayer", "getCurrentPlayerCiv", "getCiv", "getCivById", "getAllCivs", "getCivNames", "getHumanCivs", "getAliveMajorCivs", "getAliveCityStates", "getBarbarianCiv", "getTile", "findTiles", "getMapWidth", "getMapHeight", "getMapName", "getMapType", "isWrapped", "getTilesNear", "getEraNames", "getVictoryTypes", "getMods", "getBaseRuleset", "getRulesetBuildings", "getRulesetUnits", "getRulesetTechs", "getRulesetPolicies", "getRulesetEras", "getRulesetPromotions", "getRulesetTerrains", "getRulesetResources", "getRulesetImprovements", "getRulesetNations", "getRulesetReligions", "getRulesetBeliefs", "getRulesetEvents", "getRulesetNaturalWonders", "getRulesetUnitTypes", "doesBuildingExist", "doesUnitExist", "doesTechExist", "doesPolicyExist", "doesEraExist", "doesPromotionExist", "doesTerrainExist", "doesResourceExist", "doesImprovementExist", "doesNationExist", "doesBeliefExist", "doesEventExist", "addGlobalNotification", "revealEntireMap", "revealTilesAround"),
+        "game" to setOf("turn", "getYear", "speed", "difficulty", "getCurrentPlayer", "getCurrentPlayerCiv", "getCiv", "getCivById", "getAllCivs", "getCivNames", "getHumanCivs", "getAliveMajorCivs", "getAliveCityStates", "getBarbarianCiv", "getTile", "findTiles", "getMapWidth", "getMapHeight", "getMapName", "getMapType", "isWrapped", "getTilesNear", "getEraNames", "getVictoryTypes", "getMods", "getBaseRuleset", "getRulesetBuildings", "getRulesetUnits", "getRulesetTechs", "getRulesetPolicies", "getRulesetEras", "getRulesetPromotions", "getRulesetTerrains", "getRulesetResources", "getRulesetImprovements", "getRulesetNations", "getRulesetReligions", "getRulesetBeliefs", "getRulesetEvents", "getRulesetNaturalWonders", "getRulesetUnitTypes", "doesBuildingExist", "doesUnitExist", "doesTechExist", "doesPolicyExist", "doesEraExist", "doesPromotionExist", "doesTerrainExist", "doesResourceExist", "doesImprovementExist", "doesNationExist", "doesBeliefExist", "doesEventExist", "doesVariableExist", "getRulesetVariables", "addGlobalNotification", "revealEntireMap", "revealTilesAround"),
     )
 
 
@@ -269,6 +269,25 @@ object LuaAPI {
             for ((name, amount) in civ.resourceStockpiles)
                 stockpiles.set(name, LuaValue.valueOf(amount))
             stockpiles
+        })
+
+        // Variables (mod-defined global counters, see Variables.json)
+        t.registerApi("civ", "getVariable", luaFunction { args ->
+            LuaValue.valueOf(civ.getVariable(args.arg(1).tojstring()))
+        })
+        t.registerApi("civ", "setVariable", luaFunction { args ->
+            civ.setVariable(args.arg(1).tojstring(), args.arg(2).safeToInt())
+            LuaValue.NIL
+        })
+        t.registerApi("civ", "addVariable", luaFunction { args ->
+            civ.addVariable(args.arg(1).tojstring(), args.arg(2).safeToInt())
+            LuaValue.NIL
+        })
+        t.registerApi("civ", "getVariables", luaFunction {
+            val variables = LuaValue.tableOf()
+            for ((name, amount) in civ.variables)
+                variables.set(name, LuaValue.valueOf(amount))
+            variables
         })
 
         // Era
@@ -1514,6 +1533,12 @@ object LuaAPI {
         })
         t.registerApi("game", "doesResourceExist", luaFunction { args ->
             LuaValue.valueOf(ruleset.tileResources.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "doesVariableExist", luaFunction { args ->
+            LuaValue.valueOf(ruleset.variables.containsKey(args.arg(1).tojstring()))
+        })
+        t.registerApi("game", "getRulesetVariables", luaFunction {
+            stringList(ruleset.variables.keys)
         })
         t.registerApi("game", "doesImprovementExist", luaFunction { args ->
             LuaValue.valueOf(ruleset.tileImprovements.containsKey(args.arg(1).tojstring()))

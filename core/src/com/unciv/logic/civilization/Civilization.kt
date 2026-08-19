@@ -19,6 +19,7 @@ import com.unciv.models.Counter
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.Policy
+import com.unciv.models.ruleset.Variable
 import com.unciv.models.ruleset.nation.CityStateType
 import com.unciv.models.ruleset.nation.Difficulty
 import com.unciv.models.ruleset.nation.Nation
@@ -193,6 +194,11 @@ class Civilization : IsPartOfGameInfoSerialization {
 
     var resourceStockpiles = Counter<String>()
 
+    /** Mod-defined global variables (see Variable.json), stored per-civilization as integer counters.
+     *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
+     *  (which falls back to the ruleset default). */
+    var variables = HashMap<String, Int>()
+
     /** Arraylist instead of HashMap as the same unique might appear multiple times
      * We don't use pairs, as these cannot be serialized due to having no no-arg constructor
      * We ALSO can't use a class inheriting from ArrayList<TemporaryUnique>() because ANNOYINGLY that doesn't pass deserialization
@@ -351,6 +357,7 @@ class Civilization : IsPartOfGameInfoSerialization {
         toReturn.hasMovedAutomatedUnits = hasMovedAutomatedUnits
         toReturn.statsHistory = statsHistory.clone()
         toReturn.resourceStockpiles = resourceStockpiles.clone()
+        toReturn.variables = HashMap(variables)
         return toReturn
     }
 
@@ -1066,6 +1073,10 @@ class Civilization : IsPartOfGameInfoSerialization {
     }
 
     fun addGameResource(stat: GameResource, amount: Int) {
+        if (stat is Variable) {
+            variables[stat.name] = getVariable(stat.name) + amount
+            return
+        }
         if (stat is TileResource && stat.isStockpiled) gainStockpiledResource(stat, amount)
         when (stat) {
             Stat.Culture -> { policies.addCulture(amount)
@@ -1084,6 +1095,7 @@ class Civilization : IsPartOfGameInfoSerialization {
     @Readonly
     fun getGameResource(gameResource:GameResource): Int {
         return when (gameResource) {
+            is Variable -> getVariable(gameResource)
             is TileResource -> getResourceAmount(gameResource)
             is Stat -> getStatReserve(gameResource)
             SubStat.GoldenAgePoints -> goldenAges.storedHappiness
@@ -1095,6 +1107,30 @@ class Civilization : IsPartOfGameInfoSerialization {
         if (resource.isCityWide) return
         resourceStockpiles.add(resource.name, amount)
     }
+
+    //region Variables (mod-defined global counters, see Variable.json)
+
+    /** Returns the current value of a mod-defined variable.
+     *  Falls back to the ruleset default when this civ has no record yet (e.g. old saves). */
+    @Readonly
+    fun getVariable(variableName: String): Int {
+        val stored = variables[variableName]
+        if (stored != null) return stored
+        return gameInfo.ruleset.variables[variableName]?.default ?: 0
+    }
+
+    @Readonly
+    fun getVariable(variable: Variable): Int = getVariable(variable.name)
+
+    fun addVariable(variableName: String, amount: Int) {
+        variables[variableName] = getVariable(variableName) + amount
+    }
+
+    fun setVariable(variableName: String, amount: Int) {
+        variables[variableName] = amount
+    }
+
+    //endregion
 
     @Readonly
     fun getStatReserve(stat: Stat): Int {

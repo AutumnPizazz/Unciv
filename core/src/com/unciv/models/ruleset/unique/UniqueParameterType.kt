@@ -213,6 +213,13 @@ enum class UniqueParameterType(
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset) = Stat.names()
     },
 
+    /** Used by [UniqueType.ConditionalWhenAboveAmountStatResource] and the triggerables extended to accept variables;
+     *  implemented via [Ruleset.getGameResource]. */
+    VariableName("variableName", "WarWeariness", "The name of any variable defined in Variables.json") {
+        override fun getKnownValuesForAutocomplete(ruleset: Ruleset) = ruleset.variables.keys
+        override fun isKnownValue(parameterText: String, ruleset: Ruleset) = parameterText in ruleset.variables
+    },
+
     /** [UniqueType.DamageUnitsPlunder] and others near that one */
     CivWideStatName("civWideStat", "Gold", "All the following stats have civ-wide fields: `Gold`, `Science`, `Culture`, `Faith`",
         severityDefault = UniqueType.UniqueParameterErrorSeverity.RulesetInvariant

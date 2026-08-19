@@ -82,6 +82,7 @@ enum class RulesetFile(
     Tutorials("Tutorials.json", { tutorials.values.asSequence() }),
     TileImprovements("TileImprovements.json", { tileImprovements.values.asSequence() }),
     TileResources("TileResources.json", { tileResources.values.asSequence() }),
+    Variables("Variables.json", { variables.values.asSequence() }),
     Specialists("Specialists.json", getINamed = { specialists.values.asSequence() }),
     Units("Units.json", { units.values.asSequence() }),
     UnitPromotions("UnitPromotions.json", { unitPromotions.values.asSequence() }),
@@ -157,6 +158,7 @@ class Ruleset {
     val terrains = LinkedHashMap<String, Terrain>()
     val tileImprovements = LinkedHashMap<String, TileImprovement>()
     val tileResources = LinkedHashMap<String, TileResource>()
+    val variables = LinkedHashMap<String, Variable>()
     val tutorials = LinkedHashMap<String, Tutorial>()
     val units = LinkedHashMap<String, BaseUnit>()
     val unitPromotions = LinkedHashMap<String, Promotion>()
@@ -220,6 +222,7 @@ class Ruleset {
     fun getGameResource(resourceName: String): GameResource? = Stat.safeValueOf(resourceName)
         ?: SubStat.safeValueOf(resourceName)
         ?: tileResources[resourceName]
+        ?: variables[resourceName]
 
     private inline fun <reified T : INamed> createHashmap(items: Array<T>): LinkedHashMap<String, T> {
         val hashMap = LinkedHashMap<String, T>(items.size)
@@ -354,6 +357,7 @@ class Ruleset {
         mergeOrPutAll("Terrains.json", terrains, ruleset.terrains, Array<Terrain>::class.java)
         mergeOrPutAll("TileImprovements.json", tileImprovements, ruleset.tileImprovements, Array<TileImprovement>::class.java)
         mergeOrPutAll("TileResources.json", tileResources, ruleset.tileResources, Array<TileResource>::class.java)
+        mergeOrPutAll("Variables.json", variables, ruleset.variables, Array<Variable>::class.java)
         mergeOrPutAll("Tutorials.json", tutorials, ruleset.tutorials, Array<Tutorial>::class.java)
         mergeOrPutAll("UnitTypes.json", unitTypes, ruleset.unitTypes, Array<UnitType>::class.java)
         victories.putAll(ruleset.victories)
@@ -925,6 +929,10 @@ class Ruleset {
         checkForMergeActions(resourcesFile)
         if (resourcesFile.exists()) tileResources += createHashmap(json().fromJsonFile(Array<TileResource>::class.java, resourcesFile))
 
+        val variablesFile = RulesetFile.Variables.file()
+        checkForMergeActions(variablesFile)
+        if (variablesFile.exists()) variables += createHashmap(json().fromJsonFile(Array<Variable>::class.java, variablesFile))
+
         val improvementsFile = RulesetFile.TileImprovements.file()
         checkForMergeActions(improvementsFile)
         if (improvementsFile.exists()) tileImprovements += createHashmap(json().fromJsonFile(Array<TileImprovement>::class.java, improvementsFile))
@@ -1187,6 +1195,7 @@ class Ruleset {
         if (units.isNotEmpty()) stringList += "[${units.size}] Units"
         if (buildings.isNotEmpty()) stringList += "[${buildings.size}] Buildings"
         if (tileResources.isNotEmpty()) stringList += "[${tileResources.size}] Resources"
+        if (variables.isNotEmpty()) stringList += "[${variables.size}] Variables"
         if (tileImprovements.isNotEmpty()) stringList += "[${tileImprovements.size}] Improvements"
         if (religions.isNotEmpty()) stringList += "[${religions.size}] Religions"
         if (beliefs.isNotEmpty()) stringList += "[${beliefs.size}] Beliefs"

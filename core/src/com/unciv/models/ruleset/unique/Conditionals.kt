@@ -124,6 +124,8 @@ object Conditionals {
 
             if (state.gameInfo.ruleset.tileResources.containsKey(resourceOrStatName))
                 return compare(state.getResourceAmount(resourceOrStatName), lowerLimit * gameSpeedModifier, upperLimit * gameSpeedModifier)
+            if (state.gameInfo.ruleset.variables.containsKey(resourceOrStatName))
+                return compare(state.getVariableAmount(resourceOrStatName), lowerLimit * gameSpeedModifier, upperLimit * gameSpeedModifier)
             val stat = Stat.safeValueOf(resourceOrStatName)
                 ?: return false
             val statReserve = state.getStatAmount(stat)

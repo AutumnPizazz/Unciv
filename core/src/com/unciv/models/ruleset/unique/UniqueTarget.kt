@@ -61,6 +61,7 @@ enum class UniqueTarget(
     Difficulty("Difficulty uniques will be treated as part of GlobalUniques for the Difficulty selected in a game", inheritsFrom = GlobalUniques),
     Tutorial,
     CityState(inheritsFrom = Global),
+    Variable(inheritsFrom = Global),
     ModOptions,
     Event(inheritsFrom = Triggerable),
     EventChoice(inheritsFrom = UnitTriggerable),

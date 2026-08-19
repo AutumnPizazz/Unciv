@@ -176,6 +176,24 @@ class ResourcesOverviewTab(
         fixedContent.clear()
         if (persistableData.vertical) updateVertical()
         else updateHorizontal()
+        addVariablesSection()
+    }
+
+    /** Appends a simple section listing all displayable mod-defined variables (see Variables.json). */
+    private fun addVariablesSection() {
+        val civ = viewingPlayer.getCiv()
+        val displayVariables = civ.gameInfo.ruleset.variables.values.filter { it.isDisplay }
+        if (displayVariables.isEmpty()) return
+        addSeparator()
+        val variablesTable = Table()
+        variablesTable.defaults().padRight(defaultPad)
+        for (variable in displayVariables) {
+            variablesTable.add(ImageGetter.getVariableIcon(variable.name, iconSize / 2f)).padTop(3f)
+            variablesTable.add(variable.name.toLabel()).left().padLeft(5f)
+            variablesTable.add(civ.getVariable(variable.name).tr().toLabel()).left().padLeft(10f)
+            variablesTable.row()
+        }
+        add(variablesTable).left()
     }
 
     private fun updateHorizontal() {

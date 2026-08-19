@@ -20,6 +20,15 @@ class ModOptions : IHasUniques {
     val constants = ModConstants()
     var unitset: String? = null
     var tileset: String? = null
+
+    //region Variables (see Variables.json)
+    /** When the number of displayed variables exceeds this, only always-display variables stay in the top bar.
+     *  0 (default) = no limit. */
+    var variableMenuThreshold = 0
+    /** Number of always-display variables kept visible when the top bar menu collapses.
+     *  0 (default) = all always-display variables. */
+    var alwaysDisplayVariableCount = 0
+    //endregion
     //endregion
 
     //region Metadata, automatic
