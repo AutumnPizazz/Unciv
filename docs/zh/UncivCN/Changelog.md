@@ -9,93 +9,63 @@ title: UncivCN 更新日志
 ## 未发布
 
 - 修复：地图钉（地块备注）预览图不再提前显示科技未揭示的战略资源（如远古时代看不到石油）
-- 地图生成旋转对称重构：对称改为在生成时参与而非事后打补丁——修复环形地图 3/6 折对称失效、镜像大陆不一致、资源/奇观复制异常；生成性能无退化
+- 地图生成旋转对称重构：对称改为在生成时参与而非事后打补丁——修复环形地图 3/6 折对称失效、镜像大陆不一致、资源/奇观复制异常；生成性能无退化，详见 [分支特色](/zh/UncivCN/Features)
 
 
 ## 4.21.8.3（build 1255）
 
-- 联机：新游戏选项「禁止读档」——开启后客户端在本方回合内持续保存本地快照，重新进入游戏时从本地快照继续而非服务器回合开始状态，退出重进无法再回到回合开始重新操作（不动服务器，近零带宽）
-- 模组支持：新增 ModOptions unique「Production overflow applies immediately to the next construction」——产能溢出无上限、不受已完成项目产能加成影响，当回合立即作用于队列下一个项目（享受其加成并可沿队列连锁推进），依靠即时溢出完成的单位可立即移动；未启用该 unique 时原版溢出机制不变
-- 文档：新增子仓库模组（CoeHarMod）更新日志规范——每次改动模组须同步文档站模组板块日志 `docs/{,zh/}Community/Mods/CoeHarMod/更新日志/`（未发布小节积累 + 发版整合，emoji 分类风格），并写入 AGENTS.md 与 Coding-standards 第八节
-- 文档：补写文档站模组板块 CoeHarMod v3.3.11 更新日志（维护费体系重构、全民动员优化、Lua 重构、清理与流程，中英两份）
-- Mod：CoeHarMod 修复模组检查器全部 38 条黄色警告（删除无效 VersionNotice 事件触发、Reveal 建筑加官方压制 unique、ModOptions 压制城邦良性翻译碰撞），子模块指针同步更新
-- Mod：CoeHarMod 清理模组检查器全部绿色提示（删除 167 行未使用 tag/空 unique、删除毛利人与机甲恒真条件、吸血鬼对象级压制），子模块指针同步更新
-# 4.21.8.2（build 1254）
+- 联机：新游戏选项「禁止读档」——退出重进无法再回到回合开始重新操作（重新进入时从你最新的回合状态继续）
+- 模组支持：新增 ModOptions unique「Production overflow applies immediately to the next construction」——无上限的产能溢出当回合立即作用于下一个项目，靠即时溢出完成的单位可立即移动；未启用时原版机制不变，详见 [uniques](/zh/Modders/uniques)
 
-- 测试：移除对 CoeHarMod 子模块内容的加载测试——主仓库测试不再耦合子仓库内容（CI 不检出子模块时行为不一致）；全民动员 tag 计数功能由自包含的模拟测试覆盖
-- 修复：地图钉（地块备注）编辑与查看弹窗的预览图不再提前渲染未揭示资源（如远古时代看不到石油），资源图标统一按当前玩家可见性过滤
-- 修复：Countable 文档示例中的 `&lt;upon turn end&gt;` 条件括号转义为 HTML 实体，文档站构建不再因未闭合标签失败
-- 模组支持：单位维护费与最大血量现显示在文明百科中——非默认 `maxHP` 出现在属性行；文明6式维护费体系下每个单位列出每回合维护费（`{Unit upkeep}: N {Gold}`，由 `maintenanceCost` × `unitMaintenanceBaseCost` 得出）
-- 模组支持：文明6式单位维护费（ModOptions 加 unique「Uses the Civilization 6 style unit maintenance system」启用）——Units.json 新字段 `maintenanceCost`（按单位固定维护费）、可配置 `unitMaintenanceBaseCost` 常量、扁平金币减免（「Reduces unit maintenance by [amount] Gold」，可配单位过滤器）、无进度膨胀与默认免费单位；旧维护费体系不变
-- 模组支持：修复 REMOVE_FIELD 合并按源值类型而非字段类型重置标量字段（float 字段如新 maintenanceCost 会崩溃）
-- 模组支持：`[mapUnitFilter] Units` Countable 按自定义 tag 计数的文档示例修正为方括号语法（`[[Class.Tag] Units]`，`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag
-- 模组支持：`[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` 参数全面兑现文档承诺的 Countable 表达式支持——半径、数量、免费单位数、单位治疗/伤害/经验/状态回合数、回合条件等此前遇 Countable 表达式会崩溃或解析错误；`getResourceAmount` 两个重载统一（库存优先），Countable 资源引用在城市与文明上下文中解析一致
-- 模组支持：Countable 文档新增 `[mapUnitFilter] Units` 按自定义 tag unique 计数的说明（如 `[{Class.Tag} Units]`），模组可将逐对象重复的事件 unique 合并为一条 Countable 表达式
-- 测试：testMOD 夹具从 `android/assets/mods/` 迁至 `tests/src/test/resources/testMOD`（纯测试夹具，经测试 classpath 加载；新增 `TestAssets` 辅助类统一加载与仓库根目录定位。发布包本就排除 `mods/`，迁移主要让开发运行时的模组列表保持干净）
-- 模组/Lua：新增 unique「Tile yield is modified by [luaFunction]」——Lua 通过 `ctx.tileStats` 接收引擎计算的地块产出，可返回新产出表（返回表中出现的属性覆盖引擎值、未出现的保持原值，返回 nil 则产出不变）；`ctx.tileStats` 已登记进 Lua API 文档，testMOD 新增地块产出钩子测试
-- 模组支持：新增四个触发器 unique——「upon attacking」「upon being attacked」（攻/防方各自的战斗钩子，覆盖近战、远程与空袭）、「upon pillaging a [tileFilter] tile」（单位级与文明级）、「upon finishing razing a city」（焚毁完成时）
-- 模组支持：新增三个条件——「if unit is fortified」（单位处于驻防状态）、「if unit is embarked」（单位处于登船状态）、「if this city is being razed」（城市正在被焚毁），可搭配任意 unique 使用
-- 模组支持：新增四个反向 unique——「Lose control over [positiveAmount] tiles [cityFilter]」（市中心永不丢失，最近获得的最先失去）、「Lose a spy」（优先移除空闲间谍）、「End a golden age」（像自然结束一样触发黄金时代结束事件）、「Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius」（取消已探索状态；处于单位/城市视野内的地块下次更新会重新可见）
-- 模组支持：新增 unique「Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius」——半径内属于触发文明的地块会失去所有权变为中立；城市中心永远不会受影响
-- 模组支持：模组检查器白名单豁免根目录的 `.luarc.json`（LuaLS 编辑器配置——LuaLS 只从 workspace 根目录读取它）；文档提醒模组作者保持该确切文件名、不要重命名
-- 模组支持：modDependencies 的 `version` 范围改为 `recommendedVersion` 推荐版本（精确匹配、推荐语义词条）；删除 ModVersionRange 工具类
-- 模组支持：ModOptions.json 新增 `recommendedGameVersion` 字段——模组版本可声明其针对制作的精确游戏版本（精确匹配，`n.n.n`/`n.n.n.n`/`-patchN`）；已安装模组列表与信息面板直接显示（如 `Version 0.1.0 · game 4.21.7.1`），当前游戏版本不符时给出非阻塞警告；原 `gameVersionRange` 字段已移除
-- 模组/Lua：扩展战斗支持——单位新增只读战斗预测查询（getAttackingStrengthAgainst / getDefendingStrengthAgainst / predictDamageTo / predictDamageFrom），新增触发 unique（upon bombarding / upon being bombarded / upon withdrawing from melee combat）
-- 模组/Lua：Lua 现可接管战斗力与伤害公式——新增 unique「Combat strength is modified by [luaFunction]」「Combat damage dealt is modified by [luaFunction]」「Combat damage received is modified by [luaFunction]」；Lua 收到原始战斗参数（战斗力钩子：基础力 + 修正倍率 + 逐项修正表；伤害钩子：攻防双方战斗力 + 随机因子 + 受伤惩罚系数 + 伤害方向），返回 nil 则回退引擎公式
-- 模组/Lua：战斗触发的 Lua 现在能看到对手——`ctx.otherCiv`（外交与战斗）、`ctx.attacker`/`ctx.defender`/`ctx.target` 与 `ctx.combatAction` 已对 `TriggerLuaFunction`/`ConditionalLuaCheck` 开放
-- 模组/Lua：新增单位触发 unique：俘获单位时 / 被俘获时 / 拦截单位时 / 被拦截时
-- 文档：Units.json 字段参考补充 `maxHP` 字段说明（默认 100，可通过 `[relativeAmount] Max HP` unique 调整）；杂项 JSON 文档中的城市力量公式改为按驻军单位生命百分比计算，不再假设血量上限为 100
-- CI：精简分支推送触发的工作流——Docker 镜像发布不再随每次提交构建推送（保留每日定时、发版 tag、PR 构建验证与手动触发），冲突标记不再随分支推送重扫（PR 仍触发）；纯文档改动跳过代码测试工作流（Build and test / Detekt），由文档工作流的 generateDocs 兜底编译
+## 4.21.8.2（build 1254）
+
+- 修复：地图钉（地块备注）预览图不再提前显示科技未揭示的资源（如远古时代看不到石油）
+- 模组支持：文明6式单位维护费（ModOptions 加 unique 启用）——按单位固定维护费、扁平金币减免、不随游戏进度膨胀，旧体系不变；维护费与最大血量现显示在文明百科中，详见 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files) 与 [uniques](/zh/Modders/uniques)
+- 模组支持：`[amount]` 类参数全面支持 Countable 表达式（半径、数量、免费单位数、治疗/伤害/经验、回合条件），详见 [Unique parameters](/zh/Modders/Unique-parameters)
+- 模组支持：新增触发/条件/反向 unique（战斗/劫掠/焚毁触发、驻防/登船条件、失去地块/间谍/黄金时代、隐藏已探索地块），详见 [uniques](/zh/Modders/uniques)
+- 模组/Lua：Lua 可修改地块产出、接管战斗力与伤害公式，并响应战斗/俘获事件（含完整攻防上下文），详见 [Lua Modding](/zh/Modders/Lua-Modding)
+- 模组支持：ModOptions.json 新增版本字段（`recommendedGameVersion`、依赖的 `recommendedVersion`），游戏版本不符时给出非阻塞警告，详见 [ModOptions.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files)
+- 模组支持：修复 REMOVE_FIELD 合并对 float 字段的崩溃，详见 [MergeActions](/zh/Modders/Mod-file-structure/6-MergeActions)
 
 ## 4.21.8.1（build 1253）
 
-- 合并上游 4.21.8（17 个提交）：View 重构继续（#15280）——战争迷雾视图统一（`getGameViewConsideringForOfWar`）、帝国总览各页签接入 View、贸易界面分两步 View 化、城市界面迁移 `TileView`；新增非原版排名类型「已探索地块」（`Show additional stat types` 新游戏选项开启）与观战位玩家上限（Max players with spectator）；修复崩溃界面 OOM、科技选择器与通知总览 ANR、直布罗陀巨岩附近水域河流、开发控制台资源过滤可见性；文档重组（`Simulations` 迁至 Developers 并更名 `Testing AI changes`、Regions 并入地图 JSON 文档、预告片音频致谢并入 Credits）
-- 合并冲突解决：版本号按 CN 惯例升至 4.21.8.1（build 1253）；简中翻译新增「显示额外统计类型」「已探索地块」；中英文档随上游重组同步（`Other/Regions`、`Other/Simulations` 与 `Credits_trailer` 独立页删除，VitePress 侧边栏更新）；`lua-api.lua`/`lua-map-api.lua` 经 `generateDocs` 重新生成（版本头同步）
-- 难度：国王及以上难度的 AI 不满修正改为 100/90/85/75（原 90/85/75/60），以实机数值为准
-- 模组支持：单位血量上限可模组化——Units.json 新增 `maxHP` 字段（默认 100）+ 新 unique `[relativeAmount] Max HP`；残血减伤按血量百分比缩放，AI/UI 阈值全部相对化，Lua 的 `unit.getMaxHealth()` 返回动态上限
-- 主菜单右下角按钮：Discord 改为 QQ 群入口（qm.qq.com），新增百度贴吧按钮，GitHub 按钮改指 CN 分支仓库；关于页仓库/更新日志/README 链接改指 UncivCN 分支（含版本锚点修正）
-- 文档站链接按客户端语言自适应：简体/繁体中文客户端跳中文区（/zh/），其余语言跳英文区
-- CI：detekt / Docker 发布工作流改在 UncivCN 分支触发（此前绑定上游 master 分支从未运行），Release 判定只认 4 段版本号；移除上游 uncivbot 自动发版机器人（CN 为手动发版）
-- 游戏内 wiki 链接改为 CN 文档站（club.unciv.cn），加载失败提示邮箱改为 hurxwork@qq.com
-- 代码清理与审查修复：删除全项目审查发现的死代码与注释代码，修复 `ConditionalBuildingBuiltAll` 城市过滤失效、多段 `{A} {B}`/`non-[X]` 过滤恒错、`LongPriorityQueue.remove` 误删队首、`stateBasedRandom` 无头测试崩溃等问题
-- CI：修复 detekt 静态检查失败——更新配置中的弃用属性（移除 `OptionalWhenBraces`，`ForbiddenComment` 的 `values`/`customMessage` 改为 `comments`），并补齐 `UnitPresenter.kt` 文件末尾缺失的换行
+- 合并上游 4.21.8（17 个提交）：View 重构继续、新增排名类型「已探索地块」（可选）、观战位玩家上限、修复崩溃界面 OOM 与多处 ANR、直布罗陀巨岩附近水域河流
+- 难度：国王及以上难度的 AI 不满修正改为 100/90/85/75（原 90/85/75/60）
+- 模组支持：单位血量上限可模组化——Units.json 新增 `maxHP` 字段 + unique「[relativeAmount] Max HP」，残血减伤按血量百分比缩放，详见 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files)
+- 主菜单右下角按钮：Discord 改为 QQ 群入口，新增百度贴吧按钮，GitHub 改指 CN 分支仓库；关于页链接更新
+- 文档站链接按客户端语言自适应（中文客户端跳 /zh/ 区）
+- 游戏内 wiki 链接改为 CN 文档站
+- 全项目代码清理与审查修复（删除死代码、修复城市/过滤器等 bug）
 
 ## 4.21.7.2（build 1252）
 
-- Android：更新弹窗游戏内直接下载 APK（带进度），一键调起系统安装（FileProvider），自动引导「安装未知来源应用」授权
-- Android：下载断点救援（.part + 原子改名），「安装/重新下载」双按钮，复制一份到系统下载文件夹，自动清理旧安装包
-- 主菜单「下载最新版本」改为列出当前平台安装包并直接下载所选包（不再跳转浏览器发布页）
+- Android：更新弹窗游戏内直接下载 APK（带进度），一键调起系统安装，自动引导「安装未知来源应用」授权
+- Android：下载断点救援，「安装/重新下载」双按钮，复制一份到系统下载文件夹，自动清理旧安装包
+- 主菜单「下载最新版本」改为列出当前平台安装包并直接下载所选包
 
 ## 4.21.7.1（build 1251）
 
-- 合并上游 4.21.7 / 4.21.7-patch1 / patch2（41 个提交）：View 重构持续推进（#15280）、AI 战争逻辑修复、隐形轰炸机闪避、MP 平均回合用时、迷你地图 ANR 修复、Gradle 9.4.1 + LibGDX 1.14.2 + target SDK 36；CN 地图钉/单位钉与人口锁地适配新 View API
-- CI：修复 `unciv-lua-api` vsix 打包
-- 模组工具：Lua API 定义随发版自动部署文档站，`unciv-lua-api` VSCode 扩展自动同步接入 LuaLS
-- 文档：Lua API 与地图脚本参考改为 Kotlin 数据表驱动生成；工具链不再依赖 Python
-- Lua API：新增 `unit.getEraNumber()`、`civ.discoverTech()`
-- 模组：CoeHarMod 改为 git 子模块（独立仓库），规则经 Lua 精简
+- 合并上游 4.21.7 / 4.21.7-patch1 / patch2（41 个提交）：AI 战争逻辑修复、隐形轰炸机闪避、MP 平均回合用时、迷你地图 ANR 修复、Gradle 9.4.1 + LibGDX 1.14.2
+- Lua API：新增 `unit.getEraNumber()`、`civ.discoverTech()`，详见 [Lua API 参考](/zh/Modders/Lua-API-Reference)
+- 模组：CoeHarMod 改为独立仓库的 git 子模块，规则经 Lua 精简
 
 ## 4.21.6.6（build 1250）
 
 - 主菜单自动更新检测（镜像源回退）；「模组下载源」更名为「下载源」
 - 修复自定义 Lua API 函数参数含函数调用表达式时的运行时崩溃
-- Lua API 大扩展（约 100 个新方法）、`ConditionalLuaCheck` unique、`TriggerUponTradeMade` 钩子
+- Lua API 大扩展（约 100 个新方法）、`ConditionalLuaCheck` unique、`TriggerUponTradeMade` 钩子，详见 [Lua Modding](/zh/Modders/Lua-Modding)
 - Lua 地图脚本：模组可在 `scripts/` 提供地图生成器，新增「Lua Generated」地图类型
 - Lua 沙箱加固；模组检查器覆盖地图脚本 API
 
 ## 4.21.6.5（build 1249）
 
-- 文档：Lua 章节全面重写、EmmyLua 类型定义 + `LuaStarterMod` 模板、mod-ci 命令行
 - Lua 错误弹窗带行号；堵住 `package.loaded` 沙箱逃逸；指令预算阻止死循环卡死
 - 新增：联机重开投票（房主开启、全员投票、超时默认同意、自动重开）
-- CI：Release 标题显式使用纯版本号
 
 ## 4.21.6.4（build 1248）
 
-- CI：Release 说明自动写入中英双语更新日志
-- 新增「模组下载源」设置，支持国内镜像加速（gh-proxy/ghfast/ghproxy/自定义前缀）
+- 新增「模组下载源」设置，支持国内镜像加速
 - 开图界面：支持命名槽位保存/读取配置；剪贴板按钮移到右下角；「重置为默认」改为内置「默认配置」
-- 文档：Coding-standards 新增发版检查清单与踩坑经验
 
 ## 4.21.6.3（build 1247）
 
@@ -109,20 +79,17 @@ title: UncivCN 更新日志
 
 - 笔记改为按 gameId 存储，不再跨存档泄漏
 - 地图钉/单位钉：长按/Alt+点击编辑、备注气泡、崩溃修复、中文词条补齐
-- ModOptions.json 新增 `modVersion` / `gameVersionRange` / `modDependencies`
 - 修复开图界面自定义尺寸重复行；内置规则集与上游对齐
 - 合并上游 4.21.6（CPU 性能、AI 工人相邻加成、多人上传失败提示）
-- 文档站链接修复（约 250 处锚点）；游戏内版本号构建时自动同步
 
 ## 4.21.5.3（build 1244）
 
-- 修复 CI 测试失败（翻译模板缺空格、测试模组纳入版本库）
-- Deploy 不再推送 Discord 通知
+- 修复 CI 测试失败（翻译模板缺空格、测试模组纳入版本库）；部署通知清理
 
 ## 4.21.5.2（build 1243）
 
 - 官方 VitePress 文档站上线（中文全文搜索、中英一键切换）
-- `docDescriptionZh`：unique 说明文档中文化
+- unique 说明文档中文化
 - APK 签名本地化，产物统一命名 UncivCN
 
 ## 4.21.5.1（build 1242）

@@ -5,97 +5,67 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 ## Unreleased
 
 - Fix: map pin (tile note) previews no longer reveal strategic resources before their revealing tech is researched (e.g. no Oil in the Ancient era)
-- Map generation with rotational symmetry rebuilt: symmetry is now applied during generation instead of as a post-process - fixes broken 3/6-fold symmetry on wrapped maps, mirror-continent inconsistencies, and resource/wonder copy glitches; generation performance unchanged
+- Map generation with rotational symmetry rebuilt: symmetry is now applied during generation instead of as a post-process - fixes broken 3/6-fold symmetry on wrapped maps, mirror-continent inconsistencies, and resource/wonder copy glitches; generation performance unchanged - see [Features](/UncivCN/Features)
 
 
 ## 4.21.8.3 (build 1255)
 
-- Multiplayer: new game option "Forbid reloading" - with the option on, the client keeps a local snapshot of the player's turn and resumes from it on re-entry, so quitting and reloading can no longer return to the turn-start state to redo moves (server untouched, near-zero bandwidth)
-- Modding: new ModOptions unique "Production overflow applies immediately to the next construction" - uncapped overflow that does not receive the completed construction's production bonuses, applied to the next queue entry on the same turn (receiving its bonuses, chaining through the queue as needed), and units completed through immediate overflow can move immediately; vanilla overflow behavior stays unchanged without the unique
-- Docs: new sub-module (CoeHarMod) changelog workflow - every mod change must also update the mod section changelog on the docs site (`docs/Community/Mods/CoeHarMod/更新日志/` and the Chinese copy under `docs/zh/`): Unreleased-section accumulation + consolidation on release, emoji category groups; documented in AGENTS.md and Coding-standards section 8
-- Docs: backfilled the CoeHarMod v3.3.11 changelog in the docs-site mod section (maintenance system rework, national mobilization optimization, Lua rework, cleanup & tooling - EN + ZH)
-- Mod: CoeHarMod fixed all 38 mod-checker warnings (removed the invalid VersionNotice event trigger, added the official suppression unique to the Reveal buildings, suppressed benign city-state translation collisions in ModOptions); submodule pointer updated
-- Mod: CoeHarMod cleaned up all green mod-checker entries (deleted 167 lines of unused tags / empty unique, dropped the always-true Maori and Mech conditionals, object-level suppression for the Vampire conditional); submodule pointer updated
-# 4.21.8.2 (build 1254)
+- Multiplayer: new game option "Forbid reloading" - quitting and re-entering the game can no longer return to the turn-start state to redo moves (you resume from your latest turn state instead)
+- Modding: new ModOptions unique "Production overflow applies immediately to the next construction" - uncapped overflow flows into the next build on the same turn, and units finished by immediate overflow can move right away; vanilla behavior unchanged without the unique - see [uniques](/Modders/uniques)
 
-- Tests: removed the load test that read CoeHarMod submodule content - main repo tests no longer depend on the sub-repo (behavior differed when CI skips submodule checkout); the QuanMinDongYuan tag-counting behavior stays covered by self-contained simulated tests
-- Fix: map pin (tile note) edit/view popup previews no longer render unrevealed resources ahead of time (e.g. no oil in the Ancient era) - resource icons now consistently respect the viewing civ visibility
-- Fix: `&lt;upon turn end&gt;` condition brackets in Countable doc examples are now escaped as HTML entities so the docs site build no longer fails on unclosed tags
-- Modding: unit maintenance and max HP now show in the Civilopedia - non-default `maxHP` appears in the stats line, and in the Civilization 6 style maintenance system each unit lists its per-turn maintenance cost (`{Unit upkeep}: N {Gold}`, based on `maintenanceCost` × `unitMaintenanceBaseCost`)
-- Modding: Civilization 6 style unit maintenance (opt-in via the "Uses the Civilization 6 style unit maintenance system" ModOptions unique) - per-unit fixed maintenance from the new `maintenanceCost` Units.json field, configurable `unitMaintenanceBaseCost` constant, flat per-unit Gold reductions ("Reduces unit maintenance by [amount] Gold", combinable with unit filters), no game-progress inflation and no default free units; legacy maintenance unchanged
-- Modding: fix REMOVE_FIELD merge resetting scalar fields by source value type instead of field type (crashed on float fields like the new maintenanceCost)
-- Modding: `[mapUnitFilter] Units` Countable 支持自定义 tag 计数（如 `[[Class.Tag] Units]`）的文档示例修正为方括号语法（`{Tag}` 花括号仅用于 AND 组合）；CoeHarMod 的全民动员补贴由 80 条逐单位重复 unique 合并为一条 Countable 表达式 + 单位 tag
-- Modding: `[amount]`/`[positiveAmount]`/`[nonNegativeAmount]` parameters now fully honor their documented Countable-expression support - radii, amounts, free-unit counts, unit heal/damage/XP/status values and turn conditions previously crashed or mis-parsed on Countable expressions; `getResourceAmount` overloads unified (stockpiles first) so Countable resource references resolve consistently in city and civ contexts
-- Modding: Countable docs now show how `[mapUnitFilter] Units` counts custom tag uniques (e.g. `[{Class.Tag} Units]`), letting mods merge identical per-object event uniques into one Countable expression
-- Tests: testMOD fixture moved from `android/assets/mods/` to `tests/src/test/resources/testMOD` (test-only fixture, loaded via classpath with a new `TestAssets` helper that also centralizes repo-root lookup; `mods/` was already excluded from release packaging, the move keeps the dev-runtime mod list clean)
-- Modding/Lua: new "Tile yield is modified by [luaFunction]" unique - Lua receives the engine-computed tile yield as `ctx.tileStats` and may return a table with new yields (stats present override engine values, absent ones keep them, nil leaves the yield unchanged); `ctx.tileStats` is registered in the Lua API docs, testMOD gains tile yield hook tests
-- Modding: new trigger uniques - "upon attacking" / "upon being attacked" (attacker-only and defender-only combat hooks, covering melee, ranged and air attacks), "upon pillaging a [tileFilter] tile" (unit-level and civ-level) and "upon finishing razing a city"
-- Modding: new conditionals - "if unit is fortified", "if unit is embarked" and "if this city is being razed" - usable on any unique
-- Modding: new reverse uniques - "Lose control over [positiveAmount] tiles [cityFilter]" (city centers never lost, most recently acquired lost first), "Lose a spy" (prefers an idle spy), "End a golden age" (fires the golden-age-end triggers like a natural end), and "Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius" (un-explores tiles; tiles in unit/city sight range become visible again on the next update)
-- Modding: new unique "Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius" - tiles owned by the triggering civilization within the radius become unowned again; city centers are never affected
-- Modding: the mod checker now whitelists `.luarc.json` in the mod root folder (LuaLS editor config - LuaLS only reads it from the workspace root); docs tell modders to keep this exact file name
-- Modding: `modDependencies` in ModOptions.json now use `recommendedVersion` (exact match, recommended wording) instead of the `version` range; the `ModVersionRange` helper class is removed
-- Modding: new `recommendedGameVersion` field in ModOptions.json - a mod version can declare the exact game version it was made for (exact match, `n.n.n`/`n.n.n.n`/`-patchN`); the installed mod list and the info pane show it right away (e.g. `Version 0.1.0 · game 4.21.7.1`), and a non-blocking warning appears when the running game version differs; the `gameVersionRange` field is removed
-- Modding/Lua: more combat support - new read-only combat prediction queries on units (getAttackingStrengthAgainst / getDefendingStrengthAgainst / predictDamageTo / predictDamageFrom) and new trigger uniques (upon bombarding / upon being bombarded / upon withdrawing from melee combat)
-- Modding/Lua: Lua can now take over the combat strength and damage formulas - new uniques "Combat strength is modified by [luaFunction]", "Combat damage dealt is modified by [luaFunction]" and "Combat damage received is modified by [luaFunction]"; Lua receives the raw combat inputs (base strength + modifier factor + individual modifier list for strength; attacker/defender strength + randomness factor + health ratio + damage direction for damage) and returning nil falls back to the engine formula
-- Modding/Lua: combat-fired Lua triggers can now see the opponent - `ctx.otherCiv` (diplomacy & combat), `ctx.attacker`/`ctx.defender`/`ctx.target` and `ctx.combatAction` are exposed to `TriggerLuaFunction`/`ConditionalLuaCheck`
-- Modding/Lua: new unit trigger uniques: upon capturing a unit / upon being captured / upon intercepting a unit / upon being intercepted
-- Docs: the Units.json field reference now documents the `maxHP` field (default 100, adjustable via the `[relativeAmount] Max HP` unique); the city strength formula in Miscellaneous JSON files now uses the garrisoned unit's HP percentage instead of assuming a max HP of 100
-- CI: trimmed the workflows triggered by daily branch pushes - the Docker image publish workflow no longer runs on every push (kept the daily schedule, release tags, PR build check and manual dispatch), conflict marking no longer re-scans on branch pushes (still runs for PRs), and pure docs-only changes skip the code test workflows (Build and test / Detekt) since the docs workflow recompiles via generateDocs
+## 4.21.8.2 (build 1254)
+
+- Fix: map pin (tile note) previews no longer render unrevealed resources ahead of time (e.g. no oil in the Ancient era)
+- Modding: Civilization 6 style unit maintenance (opt-in via a ModOptions unique) - fixed per-unit upkeep, flat Gold reductions, no inflation over game progress, legacy system unchanged; maintenance and max HP now also show in the Civilopedia - see [Units.json](/Modders/Mod-file-structure/4-Unit-related-JSON-files) and [uniques](/Modders/uniques)
+- Modding: [amount]-type parameters now fully support Countable expressions (radii, amounts, free units, heal/damage/XP values, turn conditions) - see [Unique parameters](/Modders/Unique-parameters)
+- Modding: new trigger, conditional and reverse uniques (combat / pillage / raze triggers, fortified / embarked conditionals, lose control over tiles / lose a spy / end a golden age / hide explored tiles) - see [uniques](/Modders/uniques)
+- Modding/Lua: Lua can modify tile yields, take over combat strength and damage formulas, and react to combat / capture events with full attacker-defender context - see [Lua Modding](/Modders/Lua-Modding)
+- Modding: new ModOptions.json version fields (`recommendedGameVersion`, `recommendedVersion` dependencies) with a non-blocking warning when the game version differs - see [ModOptions.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files)
+- Modding: merge (REMOVE_FIELD) crash on float fields fixed - see [MergeActions](/Modders/Mod-file-structure/6-MergeActions)
 
 ## 4.21.8.1 (build 1253)
 
-- Merged upstream 4.21.8 (17 commits): the View refactor continues (#15280) - fog-of-war view usage unified (`getGameViewConsideringForOfWar`), Empire overview tabs migrated to Views, trade UI view-ified in two steps, CityScreen migrated to `TileView`; new non-vanilla ranking type Tiles Explored (enabled by the `Show additional stat types` new-game option) and spectator slot for max players (Max players with spectator); crash-screen OOM, tech picker and notification overview ANRs, rivers on water near Rock of Gibraltar, and dev-console resource filter visibility fixed; docs reorganized (`Simulations` moved to Developers and renamed `Testing AI changes`, Regions merged into the map JSON doc, trailer audio credits merged into Credits)
-- Conflict resolution on merge: CN version bumped to 4.21.8.1 (build 1253); Simplified Chinese translations added for Show additional stat types and Tiles Explored; EN/ZH docs followed the upstream reorganization (standalone Other/Regions, Other/Simulations and Credits_trailer pages removed, VitePress sidebar updated); lua-api.lua / lua-map-api.lua regenerated via generateDocs (version header sync)
-- Difficulty: AI unhappiness modifier for King and above is now 100/90/85/75 (was 90/85/75/60), matching verified in-game values
-- Modding: unit max HP is now moddable - `maxHP` field in Units.json (default 100) plus the new `[relativeAmount] Max HP` unique; combat wounded penalty now scales with HP percentage, AI/UI thresholds made relative, Lua `unit.getMaxHealth()` reflects the moddable max HP
-- Main menu bottom-right buttons: the Discord entry is now a QQ group link (qm.qq.com), added a Baidu Tieba button, and the GitHub button points to the CN fork repository; the About page's repository/changelog/README links point to the UncivCN fork (with version anchors fixed)
-- Docs site links adapt to the client language: Simplified/Traditional Chinese clients jump to the Chinese section (/zh/), other languages jump to the English section
-- CI: detekt / Docker release workflows now trigger on the UncivCN branch (previously bound to upstream master and never ran), and release detection only accepts 4-segment version numbers; removed the upstream uncivbot auto-release bot (CN releases manually)
-- In-game wiki links now point to the CN docs site (club.unciv.cn), and the load-failure notice email is now hurxwork@qq.com
-- Code cleanup & bugfixes from the full-project code review: dead code and commented-out blocks removed, `ConditionalBuildingBuiltAll` city filters and multi-segment `{A} {B}`/`non-[X]` filters fixed, `LongPriorityQueue.remove` no longer deletes the wrong element, `stateBasedRandom` no longer crashes headless map-generation tests
-- CI: fixed detekt analysis failures - removed deprecated config properties (`OptionalWhenBraces`; `ForbiddenComment` `values`/`customMessage` now `comments`) and added the missing end-of-file newline in `UnitPresenter.kt`
+- Merged upstream 4.21.8 (17 commits): View refactor continues, new "Tiles Explored" ranking type (optional), spectator slot for max players, crash-screen OOM and several ANR fixes, rivers on water near Rock of Gibraltar fixed
+- Difficulty: AI unhappiness modifier for King and above is now 100/90/85/75 (was 90/85/75/60)
+- Modding: unit max HP is now moddable - `maxHP` field plus the new "[relativeAmount] Max HP" unique; wounded penalty scales with HP percentage - see [Units.json](/Modders/Mod-file-structure/4-Unit-related-JSON-files)
+- Main menu bottom-right buttons: Discord entry replaced by a QQ group link, Baidu Tieba button added, GitHub button points to the CN fork; About page links updated
+- Docs site links adapt to the client language (Chinese clients get the /zh/ section)
+- In-game wiki links point to the CN docs site
+- Code cleanup & bugfixes from a full-project review (dead code removed, city/filter bugs fixed)
 
 ## 4.21.7.2 (build 1252)
 
-- Android: update popup downloads the APK in-game with progress and installs it via FileProvider (unknown-sources permission guided)
-- Android: downloads are interruption-safe (`.part` + atomic rename), Install/Redownload buttons, copy to the public Downloads folder, old packages cleaned up
-- Main menu "Download latest version" now lists the platform's installers from the release assets and downloads the chosen one directly
+- Android: update popup downloads the APK in-game with progress and installs it (unknown-sources permission guided)
+- Android: downloads are interruption-safe, Install/Redownload buttons, copy to the public Downloads folder, old packages cleaned up
+- Main menu "Download latest version" lists the platform's installers and downloads the chosen one directly
 
 ## 4.21.7.1 (build 1251)
 
-- Merged upstream 4.21.7 / 4.21.7-patch1 / patch2 (41 commits): View refactor continues (#15280), AI war-logic fixes, Stealth Bomber Evasion, MP average turn times, minimap ANR fix, Gradle 9.4.1 + LibGDX 1.14.2 + target SDK 36; CN notes/pins and auto-lock adapted to the new View APIs
-- CI: fixed `unciv-lua-api` vsix packaging
-- Modder tooling: Lua API definitions auto-deployed to the docs site; `unciv-lua-api` VSCode extension syncs them into LuaLS
-- Docs: Lua API and map-script references generated from Kotlin data tables; toolchain no longer needs Python
-- Lua API: added `unit.getEraNumber()` and `civ.discoverTech()`
-- Mods: CoeHarMod now a git submodule (standalone repo), rules consolidated via Lua
+- Merged upstream 4.21.7 / 4.21.7-patch1 / patch2 (41 commits): AI war-logic fixes, Stealth Bomber Evasion, MP average turn times, minimap ANR fix, Gradle 9.4.1 + LibGDX 1.14.2
+- Lua API: added unit.getEraNumber() and civ.discoverTech() - see [Lua API Reference](/Modders/Lua-API-Reference)
+- Mods: CoeHarMod moved to its own repo as a git submodule, rules consolidated via Lua
 
 ## 4.21.6.6 (build 1250)
 
 - Automatic update check on the main menu (mirror fallback); "Mod download source" renamed "Download source"
 - Fixed Lua runtime crash on function-call arguments in custom API functions
-- Lua API expansion (~100 new methods), `ConditionalLuaCheck` unique, `TriggerUponTradeMade` hook
+- Lua API expansion (~100 new methods), ConditionalLuaCheck unique, TriggerUponTradeMade hook - see [Lua Modding](/Modders/Lua-Modding)
 - Lua map scripts: mods can ship a map generator (`scripts/`), new "Lua Generated" map type
 - Lua sandbox hardening; mod checker covers map-script APIs
 
 ## 4.21.6.5 (build 1249)
 
-- Docs: Lua sections rewritten, EmmyLua type definitions + `LuaStarterMod` template, mod-ci CLI
-- Lua runtime errors show line numbers; sandbox escape via `package.loaded` closed; instruction budget against runaway loops
+- Lua runtime errors now show line numbers; sandbox escape via package.loaded closed; instruction budget against runaway loops
 - New: multiplayer restart votes (host enables, everyone votes, timeout = agree, auto-restart)
-- CI: Release title is the plain version number
 
 ## 4.21.6.4 (build 1248)
 
-- CI: Release notes now contain the CN changelog in EN + ZH
 - New: "Mod download source" setting with China mirror support
 - New-game screen: save/load setups to named slots; clipboard buttons moved; "Reset to defaults" replaced by a built-in "Default setup"
-- Docs: release checklist & lessons learned added to Coding-standards
 
 ## 4.21.6.3 (build 1247)
 
-- Fixed Docker build copying stale `Unciv.jar` name; fixed MSI missing from releases
+- Fixed Docker build copying stale Unciv.jar name; fixed MSI missing from releases
 
 ## 4.21.6.2 (build 1246)
 
@@ -105,20 +75,17 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 - Notes keyed by gameId (no more leaking across saves)
 - Map/unit pins: long-press / Alt+click editing, note bubbles, crash fix, CN translations
-- ModOptions.json: `modVersion` / `gameVersionRange` / `modDependencies`
 - Fixed duplicate size rows on the new-game screen; aligned bundled rulesets with upstream
 - Merged upstream 4.21.6 (CPU perf, AI worker adjacency, MP upload indicator)
-- Docs site fixes (~250 anchors), in-game version auto-synced from BuildConfig.kt
 
 ## 4.21.5.3 (build 1244)
 
-- Fixed CI test failures (translation template spaces, test mods tracked in repo)
-- Deploy no longer posts to Discord
+- Fixed CI test failures (translation template spaces, test mods tracked in repo); deployment notifications cleaned up
 
 ## 4.21.5.2 (build 1243)
 
 - Official VitePress docs site (Chinese full-text search, EN/CN switch)
-- `docDescriptionZh`: unique docs in Chinese
+- Unique documentation descriptions now available in Chinese
 - Local APK signing, UncivCN artifact names
 
 ## 4.21.5.1 (build 1242)
