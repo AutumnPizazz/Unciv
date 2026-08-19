@@ -4,6 +4,8 @@ pluginManagement {
     repositories {
         mavenLocal() // To get the compiler plugin locally
         gradlePluginPortal() // So other plugins can be resolved
+        // Maven Central 源站：GitHub Actions runner 对 repo.maven.apache.org 偶发 403
+        maven { url = uri("https://repo1.maven.org/maven2") }
     }
 }
 

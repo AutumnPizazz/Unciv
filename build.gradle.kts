@@ -8,7 +8,10 @@ buildscript {
         // maven{ url = uri("https://maven.aliyun.com/repository/central") }
         // maven{ url = uri("https://maven.aliyun.com/repository/google") }
         // maven{ url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
-        mavenCentral()
+        // repo1.maven.org 是 Maven Central 源站：GitHub Actions 的 ubuntu runner 对
+        // repo.maven.apache.org（Fastly CDN）偶发 403 且 Gradle 不会换仓库重试，
+        // 故直接用源站（见 https://github.com/actions/runner/issues/4180）
+        maven { url = uri("https://repo1.maven.org/maven2") }
         google()  // needed for com.android.tools.build:gradle
         maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
         gradlePluginPortal()
@@ -99,7 +102,7 @@ allprojects {
         // Chinese mirrors for quicker loading for chinese devs - uncomment if you're chinese
         // maven{ url = uri("https://maven.aliyun.com/repository/central") }
         // maven{ url = uri("https://maven.aliyun.com/repository/google") }
-        mavenCentral()
+        maven { url = uri("https://repo1.maven.org/maven2") }
         google()
         // Needed only in case a version with a "-SNAPSHOT" qualifier is requested
         maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
