@@ -8,13 +8,15 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+
+## 4.21.10.1（build 1256）
+
 - 模组支持：新增模组全局变量（Variables.json）——每个文明独立的整数计数器（如厌战度），支持 `when above/below/between` 条件、`Instantly provides/consumes/gain` 触发与 Lua（`civ.getVariable/setVariable/addVariable`、`game.getRulesetVariables/doesVariableExist`）；可在变量级及 ModOptions（`variableMenuThreshold`、`alwaysDisplayVariableCount`）配置顶栏与资源概览的显示，详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
 - 模组支持：条件类 `[amount]`（如 `when above [amount] ...`、血量/移动力/人口阈值）现支持 Countable 表达式（如 `[Cities]`），详见 [Unique parameters](/zh/Modders/Unique-parameters#countable)
 
 - 合并上游 4.21.10（46 个提交）：View 重构继续（地块/单位视图层、观战修复）；大量单位可晋升时通知合并为一条；军团不能再修复；改进设施选择器不再隐藏可研发的改进；胜利界面文明列表保持滚动位置；图表改用实时数据；全球政治概览隐藏观战者；单机被击败玩家获得全图视野；WLTKD 庆祝期间需求改写修复；不再因资源出售太空船部件；控制台可傀儡城市；多项 Android 与崩溃修复；Kotlin 升级到 2.4.10
 - 修复：地图钉（地块备注）预览图不再提前显示科技未揭示的战略资源（如远古时代看不到石油）
 - 地图生成旋转对称重构：对称改为在生成时参与而非事后打补丁——修复环形地图 3/6 折对称失效、镜像大陆不一致、资源/奇观复制异常；生成性能无退化，详见 [分支特色](/zh/UncivCN/Features)
-
 
 ## 4.21.8.3（build 1255）
 

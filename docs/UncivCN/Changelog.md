@@ -4,13 +4,15 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+
+## 4.21.10.1 (build 1256)
+
 - Modding: new mod-defined global variables (Variables.json) - per-civilization integer counters (e.g. war weariness) that work with `when above/below/between` conditionals, `Instantly provides/consumes/gain` triggerables and Lua (`civ.getVariable/setVariable/addVariable`, `game.getRulesetVariables/doesVariableExist`); display in the top bar and Resources overview is configurable per variable and via ModOptions (`variableMenuThreshold`, `alwaysDisplayVariableCount`) - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
 - Modding: conditional amounts (e.g. `when above [amount] ...`, HP/movement/population thresholds) now accept Countable expressions like `[Cities]` - see [Unique parameters](/Modders/Unique-parameters#countable)
 
 - Merged upstream 4.21.10 (46 commits): View refactor continues (tile/unit view layer, spectator fixes); promotion notifications squashed when many units are promoted; legion can no longer repair; improvement picker no longer hides researchable improvements; victory screen civ list keeps its scroll position; charts use live data; spectators hidden in global politics; defeated singleplayer players get full map visibility; WLTKD demand rewrite mid-celebration fixed; spaceship parts no longer sold for resources; puppeting cities via console; several Android and crash fixes; Kotlin upgraded to 2.4.10
 - Fix: map pin (tile note) previews no longer reveal strategic resources before their revealing tech is researched (e.g. no Oil in the Ancient era)
 - Map generation with rotational symmetry rebuilt: symmetry is now applied during generation instead of as a post-process - fixes broken 3/6-fold symmetry on wrapped maps, mirror-continent inconsistencies, and resource/wonder copy glitches; generation performance unchanged - see [Features](/UncivCN/Features)
-
 
 ## 4.21.8.3 (build 1255)
 
