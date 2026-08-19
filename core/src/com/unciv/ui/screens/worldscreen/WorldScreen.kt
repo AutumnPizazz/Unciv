@@ -434,9 +434,9 @@ class WorldScreen(
 
             updateSelectedCiv()
 
-            minimapWrapper.update(getGameViewConsideringForOfWar().viewer)
+            minimapWrapper.update(getGameViewConsideringForOfWar().civView.getCiv())
             bottomTileInfoTable.civView = getGameViewConsideringForOfWar().civView
-            bottomTileInfoTable.updateTileTable(mapHolder.selectedTile)
+            bottomTileInfoTable.updateTileTable(mapHolder.selectedTile?.getTile())
             bottomTileInfoTable.x = stage.width - bottomTileInfoTable.width
             bottomTileInfoTable.y = if (game.settings.showMinimap) minimapWrapper.height + 5f else 0f
 
@@ -451,8 +451,8 @@ class WorldScreen(
             val allAttacks = allUnits.map { unit -> unit.attacksSinceTurnStart.asSequence().map { attacked -> Triple(unit.civ, unit.getTile().position, attacked.toHexCoord()) } }.flatten() +
                 gameInfo.civilizations.asSequence().flatMap { civInfo -> civInfo.attacksSinceTurnStart.asSequence().map { Triple(civInfo, it.source, it.target) } }
             mapHolder.updateMovementOverlay(
-                allUnits.filter(mapVisualization::isUnitPastVisible),
-                allUnits.filter(mapVisualization::isUnitFutureVisible),
+                allUnits.filter(mapVisualization::isUnitPastVisible).map { selectedGameView.getForeignMapUnitView(it) },
+                allUnits.filter(mapVisualization::isUnitFutureVisible).map { selectedGameView.getForeignMapUnitView(it).tryGetMapUnitView()!! },
                 allAttacks.filter { (attacker, source, target) -> mapVisualization.isAttackVisible(attacker, source, target) }
                         .map { (_, source, target) -> source to target }
             )
@@ -476,7 +476,7 @@ class WorldScreen(
         if (uiEnabled) {
             // UnitActionsTable measures geometry (its own y, techPolicyAndDiplomacy and fogOfWarButton), so call update this late
             unitActionsTable.y = bottomUnitTable.height
-            unitActionsTable.update(bottomUnitTable.selectedUnit)
+            unitActionsTable.update(bottomUnitTable.selectedUnit?.getUnit())
         }
 
         // If the game has ended, lets stop AutoPlay
@@ -599,7 +599,7 @@ class WorldScreen(
 
     private fun updateSelectedCiv() {
         setSelectedCiv(when {
-            bottomUnitTable.selectedUnit != null -> bottomUnitTable.selectedUnit!!.civ
+            bottomUnitTable.selectedUnit != null -> bottomUnitTable.selectedUnit!!.civ().getCiv()
             bottomUnitTable.selectedCity != null -> bottomUnitTable.selectedCity!!.owningCiv().getCiv()
             else -> viewingCiv
         })
@@ -907,15 +907,15 @@ class WorldScreen(
     fun switchToNextUnit(resetDue: Boolean = true) {
         // Try to select something new if we already have the next pending unit selected.
         if (bottomUnitTable.selectedUnit != null && resetDue)
-            bottomUnitTable.selectedUnit!!.due = false
-        val nextDueUnit = viewingCiv.units.cycleThroughDueUnits(bottomUnitTable.selectedUnit)
+            bottomUnitTable.selectedUnit!!.getUnit().due = false
+        val nextDueUnit = viewingCiv.units.cycleThroughDueUnits(bottomUnitTable.selectedUnit?.getUnit())
         if (nextDueUnit != null) {
             mapHolder.setCenterPosition(
                 nextDueUnit.currentTile.position,
                 immediately = false,
                 selectUnit = false
             )
-            bottomUnitTable.selectUnit(nextDueUnit)
+            bottomUnitTable.selectUnit(selectedGameView.getForeignMapUnitView(nextDueUnit).tryGetMapUnitView()!!)
         } else {
             mapHolder.removeAction(mapHolder.blinkAction)
             mapHolder.selectedTile = null

@@ -29,12 +29,6 @@ class TurnManager(val civInfo: Civilization) {
         if (civInfo.isSpectator()) return
 
         civInfo.threatManager.clear()
-        if (civInfo.isMajorCiv() && civInfo.isAlive()) {
-            // Force uses a transient cache that is not invalidated on combat losses during
-            // other civs' turns; clear it so the turn-start demographics/charts snapshot is accurate.
-            civInfo.resetMilitaryMightCache()
-            civInfo.statsHistory.recordRankingStats(civInfo)
-        }
 
         if (civInfo.cities.isNotEmpty() && civInfo.gameInfo.ruleset.technologies.isNotEmpty())
             civInfo.tech.updateResearchProgress()
@@ -97,10 +91,23 @@ class TurnManager(val civInfo: Civilization) {
             }
         }
         
-        for (unit in civInfo.units.getCivUnits().filter { it.promotions.canBePromoted() }){
-            civInfo.addNotification("[${unit.displayName()}] can be promoted!",
-                listOf(MapUnitAction(unit), PromoteUnitAction(unit)),
-                NotificationCategory.Units, unit.name)
+        val promotableUnits = civInfo.units.getCivUnits().filter { it.promotions.canBePromoted() }
+        if (promotableUnits.count() <= 3) {
+            for (unit in civInfo.units.getCivUnits().filter { it.promotions.canBePromoted() }){
+                civInfo.addNotification(
+                    "[${unit.displayName()}] can be promoted!",
+                    listOf(MapUnitAction(unit), PromoteUnitAction(unit)),
+                    NotificationCategory.Units,
+                    unit.name
+                )
+            }
+        } else {
+            civInfo.addNotification(
+                "[${promotableUnits.count()}] units can be promoted!",
+                promotableUnits.map { MapUnitAction(it) },
+                NotificationCategory.Units,
+                "UnitActionIcons/Promote"
+            )
         }
 
         updateWinningCiv()

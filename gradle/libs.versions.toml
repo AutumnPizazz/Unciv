@@ -3,7 +3,7 @@
 #noinspection AndroidGradlePluginVersion
 agp = "9.2.0"
 
-kotlin = "2.3.0"
+kotlin = "2.4.10"
 coroutines = "1.10.2"
 
 gdx = "1.14.2"
@@ -16,7 +16,7 @@ clikt = "5.0.3"
 
 luaj = "3.0.1"
 
-purity = "1.7.0"
+purity = "1.7.1"
 detekt = "1.23.8"
 
 # tests

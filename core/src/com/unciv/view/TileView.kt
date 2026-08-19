@@ -14,12 +14,12 @@ import yairm210.purity.annotations.Readonly
 
 /** View of a [Tile] from the perspective of [viewer] via [tileMapView]. */
 class TileView internal constructor(private val tile: Tile, val tileMapView: TileMapView,
-               private val viewer: Civilization?,
-               private val spectatorMode: Boolean = false) {
+               viewer: Civilization?,
+               spectatorMode: Boolean = false) : View<Tile>(tile, viewer, spectatorMode) {
 
     // Navigation
     @Readonly fun getTile(): Tile = tile
-    @Readonly fun getViewer(): Civilization? = viewer
+    @Readonly fun getCivView(): CivView? = tileMapView.gameView?.civView
     @Readonly fun owningCity(): ForeignCityView? {
         val city = tile.owningCity ?: return null
         return toForeignCityView(city)
@@ -43,28 +43,35 @@ class TileView internal constructor(private val tile: Tile, val tileMapView: Til
         if (!tile.isVisible(viewer)) return false
         return !unit.isInvisible(viewer) || tile in viewer.viewableInvisibleUnitsTiles
     }
+    @Readonly private fun toForeignMapUnitView(unit: MapUnit): ForeignMapUnitView =
+        tileMapView.gameView!!.getForeignMapUnitView(unit)
     val civilianUnit: ForeignMapUnitView?
         get() {
             val unit = tile.civilianUnit ?: return null
             if (!isVisible(unit)) return null
-            return ForeignMapUnitView(unit, viewer!!)
+            return toForeignMapUnitView(unit)
         }
     val militaryUnit: ForeignMapUnitView?
         get() {
             val unit = tile.militaryUnit ?: return null
             if (!isVisible(unit)) return null
-            return ForeignMapUnitView(unit, viewer!!)
+            return toForeignMapUnitView(unit)
         }
     @Readonly fun getVisibleUnits(): List<ForeignMapUnitView> {
         if (viewer == null) return emptyList()
         return tile.getUnits()
             .filter { isVisible(it) }
-            .map { ForeignMapUnitView(it, viewer) }
+            .map { toForeignMapUnitView(it) }
             .toList()
     }
 
     // Data retrieval
     @Readonly fun position() = tile.position
+    /** Ideally this function should not exist - you should never be able to get a tileview of an unexplored tile
+     * However, currently the way the map works is we set up a tilegroup for all players and use the tileview for that tile
+     * That means that *in order to allow clicking on an unexplored tile* we currently need to accept tileviews of unexplored tiles
+     * */
+    @Readonly fun isExplored() = viewer == null || tile.isExplored(viewer)
     @Readonly fun getVisibleNeighbors(): Sequence<TileView> =
         tile.neighbors
             .filter { viewer == null || it.isExplored(viewer) }
@@ -82,6 +89,7 @@ class TileView internal constructor(private val tile: Tile, val tileMapView: Til
     @Readonly fun isImpassible(): Boolean = tile.isImpassible()
     @Readonly fun isAdjacentTo(terrainFilter: String): Boolean = tile.isAdjacentTo(terrainFilter)
     @Readonly fun getDefensiveBonus(): Float = tile.getDefensiveBonus()
+    @Readonly fun aerialDistanceTo(other: TileView): Int = tile.aerialDistanceTo(other.getTile())
     @Readonly fun getShownImprovement(): String? = tile.getShownImprovement(viewer)
 
     val baseTerrain: String get() = tile.baseTerrain
@@ -108,10 +116,10 @@ class TileView internal constructor(private val tile: Tile, val tileMapView: Til
     @Readonly fun getRuleset(): Ruleset = tile.ruleset
 
     @Readonly fun getTileStats(viewingCiv: CivView?, cityView: CityView? = null): Stats {
-        val city = cityView?.getCity() ?: tile.getCity()
-        return tile.stats.getTileStats(city, viewingCiv?.getCiv())
+        val city = cityView?.unwrap() ?: tile.getCity()
+        return tile.stats.getTileStats(city, viewingCiv?.unwrap())
     }
-    @Readonly fun providesResources(viewingCiv: CivView): Boolean = tile.providesResources(viewingCiv.getCiv())
+    @Readonly fun providesResources(viewingCiv: CivView): Boolean = tile.providesResources(viewingCiv.unwrap())
 
     @Readonly fun getTileMap(): TileMapView = tileMapView
 

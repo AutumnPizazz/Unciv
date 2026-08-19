@@ -1,3 +1,35 @@
+## 4.21.10
+
+By unciv-loof:
+- Squash notifications when many units can be promoted 
+- Preserve scroll position of civ list in victory screen after updating selection 
+
+Disable legion being able to repair - By O-spin
+
+By SomeTroglodyte:
+- Fix improvement picker hiding researchable improvements and failing to hide others 
+- Try to create and index the save destination *extra* early for cheap Android devices
+
+Use live data for latest turn in charts - By ssamt
+
+## 4.21.9
+
+Fix: Defeated singleplayer players again have full map visibility
+
+Fixed crash ewhen clicking on civ relationships lines
+
+Prevent natural-wonder coast conversion artifacts - By mvanhorn
+
+By ssamt:
+- hide spectator in global politics
+- AI avoid selling spaceship parts for resource
+
+Fix WLTKD demand rewrite mid-celebration - By Fanfblrik
+
+Mention which civ took our CS alliance in notification - By unciv-loof
+
+Puppet city in console - By BobbyCobby
+
 ## 4.21.8
 
 Fixed rivers on water near Rock of Gibraltar

@@ -965,6 +965,9 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             removeFromQueue(queuePosition, automatic)
         validateConstructionQueue()
 
+        // A purchase should never leave the city idle if we invalidated or emptied the queue
+        if (isQueueEmptyOrIdle()) chooseNextConstruction()
+
         return true
     }
 

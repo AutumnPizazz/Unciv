@@ -137,7 +137,7 @@ class CityScreen(
     /** If set, we are waiting for the user to pick a tile for [UniqueType.CreatesOneImprovement] */
     var pickTileData: PickTileForImprovementData? = null
     /** A [Building] with [UniqueType.CreatesOneImprovement] has been selected _in the queue_: show the tile it will place the improvement on */
-    private var selectedQueueEntryTargetTile: Tile? = null
+    private var selectedQueueEntryTargetTile: TileView? = null
     var selectedQueueEntry
         get() = constructionsTable.selectedQueueEntry
         set(value) { constructionsTable.selectedQueueEntry = value }
@@ -249,7 +249,8 @@ class CityScreen(
     }
 
     private fun updateTileGroups() {
-        fun isExistingImprovementValuable(tile: Tile): Boolean {
+        fun isExistingImprovementValuable(tileView: TileView): Boolean {
+            val tile = tileView.getTile()
             val improvement = tile.tileImprovement ?: return false
             val civInfo = cityView.owningCiv().getCiv()
 
@@ -263,14 +264,15 @@ class CityScreen(
             return Automation.rankStatsValue(statDiffForNewImprovement, civInfo) <= 0
         }
 
-        fun getPickImprovementColor(tile: Tile): Pair<Color, Float> {
+        fun getPickImprovementColor(tileView: TileView): Pair<Color, Float> {
+            val tile = tileView.getTile()
             val improvementToPlace = pickTileData!!.improvement
             return when {
                 tile.isMarkedForCreatesOneImprovement() -> Color.BROWN to 0.7f
-                !cityView.constructions.canPlaceCreateOneImprovementOn(improvementToPlace, tile) -> Color.RED to 0.4f
-                isExistingImprovementValuable(tile) -> Color.ORANGE to 0.5f
+                !cityView.constructions.canPlaceCreateOneImprovementOn(improvementToPlace, tileView) -> Color.RED to 0.4f
+                isExistingImprovementValuable(tileView) -> Color.ORANGE to 0.5f
                 tile.improvement != null -> Color.YELLOW to 0.6f
-                tile.turnsToImprovement > 0 -> Color.YELLOW to 0.6f
+                tileView.turnsToImprovement > 0 -> Color.YELLOW to 0.6f
                 else -> Color.GREEN to 0.5f
             }
         }
@@ -287,10 +289,10 @@ class CityScreen(
                 tileGroup.tileView == nextTileToOwn ->
                     tileGroup.layerMisc.addHexOutline(colorFromRGB(200, 20, 220))
                 /** Support for [UniqueType.CreatesOneImprovement] */
-                tileGroup.tile == selectedQueueEntryTargetTile ->
+                tileGroup.tileView == selectedQueueEntryTargetTile ->
                     tileGroup.layerMisc.addHexOutline(Color.BROWN)
                 pickTileData != null && cityView.isOwnedTile(tileGroup.tile) && tileGroup.tile in cityView.tilesInRange ->
-                    getPickImprovementColor(tileGroup.tile).run {
+                    getPickImprovementColor(tileGroup.tileView).run {
                         tileGroup.layerMisc.addHexOutline(first.cpy().apply { this.a = second }) }
                 // Highlight selected tile
                 tileGroup.tile == selectedTile ->
@@ -428,7 +430,7 @@ class CityScreen(
             update()
 
         } else if (tileGroup.tileState == CityTileState.PURCHASABLE) {
-            askToBuyTile(tileGroup.tile)
+            askToBuyTile(tileGroup.tileView)
         }
     }
 
@@ -437,10 +439,10 @@ class CityScreen(
      * Used from onClick and keyboard dispatch, thus only minimal parameters are passed,
      * and it needs to do all checks and the sound as appropriate.
      */
-    internal fun askToBuyTile(selectedTile: Tile) {
+    internal fun askToBuyTile(selectedTile: TileView) {
         // These checks are redundant for the onClick action, but not for the keyboard binding
-        if (!canChangeState || !cityView.canBuyTile(cityView.tileView(selectedTile))) return
-        val goldCostOfTile = cityView.getGoldCostOfTile(cityView.tileView(selectedTile))
+        if (!canChangeState || !cityView.canBuyTile(selectedTile)) return
+        val goldCostOfTile = cityView.getGoldCostOfTile(selectedTile)
         if (!cityView.viewingCiv().hasStatToBuy(Stat.Gold, goldCostOfTile)) return
 
         closeAllPopups()
@@ -455,7 +457,7 @@ class CityScreen(
             restoreDefault = { update() }
         ) {
             SoundPlayer.play(UncivSound.Coin)
-            cityView.tryBuyTile(cityView.tileView(selectedTile))
+            cityView.tryBuyTile(selectedTile)
             // preselect the next tile on city screen rebuild so bulk buying can go faster
             UncivGame.Current.replaceCurrentScreen(CityScreen(cityView, initSelectedTile = cityView.chooseNewTileToOwn()))
         }.open()
@@ -516,7 +518,7 @@ class CityScreen(
 
     private fun tileGroupOnClick(tileGroup: CityTileGroup) {
         if (cityView.isPuppet()) return
-        val tileInfo = tileGroup.tile
+        val tileInfo = tileGroup.tileView
 
         /** [UniqueType.CreatesOneImprovement] support - select tile for improvement */
         if (pickTileData != null) {
