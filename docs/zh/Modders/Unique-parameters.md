@@ -287,6 +287,16 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
 - `Stored Food`（用于城市）
 - `Golden Age points`
 
+## variableName
+
+指模组定义的全局变量名（见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）。
+
+变量是每个文明独立的整数计数器，用于跟踪诸如厌战度之类的状态，而无需用资源伪装变量。凡出现 `[stat/resource/variableName]` 或 `[stockpiledResource/variableName]` 的地方都可使用，例如 `when above [5] [WarWeariness]` 或 `Instantly provides [2] [WarWeariness]`。
+
+允许的值：
+
+- 规则集 `Variables.json` 中定义的任意变量的 `name`
+
 ## technologyFilter
 
 目前仅针对 [ModOptions.techsToRemove](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)实现。

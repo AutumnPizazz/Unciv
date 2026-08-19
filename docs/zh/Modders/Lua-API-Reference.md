@@ -37,6 +37,8 @@ civ.getProductionPerTurn()          -- 每回合产能
 civ.getResourceAmount(resourceName) -- 返回资源库存
 civ.hasResource(resourceName)       -- 是否有 ≥1
 civ.getResourceStockpiles()         -- 资源库存表 {资源名 = 数量}
+civ.getVariable(variableName)       -- 模组变量值（未设置时返回默认值）
+civ.getVariables()                  -- 变量表 {变量名 = 数量}
 civ.getEra()                        -- 当前时代名
 civ.getEraNumber()                  -- 0-based 时代序号
 civ.isResearched(techName)          -- 是否已研究
@@ -99,6 +101,8 @@ civ.addStat(stat, amount)                 -- 增加属性
 civ.addStats(statsText)                   -- 复合属性变化
 civ.addResource(resourceName, amount)     -- 增加战略资源
 civ.consumeResource(resourceName, amount) -- 消耗战略资源
+civ.setVariable(variableName, amount)     -- 将模组变量设为精确值
+civ.addVariable(variableName, amount)     -- 增加模组变量
 civ.triggerGoldenAge(turns)               -- 进入 N 回合黄金时代（省略参数为默认长度）
 civ.grantFreeGreatPerson()                -- 免费伟人
 civ.setLeaderTitle(title)                 -- 修改领袖头衔
@@ -344,6 +348,8 @@ game.doesEraExist(eraName)                 -- 时代是否存在
 game.doesPromotionExist(promotionName)     -- 晋升是否存在
 game.doesTerrainExist(terrainName)         -- 地形是否存在
 game.doesResourceExist(resourceName)       -- 资源是否存在
+game.doesVariableExist(variableName)       -- 变量是否存在
+game.getRulesetVariables()                 -- 变量名列表
 game.doesImprovementExist(improvementName) -- 改良是否存在
 game.doesNationExist(nationName)           -- 文明（nation）是否存在
 game.doesBeliefExist(beliefName)           -- 信条是否存在

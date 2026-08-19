@@ -147,13 +147,13 @@ Applicable to: Triggerable
 Applicable to: Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [stockpiledResource]
+::: details Instantly consumes [positiveAmount] [stockpiledResource/variableName]
 Example: "Instantly consumes [3] [Mana]"
 
 Applicable to: Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [stockpiledResource]
+::: details Instantly provides [positiveAmount] [stockpiledResource/variableName]
 Example: "Instantly provides [3] [Mana]"
 
 Applicable to: Triggerable
@@ -167,7 +167,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly gain [amount] [stockpile]
+::: details Instantly gain [amount] [stockpile/variableName]
 Example: "Instantly gain [3] [Mana]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -4691,7 +4691,7 @@ Example: "without [Iron]"
 Applicable to: Conditional
 
 :::
-::: details &lt;when above [amount] [stat/resource]&gt;
+::: details &lt;when above [amount] [stat/resource/variableName]&gt;
 Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when above [amount] Happiness'
 
 Example: "when above [3] [Culture]"
@@ -4701,7 +4701,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Conditional
 
 :::
-::: details &lt;when below [amount] [stat/resource]&gt;
+::: details &lt;when below [amount] [stat/resource/variableName]&gt;
 Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when below [amount] Happiness'
 
 Example: "when below [3] [Culture]"
@@ -4711,7 +4711,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [stat/resource]&gt;
+::: details &lt;when between [amount] and [amount2] [stat/resource/variableName]&gt;
 Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness. 'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
 Example: "when between [3] and [3] [Culture]"
@@ -5558,4 +5558,5 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `unitTriggerTarget` | `This Unit` or `Target Unit`. |
 | `unitType` | Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type, or a multi-filter of these. |
 | `validationWarning` | Suppresses one specific Ruleset validation warning. This can specify the full text verbatim including correct upper/lower case, or it can be a wildcard case-insensitive simple pattern starting and ending in an asterisk ('*'). If the suppression unique is used within an object or as modifier (not ModOptions), the wildcard symbols can be omitted, as selectivity is better due to the limited scope. |
+| `variableName` | The name of any variable defined in Variables.json. |
 | `victoryType` | The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names. |

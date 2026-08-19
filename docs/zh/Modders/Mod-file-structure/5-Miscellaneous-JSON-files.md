@@ -179,6 +179,8 @@ title: 其他 JSON 文件
 | nationsToRemove | List | 空 | 要移除的[国家](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#nations-json)或[nationFilter](/zh/Modders/Unique-parameters#nationfilter)列表（仅适用于 isBaseRuleset=false） |
 | policyBranchesToRemove | List | 空 | 要移除的[政策分支](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policies-json)列表（仅适用于 isBaseRuleset=false） |
 | policiesToRemove | List | 空 | 要移除的[政策](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#policies-json)列表（仅适用于 isBaseRuleset=false） |
+| variableMenuThreshold | Integer | 0 | 显示的变量数超过此值时，顶栏折叠为仅显示始终显示的变量；0 = 不限制。见 [Variables.json](#variables-json) |
+| alwaysDisplayVariableCount | Integer | 0 | 变量菜单折叠时顶栏保留的始终显示变量数量；0 = 全部保留。见 [Variables.json](#variables-json) |
 | beliefsToRemove | List | 空 | 要移除的[信仰](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#beliefs-json)列表（仅适用于 isBaseRuleset=false） |
 | religionsToRemove | List | 空 | 要移除的[宗教](/zh/Modders/Mod-file-structure/2-Civilization-related-JSON-files#religions-json)列表（仅适用于 isBaseRuleset=false） |
 | constants | Object | 空 | 请参阅 [ModConstants](#modconstants) |
@@ -370,6 +372,40 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 | unitUniques | List of Strings | 空 | 应用于每个单位的[独特能力](/zh/Modders/uniques)列表 |
 
 当扩展规则集定义 GlobalUniques 时，所有 uniques 都会合并。目前，无法更改/移除基础模组设置的 uniques。
+
+## Variables.json
+
+此可选文件定义模组级全局变量——每个文明独立的整数计数器，用于跟踪诸如厌战度之类的状态，而无需用[资源](3-Map-related-JSON-files.md#tile-resources-json)伪装变量。
+
+与资源或属性不同，变量本身不携带任何玩法语义：它只通过与属性/资源共享的参数通道被读写，因此以下用法开箱即用：
+
+- 条件：`when above [5] [WarWeariness]`、`when below [...]`、`when between [...]`
+- 触发：`Instantly provides [2] [WarWeariness]`、`Instantly consumes [1] [WarWeariness]`、`Instantly gain [3] [WarWeariness]`
+- [Lua](/zh/Modders/Lua-Modding)：`civ.getVariable / setVariable / addVariable`、`game.getRulesetVariables / doesVariableExist`
+
+每个变量具有以下结构：
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| name | String | 必填 | 不得与任何属性或地块资源同名 |
+| default | Integer | 0 | 文明尚无记录时使用的值（例如旧存档） |
+| isDisplay | Boolean | true | 是否在顶栏与资源概览中显示 |
+| isAlwaysDisplay | Boolean | false | 当变量菜单折叠时（见 [ModOptions.json](#modoptions-json) 的 `variableMenuThreshold`），是否仍显示在顶栏 |
+| uniqueTo | String | 无 | 可选：将变量限制为单个文明（按国家名）；无 = 所有文明 |
+
+示例：
+
+```jsonc
+[
+  {
+    "name": "WarWeariness",
+    "default": 0,
+    "isDisplay": true
+  }
+]
+```
+
+图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。
 
 ## Tutorials.json
 

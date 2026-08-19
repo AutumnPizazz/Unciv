@@ -38,6 +38,8 @@ civ.getProductionPerTurn()          -- Net production per turn
 civ.getResourceAmount(resourceName) -- Stockpiled resource amount
 civ.hasResource(resourceName)       -- Has at least 1
 civ.getResourceStockpiles()         -- Table {resourceName = amount}
+civ.getVariable(variableName)       -- Mod-defined variable value (ruleset default when unset)
+civ.getVariables()                  -- Table {variableName = amount}
 civ.getEra()                        -- Era name
 civ.getEraNumber()                  -- 0-based era index
 civ.isResearched(techName)          -- Has researched
@@ -100,6 +102,8 @@ civ.addStat(stat, amount)                 -- Add to a stat reserve
 civ.addStats(statsText)                   -- Apply a stats text like "+2 Gold, +3 Culture"
 civ.addResource(resourceName, amount)     -- Add a strategic resource
 civ.consumeResource(resourceName, amount) -- Consume a strategic resource
+civ.setVariable(variableName, amount)     -- Set a mod-defined variable to exactly this amount
+civ.addVariable(variableName, amount)     -- Add to a mod-defined variable
 civ.triggerGoldenAge(turns)               -- Start a golden age for N turns (omit for default length)
 civ.grantFreeGreatPerson()                -- Grant a free great person
 civ.setLeaderTitle(title)                 -- Set the leader title
@@ -345,6 +349,8 @@ game.doesEraExist(eraName)                 -- Era exists in the ruleset
 game.doesPromotionExist(promotionName)     -- Promotion exists in the ruleset
 game.doesTerrainExist(terrainName)         -- Terrain exists in the ruleset
 game.doesResourceExist(resourceName)       -- Resource exists in the ruleset
+game.doesVariableExist(variableName)       -- Variable exists in the ruleset
+game.getRulesetVariables()                 -- Variable names
 game.doesImprovementExist(improvementName) -- Improvement exists in the ruleset
 game.doesNationExist(nationName)           -- Nation exists in the ruleset
 game.doesBeliefExist(beliefName)           -- Belief exists in the ruleset

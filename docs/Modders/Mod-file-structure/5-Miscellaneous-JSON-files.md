@@ -177,6 +177,8 @@ The file can have the following attributes, not including the values Unciv sets 
 | nationsToRemove        | List    | empty   | List of [Nations](2-Civilization-related-JSON-files.md#nations-json) or [nationFilter](../Unique-parameters.md#nationfilter) to remove (isBaseRuleset=false only)                 |
 | policyBranchesToRemove | List    | empty   | List of [Policy Branches](2-Civilization-related-JSON-files.md#policies-json) to remove (isBaseRuleset=false only)                                                                |
 | policiesToRemove       | List    | empty   | List of [Policies](2-Civilization-related-JSON-files.md#policies-json) to remove (isBaseRuleset=false only)                                                                       |
+| variableMenuThreshold | Integer | 0       | When the number of displayed variables exceeds this, the top bar collapses to always-display variables only; 0 = no limit. See [Variables.json](#variables-json)                    |
+| alwaysDisplayVariableCount | Integer | 0    | How many always-display variables stay visible in the top bar when the variable menu is collapsed; 0 = all of them. See [Variables.json](#variables-json)                            |
 | beliefsToRemove        | List    | empty   | List of [Beliefs](2-Civilization-related-JSON-files.md#beliefs-json) to remove (isBaseRuleset=false only)                                                                         |
 | religionsToRemove      | List    | empty   | List of [Religions](2-Civilization-related-JSON-files.md#religions-json) to remove (isBaseRuleset=false only)                                                                     |
 | constants              | Object  | empty   | See [ModConstants](#modconstants)                                                                                                                                                |
@@ -378,6 +380,40 @@ It has the following structure:
 | unitUniques | List of Strings | empty           | List of [unique abilities](../uniques.md) that applies to each unit                         |
 
 When extension rulesets define GlobalUniques, all uniques are merged. To change or remove uniques (or any other fields) set by another mod or base ruleset, use [Merge Actions](6-MergeActions.md) — e.g., `TRY_INJECT` for field-level modifications or `REMOVE_FIELD` to delete specific uniques.
+
+## Variables.json
+
+This optional file defines mod-wide global variables - plain integer counters stored per civilization, useful for tracking state like war weariness without faking it with [Resources](3-Map-related-JSON-files.md#tile-resources-json).
+
+Unlike resources or stats, a Variable carries no gameplay semantics by itself: it is only read/written through the parameter channel shared with stats and resources, so the following all work out of the box:
+
+- Conditionals: `when above [5] [WarWeariness]`, `when below [...]`, `when between [...]`
+- Triggerables: `Instantly provides [2] [WarWeariness]`, `Instantly consumes [1] [WarWeariness]`, `Instantly gain [3] [WarWeariness]`
+- [Lua](../Lua-Modding.md): `civ.getVariable / setVariable / addVariable`, `game.getRulesetVariables / doesVariableExist`
+
+Each variable has the following structure:
+
+| Attribute       | Type    | Default | Notes                                                                                                                             |
+|-----------------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------|
+| name            | String  | Required | Must not collide with any stat or tile resource name                                                                              |
+| default         | Integer | 0       | Value used when a civilization has no record yet (e.g. old saves)                                                                 |
+| isDisplay       | Boolean | true    | Whether the variable is shown in the top bar and the Resources overview                                                           |
+| isAlwaysDisplay | Boolean | false   | Whether the variable stays visible in the top bar when the variable menu collapses (see `variableMenuThreshold` in [ModOptions.json](#modoptions-json)) |
+| uniqueTo        | String  | None    | Optional: restrict the variable to a single civilization (by nation name); None = all civilizations                                |
+
+Example:
+
+```jsonc
+[
+  {
+    "name": "WarWeariness",
+    "default": 0,
+    "isDisplay": true
+  }
+]
+```
+
+Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead.
 
 ## Tutorials.json
 

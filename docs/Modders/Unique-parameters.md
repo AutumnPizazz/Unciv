@@ -285,6 +285,16 @@ Allowed values:
 - `Stored Food` (for cities)
 - `Golden Age points`
 
+## variableName
+
+This indicates a text that corresponds to a mod-defined global variable (see [Variables.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#variables-json)).
+
+Variables are plain integer counters stored per civilization, useful for tracking state like war weariness without faking it with Resources. They are accepted wherever `[stat/resource/variableName]` or `[stockpiledResource/variableName]` appears, e.g. `when above [5] [WarWeariness]` or `Instantly provides [2] [WarWeariness]`.
+
+Allowed values:
+
+- The `name` of any variable defined in `Variables.json` of the ruleset
+
 ## technologyFilter
 
 At the moment only implemented for [ModOptions.techsToRemove](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json).

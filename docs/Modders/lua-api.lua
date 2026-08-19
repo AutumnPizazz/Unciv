@@ -36,6 +36,8 @@
 ---@field getResourceAmount fun(resourceName: string): number
 ---@field hasResource fun(resourceName: string): boolean
 ---@field getResourceStockpiles fun(): table
+---@field getVariable fun(variableName: string): number
+---@field getVariables fun(): table
 ---@field getEra fun(): string
 ---@field getEraNumber fun(): number
 ---@field isResearched fun(techName: string): boolean
@@ -93,6 +95,8 @@
 ---@field addStats fun(statsText: string)
 ---@field addResource fun(resourceName: string, amount: number)
 ---@field consumeResource fun(resourceName: string, amount: number)
+---@field setVariable fun(variableName: string, amount: number)
+---@field addVariable fun(variableName: string, amount: number)
 ---@field triggerGoldenAge fun(turns: number?)
 ---@field grantFreeGreatPerson fun()
 ---@field setLeaderTitle fun(title: string)
@@ -320,6 +324,8 @@
 ---@field doesPromotionExist fun(promotionName: string): boolean
 ---@field doesTerrainExist fun(terrainName: string): boolean
 ---@field doesResourceExist fun(resourceName: string): boolean
+---@field doesVariableExist fun(variableName: string): boolean
+---@field getRulesetVariables fun(): string[]
 ---@field doesImprovementExist fun(improvementName: string): boolean
 ---@field doesNationExist fun(nationName: string): boolean
 ---@field doesBeliefExist fun(beliefName: string): boolean

@@ -154,13 +154,13 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [stockpiledResource]
+::: details Instantly consumes [positiveAmount] [stockpiledResource/variableName]
 示例："Instantly consumes [3] [Mana]"
 
 适用范围：Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [stockpiledResource]
+::: details Instantly provides [positiveAmount] [stockpiledResource/variableName]
 示例："Instantly provides [3] [Mana]"
 
 适用范围：Triggerable
@@ -174,7 +174,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly gain [amount] [stockpile]
+::: details Instantly gain [amount] [stockpile/variableName]
 示例："Instantly gain [3] [Mana]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -4698,7 +4698,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Conditional
 
 :::
-::: details &lt;when above [amount] [stat/resource]&gt;
+::: details &lt;when above [amount] [stat/resource/variableName]&gt;
 Stats 指累积产出，而非每回合产出。因此不支持笑脸——请使用 'when above [amount] Happiness'
 
 示例："when above [3] [Culture]"
@@ -4708,7 +4708,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸——请�
 适用范围：Conditional
 
 :::
-::: details &lt;when below [amount] [stat/resource]&gt;
+::: details &lt;when below [amount] [stat/resource/variableName]&gt;
 Stats 指累积产出，而非每回合产出。因此不支持笑脸——请使用 'when below [amount] Happiness'
 
 示例："when below [3] [Culture]"
@@ -4718,7 +4718,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸——请�
 适用范围：Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [stat/resource]&gt;
+::: details &lt;when between [amount] and [amount2] [stat/resource/variableName]&gt;
 Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between'（之间）是包含边界的——所以 'between 1 and 5' 包含 1 和 5。
 
 示例："when between [3] and [3] [Culture]"
@@ -5565,4 +5565,5 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `unitTriggerTarget` | `This Unit` or `Target Unit`. |
 | `unitType` | Unit Type Filters. |
 | `validationWarning` | Mod-check warning |
+| `variableName` | The name of any variable defined in Variables.json. |
 | `victoryType` | The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names. |
