@@ -15,6 +15,7 @@ import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
+import com.unciv.models.metadata.GameParameters
 import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.metadata.GameSettings
 import com.unciv.ui.components.extensions.isLargerThan
@@ -25,11 +26,37 @@ import com.unciv.utils.debug
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import org.jetbrains.annotations.VisibleForTesting
 import yairm210.purity.annotations.Readonly
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
+
+/**
+ * The local snapshot to resume from when entering a "forbid reload" game, or null to use the server state.
+ *
+ * Pure decision (no file/state access) kept public so it can be unit-tested - see LocalSnapshotDecisionTest.
+ * A snapshot only replaces the server state when:
+ * - the game is an online multiplayer game with the [GameParameters.forbidReload] option set,
+ * - this is a game *entry*, not an in-game sync (the same game is not already open locally),
+ * - a local snapshot exists and is from the same turn and current player as the server state - then it is
+ *   at least as new as the server state, because the server only receives the turn-start upload while the
+ *   player plays the turn locally. This is what makes quit-and-reload unable to undo the turn.
+ */
+@VisibleForTesting
+fun resolveLocalSnapshotForEntry(
+    serverGame: GameInfo,
+    currentGameId: String?,
+    localSnapshot: GameInfo?
+): GameInfo? {
+    if (!serverGame.gameParameters.isOnlineMultiplayer || !serverGame.gameParameters.forbidReload) return null
+    if (currentGameId == serverGame.gameId) return null // in-game update, keep server state
+    val snapshot = localSnapshot ?: return null
+    if (snapshot.turns != serverGame.turns || snapshot.currentPlayer != serverGame.currentPlayer) return null
+    snapshot.isUpToDate = true
+    return snapshot
+}
 
 
 /**
@@ -517,15 +544,12 @@ class Multiplayer {
      * turn as the server state - then the snapshot is at least as new as the server state, since the
      * server only receives the turn-start upload while the player plays the turn locally.
      */
-    private fun localSnapshotForEntry(serverGame: GameInfo): GameInfo? {
-        if (!serverGame.gameParameters.isOnlineMultiplayer || !serverGame.gameParameters.forbidReload) return null
-        val currentGame = UncivGame.Current.gameInfo
-        if (currentGame != null && currentGame.gameId == serverGame.gameId) return null // in-game update, keep server state
-        val localSnapshot = multiplayerFiles.loadLocalSnapshot(serverGame.gameId) ?: return null
-        if (localSnapshot.turns != serverGame.turns || localSnapshot.currentPlayer != serverGame.currentPlayer) return null
-        localSnapshot.isUpToDate = true
-        return localSnapshot
-    }
+    private fun localSnapshotForEntry(serverGame: GameInfo): GameInfo? =
+        resolveLocalSnapshotForEntry(
+            serverGame,
+            UncivGame.Current.gameInfo?.gameId,
+            multiplayerFiles.loadLocalSnapshot(serverGame.gameId)
+        )
 
     /**
      * Checks if the given game is current and loads it, otherwise loads the game from the server
