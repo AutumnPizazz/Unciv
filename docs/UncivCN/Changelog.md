@@ -4,6 +4,7 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Fix: map pin (tile note) edit/view popup previews no longer render unrevealed resources ahead of time - the pixel-terrain layer (enabled by default) now filters resources by the viewing civ's tech visibility too, matching the resource icon layer (e.g. no oil on pin previews in the Ancient era)
 - Rotational symmetry map refactor complete: symmetry now participates during generation instead of being patched after it - landmass / humidity-temperature / elevation / lakes-coasts / vegetation / ice / rivers / natural wonders / resources / ruins / starting locations all switched to canonical-sector decisions with instant orbit sync (new MapSymmetry orbit authority with world-wrap-aware cover-space orbit math); fixed three real flaws of the old implementation - silently broken 3/6-fold symmetry on wrapped maps (residual terrain/temperature asymmetries), mirror-continent ID mismatches affecting continent-ordered rules, and stale-transient copies for resources/wonders; removed all old post-hoc patch functions and the editor "Apply rotational symmetry" step; DEBUG symmetry-verify hook after generation; all fold x wrap combinations verify with zero asymmetries, no generation performance regression
 
 

@@ -54,8 +54,11 @@ class TileLayerTerrain(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup,
         val shownImprovement = if (!UncivGame.Current.settings.showPixelImprovements) null
             else tileView.getShownImprovement()
 
+        // Always respect the viewing civ's resource visibility, even when the tile group is force-visible
+        // (e.g. map pin previews must not show unrevealed resources like oil in the Ancient era).
+        // A null viewingCiv (map editor, civilopedia, main menu background) still shows all resources.
         val viewableResource = if (!UncivGame.Current.settings.showPixelImprovements) null
-            else tileView.getViewableResource(if (isForceVisible) null else viewingCiv)
+            else tileView.getViewableResource(viewingCiv)
 
         val resourceAndImprovementSequence = if (viewableResource == null && shownImprovement == null)
             emptySequence()
