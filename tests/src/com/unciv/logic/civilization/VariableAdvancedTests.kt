@@ -122,6 +122,40 @@ class VariableAdvancedTests {
     }
 
     @Test
+    fun testConditionalWhenAboveVariableWithCountableAmount() {
+        // [amount] accepts Countable expressions, e.g. a threshold tied to the number of cities
+        val variable = game.createVariable()
+        val conditional = Unique("<when above [Cities] [${variable.name}]>").modifiers.first()
+
+        game.addCity(civInfo, game.getTile(1, 0))
+        civInfo.setVariable(variable.name, 0)
+        Assert.assertFalse(Conditionals.conditionalApplies(null, conditional, gameContext))
+        civInfo.setVariable(variable.name, 2)
+        Assert.assertTrue(Conditionals.conditionalApplies(null, conditional, gameContext))
+    }
+
+    @Test
+    fun testConditionalWhenAboveStatWithCountableAmount() {
+        // The stat path of when above must accept Countable amounts too
+        val conditional = Unique("<when above [Cities] [Culture]>").modifiers.first()
+
+        game.addCity(civInfo, game.getTile(1, 0))
+        civInfo.policies.addCulture(0)
+        Assert.assertFalse(Conditionals.conditionalApplies(null, conditional, gameContext))
+        civInfo.policies.addCulture(2)
+        Assert.assertTrue(Conditionals.conditionalApplies(null, conditional, gameContext))
+    }
+
+    @Test
+    fun testConditionalPopulationWithCountableAmount() {
+        // Population conditionals accept Countable amounts as well (needs a relevant city context)
+        val conditional = Unique("<in cities with at least [Cities] [Population]>").modifiers.first()
+        val city = game.addCity(civInfo, game.getTile(1, 0)) // city population 1 >= city count 1
+        val cityContext = GameContext(civInfo = civInfo, city = city)
+        Assert.assertTrue(Conditionals.conditionalApplies(null, conditional, cityContext))
+    }
+
+    @Test
     fun testVariableConditionalIgnoresRelevantCityLevel() {
         // Variables are civ-level: a relevant city must still resolve to its civilization's value
         val variable = game.createVariable(default = 0)

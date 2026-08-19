@@ -164,7 +164,10 @@ object Conditionals {
         }
 
         return when (conditional.type) {
-            UniqueType.ConditionalChance -> getStateBasedRandom(state, unique) < conditional.params[0].toFloat() / 100f
+            UniqueType.ConditionalChance -> {
+                val chance = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                getStateBasedRandom(state, unique) < chance.toFloat() / 100f
+            }
             UniqueType.ConditionalEveryTurns -> checkOnGameInfo { turns % (Countables.getCountableAmount(conditional.params[0], state) ?: return@checkOnGameInfo false) == 0 }
             UniqueType.ConditionalBeforeTurns -> checkOnGameInfo { turns < (Countables.getCountableAmount(conditional.params[0], state) ?: return@checkOnGameInfo false) }
             UniqueType.ConditionalAfterTurns -> checkOnGameInfo { turns >= (Countables.getCountableAmount(conditional.params[0], state) ?: return@checkOnGameInfo false) }
@@ -179,15 +182,22 @@ object Conditionals {
             UniqueType.ConditionalWithResource -> state.getResourceAmount(conditional.params[0]) > 0
             UniqueType.ConditionalWithoutResource -> state.getResourceAmount(conditional.params[0]) <= 0
 
-            UniqueType.ConditionalWhenAboveAmountStatResource ->
-                checkResourceOrStatAmount(conditional.params[1], conditional.params[0].toFloat(), Float.MAX_VALUE, unique?.isModifiedByGameSpeed() == true)
+            UniqueType.ConditionalWhenAboveAmountStatResource -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkResourceOrStatAmount(conditional.params[1], amount.toFloat(), Float.MAX_VALUE, unique?.isModifiedByGameSpeed() == true)
                     { current, lowerLimit, _ -> current > lowerLimit }
-            UniqueType.ConditionalWhenBelowAmountStatResource ->
-                checkResourceOrStatAmount(conditional.params[1], Float.MIN_VALUE, conditional.params[0].toFloat(), unique?.isModifiedByGameSpeed() == true)
+            }
+            UniqueType.ConditionalWhenBelowAmountStatResource -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkResourceOrStatAmount(conditional.params[1], Float.MIN_VALUE, amount.toFloat(), unique?.isModifiedByGameSpeed() == true)
                     { current, _, upperLimit -> current < upperLimit }
-            UniqueType.ConditionalWhenBetweenStatResource ->
-                checkResourceOrStatAmount(conditional.params[2], conditional.params[0].toFloat(), conditional.params[1].toFloat(), unique?.isModifiedByGameSpeed() == true)
+            }
+            UniqueType.ConditionalWhenBetweenStatResource -> {
+                val lowerAmount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val upperAmount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
+                checkResourceOrStatAmount(conditional.params[2], lowerAmount.toFloat(), upperAmount.toFloat(), unique?.isModifiedByGameSpeed() == true)
                     { current, lowerLimit, upperLimit -> current >= lowerLimit && current <= upperLimit }
+            }
 
             UniqueType.ConditionalHappy -> checkOnCiv { stats.happiness >= 0 }
             UniqueType.ConditionalGoldenAge -> checkOnCiv { goldenAges.isGoldenAge() }
@@ -265,9 +275,11 @@ object Conditionals {
             UniqueType.ConditionalBuildingBuiltAll ->
                 checkOnCiv { cities.filter { it.matchesFilter(conditional.params[1]) }.all {
                   it.cityConstructions.containsBuildingOrEquivalent(conditional.params[0]) } }
-            UniqueType.ConditionalBuildingBuiltAmount ->
+            UniqueType.ConditionalBuildingBuiltAmount -> {
+                val amount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
                 checkOnCiv { cities.count { it.cityConstructions.containsBuildingOrEquivalent(conditional.params[0])
-                    && it.matchesFilter(conditional.params[2]) } >= conditional.params[1].toInt() }
+                    && it.matchesFilter(conditional.params[2]) } >= amount }
+            }
             UniqueType.ConditionalBuildingBuiltByAnybody ->
                 checkOnGameInfo { getCities().any { it.cityConstructions.containsBuildingOrEquivalent(conditional.params[0]) } }
             UniqueType.ConditionalBuildingNotBuiltByAnybody ->
@@ -296,14 +308,23 @@ object Conditionals {
                 checkOnCity { cityConstructions.containsBuildingOrEquivalent(conditional.params[0]) }
             UniqueType.ConditionalCityWithoutBuilding ->
                 checkOnCity { !cityConstructions.containsBuildingOrEquivalent(conditional.params[0]) }
-            UniqueType.ConditionalPopulationFilter ->
-                checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) >= conditional.params[0].toInt() }
-            UniqueType.ConditionalExactPopulationFilter ->
-                checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) == conditional.params[0].toInt() }
-            UniqueType.ConditionalBetweenPopulationFilter ->
-                checkOnCity {population.getPopulationFilterAmount(conditional.params[2]) in conditional.params[0].toInt()..conditional.params[1].toInt() }
-            UniqueType.ConditionalBelowPopulationFilter ->
-                checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) < conditional.params[0].toInt() }
+            UniqueType.ConditionalPopulationFilter -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) >= amount }
+            }
+            UniqueType.ConditionalExactPopulationFilter -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) == amount }
+            }
+            UniqueType.ConditionalBetweenPopulationFilter -> {
+                val lowerAmount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val upperAmount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
+                checkOnCity { population.getPopulationFilterAmount(conditional.params[2]) in lowerAmount..upperAmount }
+            }
+            UniqueType.ConditionalBelowPopulationFilter -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnCity { population.getPopulationFilterAmount(conditional.params[1]) < amount }
+            }
             UniqueType.ConditionalWhenGarrisoned ->
                 checkOnCity { getCenterTile().militaryUnit?.canGarrison() == true }
             UniqueType.ConditionalCityBeingRazed ->
@@ -323,12 +344,24 @@ object Conditionals {
             UniqueType.ConditionalUnitEmbarked -> state.relevantUnit?.isEmbarked() == true
             UniqueType.ConditionalAttacking -> state.combatAction == CombatAction.Attack
             UniqueType.ConditionalDefending -> state.combatAction == CombatAction.Defend
-            UniqueType.ConditionalAboveHP -> state.relevantUnit != null && state.relevantUnit!!.health > conditional.params[0].toInt()
-                    || state.ourCombatant != null && state.ourCombatant.getHealth() > conditional.params[0].toInt()
-            UniqueType.ConditionalBelowHP -> state.relevantUnit != null && state.relevantUnit!!.health < conditional.params[0].toInt()
-                    ||state.ourCombatant != null && state.ourCombatant.getHealth() < conditional.params[0].toInt()
-            UniqueType.ConditionalAboveMovement -> state.relevantUnit != null && state.relevantUnit!!.currentMovement > conditional.params[0].toInt()
-            UniqueType.ConditionalBelowMovement -> state.relevantUnit != null && state.relevantUnit!!.currentMovement < conditional.params[0].toInt()
+            UniqueType.ConditionalAboveHP -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                state.relevantUnit != null && state.relevantUnit!!.health > amount
+                    || state.ourCombatant != null && state.ourCombatant.getHealth() > amount
+            }
+            UniqueType.ConditionalBelowHP -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                state.relevantUnit != null && state.relevantUnit!!.health < amount
+                    || state.ourCombatant != null && state.ourCombatant.getHealth() < amount
+            }
+            UniqueType.ConditionalAboveMovement -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                state.relevantUnit != null && state.relevantUnit!!.currentMovement > amount
+            }
+            UniqueType.ConditionalBelowMovement -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                state.relevantUnit != null && state.relevantUnit!!.currentMovement < amount
+            }
             UniqueType.ConditionalHasNotUsedOtherActions ->
                 state.unit == null || // So we get the action as a valid action in BaseUnit.hasUnique()
                     state.unit.abilityToTimesUsed.isEmpty()
@@ -345,10 +378,12 @@ object Conditionals {
             UniqueType.ConditionalNotAdjacentTo -> state.relevantTile?.isAdjacentTo(conditional.params[0], state.relevantCiv) == false
             UniqueType.ConditionalFightingInTiles ->
                 state.attackedTile?.matchesFilter(conditional.params[0], state.relevantCiv) == true
-            UniqueType.ConditionalNearTiles ->
-                state.relevantTile != null && state.relevantTile!!.getTilesInDistance(conditional.params[0].toInt()).any {
+            UniqueType.ConditionalNearTiles -> {
+                val distance = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                state.relevantTile != null && state.relevantTile!!.getTilesInDistance(distance).any {
                     it.matchesFilter(conditional.params[1], state.relevantCiv)
                 }
+            }
 
             UniqueType.ConditionalVsLargerCiv -> {
                 val yourCities = state.relevantCiv?.cities?.size ?: 1
@@ -372,11 +407,14 @@ object Conditionals {
                         }
                     }
 
-            UniqueType.ConditionalNeighborTiles ->
+            UniqueType.ConditionalNeighborTiles -> {
+                val minNeighbors = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val maxNeighbors = Countables.getCountableAmount(conditional.params[1], state) ?: return false
                 state.relevantTile != null
                     && state.relevantTile!!.neighbors.count {
-                    it.matchesFilter(conditional.params[2], state.relevantCiv)
-                } in conditional.params[0].toInt()..conditional.params[1].toInt()
+                        it.matchesFilter(conditional.params[2], state.relevantCiv)
+                    } in minNeighbors..maxNeighbors
+            }
 
             UniqueType.ConditionalOnWaterMaps -> state.region?.continentID == -1
             UniqueType.ConditionalInRegionOfType -> state.region?.type == conditional.params[0]
