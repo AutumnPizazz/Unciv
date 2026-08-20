@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+- Docs: docs site restructured - the English-side CoeHarMod changelog moved to [/Community/Mods/CoeHarMod/changelog/](/Community/Mods/CoeHarMod/changelog/) (roadmap at [/Community/Mods/CoeHarMod/changelog/roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)), community images on the English side use English filenames, and Chinese pages now reference the English-side images instead of storing duplicates
+
 - Docs: the docs site no longer mirrors the upstream changelog - upstream release notes are available via the [official Unciv changelog](https://github.com/yairm210/Unciv/blob/master/changelog.md) linked above
 
 ## 4.21.10.2 (build 1257)

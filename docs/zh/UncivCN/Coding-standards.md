@@ -210,7 +210,7 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   按标签同步核心文件生成的发布分支）；模组版本号在 `jsons/ModOptions.json` 的
   `modVersion`，适配的游戏版本在 `recommendedGameVersion`
 - **每次改动模组（功能/修复/CI/文档）时，必须在同一批改动中同步更新文档站**
-  模组板块更新日志 `docs/Community/Mods/CoeHarMod/更新日志/index.md` 与
+  模组板块更新日志 `docs/Community/Mods/CoeHarMod/changelog/index.md` 与
   `docs/zh/Community/Mods/CoeHarMod/更新日志/index.md`（中英两份）：顶部
   「未发布 / Unreleased」小节各加一条（EN 用英文、ZH 用中文）
 - 条目风格：一行一条、短句要点；同一版本内按类别用 emoji 分组小节

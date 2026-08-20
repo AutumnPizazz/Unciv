@@ -11,7 +11,7 @@ Since newcomers may find Lance's tutorial hard to follow, I plan to write a basi
 
 ## 1 Basic yields
 
-![Basic yields](图片1.jpg)
+![Basic yields](image1.jpg)
 
 > Note: this chapter is basic content for newcomers. Veterans can skip it.
 
@@ -33,7 +33,7 @@ Food is the second most important number — it directly drives population growt
 - With trade routes established, each citizen in a secondary city adds ~1 gold to the city's trade route, making food indirectly boost the economy.
 - Militarily, more population means stronger city defense and better supply. All units need supply; going beyond supply range incurs a production penalty.
 
-![Food growth](图片2.jpg)
+![Food growth](image2.jpg)
 
 However, food growth isn't unlimited. When a city's **happiness** is low, food yield drops by 75%, hugely slowing growth. Early game happiness is scarce, so population can't keep growing fast.
 
@@ -126,7 +126,7 @@ Terrain modification:
 
 #### Vision
 
-![Vision](图片3.jpg)
+![Vision](image3.jpg)
 
 - All units see 2 tiles early.
 - Vision is affected by height: **mountains > hills > open**.
@@ -135,8 +135,8 @@ Terrain modification:
 - **Fun fact**: standing on a mountain gives flatland vision (design quirk).
 - A tile one beyond your vision range is visible if it's higher than you with no same-height blocker in between.
 
-![Vision example 1](图片4.jpg)
-![Vision example 2](图片5.jpg)
+![Vision example 1](image4.jpg)
+![Vision example 2](image5.jpg)
 
 ### 2.2 Rivers
 
@@ -178,7 +178,7 @@ Three kinds:
 
 ## 3 Early warfare
 
-![Early warfare](图片6.jpg)
+![Early warfare](image6.jpg)
 
 Early military goals: **scout, grab land, harass**.
 
@@ -197,7 +197,7 @@ Goals:
 - Key spots often get contested.
 - Watch enemy zone of control (ZOC) to avoid extra movement costs.
 
-![Zone of control](图片7.jpg)
+![Zone of control](image7.jpg)
 
 ### 3.3 Harassing
 
@@ -235,7 +235,7 @@ Workers are high-investment, high-return units. Uses:
 
 ### 4.2 Citizen control
 
-![Citizen control](图片8.jpg)
+![Citizen control](image8.jpg)
 
 "Controlling production" means manually assigning which tiles citizens work.
 
@@ -339,24 +339,24 @@ Domestic/tech unlocks need overall consideration:
 **Match**: 恶 vs 陌生的云 祭楼源 (1v1 tiny duel)
 
 - Rich opening: plenty of food tiles, but luxuries need Calendar tech; happiness low.
-![](图片9.png)
+![](image9.png)
 - 恶 opens **Warrior first** for stronger map control.
-![](图片10.png)
+![](image10.png)
 - Meets the enemy Warrior; enemy Scout scouts.
 - 恶 judges the south resource-poor and hard to support, abandons it, and instead **goes around to block the enemy Settler**.
-![](图片11.png)
+![](image11.png)
 - Finds the north acceptable and easy to support — settles the second city there, using two Warriors to pressure and grab land.
 - Successfully blocks the enemy Settler for 2 turns; own Settler arrives safely.
 - Mountains block military advance, so switches to **two-Worker chopping for domestic burst**.
 - But luxuries are poor and the Granary underperforms; domestic is limited, so switches to a **military rush** — tech to Composite Bowman.
 - Despite leading in production (the enemy wasted production on a Granary), the rush **fails due to mountains + river blocking**.
 - The enemy exploits terrain to stall and mass-produces units to counter.
-![](图片12.png)
-![](图片13.png)
-![](图片14.png)
-![](图片15.png)
-![](图片16.png)
-![](图片17.png)
+![](image12.png)
+![](image13.png)
+![](image14.png)
+![](image15.png)
+![](image16.png)
+![](image17.png)
 
 ### 7.2 Review
 

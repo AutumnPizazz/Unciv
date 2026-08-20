@@ -17,6 +17,10 @@ export default defineConfig({
   base: '/Unciv/',
   srcDir: '../docs',
 
+  // 模组示例源码（LuaStarterMod / LuaMapScriptExample）不是文档页，
+  // 其 README.md 不应被渲染成站点页面。
+  srcExclude: ['**/Modders/examples/**/*.md'],
+
   title: 'UncivCN Docs',
   description: 'UncivCN - open source Civ V remake documentation (English)',
   lang: 'en',
@@ -129,6 +133,8 @@ export default defineConfig({
             collapsed: false,
             items: [
               { text: 'Introduction to Mods', link: '/Modders/Mods' },
+              { text: 'Making a New Civilization', link: '/Modders/Making-a-new-Civilization' },
+              { text: 'Images and Audio', link: '/Modders/Images-and-Audio' },
               {
                 text: 'Mod File Structure',
                 items: [
@@ -140,19 +146,27 @@ export default defineConfig({
                   { text: 'Merge Actions', link: '/Modders/Mod-file-structure/6-MergeActions' },
                 ]
               },
-              { text: 'Making a New Civilization', link: '/Modders/Making-a-new-Civilization' },
-              { text: 'Creating a Custom Tileset', link: '/Modders/Creating-a-custom-tileset' },
-              { text: 'Creating a UI Skin', link: '/Modders/Creating-a-UI-skin' },
-              { text: 'Images and Audio', link: '/Modders/Images-and-Audio' },
-              { text: 'Lua Modding', link: '/Modders/Lua-Modding' },
-              { text: 'Lua API Extension', link: '/Modders/Lua-API-Extension' },
-              { text: 'Lua API Reference', link: '/Modders/Lua-API-Reference' },
-              { text: 'Lua Map-Script API Reference', link: '/Modders/Lua-Map-API-Reference' },
-              { text: 'Scenarios', link: '/Modders/Scenarios' },
-              { text: 'Type Checking', link: '/Modders/Type-checking' },
+              {
+                text: 'Special Mods',
+                items: [
+                  { text: 'Creating a Custom Tileset', link: '/Modders/Creating-a-custom-tileset' },
+                  { text: 'Creating a UI Skin', link: '/Modders/Creating-a-UI-skin' },
+                ]
+              },
               { text: 'Unique Parameters', link: '/Modders/Unique-parameters' },
               { text: 'Uniques', link: '/Modders/uniques' },
+              { text: 'Type Checking', link: '/Modders/Type-checking' },
+              { text: 'Scenarios', link: '/Modders/Scenarios' },
               { text: 'Autoupdates', link: '/Modders/Autoupdates' },
+              {
+                text: 'Lua Modding (CN branch)',
+                items: [
+                  { text: 'Lua Modding', link: '/Modders/Lua-Modding' },
+                  { text: 'Lua API Extension', link: '/Modders/Lua-API-Extension' },
+                  { text: 'Lua API Reference', link: '/Modders/Lua-API-Reference' },
+                  { text: 'Lua Map-Script API Reference', link: '/Modders/Lua-Map-API-Reference' },
+                ]
+              },
             ]
           },
           {
@@ -210,7 +224,7 @@ export default defineConfig({
               { text: 'Features', link: '/UncivCN/Features' },
               { text: 'Changelog', link: '/UncivCN/Changelog' },
               { text: 'Differences vs upstream', link: '/UncivCN/Differences' },
-              { text: 'Coding standards', link: '/UncivCN/Coding-standards' },
+              { text: 'CN Coding standards', link: '/UncivCN/Coding-standards' },
               { text: 'Polling multiplayer', link: '/UncivCN/Polling-multiplayer' },
               { text: 'Installing mods from mainland China', link: '/UncivCN/Mod-download-in-China' },
             ],
@@ -233,8 +247,8 @@ export default defineConfig({
                 text: 'Mods',
                 items: [
                   { text: 'CoeHarMod', link: '/Community/Mods/CoeHarMod/' },
-                  { text: 'CoeHarMod changelog', link: '/Community/Mods/CoeHarMod/更新日志/' },
-                  { text: 'CoeHarMod roadmap', link: '/Community/Mods/CoeHarMod/更新日志/更新计划' },
+                  { text: 'CoeHarMod changelog', link: '/Community/Mods/CoeHarMod/changelog/' },
+                  { text: 'CoeHarMod roadmap', link: '/Community/Mods/CoeHarMod/changelog/roadmap' },
                   { text: 'Emperors and Deities', link: '/Community/Mods/Emperors-and-Deities/' },
                 ],
               },
@@ -345,6 +359,8 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: '模组简介', link: '/zh/Modders/Mods' },
+              { text: '创建新文明', link: '/zh/Modders/Making-a-new-Civilization' },
+              { text: '图像和音频', link: '/zh/Modders/Images-and-Audio' },
               {
                 text: '模组文件结构',
                 items: [
@@ -356,19 +372,27 @@ export default defineConfig({
                   { text: 'Merge Actions', link: '/zh/Modders/Mod-file-structure/6-MergeActions' },
                 ],
               },
-              { text: '创建新文明', link: '/zh/Modders/Making-a-new-Civilization' },
-              { text: '创建自定义地形集', link: '/zh/Modders/Creating-a-custom-tileset' },
-              { text: '创建 UI 皮肤', link: '/zh/Modders/Creating-a-UI-skin' },
-              { text: '图像和音频', link: '/zh/Modders/Images-and-Audio' },
-              { text: 'Lua 模组', link: '/zh/Modders/Lua-Modding' },
-              { text: 'Lua API 扩展', link: '/zh/Modders/Lua-API-Extension' },
-              { text: 'Lua API 参考', link: '/zh/Modders/Lua-API-Reference' },
-              { text: 'Lua 地图脚本 API 参考', link: '/zh/Modders/Lua-Map-API-Reference' },
-              { text: '场景', link: '/zh/Modders/Scenarios' },
-              { text: '类型检查', link: '/zh/Modders/Type-checking' },
+              {
+                text: '特殊模组',
+                items: [
+                  { text: '创建自定义地形集', link: '/zh/Modders/Creating-a-custom-tileset' },
+                  { text: '创建 UI 皮肤', link: '/zh/Modders/Creating-a-UI-skin' },
+                ],
+              },
               { text: 'Unique 参数类型', link: '/zh/Modders/Unique-parameters' },
               { text: 'Uniques', link: '/zh/Modders/uniques' },
+              { text: '类型检查', link: '/zh/Modders/Type-checking' },
+              { text: '场景', link: '/zh/Modders/Scenarios' },
               { text: '自动更新', link: '/zh/Modders/Autoupdates' },
+              {
+                text: 'Lua 模组（CN 分支）',
+                items: [
+                  { text: 'Lua 模组', link: '/zh/Modders/Lua-Modding' },
+                  { text: 'Lua API 扩展', link: '/zh/Modders/Lua-API-Extension' },
+                  { text: 'Lua API 参考', link: '/zh/Modders/Lua-API-Reference' },
+                  { text: 'Lua 地图脚本 API 参考', link: '/zh/Modders/Lua-Map-API-Reference' },
+                ],
+              },
             ],
           },
           {

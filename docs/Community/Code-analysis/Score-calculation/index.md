@@ -29,8 +29,8 @@ Add all components to get the final civilization score.
 
 Let's verify the formula with a real game:
 
-![](./图片1.jpg)
-![](./图片2.jpg)
+![](./image1.jpg)
+![](./image2.jpg)
 
 This is a large map (66×43=2838, t=0.4496); we're the Dutch with 9 cities and 65 population; 2 water tiles, territory 102; 3 wonders built; 20 techs researched. The score is:
 
@@ -53,4 +53,4 @@ Which matches the shown 374 points.
 
 (Note: in the current version the score ratios are defined by the ruleset — read the G&K code for the concrete values)
 
-![](./图片3.jpg)
+![](./image3.jpg)

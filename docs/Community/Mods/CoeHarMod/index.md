@@ -15,8 +15,8 @@ The mod aims to provide a richer and more diverse game experience while maintain
 ::: tip Mod resources
 
 - [GitHub repository](https://github.com/AutumnPizazz/CoeHarMod)
-- [Changelog](/Community/Mods/CoeHarMod/更新日志/)
-- [Roadmap](/Community/Mods/CoeHarMod/更新日志/更新计划)
+- [Changelog](/Community/Mods/CoeHarMod/changelog/)
+- [Roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)
 
 :::
 

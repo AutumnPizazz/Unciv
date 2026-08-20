@@ -16,7 +16,7 @@ Generally, the opening described here works for almost all civilizations: within
 
 The map used in this guide is special, because standard maps badly hurt the PvE experience.
 
-![](图片1.png)
+![](image1.png)
 
 **Difficulty**: usually Immortal/Deity, default standard speed, Ancient start (Quick in PvP multiplayer); all victory types except Score. Barbarians can be off since they mostly just annoy you. Nukes/spies are irrelevant...
 
@@ -35,7 +35,7 @@ The map used in this guide is special, because standard maps badly hurt the PvE 
 - Biomes determine grassland/plains extension — default fine
 - Sea level determines water area — lower it to reduce sea luxuries and increase expansion space
 
-![](图片2.png)
+![](image2.png)
 
 **AI and city-state counts**: somewhat arbitrary. Too many crowd the expansion space; too few waste large empty areas. With the settings above, 7-10 AIs and ~1.5x as many city-states (12-16) work well.
 

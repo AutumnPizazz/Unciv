@@ -1,6 +1,6 @@
 # Welcome to Unciv!
 
-![image](https://raw.githubusercontent.com/yairm210/Unciv/master/extraImages/GithubPreviewImage.jpg)
+![image](assets/GithubPreviewImage.jpg)
 
 [Unciv](https://github.com/yairm210/Unciv) is an open source, mod-friendly Android and Desktop remake of Civ V, made with LibGDX. Build your civilization, research technologies, expand your cities and defeat your foes!
 

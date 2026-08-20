@@ -18,15 +18,15 @@ title: Unciv 联机教程
 
 打开主菜单，点击"选项"按钮，
 
-![与联机服务器建立联系 - 步骤1](./图片/image1.png)
+![与联机服务器建立联系 - 步骤1](../../../../Community/Guides/Multiplayer-tutorial/images/image1.png)
 
 点击上方"多人游戏"按钮，
 
-![与联机服务器建立联系 - 步骤2](./图片/image2.png)
+![与联机服务器建立联系 - 步骤2](../../../../Community/Guides/Multiplayer-tutorial/images/image2.png)
 
 输入服务器地址，地址为：<http://sp.unciv.cn:30123>
 
-![与联机服务器建立联系 - 步骤3](./图片/image3.png)
+![与联机服务器建立联系 - 步骤3](../../../../Community/Guides/Multiplayer-tutorial/images/image3.png)
 
 并按上图设置同步频率，
 
@@ -34,7 +34,7 @@ title: Unciv 联机教程
 
 点击"检查服务器连接"按钮，此时应该弹窗提示"成功！"，
 
-![与联机服务器建立联系 - 步骤4](./图片/image4.png)
+![与联机服务器建立联系 - 步骤4](../../../../Community/Guides/Multiplayer-tutorial/images/image4.png)
 
 退出 Unciv 并取消后台进程，打开 Unciv，回到原来界面再次点击"检查服务器连接"，若仍提示"成功!"，说明你成功与服务器建立联系！
 
@@ -44,7 +44,7 @@ title: Unciv 联机教程
 
 点击"复制玩家 ID"按钮，
 
-![获取玩家ID](./图片/image5.png)
+![获取玩家ID](../../../../Community/Guides/Multiplayer-tutorial/images/image5.png)
 
 现在你的玩家 ID 就存放在剪贴板上了！
 
@@ -56,11 +56,11 @@ title: Unciv 联机教程
 
 点击"在线多人游戏"按钮，
 
-![房主创建房间 - 步骤1](./图片/image6.png)
+![房主创建房间 - 步骤1](../../../../Community/Guides/Multiplayer-tutorial/images/image6.png)
 
 将玩家 ID 粘贴到对应的文本框内并选择对应的国家
 
-![房主创建房间 - 步骤2](./图片/image7.png)
+![房主创建房间 - 步骤2](../../../../Community/Guides/Multiplayer-tutorial/images/image7.png)
 
 选择相应的地图配置后，点击右下角"开始游戏！"按钮，进入到游戏主屏幕，此时房间 ID 将自动保存到剪贴板，将这个房间 ID 发送给所有对局参与者并声明这是房间 ID 而不是玩家 ID。
 
@@ -72,7 +72,7 @@ title: Unciv 联机教程
 
 点击"新增多人游戏"，
 
-![参与者加入房间](./图片/image8.png)
+![参与者加入房间](../../../../Community/Guides/Multiplayer-tutorial/images/image8.png)
 
 在第一个文本框粘贴房间 ID，在第二个文本框输入你对此对局的备注，如不填则被房间 ID 覆盖。
 
