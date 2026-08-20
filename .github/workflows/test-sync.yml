@@ -1,0 +1,65 @@
+name: Test CN sync
+
+# 临时测试 workflow：验证发版后的 sync-installers-to-cn-server 链路
+# 仅在 .github/workflows/test-sync.yml 变更时触发（避免误触发其他流程）
+on:
+  push:
+    paths:
+      - '.github/workflows/test-sync.yml'
+
+jobs:
+  test-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 健康检查（isalive）
+        env:
+          DL_SERVER: ${{ secrets.CN_DL_SERVER }}
+        run: |
+          echo "DL_SERVER=$DL_SERVER"
+          [ -z "$DL_SERVER" ] && { echo "!! CN_DL_SERVER 未配置"; exit 1; }
+          curl -sf -m 20 "$DL_SERVER/isalive" && echo "  -> isalive OK" || { echo "!! isalive 失败"; exit 1; }
+
+      - name: 2. 管理员认证（GET /api/downloads）
+        env:
+          DL_SERVER: ${{ secrets.CN_DL_SERVER }}
+          DL_USER: ${{ secrets.CN_DL_USER }}
+          DL_PASS: ${{ secrets.CN_DL_PASS }}
+        run: |
+          [ -z "$DL_USER" ] && { echo "!! CN_DL_USER 未配置"; exit 1; }
+          [ -z "$DL_PASS" ] && { echo "!! CN_DL_PASS 未配置"; exit 1; }
+          echo "调用: GET $DL_SERVER/api/downloads (Basic Auth)"
+          RESP=$(curl -sS -m 30 -u "$DL_USER:$DL_PASS" "$DL_SERVER/api/downloads" -w "\n%{http_code}")
+          echo "$RESP" | tail -1 | grep -q 200 && echo "  -> 认证 OK" || { echo "!! 认证失败: $RESP"; exit 1; }
+          echo "  托管文件: $(echo "$RESP" | head -1 | grep -o '"files"' | wc -l) 列表"
+
+      - name: 3. 触发同步（幂等重跑 4.21.10.2，验证服务器拉取链路）
+        env:
+          DL_SERVER: ${{ secrets.CN_DL_SERVER }}
+          DL_USER: ${{ secrets.CN_DL_USER }}
+          DL_PASS: ${{ secrets.CN_DL_PASS }}
+        run: |
+          echo "调用: POST $DL_SERVER/api/downloads/sync?tag=4.21.10.2"
+          RESP=$(curl -sS -m 1800 -u "$DL_USER:$DL_PASS" -X POST "$DL_SERVER/api/downloads/sync?tag=4.21.10.2" -w "\n%{http_code}")
+          CODE=$(echo "$RESP" | tail -1)
+          echo "HTTP $CODE"
+          echo "$RESP" | head -1 | head -c 400; echo
+          [ "$CODE" = "200" ] || { echo "!! 同步失败"; exit 1; }
+          echo "$RESP" | head -1 | grep -q '"ok":true' && echo "  -> 同步 OK" || { echo "!! 响应非 ok"; exit 1; }
+
+      - name: 4. 验证检查更新端点（latest.json）
+        env:
+          DL_SERVER: ${{ secrets.CN_DL_SERVER }}
+        run: |
+          echo "调用: GET $DL_SERVER/api/downloads/latest.json"
+          RESP=$(curl -sS -m 20 "$DL_SERVER/api/downloads/latest.json")
+          echo "$RESP" | head -c 200; echo
+          echo "$RESP" | grep -q '"tag_name":"4.21.10.2"' && echo "  -> latest.json OK (4.21.10.2)" || { echo "!! latest.json 异常"; exit 1; }
+
+      - name: 5. 模拟玩家下载（小文件）
+        env:
+          DL_SERVER: ${{ secrets.CN_DL_SERVER }}
+        run: |
+          curl -sS -m 30 -o /tmp/dl_test.bin -w "HTTP %{http_code} 速度 %{speed_download}B/s\n" \
+            "$DL_SERVER/dl/4.21.10.2/UncivCN-4.21.10.2.Apk" -r 0-1048575
+          ls -la /tmp/dl_test.bin
+          echo "  -> 玩家下载链路 OK"
