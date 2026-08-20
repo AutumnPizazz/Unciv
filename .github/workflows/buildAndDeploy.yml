@@ -114,6 +114,49 @@ jobs:
         run: |
           ./gradlew server:dist
 
+      - name: Checkout TS server submodule
+        run: git submodule update --init --depth 1 server-ts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install TS server dependencies
+        working-directory: server-ts
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck TS server
+        working-directory: server-ts
+        run: pnpm typecheck
+
+      - name: Test TS server
+        working-directory: server-ts
+        run: pnpm test
+
+      - name: Build TS server
+        working-directory: server-ts
+        run: pnpm build
+
+      - name: Package TS server
+        working-directory: server-ts
+        run: |
+          mkdir -p ../deploy
+          tar -czf ../deploy/UncivSrv-${{ github.ref_name }}.tar.gz \
+            dist public migrations package.json pnpm-lock.yaml example.env
+
+      - name: Upload TS Server
+        uses: actions/upload-artifact@v4
+        with:
+          name: UncivSrv
+          path: deploy/UncivSrv-${{ github.ref_name }}.tar.gz
+          if-no-files-found: error
+
       - name: Build Unciv Lua API VSCode extension (vsix)
         run: |
           mkdir -p deploy
@@ -314,6 +357,7 @@ jobs:
           mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy/UncivCN-Linux64-${{ github.ref_name }}.zip
           mv UncivCNAPK/UncivCN-${{ github.ref_name }}.Apk deploy
           mv UncivServer/UncivServer.jar deploy/UncivServer-${{ github.ref_name }}.jar
+          mv UncivSrv/UncivSrv-${{ github.ref_name }}.tar.gz deploy/
           mv UncivLuaAPI/unciv-lua-api-*.vsix deploy/
           [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy/UncivCN-${{ github.ref_name }}.msi || true
 

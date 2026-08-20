@@ -180,3 +180,18 @@ The simple multiplayer host included in the sources can be set up to debug or ru
 -   Select the UncivServer configuration and click the green arrow button to run! Or start a debug session as above.
 
 To build a jar file, refer to [Without Android Studio](#without-android-studio) and replace 'desktop' with 'server'. That is, run `./gradlew server:dist` and when it's done look for /server/build/libs/UncivServer.jar
+
+### UncivSrv (TypeScript server)
+
+The feature-complete multiplayer server lives in the `server-ts/` submodule ([blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)) — WebSocket chat, web admin panel, SQLite storage with automatic migrations, login rate limiting, scheduled cleanup, and more. It requires Node.js 20+ and pnpm 10+:
+
+```bash
+cd server-ts
+pnpm install
+pnpm typecheck   # type check
+pnpm test        # run Vitest tests
+pnpm dev         # run with tsx
+pnpm build && pnpm start   # build & run the compiled output
+```
+
+Configuration is read from a `.env` file — see `server-ts/example.env` for the available options.

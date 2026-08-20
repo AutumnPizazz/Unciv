@@ -165,3 +165,18 @@ Detekt 检查代码异味和其他 lint 问题。
 -   选择 UncivServer 配置，点击绿色箭头运行！或者像上面那样开始调试会话。
 
 要构建 jar 文件，参见[不用 Android Studio](#不用-android-studio)，把 'desktop' 换成 'server'。即运行 `./gradlew server:dist`，完成后到 /server/build/libs/ 找 UncivServer.jar
+
+### UncivSrv（TypeScript 服务器）
+
+功能完善的多人联机服务器位于 `server-ts/` 子模块（[blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)）——WebSocket 聊天、Web 管理后台、SQLite 存储与自动数据库迁移、登录限流、定时清理过期数据等。需要 Node.js 20+ 与 pnpm 10+：
+
+```bash
+cd server-ts
+pnpm install
+pnpm typecheck   # 类型检查
+pnpm test        # 运行 Vitest 测试
+pnpm dev         # 用 tsx 开发运行
+pnpm build && pnpm start   # 构建并运行编译产物
+```
+
+配置通过 `.env` 文件读取——可用选项见 `server-ts/example.env`。

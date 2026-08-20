@@ -111,3 +111,37 @@ jobs:
         # Only run this step on ubuntu-latest, since Java is cross-platform anyways
         if: ${{ matrix.os == 'ubuntu-latest' }}
         continue-on-error: true
+
+  # Job to typecheck, test and build the TypeScript server (UncivSrv submodule)
+  build-ts-server:
+    runs-on: ubuntu-latest
+    name: Build TypeScript Server
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checkout TS server submodule
+        run: git submodule update --init --depth 1 server-ts
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        working-directory: server-ts
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: server-ts
+        run: pnpm typecheck
+
+      - name: Run tests
+        working-directory: server-ts
+        run: pnpm test
+
+      - name: Build
+        working-directory: server-ts
+        run: pnpm build
