@@ -2,10 +2,11 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
-## Unreleased
+## 4.21.10.2 (build 1257)
 
 - Update: update checks and installer downloads are now routed by player region - players in mainland China (a one-time dialog asks on first launch, changeable in Options - Advanced) use the official CN download server (`server-ts` installer hosting, same domain as the multiplayer server), which works even when github.com is unreachable; the server hosts only the latest version (old ones cleaned up automatically) with rate limiting and concurrency protection, and pulls installers from GitHub through a mirror (gh-proxy) itself after each release. Everyone else follows their download source setting as before. Mod downloads are unaffected - see [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)
 
+- Merged upstream 4.21.10-patch1/patch2 (9 commits): fixed crashes when a spectator selects a foreign city or unit, when a city is razed mid-click, and when activating two city screen arrows at once; cleaner "unit(s) can promote" notification (single notification when many units are promotable); timers report when the app is paused
 
 ## 4.21.10.1 (build 1256)
 

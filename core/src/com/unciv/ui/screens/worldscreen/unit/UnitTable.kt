@@ -228,7 +228,7 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
 
         @Readonly
         fun MapUnit.isEligible(): Boolean = (this.civ == worldScreen.viewingCiv
-                || worldScreen.viewingCiv.isSpectator()) && this !in selectedUnitsRaw
+                || worldScreen.selectedGameView.civView.isSpectator()) && this !in selectedUnitsRaw
 
         // This is the Civ 5 Order of selection:
         // 1. City
@@ -282,12 +282,16 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         }
 
 
+        // Cache the city once - selectedTile is a live, shared Tile that can be mutated by
+        // the next-turn thread (e.g. city razed) between the isCityCenter() check and its use
+        val selectedTileCity = selectedTile.getCity()
         val isCitySelected = selectedTile.isCityCenter()
+            && selectedTileCity != null
             && (selectedTile.getOwner() == worldScreen.viewingCiv || worldScreen.viewingCiv.isSpectator())
             && !selectedUnitIsConnectingRoad
         when {
             forceSelectUnitView != null -> selectUnit(forceSelectUnitView)
-            isCitySelected -> citySelected(selectedTile.getCity()!!)
+            isCitySelected -> citySelected(selectedTileCity)
             nextUnit != null -> selectUnit(worldScreen.selectedGameView.getForeignMapUnitView(nextUnit).tryGetMapUnitView()!!, Gdx.input.isShiftKeyPressed())
             // toggle selection if same unit is clicked again by player
             selectedTile == previouslySelectedUnit?.currentTile -> {

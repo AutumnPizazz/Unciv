@@ -6,6 +6,7 @@ import com.unciv.UncivGame.Companion.isCurrentInitialized
 import com.unciv.logic.GameInfo
 import com.unciv.logic.UncivShowableException
 import com.unciv.logic.Version
+import com.unciv.logic.automation.Timers
 import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.multiplayer.Multiplayer
@@ -410,6 +411,7 @@ open class UncivGame(val isConsoleMode: Boolean = false) : Game(), PlatformSpeci
         val curGameInfo = gameInfo
         // Since we're pausing the game, we don't need to clone it before autosave - no one else will touch it
         if (curGameInfo != null) files.autosaves.requestAutoSaveUnCloned(curGameInfo)
+        Timers.singleton.endTiming()
         super.pause()
     }
 
@@ -448,7 +450,7 @@ open class UncivGame(val isConsoleMode: Boolean = false) : Game(), PlatformSpeci
         // DO NOT `exitProcess(0)` - bypasses all Gdx and GLFW cleanup
     }
 
-    private fun logRunningThreads() {
+private fun logRunningThreads() {
         val numThreads = Thread.activeCount()
         val threadList = Array(numThreads) { Thread() }
         Thread.enumerate(threadList)
@@ -477,7 +479,7 @@ open class UncivGame(val isConsoleMode: Boolean = false) : Game(), PlatformSpeci
 
     companion object {
         //region AUTOMATICALLY GENERATED VERSION DATA - DO NOT CHANGE THIS REGION, INCLUDING THIS COMMENT
-        val VERSION = Version("4.21.10.1", 1256)
+        val VERSION = Version("4.21.10.2", 1257)
         //endregion
 
         /** Global reference to the one Gdx.Game instance created by the platform launchers - do not use without checking [isCurrentInitialized] first. */
