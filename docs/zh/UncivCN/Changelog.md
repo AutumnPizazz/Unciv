@@ -8,7 +8,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
-- 更新：游戏内更新检查与安装包下载改为按玩家地区分流——首次启动弹窗询问所在地区（可在「选项 - 高级 - 玩家地区」修改）：选择「中国大陆」的玩家走 CN 官方下载服务器（与联机服务器同域，由 server-ts 安装包托管提供），即使无法访问 github.com 也能稳定完成自动更新，服务器只保留最新版本（旧版自动清理）且带限速与并发保护；其他玩家仍走其在选项中设置的下载源。模组下载不受影响，详见 [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)
+- 更新：游戏内更新检查与安装包下载改为按玩家地区分流——首次启动弹窗询问所在地区（可在「选项 - 高级 - 玩家地区」修改）：选择「中国大陆」的玩家走 CN 官方下载服务器（与联机服务器同域，由 server-ts 安装包托管提供），即使无法访问 github.com 也能稳定完成自动更新，服务器只保留最新版本（旧版自动清理）且带限速与并发保护，发布后由服务器自己经镜像（gh-proxy）从 GitHub 拉取安装包；其他玩家仍走其在选项中设置的下载源。模组下载不受影响，详见 [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)
 
 
 ## 4.21.10.1（build 1256）
