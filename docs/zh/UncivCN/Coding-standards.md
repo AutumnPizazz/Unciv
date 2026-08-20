@@ -199,11 +199,9 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   禁止手工改该区域。
 - **发版标签**：MSI 安装包版本号取自 git tag（`github.ref_name`，
   4 段式如 `4.21.5.3`）；每次发版必须推送与版本号一致的 tag 触发 Deploy 工作流。
-- **上游日志页**：英文页 `docs/Community/Upstream-changelog.md` 构建时自动嵌入
-  仓库根目录 `changelog.md` 全文（见 `docs-vitepress/.vitepress/config.ts` 的
-  `upstream-changelog` 容器），merge 上游后自动保持最新，禁止手动维护英文副本；
-  中文页 `docs/zh/Community/Upstream-changelog.md` **只放人工翻译、不嵌入英文**，
-  覆盖最近版本（允许滞后）并链接英文页看完整历史，翻译从最新版本往前补翻。
+- **上游更新日志**：文档站不再镜像上游 `changelog.md`；上游官方版本记录通过
+  CN 更新日志页（`docs/UncivCN/Changelog.md` / `docs/zh/UncivCN/Changelog.md`）
+  顶部的链接查看。
 
 ### 子仓库模组（CoeHarMod）更新日志
 

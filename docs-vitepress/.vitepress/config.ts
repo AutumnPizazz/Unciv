@@ -1,13 +1,9 @@
 import { defineConfig } from 'vitepress'
 import { fileURLToPath, URL } from 'node:url'
-import { readFileSync } from 'node:fs'
 // @ts-ignore
 import taskLists from 'markdown-it-task-lists'
 import mathjax3 from 'markdown-it-mathjax3'
 import container from 'markdown-it-container'
-
-// 仓库根目录的上游官方更新日志（上游自动生成，merge 上游时自动更新）
-const upstreamChangelogPath = fileURLToPath(new URL('../../changelog.md', import.meta.url))
 
 /**
  * UncivCN 文档站配置
@@ -79,26 +75,6 @@ export default defineConfig({
             return `<details class="details custom-block"><summary>${title}<CopyButton text="${escaped}" /></summary>\n`
           }
           return '</details>\n'
-        },
-      })
-      // 上游更新日志自动嵌入：`::: upstream-changelog` 容器构建时直接读取
-      // 仓库根 changelog.md 全文渲染（中文站上游日志页使用），保证与上游
-      // 同步最新，无需手动维护英文原文副本。
-      // 注意点：
-      // - 裸尖括号（如 <for every [resource]>）会被当作 HTML 标签，导致 Vue
-      //   模板编译报「未闭合标签」，嵌入前须转义；
-      // - 标题统一降级为 h4 并加 Upstream 前缀：避免与翻译区标题重复导致
-      //   localSearch 索引崩溃，同时不进入页面大纲（outline 级别 2-3）。
-      md.use(container, 'upstream-changelog', {
-        render(tokens, idx) {
-          if (tokens[idx].nesting === 1) {
-            const raw = readFileSync(upstreamChangelogPath, 'utf-8')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/^#{1,6} /gm, '#### Upstream ')
-            return md.render(raw)
-          }
-          return ''
         },
       })
     }
@@ -269,7 +245,6 @@ export default defineConfig({
                   { text: 'Score calculation', link: '/Community/Code-analysis/Score-calculation/' },
                 ],
               },
-              { text: 'Upstream changelog (zh)', link: '/Community/Upstream-changelog' },
             ],
           },
         ],
@@ -363,7 +338,6 @@ export default defineConfig({
                   { text: '文明积分计算', link: '/zh/Community/Code-analysis/Score-calculation/' },
                 ],
               },
-              { text: 'Unciv 原版更新日志', link: '/zh/Community/Upstream-changelog' },
             ],
           },
           {

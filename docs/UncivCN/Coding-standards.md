@@ -143,7 +143,7 @@ Local preview: double-click `docs-vitepress/build.bat` (build / open existing / 
 - **Release title**: the Deploy workflow sets it from the tag (`name: github.ref_name`), so the tag must be a plain 4-segment version and the release title is exactly that version, nothing else.
 - **Version bump**: only edit `buildSrc/src/main/kotlin/BuildConfig.kt` (`appVersion` + `appCodeNumber` +1). The `syncGameVersion` Gradle task runs before every core build and automatically mirrors the values into the `AUTOMATICALLY GENERATED VERSION DATA` region of `UncivGame.kt` (the in-game version display) — never hand-edit that region.
 - **Release tag**: the MSI installer version comes from the git tag (`github.ref_name`, 4-segment form like `4.21.5.3`); every release must push a tag matching the version to trigger the Deploy workflow.
-- **Upstream changelog pages**: the English page `docs/Community/Upstream-changelog.md` embeds the full repo-root `changelog.md` at build time (the `upstream-changelog` container in `docs-vitepress/.vitepress/config.ts`), so it stays current automatically after every upstream merge — never maintain an English copy by hand. The Chinese page `docs/zh/Community/Upstream-changelog.md` is **human-translated only, no embedded English**: it covers recent versions (may lag) and links to the EN page for the full history; backfill translations gradually, newest versions first.
+- **Upstream changelog**: the docs site no longer mirrors the upstream `changelog.md`; the official upstream release notes are linked from the top of the CN changelog pages (`docs/UncivCN/Changelog.md` / `docs/zh/UncivCN/Changelog.md`).
 
 ### Sub-module mod (CoeHarMod) changelog
 
