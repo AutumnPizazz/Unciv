@@ -112,7 +112,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         continue-on-error: true
 
-  # Job to typecheck, test and build the TypeScript server (UncivSrv submodule)
+  # Job to typecheck, test and verify the Docker image of the TypeScript server (UncivSrv submodule)
   build-ts-server:
     runs-on: ubuntu-latest
     name: Build TypeScript Server
@@ -142,6 +142,6 @@ jobs:
         working-directory: server-ts
         run: pnpm test
 
-      - name: Build
+      - name: Build Docker image (verification only)
         working-directory: server-ts
-        run: pnpm build
+        run: docker build -t unciv-srv:test .
