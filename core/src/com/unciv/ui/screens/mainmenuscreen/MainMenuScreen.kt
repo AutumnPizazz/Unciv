@@ -28,6 +28,7 @@ import com.unciv.logic.map.MapType
 import com.unciv.logic.map.mapgenerator.MapGenerator
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSetupInfo
+import com.unciv.models.metadata.GameSettings.PlayerRegion
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.tilesets.TileSetCache
@@ -277,7 +278,43 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             popup.open()
         }
         stage.addActor(versionTable)
-        startUpdateCheck()
+        askPlayerRegionIfNeeded()
+    }
+
+    /** 首次启动询问玩家所在地区（决定更新下载走的服务器）；已设置则直接检查更新。
+     *  弹窗会说明两个选项的含义，玩家选完后保存设置并开始检查更新。 */
+    private fun askPlayerRegionIfNeeded() {
+        if (game.settings.playerRegion.isNotEmpty()) {
+            startUpdateCheck()
+            return
+        }
+        val popup = Popup(stage)
+        popup.add("Select your region".toLabel(fontSize = Constants.headingFontSize, alignment = Align.center)).row()
+        popup.add(
+            "This decides which server your in-game updates download from:\n" +
+                "- Mainland China: downloads come from the official CN server - recommended if github.com is often unreachable in your network.\n" +
+                "- Outside mainland China: downloads follow the source you set in Options - Advanced (GitHub by default)."
+                .toLabel(alignment = Align.center)
+        ).pad(10f).row()
+        val mainlandButton = PlayerRegion.MainlandChina.displayName.toTextButton()
+        mainlandButton.onClick {
+            game.settings.playerRegion = PlayerRegion.MainlandChina.name
+            game.settings.save()
+            popup.close()
+            startUpdateCheck()
+        }
+        val overseasButton = PlayerRegion.Overseas.displayName.toTextButton()
+        overseasButton.onClick {
+            game.settings.playerRegion = PlayerRegion.Overseas.name
+            game.settings.save()
+            popup.close()
+            startUpdateCheck()
+        }
+        val buttonRow = Table()
+        buttonRow.add(mainlandButton).pad(5f)
+        buttonRow.add(overseasButton).pad(5f)
+        popup.add(buttonRow).row()
+        popup.open()
     }
 
     private fun startBackgroundMapGeneration() {
@@ -374,27 +411,16 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         }
     }
 
-    /** When the update check fails, offer players with restricted access to github.com
-     *  (e.g. in mainland China) a one-click switch to a mirror download source.
+    /** When the update check fails. Mainland China players query the CN download server
+     *  (network problem, unrelated to the mod download source); everyone else queries the
+     *  download source, so the usual fix is switching that source.
      *  Must be called on the GL thread. */
     private fun suggestSwitchingDownloadSource() {
-        val source = GithubAPI.ModDownloadSource.fromStoredName(game.settings.modDownloadSource)
-        if (source != GithubAPI.ModDownloadSource.Official) {
-            ToastPopup(
-                "Could not check for updates. If this keeps happening, switch the download source in Options - Advanced.".tr(),
-                this
-            )
-            return
-        }
-        ConfirmPopup(
-            stage,
-            "Could not check for updates - github.com may be unreachable from your network. Switch to a mirror download source and try again?".tr(),
-            "Switch download source"
-        ) {
-            game.settings.modDownloadSource = GithubAPI.ModDownloadSource.GhProxyCom.name
-            game.settings.save()
-            startUpdateCheck()
-        }.open(true)
+        val message = if (PlayerRegion.fromStoredName(game.settings.playerRegion) == PlayerRegion.MainlandChina)
+            "Could not check for updates - the download server is unreachable. Check your network and try again later."
+        else
+            "Could not check for updates. If this keeps happening, switch the download source in Options - Advanced."
+        ToastPopup(message.tr(), this)
     }
 
     /** Fill [popup] with "new version available" content: current vs latest version and a download link */

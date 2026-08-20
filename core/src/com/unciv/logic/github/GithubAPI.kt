@@ -2,11 +2,13 @@ package com.unciv.logic.github
 
 import com.badlogic.gdx.Files
 import com.badlogic.gdx.files.FileHandle
+import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.json.json
 import com.unciv.logic.UncivKtor
 import com.unciv.logic.UncivShowableException
 import com.unciv.logic.github.Github.repoNameToFolderName
+import com.unciv.models.metadata.GameSettings.PlayerRegion
 import com.unciv.models.translations.tr
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -81,6 +83,9 @@ object GithubAPI {
      * public GitHub proxy/mirror - entries only prepend their [urlPrefix] to GitHub-hosted URLs,
      * so direct downloads from other hosts (e.g. Gitee) are never affected.
      * The active source is stored in `GameSettings.modDownloadSource`.
+     *
+     * This source only affects mod downloads - the in-game update check and installer
+     * downloads always go through the CN download server (see [Constants.uncivDownloadServer]).
      */
     enum class ModDownloadSource(val displayName: String, val urlPrefix: String) {
         Official("GitHub (official)", ""),
@@ -130,13 +135,39 @@ object GithubAPI {
      *
      * Example with `https://gh-proxy.com/`: `https://github.com/a/b/archive/...zip`
      * becomes `https://gh-proxy.com/https://github.com/a/b/archive/...zip`.
+     *
+     * Mod downloads (and everything else) always follow the player's download source setting.
+     * Release installer URLs are special-cased by player region ([GameSettings.playerRegion]):
+     * players in mainland China get them rerouted to the CN download server (github.com is
+     * unreliable there), everyone else falls back to the download source like any other URL.
      */
     @Readonly
     fun proxify(url: String): String {
+        val playerRegion = PlayerRegion.fromStoredName(UncivGame.Current.settings.playerRegion)
+        if (isReleaseInstallerUrl(url) && playerRegion == PlayerRegion.MainlandChina) return cnServerUrlFor(url)
         val prefix = ModDownloadSource.getActiveUrlPrefix()
         if (prefix.isEmpty()) return url
         return if (githubHosts.any { url.startsWith(it) }) prefix + url else url
     }
+
+    //region Update routing: CN download server for mainland China, download source otherwise
+
+    /** GitHub release 安装包下载 URL 格式：https://github.com/<owner>/<repo>/releases/download/<tag>/<file> */
+    private val releaseDownloadUrlRegex =
+        Regex("""^https://github\.com/[^/]+/[^/]+/releases/download/([^/]+)/([^/]+)$""")
+
+    /** Whether [url] is a GitHub release installer download (as opposed to mod zips, the GitHub API, avatars, ...) */
+    @Readonly
+    fun isReleaseInstallerUrl(url: String): Boolean = releaseDownloadUrlRegex.matches(url)
+
+    /** Map a GitHub release installer URL to the CN download server (`<server>/dl/<tag>/<file>`) */
+    @Readonly
+    fun cnServerUrlFor(url: String): String {
+        val match = releaseDownloadUrlRegex.matchEntire(url) ?: return url
+        return "${Constants.uncivDownloadServer}/dl/${match.groupValues[1]}/${match.groupValues[2]}"
+    }
+
+    //endregion
 
     /**
      * Make a ktor request handling rate limits automatically

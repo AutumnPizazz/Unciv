@@ -113,4 +113,32 @@ class UpdateCheckTests {
         Assert.assertNull(fullRelease.pickDownloadAsset("web"))
         Assert.assertNull(fullRelease.pickDownloadAsset(""))
     }
+
+    @Test
+    fun isReleaseInstallerUrl_matchesReleaseDownloadsOnly() {
+        // GitHub release 安装包下载 URL 匹配；GitHub API、模组 zip、发布页不匹配
+        Assert.assertTrue(GithubAPI.isReleaseInstallerUrl(
+            "https://github.com/AutumnPizazz/Unciv/releases/download/4.21.10.1/UncivCN-4.21.10.1.Apk"
+        ))
+        Assert.assertFalse(GithubAPI.isReleaseInstallerUrl(
+            "https://api.github.com/repos/AutumnPizazz/Unciv/releases/latest"
+        ))
+        Assert.assertFalse(GithubAPI.isReleaseInstallerUrl(
+            "https://github.com/SomeAuthor/SomeMod/archive/refs/heads/master.zip"
+        ))
+    }
+
+    @Test
+    fun cnServerUrlFor_mapsReleaseDownloads() {
+        // GitHub release 安装包 URL → CN 官方下载服务器 /dl/<tag>/<file>
+        Assert.assertEquals(
+            "http://sp.unciv.cn:30123/dl/4.21.10.1/UncivCN-4.21.10.1.Apk",
+            GithubAPI.cnServerUrlFor(
+                "https://github.com/AutumnPizazz/Unciv/releases/download/4.21.10.1/UncivCN-4.21.10.1.Apk"
+            )
+        )
+        // 非安装包 URL 原样返回
+        val apiUrl = "https://api.github.com/repos/AutumnPizazz/Unciv/releases/latest"
+        Assert.assertEquals(apiUrl, GithubAPI.cnServerUrlFor(apiUrl))
+    }
 }

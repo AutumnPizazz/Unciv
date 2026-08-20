@@ -4,6 +4,8 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 
 ## Unreleased
 
+- Update: update checks and installer downloads are now routed by player region - players in mainland China (a one-time dialog asks on first launch, changeable in Options - Advanced) use the official CN download server (`server-ts` installer hosting, same domain as the multiplayer server), which works even when github.com is unreachable; the server hosts only the latest version (old ones cleaned up automatically) with rate limiting and concurrency protection. Everyone else follows their download source setting as before. Mod downloads are unaffected - see [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)
+
 
 ## 4.21.10.1 (build 1256)
 

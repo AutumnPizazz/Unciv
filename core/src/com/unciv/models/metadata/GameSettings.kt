@@ -68,6 +68,18 @@ class GameSettings {
     }
     var showLongPressIndicators = LongPressIndicatorSetting.Default
 
+    /** 玩家所在地区 - 决定游戏内更新下载走的服务器（见 [playerRegion]） */
+    enum class PlayerRegion(val displayName: String) {
+        MainlandChina("Mainland China"),
+        Overseas("Outside mainland China");
+
+        companion object {
+            /** 从存储名解析，未识别时返回 null（表示未设置） */
+            @Readonly
+            fun fromStoredName(name: String) = entries.firstOrNull { it.name == name }
+        }
+    }
+
     var showZoomButtons = false
     var showUnitNotes = false
     var showTileNotes = false
@@ -156,6 +168,13 @@ class GameSettings {
     var modDownloadSource: String = ModDownloadSource.Official.name
     /** Custom URL prefix used when [modDownloadSource] is Custom, e.g. "https://gh-proxy.com/" */
     var customModDownloadPrefix = ""
+
+    /**
+     * 玩家所在地区 - name of a [PlayerRegion] entry, "" = 未设置（首次启动弹窗询问）。
+     * 决定游戏内更新检查与安装包下载走的服务器：中国大陆 → CN 官方下载服务器
+     * （github.com 被墙，[Constants.uncivDownloadServer]）；其他 → 玩家设置的下载源。
+     */
+    var playerRegion: String = ""
 
     @Readonly
     internal fun isRandomVarianceEnabled(isOnlineMultiplayer: Boolean) =
