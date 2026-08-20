@@ -191,17 +191,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Prepare .aab (for Google Play) and .apk (for Github) files
+      - name: Prepare .apk (for Github) files
+        timeout-minutes: 45   # 防止 runner 环境问题无限挂起阻塞 release
         shell: bash
         run: |
-          mkdir whatsNewDirectory
-          body="${{needs.get-release-body.outputs.whatsnew}}"
-          while [ ${#body} -gt 500 ]; do
-            body="${body%$'\n'*}"
-          done
-          echo "$body" > whatsNewDirectory/whatsnew-en-US
+          # CN 分支走自研 zipalign+apksigner 签名流程，无需 AAB/Google Play whatsnew
+          # --no-scan：禁用 Gradle Actions 注入的 Develocity 构建扫描（CI 偶发挂起的嫌疑点）
           for attempt in 1 2 3; do
-            ./gradlew :android:bundleRelease :android:assembleRelease && break
+            ./gradlew :android:assembleRelease --no-scan && break
             echo "Attempt $attempt failed, retrying in 5s..."
             sleep 5
           done
