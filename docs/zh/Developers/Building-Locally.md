@@ -180,3 +180,5 @@ pnpm build && pnpm start   # 构建并运行编译产物
 ```
 
 配置通过 `.env` 文件读取——可用选项见 `server-ts/example.env`。
+
+该子模块还自带 `Dockerfile` / `docker-compose.yml` 支持容器化部署——在 `server-ts/` 内执行 `docker compose up -d --build` 即可，SQLite 数据库持久化在 `/data` 卷中。详见其 README。

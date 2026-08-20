@@ -195,3 +195,5 @@ pnpm build && pnpm start   # build & run the compiled output
 ```
 
 Configuration is read from a `.env` file — see `server-ts/example.env` for the available options.
+
+The submodule also ships `Dockerfile` / `docker-compose.yml` for containerized deployment — `docker compose up -d --build` in `server-ts/`, with the SQLite database persisted on a `/data` volume. See its README for details.
