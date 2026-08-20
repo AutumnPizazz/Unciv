@@ -15,6 +15,12 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+# 同一提交的重复 run 并行执行会互相抢占 runner CPU，
+# 导致性能冒烟测试（PerfSmokeTest）间歇失败；按提交去重，保留最新一个
+concurrency:
+  group: build-and-test-${{ github.sha }}
+  cancel-in-progress: true
+
 jobs:
 
   # We only need the minimum
