@@ -38,6 +38,9 @@ interface INonPerpetualConstruction : IConstruction, INamed, IHasUniques {
 
     @Readonly fun getProductionCost(civInfo: Civilization, city: City?): Int
     @Readonly fun getStatBuyCost(city: City, stat: Stat): Int?
+    /** Buy cost when purchasing with a mod-defined variable (no game-speed modifier). Defaults to the name-based path. */
+    @Readonly fun getVariableBuyCost(city: City, variableName: String): Int? =
+        getBaseVariableBuyCost(city, variableName)?.toInt()
     @Readonly fun getRejectionReasons(cityConstructions: CityConstructions): Sequence<RejectionReason>
 
     /** Only checks if it has the unique to be bought with this stat, not whether it is purchasable at all */
@@ -45,27 +48,38 @@ interface INonPerpetualConstruction : IConstruction, INamed, IHasUniques {
         return canBePurchasedWithStatReasons(city, stat).purchasable
     }
 
+    /** Only checks if it has the unique to be bought with this mod-defined variable, not whether it is purchasable at all */
+    @Readonly fun canBePurchasedWithVariable(city: City?, variableName: String): Boolean {
+        return canBePurchasedWithNameReasons(city, variableName).purchasable
+    }
+
     /** Only checks if it has the unique to be bought with this stat, not whether it is purchasable at all */
     @Readonly
     fun canBePurchasedWithStatReasons(city: City?, stat: Stat): PurchaseReason {
+        return canBePurchasedWithNameReasons(city, stat.name)
+    }
+
+    /** Only checks if it has the unique to be bought with this stat or variable name, not whether it is purchasable at all */
+    @Readonly
+    fun canBePurchasedWithNameReasons(city: City?, name: String): PurchaseReason {
         val gameContext = city?.state ?: GameContext.EmptyState
-        if (stat == Stat.Production || stat == Stat.Happiness) return PurchaseReason.Invalid
+        if (name == Stat.Production.name || name == Stat.Happiness.name) return PurchaseReason.Invalid
         if (hasUnique(UniqueType.CannotBePurchased, gameContext)) return PurchaseReason.Unpurchasable
         // Can be purchased with [Stat] [cityFilter]
         if (getMatchingUniques(UniqueType.CanBePurchasedWithStat, GameContext.IgnoreConditionals)
             .any {
-                it.params[0] == stat.name &&
+                it.params[0] == name &&
                     (city == null || (it.conditionalsApply(gameContext) && city.matchesFilter(it.params[1])))
             }
         ) return PurchaseReason.UniqueAllowed
         // Can be purchased for [amount] [Stat] [cityFilter]
         if (getMatchingUniques(UniqueType.CanBePurchasedForAmountStat, GameContext.IgnoreConditionals)
             .any {
-                it.params[1] == stat.name &&
+                it.params[1] == name &&
                     (city == null || (it.conditionalsApply(gameContext) && city.matchesFilter(it.params[2])))
             }
         ) return PurchaseReason.UniqueAllowed
-        if (stat == Stat.Gold && !hasUnique(UniqueType.Unbuildable, gameContext)) return PurchaseReason.Allowed
+        if (name == Stat.Gold.name && !hasUnique(UniqueType.Unbuildable, gameContext)) return PurchaseReason.Allowed
         return PurchaseReason.NotAllowed
     }
 
@@ -81,6 +95,11 @@ interface INonPerpetualConstruction : IConstruction, INamed, IHasUniques {
         return statsUsableToBuy.any { canBePurchasedWithStat(city, it) }
     }
 
+    /** A construction can be bought with at least one mod-defined variable. */
+    @Readonly
+    fun canBePurchasedWithAnyVariable(city: City): Boolean =
+        city.civ.gameInfo.ruleset.variables.values.any { canBePurchasedWithVariable(city, it.name) }
+
     @Readonly
     fun getCivilopediaGoldCost(): Int {
         // Same as getBaseGoldCost, but without game-specific modifiers
@@ -95,20 +114,31 @@ interface INonPerpetualConstruction : IConstruction, INamed, IHasUniques {
 
     @Readonly
     fun getBaseBuyCost(city: City, stat: Stat): Float? {
+        return getBaseBuyCostByName(city, stat.name, city.civ.gameInfo.speed.statCostModifiers[stat]!!)
+    }
+
+    /** Base buy cost when purchasing with a mod-defined variable - no game-speed modifier (variables are time-agnostic). */
+    @Readonly
+    fun getBaseVariableBuyCost(city: City, variableName: String): Float? {
+        return getBaseBuyCostByName(city, variableName, 1f)
+    }
+
+    @Readonly
+    private fun getBaseBuyCostByName(city: City, name: String, speedModifier: Float): Float? {
         val conditionalState = city.state
 
         // Can be purchased for [amount] [Stat] [cityFilter]
         val lowestCostUnique = getMatchingUniques(UniqueType.CanBePurchasedForAmountStat, conditionalState)
-            .filter { it.params[1] == stat.name && city.matchesFilter(it.params[2]) }
+            .filter { it.params[1] == name && city.matchesFilter(it.params[2]) }
             .minByOrNull { it.params[0].toInt() }
-        if (lowestCostUnique != null) return lowestCostUnique.params[0].toInt() * city.civ.gameInfo.speed.statCostModifiers[stat]!!
+        if (lowestCostUnique != null) return lowestCostUnique.params[0].toInt() * speedModifier
 
-        if (stat == Stat.Gold) return getBaseGoldCost(city.civ, city).toFloat()
+        if (name == Stat.Gold.name) return getBaseGoldCost(city.civ, city).toFloat()
 
         // Can be purchased with [Stat] [cityFilter]
         if (getMatchingUniques(UniqueType.CanBePurchasedWithStat, conditionalState)
-            .any { it.params[0] == stat.name && city.matchesFilter(it.params[1]) }
-        ) return city.civ.getEra().baseUnitBuyCost * city.civ.gameInfo.speed.statCostModifiers[stat]!!
+            .any { it.params[0] == name && city.matchesFilter(it.params[1]) }
+        ) return city.civ.getEra().baseUnitBuyCost * speedModifier
         return null
     }
 

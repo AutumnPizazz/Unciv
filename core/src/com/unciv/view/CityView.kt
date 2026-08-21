@@ -87,6 +87,8 @@ class CityView(city: City,
     @Readonly fun getBaseStatTree(): StatTreeNode = city.cityStats.baseStatTree
     @Readonly fun getStatPercentBonusTree(): StatTreeNode = city.cityStats.statPercentBonusTree
     @Readonly fun getFinalStatList(): Map<String, Stats> = city.cityStats.finalStatList
+    @Readonly fun getVariableValue(variableName: String): Int = city.getVariable(variableName)
+    @Readonly fun getVariableYield(variableName: String): Int = city.cityStats.getSettledVariableYield(variableName)
 
     // Expansion
     @Readonly fun hasChoosableTiles(): Boolean = city.expansion.getChoosableTiles().any()
@@ -111,7 +113,7 @@ class CityView(city: City,
         construction.getProductionCost(city.civ, city)
     @Readonly fun getUnitDescription(unit: BaseUnit): String = unit.getDescription(city)
     @Readonly fun getBuildingDescription(building: Building): String = building.getDescription(city, true)
-    @Readonly fun getConversionRate(statConversion: PerpetualConstruction.StatConversion): Int = statConversion.getConversionRate(city)
+    @Readonly fun getConversionRate(construction: PerpetualConstruction): Int = construction.getConversionRate(city)
     @Readonly fun getGoldForSellingBuilding(buildingName: String): Int = city.getGoldForSellingBuilding(buildingName)
     @Readonly fun hasSoldBuildingThisTurn(): Boolean = city.hasSoldBuildingThisTurn
     @Readonly fun isGodModeEnabled(): Boolean = city.civ.gameInfo.gameParameters.godMode

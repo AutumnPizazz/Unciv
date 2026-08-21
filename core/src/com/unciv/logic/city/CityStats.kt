@@ -6,6 +6,7 @@ import com.unciv.models.Counter
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.INonPerpetualConstruction
+import com.unciv.models.ruleset.PerpetualConstruction
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.ruleset.unique.UniqueType
@@ -21,6 +22,7 @@ import yairm210.purity.annotations.LocalState
 import yairm210.purity.annotations.Pure
 import yairm210.purity.annotations.Readonly
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @InternalState
 class StatTreeNode {
@@ -105,6 +107,15 @@ class CityStats(val city: City) {
      *  Applied when the yields are settled at turn start. Transient - not serialized. */
     var variableYieldPercentBonuses = HashMap<String, Float>()
 
+    /** The amount of a variable that would be settled from this city's current per-turn yield. */
+    @Readonly
+    fun getSettledVariableYield(variableName: String): Int {
+        val amount = variableYields[variableName] ?: 0
+        val percent = variableYieldPercentBonuses[variableName] ?: 0f
+        return if (percent == 0f) amount
+        else (amount * (1f + percent / 100f)).roundToInt()
+    }
+
     /**
      * Total production before percentage bonuses are applied (base tiles/buildings/specialists/uniques yields,
      * plus excess-food conversion and the minimum-1 production floor, which do not receive percentage bonuses).
@@ -149,6 +160,25 @@ class CityStats(val city: City) {
             return stats
         }
         return null
+    }
+
+    @Readonly
+    private fun getVariableYieldsFromProduction(production: Float, currentConstruction: IConstruction): HashMap<String, Int> {
+        val conversion = currentConstruction as? PerpetualConstruction.VariableConversion ?: return HashMap()
+        if (!conversion.isBuildable(city.cityConstructions)) return HashMap()
+        val amount = (production * getVariableConversionRate(conversion.variable.name)).roundToInt()
+        if (amount == 0) return HashMap()
+        return hashMapOf(conversion.variable.name to amount)
+    }
+
+    @Readonly
+    fun getVariableConversionRate(variableName: String): Float {
+        var conversionRate = 1 / 4f
+        val conversionUnique = city.civ.getMatchingUniques(UniqueType.ProductionToStatConversionBonus)
+            .firstOrNull { it.params[0] == variableName }
+        if (conversionUnique != null)
+            conversionRate *= conversionUnique.params[1].toPercent()
+        return conversionRate
     }
 
     @Readonly
@@ -606,6 +636,8 @@ class CityStats(val city: City) {
         currentCityStats = newCurrentCityStats
 
         variableYields = collectVariableYields()
+        for ((variableName, amount) in getVariableYieldsFromProduction(currentCityStats.production, currentConstruction))
+            variableYields[variableName] = (variableYields[variableName] ?: 0) + amount
 
         // Weighted production multiplier of the current construction, used by the immediate-overflow system
         productionMultiplier =

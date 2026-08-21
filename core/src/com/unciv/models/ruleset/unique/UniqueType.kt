@@ -148,24 +148,24 @@ enum class UniqueType(
     /// Buying units/buildings
     // There is potential to merge these
 
-    BuyUnitsIncreasingCost("May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    BuyBuildingsIncreasingCost("May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    BuyUnitsForAmountStat("May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    BuyBuildingsForAmountStat("May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    BuyUnitsWithStat("May buy [baseUnitFilter] units with [stat] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    BuyBuildingsWithStat("May buy [buildingFilter] buildings with [stat] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    BuyUnitsByProductionCost("May buy [baseUnitFilter] units with [stat] for [nonNegativeAmount] times their normal Production cost", UniqueTarget.FollowerBelief, UniqueTarget.Global),
-    BuyBuildingsByProductionCost("May buy [buildingFilter] buildings with [stat] for [nonNegativeAmount] times their normal Production cost", UniqueTarget.FollowerBelief, UniqueTarget.Global),
-    BuyItemsDiscount("[stat] cost of purchasing items in cities [relativeAmount]%", UniqueTarget.Global, UniqueTarget.FollowerBelief,
+    BuyUnitsIncreasingCost("May buy [baseUnitFilter] units for [nonNegativeAmount] [stat/variableName] [cityFilter] at an increasing price ([amount])", UniqueTarget.Global, UniqueTarget.FollowerBelief),
+    BuyBuildingsIncreasingCost("May buy [buildingFilter] buildings for [nonNegativeAmount] [stat/variableName] [cityFilter] at an increasing price ([amount])", UniqueTarget.Global, UniqueTarget.FollowerBelief),
+    BuyUnitsForAmountStat("May buy [baseUnitFilter] units for [nonNegativeAmount] [stat/variableName] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
+    BuyBuildingsForAmountStat("May buy [buildingFilter] buildings for [nonNegativeAmount] [stat/variableName] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
+    BuyUnitsWithStat("May buy [baseUnitFilter] units with [stat/variableName] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
+    BuyBuildingsWithStat("May buy [buildingFilter] buildings with [stat/variableName] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
+    BuyUnitsByProductionCost("May buy [baseUnitFilter] units with [stat/variableName] for [nonNegativeAmount] times their normal Production cost", UniqueTarget.FollowerBelief, UniqueTarget.Global),
+    BuyBuildingsByProductionCost("May buy [buildingFilter] buildings with [stat/variableName] for [nonNegativeAmount] times their normal Production cost", UniqueTarget.FollowerBelief, UniqueTarget.Global),
+    BuyItemsDiscount("[stat/variableName] cost of purchasing items in cities [relativeAmount]%", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = MULTIPLICATIVE_BONUS_EXPLANATION, docDescriptionZh = MULTIPLICATIVE_BONUS_EXPLANATION_ZH),
-    BuyBuildingsDiscount("[stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%", UniqueTarget.Global, UniqueTarget.FollowerBelief,
+    BuyBuildingsDiscount("[stat/variableName] cost of purchasing [buildingFilter] buildings [relativeAmount]%", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = MULTIPLICATIVE_BONUS_EXPLANATION, docDescriptionZh = MULTIPLICATIVE_BONUS_EXPLANATION_ZH),
-    BuyUnitsDiscount("[stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%", UniqueTarget.Global, UniqueTarget.FollowerBelief,
+    BuyUnitsDiscount("[stat/variableName] cost of purchasing [baseUnitFilter] units [relativeAmount]%", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = MULTIPLICATIVE_BONUS_EXPLANATION, docDescriptionZh = MULTIPLICATIVE_BONUS_EXPLANATION_ZH),
 
     /// Production to Stat conversion
-    EnablesStatProduction("Enables conversion of city production to [stat]", UniqueTarget.Global),
-    ProductionToStatConversionBonus("Production to [stat] conversion in cities changed by [relativeAmount]%", UniqueTarget.Global),
+    EnablesStatProduction("Enables conversion of city production to [stat/variableName]", UniqueTarget.Global),
+    ProductionToStatConversionBonus("Production to [stat/variableName] conversion in cities changed by [relativeAmount]%", UniqueTarget.Global),
 
     /// Improvements
     // Should be replaced with moddable improvements when roads become moddable
@@ -340,8 +340,8 @@ enum class UniqueType(
     Unbuildable("Unbuildable", UniqueTarget.Building, UniqueTarget.Unit, UniqueTarget.Improvement,
         docDescription = "Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith", docDescriptionZh = "阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买"),
     CannotBePurchased("Cannot be purchased", UniqueTarget.Building, UniqueTarget.Unit),
-    CanBePurchasedWithStat("Can be purchased with [stat] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
-    CanBePurchasedForAmountStat("Can be purchased for [amount] [stat] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
+    CanBePurchasedWithStat("Can be purchased with [stat/variableName] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
+    CanBePurchasedForAmountStat("Can be purchased for [amount] [stat/variableName] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
     MaxNumberBuildable("Limited to [amount] per Civilization", UniqueTarget.Building, UniqueTarget.Unit),
 
     /** A special unique, as it only activates [RejectionReasonType] when it has conditionals that *do not* apply.
@@ -648,7 +648,7 @@ enum class UniqueType(
     UnitActionStatsCost("costs [stats] stats", UniqueTarget.UnitActionModifier,
         docDescription = "A positive Integer value will be subtracted from your stock. Food and Production will be removed from Closest City's current stock", docDescriptionZh = "正整数将从你的库存中扣除。食物和产能将从最近城市的当前库存中移除"),
     /** @see CostsResources */
-    UnitActionStockpileCost("costs [amount] [stockpiledResource]", UniqueTarget.UnitActionModifier,
+    UnitActionStockpileCost("costs [amount] [stockpiledResource/civVariableName]", UniqueTarget.UnitActionModifier,
         docDescription = "A positive Integer value will be subtracted from your stock. Do not confuse with \"Costs [amount] [stockpiledResource]\" (uppercase 'C') for Improvements, Buildings, and Units.", docDescriptionZh = "正整数将从你的库存中扣除。不要与改良设施、建筑和单位上的 \"Costs [amount] [stockpiledResource]\"（大写 'C'）混淆。"),
     UnitActionRemovingPromotion("removing the [promotion] promotion/status", UniqueTarget.UnitActionModifier,
         docDescription = "Removes the promotion/status from the unit -" +

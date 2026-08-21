@@ -122,6 +122,7 @@ object BackwardCompatibility {
                 !ruleset.buildings.containsKey(construction)
                     && !ruleset.units.containsKey(construction)
                     && !PerpetualConstruction.perpetualConstructionsMap.containsKey(construction)
+                    && !ruleset.variables.containsKey(construction)
 
             // Remove invalid buildings or units from the queue - don't just check buildings and units because it might be a special construction as well
             for (construction in city.cityConstructions.constructionQueue.toList()) {

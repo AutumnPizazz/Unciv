@@ -208,6 +208,24 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
 
     override fun getStatBuyCost(city: City, stat: Stat): Int? = costFunctions.getStatBuyCost(city, stat)
 
+    override fun getVariableBuyCost(city: City, variableName: String): Int? =
+        costFunctions.getVariableBuyCost(city, variableName)
+
+    override fun canBePurchasedWithVariable(city: City?, variableName: String): Boolean {
+        if (city == null) return super.canBePurchasedWithVariable(null, variableName)
+        if (hasUnique(UniqueType.CannotBePurchased)) return false
+        if (getRejectionReasons(city.cityConstructions).any { it.type != RejectionReasonType.Unbuildable })
+            return false
+        if (costFunctions.canBePurchasedWithVariable(city, variableName)) return true
+        return super.canBePurchasedWithVariable(city, variableName)
+    }
+
+    override fun getBaseVariableBuyCost(city: City, variableName: String): Float? {
+        val specificCost = costFunctions.getBaseVariableBuyCosts(city, variableName).minOrNull()
+        if (specificCost != null) return specificCost
+        return super.getBaseVariableBuyCost(city, variableName)
+    }
+
     @Readonly fun getDisbandGold(civInfo: Civilization) = getBaseGoldCost(civInfo, null).toInt() / 20
 
     override fun shouldBeDisplayed(cityConstructions: CityConstructions): Boolean {
@@ -218,7 +236,7 @@ class BaseUnit : RulesetObject(), INonPerpetualConstruction {
             return true
 
         if (rejectionReasons.none { !it.shouldShow }) return true
-        if (canBePurchasedWithAnyStat(cityConstructions.city)
+        if ((canBePurchasedWithAnyStat(cityConstructions.city) || canBePurchasedWithAnyVariable(cityConstructions.city))
             && rejectionReasons.all { it.type == RejectionReasonType.Unbuildable }) return true
         return false
     }

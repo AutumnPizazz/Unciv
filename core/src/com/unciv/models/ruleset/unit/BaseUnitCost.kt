@@ -90,6 +90,79 @@ class BaseUnitCost(val baseUnit: BaseUnit) {
         return (cost / 10f).toInt() * 10
     }
 
+    /** Whether this unit can be purchased with the given mod-defined variable, through any of the buy uniques. */
+    @Readonly
+    fun canBePurchasedWithVariable(city: City, variableName: String): Boolean {
+        val conditionalState = city.state
+        return city.getMatchingUniques(UniqueType.BuyUnitsIncreasingCost, conditionalState)
+            .any { it.params[2] == variableName && baseUnit.matchesFilter(it.params[0], conditionalState) && city.matchesFilter(it.params[3]) }
+            || city.getMatchingUniques(UniqueType.BuyUnitsByProductionCost, conditionalState)
+            .any { it.params[1] == variableName && baseUnit.matchesFilter(it.params[0], conditionalState) }
+            || city.getMatchingUniques(UniqueType.BuyUnitsWithStat, conditionalState)
+            .any { it.params[1] == variableName && baseUnit.matchesFilter(it.params[0], conditionalState) && city.matchesFilter(it.params[2]) }
+            || city.getMatchingUniques(UniqueType.BuyUnitsForAmountStat, conditionalState)
+            .any { it.params[2] == variableName && baseUnit.matchesFilter(it.params[0], conditionalState) && city.matchesFilter(it.params[3]) }
+    }
+
+    /** Buy cost for this unit when purchasing with a mod-defined variable - no game-speed modifier. */
+    @Readonly
+    fun getVariableBuyCost(city: City, variableName: String): Int? {
+        if (!canBePurchasedWithVariable(city, variableName)) return null
+        var cost = baseUnit.getBaseVariableBuyCost(city, variableName)?.toDouble() ?: return null
+        val conditionalState = city.state
+
+        for (unique in city.getMatchingUniques(UniqueType.BuyUnitsDiscount)) {
+            if (variableName == unique.params[0] && baseUnit.matchesFilter(unique.params[1], conditionalState))
+                cost *= unique.params[2].toPercent()
+        }
+        for (unique in city.getMatchingUniques(UniqueType.BuyItemsDiscount))
+            if (variableName == unique.params[0])
+                cost *= unique.params[1].toPercent()
+
+        return (cost / 10f).toInt() * 10
+    }
+
+    /** Variable variant of [getBaseBuyCosts] - no game-speed modifier. */
+    @Readonly
+    fun getBaseVariableBuyCosts(city: City, variableName: String): Sequence<Float> {
+        val conditionalState = city.state
+        return sequence {
+            yieldAll(city.getMatchingUniques(UniqueType.BuyUnitsIncreasingCost, conditionalState)
+                .filter {
+                    it.params[2] == variableName
+                            && baseUnit.matchesFilter(it.params[0], conditionalState)
+                            && city.matchesFilter(it.params[3])
+                }.map {
+                    baseUnit.getCostForConstructionsIncreasingInPrice(
+                        it.params[1].toInt(),
+                        it.params[4].toInt(),
+                        city.civ.civConstructions.boughtItemsWithIncreasingPrice[baseUnit.name]
+                    ).toFloat()
+                }
+            )
+            yieldAll(city.getMatchingUniques(UniqueType.BuyUnitsByProductionCost, conditionalState)
+                .filter { it.params[1] == variableName && baseUnit.matchesFilter(it.params[0], conditionalState) }
+                .map { (getProductionCost(city.civ, city) * it.params[2].toInt()).toFloat() }
+            )
+
+            if (city.getMatchingUniques(UniqueType.BuyUnitsWithStat, conditionalState)
+                        .any {
+                            it.params[1] == variableName
+                                    && baseUnit.matchesFilter(it.params[0], conditionalState)
+                                    && city.matchesFilter(it.params[2])
+                        }
+            ) yield(city.civ.getEra().baseUnitBuyCost.toFloat())
+
+            yieldAll(city.getMatchingUniques(UniqueType.BuyUnitsForAmountStat, conditionalState)
+                .filter {
+                    it.params[2] == variableName
+                            && baseUnit.matchesFilter(it.params[0], conditionalState)
+                            && city.matchesFilter(it.params[3])
+                }.map { it.params[1].toInt().toFloat() }
+            )
+        }
+    }
+
 
     @Readonly
     fun getBaseBuyCosts(city: City, stat: Stat): Sequence<Float> {

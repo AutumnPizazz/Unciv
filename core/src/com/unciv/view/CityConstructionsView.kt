@@ -40,12 +40,18 @@ class CityConstructionsView(private val cityConstructions: CityConstructions, pr
     @Readonly fun getCurrentConstruction(): IConstruction = cityConstructions.getCurrentConstruction()
     @Readonly fun getStatBuyCost(construction: INonPerpetualConstruction, stat: Stat): Int? =
         construction.getStatBuyCost(cityConstructions.city, stat)
+    @Readonly fun getVariableBuyCost(construction: INonPerpetualConstruction, variableName: String): Int? =
+        construction.getVariableBuyCost(cityConstructions.city, variableName)
     @Readonly fun isConstructionPurchaseAllowed(construction: INonPerpetualConstruction, stat: Stat, cost: Int): Boolean =
         cityConstructions.isConstructionPurchaseAllowed(construction, stat, cost)
+    @Readonly fun isConstructionPurchaseAllowed(construction: INonPerpetualConstruction, variableName: String, cost: Int): Boolean =
+        cityConstructions.isConstructionPurchaseAllowed(construction, variableName, cost)
     @Readonly fun isConstructionPurchaseBlockedByUnit(construction: INonPerpetualConstruction): Boolean =
         cityConstructions.isConstructionPurchaseBlockedByUnit(construction)
 
     // Actions
     fun purchaseConstruction(construction: INonPerpetualConstruction, queuePosition: Int, stat: Stat, tileView: TileView?): Boolean =
         cityConstructions.purchaseConstruction(construction, queuePosition, automatic = false, stat, tileView?.unwrap())
+    fun purchaseConstruction(construction: INonPerpetualConstruction, queuePosition: Int, variableName: String, tileView: TileView?): Boolean =
+        cityConstructions.purchaseConstruction(construction, queuePosition, automatic = false, variableName, tileView?.unwrap())
 }

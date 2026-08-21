@@ -185,6 +185,80 @@ class Building : RulesetStatsObject(), INonPerpetualConstruction {
         )
     }
 
+    override fun canBePurchasedWithVariable(city: City?, variableName: String): Boolean {
+        val purchaseReason = canBePurchasedWithNameReasons(null, variableName)
+        if (city == null) return purchaseReason.purchasable
+
+        val conditionalState = city.state
+        return (
+            city.getMatchingUniques(UniqueType.BuyBuildingsIncreasingCost, conditionalState)
+                .any {
+                    it.params[2] == variableName
+                    && matchesFilter(it.params[0], conditionalState)
+                    && city.matchesFilter(it.params[3])
+                }
+            || city.getMatchingUniques(UniqueType.BuyBuildingsByProductionCost, conditionalState)
+                .any { it.params[1] == variableName && matchesFilter(it.params[0], conditionalState) }
+            || city.getMatchingUniques(UniqueType.BuyBuildingsWithStat, conditionalState)
+                .any {
+                    it.params[1] == variableName
+                    && matchesFilter(it.params[0], conditionalState)
+                    && city.matchesFilter(it.params[2])
+                }
+            || city.getMatchingUniques(UniqueType.BuyBuildingsForAmountStat, conditionalState)
+                .any {
+                    it.params[2] == variableName
+                    && matchesFilter(it.params[0], conditionalState)
+                    && city.matchesFilter(it.params[3])
+                }
+            || super.canBePurchasedWithVariable(city, variableName)
+        )
+    }
+
+    @Readonly
+    private fun getSpecificVariableBuyCost(city: City, variableName: String): Float? {
+        val conditionalState = city.state
+        return sequence {
+            yieldAll(city.getMatchingUniques(UniqueType.BuyBuildingsIncreasingCost, conditionalState)
+                .filter {
+                    it.params[2] == variableName
+                    && matchesFilter(it.params[0], conditionalState)
+                    && city.matchesFilter(it.params[3])
+                }.map {
+                    getCostForConstructionsIncreasingInPrice(
+                        it.params[1].toInt(),
+                        it.params[4].toInt(),
+                        city.civ.civConstructions.boughtItemsWithIncreasingPrice[name]
+                    ).toFloat()
+                }
+            )
+            yieldAll(city.getMatchingUniques(UniqueType.BuyBuildingsByProductionCost, conditionalState)
+                .filter { it.params[1] == variableName && matchesFilter(it.params[0], conditionalState) }
+                .map { (getProductionCost(city.civ, city) * it.params[2].toInt()).toFloat() }
+            )
+            if (city.getMatchingUniques(UniqueType.BuyBuildingsWithStat, conditionalState)
+                .any {
+                    it.params[1] == variableName
+                    && matchesFilter(it.params[0], conditionalState)
+                    && city.matchesFilter(it.params[2])
+                }
+            ) yield(city.civ.getEra().baseUnitBuyCost.toFloat())
+            yieldAll(city.getMatchingUniques(UniqueType.BuyBuildingsForAmountStat, conditionalState)
+                .filter {
+                    it.params[2] == variableName
+                    && matchesFilter(it.params[0], conditionalState)
+                    && city.matchesFilter(it.params[3])
+                }.map { it.params[1].toInt().toFloat() }
+            )
+        }.minOrNull()
+    }
+
+    override fun getBaseVariableBuyCost(city: City, variableName: String): Float? {
+        val specificCost = getSpecificVariableBuyCost(city, variableName)
+        if (specificCost != null) return specificCost
+        return super.getBaseVariableBuyCost(city, variableName)
+    }
+
     @Readonly
     private fun getSpecificBuyCost(city: City, stat: Stat): Float? {
         val conditionalState = city.state
@@ -248,6 +322,24 @@ class Building : RulesetStatsObject(), INonPerpetualConstruction {
         return (cost / 10f).toInt() * 10
     }
 
+    /** Buy cost when purchasing this building with a mod-defined variable. */
+    override fun getVariableBuyCost(city: City, variableName: String): Int? {
+        if (!canBePurchasedWithVariable(city, variableName)) return null
+        var cost = super.getVariableBuyCost(city, variableName)?.toDouble() ?: return null
+        val conditionalState = city.state
+
+        for (unique in city.getMatchingUniques(UniqueType.BuyItemsDiscount))
+            if (variableName == unique.params[0])
+                cost *= unique.params[1].toPercent()
+
+        for (unique in city.getMatchingUniques(UniqueType.BuyBuildingsDiscount)) {
+            if (variableName == unique.params[0] && matchesFilter(unique.params[1], conditionalState))
+                cost *= unique.params[2].toPercent()
+        }
+
+        return (cost / 10f).toInt() * 10
+    }
+
     override fun shouldBeDisplayed(cityConstructions: CityConstructions): Boolean {
         if (cityConstructions.isBeingConstructedOrEnqueued(name))
             return false
@@ -267,7 +359,7 @@ class Building : RulesetStatsObject(), INonPerpetualConstruction {
             return false // You will never be able to get more cities, this building is effectively disabled
 
         if (rejectionReasons.none { !it.shouldShow }) return true
-        return canBePurchasedWithAnyStat(cityConstructions.city)
+        return (canBePurchasedWithAnyStat(cityConstructions.city) || canBePurchasedWithAnyVariable(cityConstructions.city))
                 && rejectionReasons.all { it.type == RejectionReasonType.Unbuildable }
     }
 

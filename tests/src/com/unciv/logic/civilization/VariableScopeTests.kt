@@ -17,6 +17,16 @@ class VariableScopeTests {
     private val game = TestGame().apply { makeHexagonalMap(3) }
     private val civInfo = game.addCiv()
 
+    @Test
+    fun testVariableScopeJsonUsesLowercaseAndReadsCaseInsensitive() {
+        val lower = json().fromJson(com.unciv.models.ruleset.Variable::class.java,
+            "{\"name\":\"X\",\"scope\":\"city\"}")
+        val upper = json().fromJson(com.unciv.models.ruleset.Variable::class.java,
+            "{\"name\":\"X\",\"scope\":\"City\"}")
+        Assert.assertEquals(VariableScope.City, lower.scope)
+        Assert.assertEquals(VariableScope.City, upper.scope)
+        Assert.assertTrue(json().toJson(lower).contains("\"scope\":\"city\""))
+    }
     //region City-level variables
 
     @Test

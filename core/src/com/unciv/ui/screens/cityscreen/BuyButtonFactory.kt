@@ -8,6 +8,7 @@ import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.INonPerpetualConstruction
 import com.unciv.models.ruleset.PerpetualConstruction
+import com.unciv.models.ruleset.Variable
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.stats.Stat
 import com.unciv.models.translations.tr
@@ -18,6 +19,7 @@ import com.unciv.ui.components.extensions.isEnabled
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.input.KeyboardBinding
 import com.unciv.ui.components.input.onActivation
+import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.closeAllPopups
 import com.unciv.ui.screens.basescreen.BaseScreen
@@ -35,11 +37,51 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
 
     fun getBuyButtons(construction: IConstruction?): List<TextButton> {
         val selection = cityScreen.selectedConstruction!=null || cityScreen.selectedQueueEntry >= 0
-        if (selection && construction != null && construction !is PerpetualConstruction)
-            return Stat.statsUsableToBuy.mapNotNull {
+        if (selection && construction != null && construction !is PerpetualConstruction) {
+            val buttons = Stat.statsUsableToBuy.mapNotNull {
                 getBuyButton(construction as INonPerpetualConstruction, it)
-            }
+            }.toMutableList()
+            buttons += getVariableBuyButtons(construction as INonPerpetualConstruction)
+            return buttons
+        }
         return emptyList()
+    }
+
+    /** Buy buttons for constructions purchasable with a mod-defined variable in any scope. */
+    private fun getVariableBuyButtons(construction: INonPerpetualConstruction): List<TextButton> {
+        val cityView = cityScreen.cityView
+        return cityView.city.getRuleset().variables.values
+            .mapNotNull { getVariableBuyButton(construction, it) }
+    }
+
+    private fun getVariableBuyButton(construction: INonPerpetualConstruction, variable: Variable): TextButton? {
+        val cityView = cityScreen.cityView
+        if (!construction.canBePurchasedWithVariable(cityView.city, variable.name)) return null
+        val constructionBuyCost = cityView.constructions.getVariableBuyCost(construction, variable.name) ?: return null
+
+        val button = "".toTextButton()
+        button.setText("Buy".tr() + " " + constructionBuyCost.tr())
+        button.add(ImageGetter.getVariableIcon(variable.name, 18f)).size(18f).padLeft(4f)
+        button.addTooltip(variable.name, hideIcons = true)
+        button.onActivation(binding = KeyboardBinding.BuyConstruction) {
+            button.disable()
+            buyButtonOnClick(construction, variable.name)
+        }
+        button.isEnabled = cityScreen.canChangeState &&
+            cityView.constructions.isConstructionPurchaseAllowed(construction, variable.name, constructionBuyCost)
+        if (cityView.constructions.isConstructionPurchaseBlockedByUnit(construction)) {
+            button.addTooltip("Move unit out of city first", 26f, false)
+        }
+        button.labelCell.pad(5f)
+        return button
+    }
+
+    private fun buyButtonOnClick(construction: INonPerpetualConstruction, variableName: String) {
+        val cityView = cityScreen.cityView
+        val cost = cityView.constructions.getVariableBuyCost(construction, variableName) ?: return
+        if (!cityView.constructions.isConstructionPurchaseAllowed(construction, variableName, cost)) return
+        cityScreen.closeAllPopups()
+        ConfirmBuyVariablePopup(construction, variableName, cost)
     }
 
     private fun getBuyButton(construction: INonPerpetualConstruction?, stat: Stat = Stat.Gold): TextButton? {
@@ -150,6 +192,24 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
         }
     }
 
+    private inner class ConfirmBuyVariablePopup(
+        construction: INonPerpetualConstruction,
+        variableName: String,
+        constructionCost: Int
+    ) : Popup(cityScreen.stage) {
+        init {
+            val cityView = cityScreen.cityView
+            addGoodSizedLabel("Would you like to purchase [${construction.name}] for [$constructionCost] [$variableName]?").row()
+            addCloseButton(Constants.cancel, KeyboardBinding.Cancel) { cityScreen.update() }
+            val confirmStyle = BaseScreen.skin.get("positive", TextButton.TextButtonStyle::class.java)
+            addOKButton("Purchase", KeyboardBinding.Confirm, confirmStyle) {
+                purchaseConstruction(construction, variableName)
+            }
+            equalizeLastTwoButtonWidths()
+            open(true)
+        }
+    }
+
     /** This tests whether the buy button should be _shown_ */
     private fun isConstructionPurchaseShown(construction: INonPerpetualConstruction, stat: Stat): Boolean {
         return cityScreen.cityView.canBePurchasedWithStat(construction, stat)
@@ -166,6 +226,33 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
         SoundPlayer.play(stat.purchaseSound)
         val cityView = cityScreen.cityView
         if (!cityView.constructions.purchaseConstruction(construction, cityScreen.selectedQueueEntry, stat, tile)) {
+            Popup(cityScreen).apply {
+                add("No space available to place [${construction.name}] near [${cityView.name}]".tr()).row()
+                addCloseButton()
+                open()
+            }
+            return
+        }
+        if (cityScreen.selectedQueueEntry>=0 || cityScreen.selectedConstruction?.let { cityView.constructions.isBuildable(it) } != true) {
+            cityScreen.selectedQueueEntry = -1
+            cityScreen.clearSelection()
+
+            if (cityView.constructions.currentConstructionName().isNotEmpty()) {
+                val newConstruction = cityView.constructions.getCurrentConstruction()
+                if (newConstruction is INonPerpetualConstruction)
+                    cityScreen.selectConstruction(newConstruction)
+            }
+        }
+        cityScreen.update()
+    }
+
+    private fun purchaseConstruction(
+        construction: INonPerpetualConstruction,
+        variableName: String,
+        tile: TileView? = null
+    ) {
+        val cityView = cityScreen.cityView
+        if (!cityView.constructions.purchaseConstruction(construction, cityScreen.selectedQueueEntry, variableName, tile)) {
             Popup(cityScreen).apply {
                 add("No space available to place [${construction.name}] near [${cityView.name}]".tr()).row()
                 addCloseButton()

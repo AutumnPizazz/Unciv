@@ -66,11 +66,8 @@ class CityTurnManager(val city: City) {
         val yields = city.cityStats.variableYields
         if (yields.isEmpty()) return
         val ruleset = city.civ.gameInfo.ruleset
-        val percentBonuses = city.cityStats.variableYieldPercentBonuses
-        for ((variableName, amount) in yields) {
-            val percent = percentBonuses[variableName] ?: 0f
-            val finalAmount = if (percent == 0f) amount
-                else (amount * (1f + percent / 100f)).roundToInt()
+        for ((variableName, _) in yields) {
+            val finalAmount = city.cityStats.getSettledVariableYield(variableName)
             when (ruleset.variables[variableName]?.resolvedScope) {
                 com.unciv.models.ruleset.VariableScope.City -> city.addVariable(variableName, finalAmount)
                 com.unciv.models.ruleset.VariableScope.Civ -> city.civ.addVariable(variableName, finalAmount)

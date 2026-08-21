@@ -3,6 +3,7 @@ package com.unciv.ui.screens.worldscreen.unit.actions
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
 import com.unciv.models.translations.removeConditionals
@@ -74,7 +75,13 @@ object UnitActionModifiers {
         for (conditional in actionUnique.getModifiers(UniqueType.UnitActionStockpileCost)) {
             val amount = conditional.params[0].toInt()
             val resourceName = conditional.params[1]
-            if (unit.civ.getResourceAmount(resourceName) < amount) {
+            val ruleset = unit.civ.gameInfo.ruleset
+            val variable = ruleset.variables[resourceName]
+            if (variable?.resolvedScope == VariableScope.Civ) {
+                if (unit.civ.getVariable(resourceName) < amount) return false
+            } else if (variable != null) {
+                return false
+            } else if (unit.civ.getResourceAmount(resourceName) < amount) {
                 return false
             }
         }
@@ -123,9 +130,15 @@ object UnitActionModifiers {
                 UniqueType.UnitActionStockpileCost -> {
                     val amount = conditional.params[0].toInt()
                     val resourceName = conditional.params[1]
-                    val resource = unit.civ.gameInfo.ruleset.tileResources[resourceName]
-                    if (resource != null && resource.isStockpiled)
-                        unit.civ.gainStockpiledResource(resource, -amount)
+                    val ruleset = unit.civ.gameInfo.ruleset
+                    val variable = ruleset.variables[resourceName]
+                    if (variable?.resolvedScope == VariableScope.Civ)
+                        unit.civ.addVariable(resourceName, -amount)
+                    else if (variable == null) {
+                        val resource = ruleset.tileResources[resourceName]
+                        if (resource != null && resource.isStockpiled)
+                            unit.civ.gainStockpiledResource(resource, -amount)
+                    }
                 }
                 UniqueType.UnitActionRemovingPromotion -> {
                     val promotionName = conditional.params[0]

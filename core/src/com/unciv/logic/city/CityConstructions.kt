@@ -23,6 +23,7 @@ import com.unciv.models.ruleset.IRulesetObject
 import com.unciv.models.ruleset.PerpetualConstruction
 import com.unciv.models.ruleset.RejectionReasonType
 import com.unciv.models.ruleset.Ruleset
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.unique.UniqueMap
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
@@ -162,7 +163,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         val currentConstructionSnapshot = currentConstructionName() // See below
         var result = currentConstructionSnapshot.tr(true)
         if (currentConstructionSnapshot.isNotEmpty()) {
-            val construction = PerpetualConstruction.perpetualConstructionsMap[currentConstructionSnapshot]
+            val construction = getConstruction(currentConstructionSnapshot) as? PerpetualConstruction
             result += construction?.getProductionTooltip(city)
                 ?: getTurnsToConstructionString(currentConstructionSnapshot)
         }
@@ -199,6 +200,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     fun getProductionMarkup(ruleset: Ruleset): FormattedLine {
         val currentConstructionSnapshot = currentConstructionName()
         if (currentConstructionSnapshot.isEmpty()) return FormattedLine()
+        val currentConstruction = getConstruction(currentConstructionSnapshot)
         val category = when {
             ruleset.buildings[currentConstructionSnapshot]?.isAnyWonder() == true ->
                 CivilopediaCategories.Wonder.name
@@ -209,7 +211,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             else -> ""
         }
         var label = "{$currentConstructionSnapshot}"
-        if (!PerpetualConstruction.perpetualConstructionsMap.containsKey(currentConstructionSnapshot)) {
+        if (currentConstruction !is PerpetualConstruction) {
             val turnsLeft = turnsToConstruction(currentConstructionSnapshot)
             label += " - $turnsLeft${Fonts.turn}"
         }
@@ -269,7 +271,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             gameBasics.buildings.containsKey(constructionName) -> return gameBasics.buildings[constructionName]!!
             gameBasics.units.containsKey(constructionName) -> return gameBasics.units[constructionName]!!
             else -> {
-                val special = PerpetualConstruction.perpetualConstructionsMap[constructionName]
+                val special = PerpetualConstruction.getConstruction(constructionName, gameBasics)
                 if (special != null) return special
             }
         }
@@ -971,6 +973,78 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         return true
     }
 
+    /** Purchases a construction paying with a mod-defined variable, deducted from the variable's scope
+     *  (city -> this city, civ -> its civilization, global -> game-wide). No game-speed modifier. */
+    fun purchaseConstruction(
+        construction: INonPerpetualConstruction,
+        queuePosition: Int,
+        automatic: Boolean,
+        variableName: String,
+        tile: Tile? = null
+    ): Boolean {
+        val constructionCost = construction.getVariableBuyCost(city, variableName)
+            ?: return false
+        val variableScope = city.civ.gameInfo.ruleset.variables[variableName]?.resolvedScope ?: return false
+        if (!isConstructionPurchaseAllowed(construction, variableName, constructionCost)) return false
+
+        // Support UniqueType.CreatesOneImprovement: it is active when getImprovementToCreate returns an improvement
+        val improvementToPlace = (construction as? Building)?.getImprovementToCreate(city.getRuleset(), city.civ)
+        if (improvementToPlace != null) {
+            val finalTile = tile
+                ?: Automation.getTileForConstructionImprovement(city, improvementToPlace)
+                ?: return false
+            if (!tryPlaceCreateOneImprovementMarker(improvementToPlace, finalTile)) return false
+        }
+
+        if (construction is Building) construction.construct(this)
+        else if (construction is BaseUnit) {
+            // The Stat parameter is only used as a non-null "bought" marker (movement penalty)
+            construction.construct(this, Stat.Gold)
+                ?: return false  // nothing built - no pay
+        }
+
+        if (!city.civ.gameInfo.gameParameters.godMode) {
+            when (variableScope) {
+                VariableScope.City -> city.addVariable(variableName, -constructionCost)
+                VariableScope.Civ -> city.civ.addVariable(variableName, -constructionCost)
+                VariableScope.Global -> city.civ.gameInfo.addVariable(variableName, -constructionCost)
+            }
+
+            val conditionalState = city.state
+            if ((
+                    city.civ.getMatchingUniques(UniqueType.BuyUnitsIncreasingCost, conditionalState) +
+                    city.civ.getMatchingUniques(UniqueType.BuyBuildingsIncreasingCost, conditionalState)
+                ).any {
+                    (
+                        construction is BaseUnit && construction.matchesFilter(it.params[0], conditionalState) ||
+                        construction is Building && construction.matchesFilter(it.params[0], conditionalState)
+                    )
+                    && city.matchesFilter(it.params[3])
+                    && it.params[2] == variableName
+                }
+            ) {
+                city.civ.civConstructions.boughtItemsWithIncreasingPrice.add(construction.name, 1)
+            }
+
+            // Consume stockpiled resources - usually consumed when construction starts, but not when bought
+            if (getWorkDone(construction.name) == 0){ // we didn't pay the resources when we started building
+                for ((resourceName, amount) in construction.getStockpiledResourceRequirements(conditionalState)) {
+                    val resource = city.civ.gameInfo.ruleset.tileResources[resourceName] ?: continue
+                    city.gainStockpiledResource(resource, -amount)
+                }
+            }
+        }
+
+        if (queuePosition in 0 until constructionQueue.size)
+            removeFromQueue(queuePosition, automatic)
+        validateConstructionQueue()
+
+        // A purchase should never leave the city idle if we invalidated or emptied the queue
+        if (isQueueEmptyOrIdle()) chooseNextConstruction()
+
+        return true
+    }
+
 
     /** This is the *one true test* of "can we buy this construction"
      * This tests whether the buy button should be _enabled_ */
@@ -986,6 +1060,29 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             constructionBuyCost == 0 -> true
             else -> city.getStatReserve(stat) >= constructionBuyCost
         }
+    }
+
+    /** Variable variant of [isConstructionPurchaseAllowed]: the balance is read from the variable's scope. */
+    @Readonly
+    fun isConstructionPurchaseAllowed(construction: INonPerpetualConstruction, variableName: String, constructionBuyCost: Int): Boolean {
+        val variable = city.civ.gameInfo.ruleset.variables[variableName] ?: return false
+        return when {
+            city.isPuppet && !city.getMatchingUniques(UniqueType.MayBuyConstructionsInPuppets).any() -> false
+            city.isInResistance() -> false
+            !construction.isPurchasable(city.cityConstructions) -> false    // checks via 'rejection reason'
+            construction is BaseUnit && !city.canPlaceNewUnit(construction) -> false
+            !construction.canBePurchasedWithVariable(city, variableName) -> false
+            city.civ.gameInfo.gameParameters.godMode -> true
+            constructionBuyCost == 0 -> true
+            else -> getVariableBalance(variableName, variable.resolvedScope) >= constructionBuyCost
+        }
+    }
+
+    @Readonly
+    private fun getVariableBalance(variableName: String, scope: VariableScope): Int = when (scope) {
+        VariableScope.City -> city.getVariable(variableName)
+        VariableScope.Civ -> city.civ.getVariable(variableName)
+        VariableScope.Global -> city.civ.gameInfo.getVariable(variableName)
     }
 
     @Readonly
@@ -1072,8 +1169,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     }
 
     private fun isLastConstructionPerpetual() = constructionQueue.isNotEmpty() &&
-        PerpetualConstruction.isNamePerpetual(constructionQueue.last())
-        // `getConstruction(constructionQueue.last()) is PerpetualConstruction` is clear but more expensive
+        PerpetualConstruction.isNamePerpetual(constructionQueue.last(), city.getRuleset())
 
     @Readonly fun isQueueEmptyOrIdle() = currentConstructionName().isEmpty()
         ||  currentConstructionName() == PerpetualConstruction.Idle.name
@@ -1091,7 +1187,8 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         when {
             isQueueEmptyOrIdle() ->
                  setCurrentConstruction(constructionName)
-            addToTop && construction is PerpetualConstruction && PerpetualConstruction.isNamePerpetual( currentConstructionName()) ->
+            addToTop && construction is PerpetualConstruction &&
+                PerpetualConstruction.isNamePerpetual(currentConstructionName(), city.getRuleset()) ->
                  setCurrentConstruction(constructionName) // perpetual constructions will replace each other
             addToTop ->
                 constructionQueue.add(0, constructionName)

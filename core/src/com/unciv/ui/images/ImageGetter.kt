@@ -273,6 +273,8 @@ object ImageGetter {
         }
         if (PerpetualConstruction.perpetualConstructionsMap.containsKey(construction))
             return getImage("OtherIcons/Convert$construction").toGroup(size)
+        if (ruleset.variables.containsKey(construction))
+            return getVariableIcon(construction, size)
         return getStatIcon(construction).surroundWithCircle(size).surroundWithThinCircle()
     }
 

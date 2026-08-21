@@ -9,7 +9,6 @@ import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.IRulesetObject
 import com.unciv.models.ruleset.PerpetualConstruction
-import com.unciv.models.ruleset.PerpetualConstruction.StatConversion
 import com.unciv.models.ruleset.unit.BaseUnit
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.darken
@@ -73,7 +72,7 @@ class ConstructionInfoTable(val cityScreen: CityScreen) : Table() {
             }).pad(5f)
 
             var buildingText = construction.name.tr(hideIcons = true)
-            val specialConstruction = PerpetualConstruction.perpetualConstructionsMap[construction.name]
+            val specialConstruction = construction as? PerpetualConstruction
 
             buildingText += specialConstruction?.let { cityView.getProductionTooltip(it) }
                     ?: cityConstructions.getTurnsToConstructionString(construction)
@@ -83,8 +82,7 @@ class ConstructionInfoTable(val cityScreen: CityScreen) : Table() {
             val description = when (construction) {
                 is BaseUnit -> cityView.getUnitDescription(construction)
                 is Building -> cityView.getBuildingDescription(construction)
-                is StatConversion -> construction.description.replace("[rate]", "[${cityView.getConversionRate(construction)}]").tr()
-                is PerpetualConstruction -> construction.description.tr()
+                is PerpetualConstruction -> construction.description.replace("[rate]", "[${cityView.getConversionRate(construction)}]").tr()
                 else -> ""  // Should never happen
             }
 

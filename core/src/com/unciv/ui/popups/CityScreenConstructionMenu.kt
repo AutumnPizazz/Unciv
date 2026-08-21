@@ -32,7 +32,7 @@ class CityScreenConstructionMenu(
     private val constructionName = construction.name
     private val queueSizeWithoutPerpetual get() =
         cityView.constructions.constructionQueue
-        .count { it !in PerpetualConstruction.perpetualConstructionsMap }
+        .count { !PerpetualConstruction.isNamePerpetual(it, cityView.getRuleset()) }
     private val myIndex = cityView.constructions.constructionQueue.indexOf(constructionName)
     /** Cities (including this one) where changing the construction queue makes sense
      *  (excludes isBeingRazed even though technically that would be allowed) */

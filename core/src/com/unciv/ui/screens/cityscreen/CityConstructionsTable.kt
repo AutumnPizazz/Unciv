@@ -316,7 +316,7 @@ class CityConstructionsTable(private val cityScreen: CityScreen) {
             )
         }
 
-        for (specialConstruction in PerpetualConstruction.perpetualConstructionsMap.values
+        for (specialConstruction in PerpetualConstruction.getAvailableConstructions(cityConstructions.getCityConstructions())
                 .filter { cityConstructions.shouldBeDisplayed(it) }
         ) {
             constructionButtonDTOList.add(
@@ -418,7 +418,7 @@ class CityConstructionsTable(private val cityScreen: CityScreen) {
         val isFirstConstructionOfItsKind = cityConstructions.isFirstConstructionOfItsKind(constructionQueueIndex, constructionName)
 
         var text = constructionName.tr(true) +
-                if (constructionName in PerpetualConstruction.perpetualConstructionsMap) "\n" + Fonts.infinity
+                if (cityConstructions.getConstruction(constructionName) is PerpetualConstruction) "\n" + Fonts.infinity
                 else cityConstructions.getTurnsToConstructionString(construction, isFirstConstructionOfItsKind)
 
         val constructionResource = cityView.getResourceRequirementsPerTurn(construction)
