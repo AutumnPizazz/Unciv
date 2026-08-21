@@ -12,6 +12,8 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 合并上游 7 个提交：View 重构继续（#15280）——视图相等性比较统一、外文明视图访问收紧（getCiv()）、viewingCiv 私有化（观战者伪装成玩家时行为一致）；修复仅有被掠夺道路时的修复功能异常、打开文明百科时的 ANR；CN 特色功能（地图钉/单位备注可见性、多人聊天在线状态、重开投票）改用等价新 API
+
 - 文档站：结构重组——英文区 CoeHarMod 更新日志移至 [/Community/Mods/CoeHarMod/changelog/](/Community/Mods/CoeHarMod/changelog/)（更新计划在 [/Community/Mods/CoeHarMod/changelog/roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)），英文区社区图片改用英文文件名，中文页面不再重复存储图片、直接引用英文版图片
 
 - 文档站：移除上游更新日志页，上游版本记录请通过本页顶部链接查看 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)

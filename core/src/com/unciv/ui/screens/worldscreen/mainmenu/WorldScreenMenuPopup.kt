@@ -133,7 +133,7 @@ class WorldScreenMenuPopup(
     private fun canStartRestartVote(): Boolean {
         val gameInfo = worldScreen.gameInfo
         if (!gameInfo.gameParameters.isOnlineMultiplayer) return false
-        if (worldScreen.viewingCiv.isSpectator()) return false
+        if (worldScreen.selectedGameView.civView.getCiv().isSpectator()) return false
         val restartVoteTurn = gameInfo.gameParameters.restartVoteTurn
         if (restartVoteTurn <= 0 || gameInfo.turns != restartVoteTurn) return false
         return worldScreen.game.onlineMultiplayer.getCachedRestartVote(gameInfo.gameId) == null

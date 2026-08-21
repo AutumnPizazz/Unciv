@@ -177,7 +177,7 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         presenter.update()
 
         // more efficient to do this check once for both
-        if (worldScreen.viewingCiv.units.getIdleUnits().any()) {
+        if (worldScreen.selectedGameView.civView.hasIdleUnits()) {
             prevIdleUnitButton.enable()
             nextIdleUnitButton.enable()
         } else {
@@ -225,10 +225,11 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         if (curUnit != null && curUnit.isPreparingAirSweep()) return
 
         val selectedUnitsRaw = selectedUnits.map { it.getUnit() }
+        val civView = worldScreen.selectedGameView.civView
 
         @Readonly
-        fun MapUnit.isEligible(): Boolean = (this.civ == worldScreen.viewingCiv
-                || worldScreen.selectedGameView.civView.isSpectator()) && this !in selectedUnitsRaw
+        fun MapUnit.isEligible(): Boolean = (this.civ == civView.getCiv() || civView.isSpectator()) 
+                && this !in selectedUnitsRaw
 
         // This is the Civ 5 Order of selection:
         // 1. City
@@ -250,7 +251,7 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         // Note mode: clicking a unit opens note editor instead of selecting it
         if (worldScreen.game.settings.showUnitNotes) {
             val visibleUnits = listOfNotNull(milUnit, civUnit)
-                .filter { selectedTile.isVisible(worldScreen.viewingCiv) }
+                .filter { selectedTile.isVisible(worldScreen.selectedGameView.civView.getCiv()) }
             when (visibleUnits.size) {
                 0 -> {} // no visible unit, fall through to tile note check
                 1 -> { UnitNotePopup(worldScreen, visibleUnits[0], worldScreen.gameInfo) {}; return }
@@ -261,7 +262,7 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         // Tile notes (map pins): clicking a tile opens tile note editor
         if (worldScreen.game.settings.showTileNotes) {
             val tile = selectedTile
-            if (tile.isVisible(worldScreen.viewingCiv)) {
+            if (tile.isVisible(worldScreen.selectedGameView.civView.getCiv())) {
                 TileNotePopup(worldScreen, tile, worldScreen.gameInfo) {}
                 return
             }
@@ -287,7 +288,7 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         val selectedTileCity = selectedTile.getCity()
         val isCitySelected = selectedTile.isCityCenter()
             && selectedTileCity != null
-            && (selectedTile.getOwner() == worldScreen.viewingCiv || worldScreen.viewingCiv.isSpectator())
+            && (selectedTile.getOwner() == worldScreen.selectedGameView.civView.getCiv() || worldScreen.selectedGameView.civView.isSpectator())
             && !selectedUnitIsConnectingRoad
         when {
             forceSelectUnitView != null -> selectUnit(forceSelectUnitView)

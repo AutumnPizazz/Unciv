@@ -205,6 +205,7 @@ jobs:
 
       # UncivCN 分支的签名工具链与本地发布脚本一致（python_tool/UncivCN-release）：
       # zipalign 对齐 + apksigner V3 签名，密钥为本地 release.jks（上云为 secrets）。
+      # 上游的 AAB/Google Play 上传步骤不适用：CN 分支不构建 AAB、不发 Google Play。
       - name: Restore release keystore from secrets
         shell: bash
         run: |

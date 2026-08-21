@@ -252,10 +252,10 @@ object ChatWebSocket {
                             val worldScreen = UncivGame.Current.worldScreen
                             if (worldScreen != null
                                 && worldScreen.gameInfo.gameId == response.gameId
-                                && response.civName != worldScreen.viewingCiv.civName
+                                && response.civName != worldScreen.selectedGameView.civView.getCiv().civName
                             ) {
                                 requestMessageSend(
-                                    Message.OnlineResponse(response.gameId, worldScreen.viewingCiv.civName)
+                                    Message.OnlineResponse(response.gameId, worldScreen.selectedGameView.civView.getCiv().civName)
                                 )
                             }
                         }

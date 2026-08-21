@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+- Merged upstream 7 commits: View refactoring continues (#15280) - unified View equality comparison, foreign-civ view access tightened (`getCiv()`), `viewingCiv` made private (a spectator posing as a player is now consistently treated as that player); fixed repair when only a pillaged road remains and an ANR when opening the Civilopedia; CN features (map pins/unit notes visibility, multiplayer chat online status, restart vote) migrated to the equivalent new API
+
 - Docs: docs site restructured - the English-side CoeHarMod changelog moved to [/Community/Mods/CoeHarMod/changelog/](/Community/Mods/CoeHarMod/changelog/) (roadmap at [/Community/Mods/CoeHarMod/changelog/roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)), community images on the English side use English filenames, and Chinese pages now reference the English-side images instead of storing duplicates
 
 - Docs: the docs site no longer mirrors the upstream changelog - upstream release notes are available via the [official Unciv changelog](https://github.com/yairm210/Unciv/blob/master/changelog.md) linked above
