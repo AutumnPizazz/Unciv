@@ -208,6 +208,8 @@ unit.getPosition()                     -- {x, y} 坐标表
 unit.canMoveTo(x, y)                   -- 能否移动到
 unit.getOwner()                        -- 所属文明名
 unit.isOwnedBy(civName)                -- 是否属于某文明
+unit.getVariable(variableName)         -- 单位级变量值
+unit.getVariables()                    -- 单位变量表 {变量名 = 数量}
 unit.getAttackingStrengthAgainst(x, y) -- 对指定坐标单位/城市的预计最终攻击力（无目标为 0）
 unit.getDefendingStrengthAgainst(x, y) -- 对指定坐标攻击者的预计最终防御力（无目标为 0）
 unit.predictDamageTo(x, y)             -- 对指定坐标单位/城市的预计伤害（无目标为 0）
@@ -219,23 +221,25 @@ unit.canReach(x, y)                    -- 能否到达目标坐标
 **写入方法**:
 
 ```lua
-unit.healBy(amount)                 -- 回复血量
-unit.takeDamage(amount)             -- 造成伤害
-unit.addXP(amount)                  -- 增加经验
-unit.setXP(amount)                  -- 精确设置经验
-unit.setHealth(amount)              -- 精确设置生命（自动限制范围）
-unit.addPromotion(promotionName)    -- 添加晋升
-unit.removePromotion(promotionName) -- 移除晋升
-unit.addMovement(amount)            -- 增加移动力
-unit.useMovement(amount)            -- 消耗移动力
-unit.setStatus(statusName, turns)   -- 施加 N 回合的单位状态
-unit.setAttacksLeft(count)          -- 设置剩余攻击次数
-unit.fortify()                      -- 驻防（action = "Fortify"）
-unit.moveByPath(path)               -- 沿 findPathTo() 的路径移动；返回实际步数
-unit.upgrade()                      -- 免费升级
-unit.destroy()                      -- 摧毁单位
-unit.attackTile(x, y)               -- 攻击目标坐标上的单位/城市；返回 {attackerDamage=n, defenderDamage=m} 或 false（不可攻击）
-unit.teleportTo(x, y)               -- 传送到指定坐标
+unit.healBy(amount)                    -- 回复血量
+unit.takeDamage(amount)                -- 造成伤害
+unit.addXP(amount)                     -- 增加经验
+unit.setXP(amount)                     -- 精确设置经验
+unit.setVariable(variableName, amount) -- 设置单位级变量（受上下限约束）
+unit.addVariable(variableName, amount) -- 增加单位级变量（受上下限约束）
+unit.setHealth(amount)                 -- 精确设置生命（自动限制范围）
+unit.addPromotion(promotionName)       -- 添加晋升
+unit.removePromotion(promotionName)    -- 移除晋升
+unit.addMovement(amount)               -- 增加移动力
+unit.useMovement(amount)               -- 消耗移动力
+unit.setStatus(statusName, turns)      -- 施加 N 回合的单位状态
+unit.setAttacksLeft(count)             -- 设置剩余攻击次数
+unit.fortify()                         -- 驻防（action = "Fortify"）
+unit.moveByPath(path)                  -- 沿 findPathTo() 的路径移动；返回实际步数
+unit.upgrade()                         -- 免费升级
+unit.destroy()                         -- 摧毁单位
+unit.attackTile(x, y)                  -- 攻击目标坐标上的单位/城市；返回 {attackerDamage=n, defenderDamage=m} 或 false（不可攻击）
+unit.teleportTo(x, y)                  -- 传送到指定坐标
 ```
 
 ## tile — 地块

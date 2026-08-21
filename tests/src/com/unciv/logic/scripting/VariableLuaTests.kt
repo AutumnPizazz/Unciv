@@ -3,6 +3,7 @@ package com.unciv.logic.scripting
 import com.badlogic.gdx.Gdx
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.unique.GameContext
@@ -60,10 +61,60 @@ class VariableLuaTests {
         LuaScriptManager.callFunction(func, ctx, civ, funcName, onSuccess = { result = it }, modName = foundMod)
         return result
     }
+
+    private fun runLuaFunction(modName: String, funcName: String, civ: Civilization, unit: MapUnit): Boolean {
+        val (foundMod, func) = LuaScriptManager.getFunction(modName, funcName) ?: run {
+            Assert.fail("$funcName not found")
+            return false
+        }
+        val ctx = LuaAPI.buildContext(civ, null, unit, null, "", GameContext(civInfo = civ, unit = unit), foundMod)
+        var result = false
+        LuaScriptManager.callFunction(func, ctx, civ, funcName, onSuccess = { result = it }, modName = foundMod)
+        return result
+    }
     private fun addCivWithCity(): Civilization {
         val civ = testGame.addCiv(isPlayer = true)
         testGame.addCity(civ, testGame.getTile(0, 0))
         return civ
+    }
+
+    @Test
+    fun luaUnitVariableApisWorkEndToEnd() {
+        val variable = testGame.createVariable(default = 0, scope = VariableScope.Unit)
+        variable.min = 0
+        variable.max = 10
+        val civ = testGame.addCiv(isPlayer = true)
+        val unit = testGame.addDefaultMeleeUnitWithUniques(civ, testGame.getTile(1, 0))
+        val mod = loadLuaScriptToMod("unitVar", "unitvar.lua", """
+            function testUnitVariables(ctx)
+                local unit = ctx.unit
+                unit.setVariable("${variable.name}", 8)
+                unit.addVariable("${variable.name}", 3)
+                local read = unit.getVariable("${variable.name}")
+                local all = unit.getVariables()
+                return read == 10 and all["${variable.name}"] == 10
+            end
+        """.trimIndent())
+        Assert.assertTrue("Lua unit variable APIs must work end to end",
+            runLuaFunction("unitVar", "testUnitVariables", civ, unit))
+        Assert.assertEquals("clamped to max 10", 10, unit.getVariable(variable.name))
+    }
+
+    @Test
+    fun luaUnitVariableIsIsolatedFromCivScope() {
+        val variable = testGame.createVariable(default = 5, scope = VariableScope.Unit)
+        val civ = testGame.addCiv(isPlayer = true)
+        val unit = testGame.addDefaultMeleeUnitWithUniques(civ, testGame.getTile(1, 0))
+        unit.setVariable(variable.name, 7)
+        val mod = loadLuaScriptToMod("unitVarIso", "isolated.lua", """
+            function testIsolated(ctx)
+                -- a unit variable must not leak into the civ-scope channel
+                return ctx.civ.getVariable("${variable.name}") == 0
+                    and ctx.unit.getVariable("${variable.name}") == 7
+            end
+        """.trimIndent())
+        Assert.assertTrue("Lua unit variable must stay isolated from the civ scope",
+            runLuaFunction("unitVarIso", "testIsolated", civ, unit))
     }
 
     @Test

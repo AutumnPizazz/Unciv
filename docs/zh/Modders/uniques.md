@@ -210,6 +210,34 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
+::: details Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]
+示例："Instantly provides [3] [Mana] on [Wounded]"
+
+适用范围：Triggerable
+
+:::
+::: details Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]
+示例："Instantly consumes [3] [Mana] on [Wounded]"
+
+适用范围：Triggerable
+
+:::
+::: details Set [unitVariableName] to [countable] on [mapUnitFilter]
+示例："Set [Mana] to [1000] on [Wounded]"
+
+此词条的效果可被 &lt;(modified by game speed)&gt;
+
+适用范围：Triggerable
+
+:::
+::: details Instantly gain [amount] [unitVariableName] on [mapUnitFilter]
+示例："Instantly gain [3] [Mana] on [Wounded]"
+
+此词条的效果可被 &lt;(modified by game speed)&gt;
+
+适用范围：Triggerable
+
+:::
 ::: details Instantly provides [positiveAmount] [globalVariableName] globally
 示例："Instantly provides [3] [WorldTension] globally"
 
@@ -3318,6 +3346,18 @@ These resources are removed *when work begins* on the construction. Do not confu
 适用范围：Unit
 
 :::
+::: details [amount] [unitVariableName] per turn
+示例："[3] [Mana] per turn"
+
+适用范围：Unit
+
+:::
+::: details [relativeAmount]% [unitVariableName] per turn
+示例："[+20]% [Mana] per turn"
+
+适用范围：Unit
+
+:::
 ::: details Will not be displayed in Civilopedia
 支持只需要 Game 作为上下文的条件。
 
@@ -4820,6 +4860,24 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
+::: details &lt;when above [amount] [unitVariableName] on [mapUnitFilter]&gt;
+示例："when above [3] [Mana] on [Wounded]"
+
+适用范围：Conditional
+
+:::
+::: details &lt;when below [amount] [unitVariableName] on [mapUnitFilter]&gt;
+示例："when below [3] [Mana] on [Wounded]"
+
+适用范围：Conditional
+
+:::
+::: details &lt;when between [amount] and [amount2] [unitVariableName] on [mapUnitFilter]&gt;
+示例："when between [3] and [3] [Mana] on [Wounded]"
+
+适用范围：Conditional
+
+:::
 ::: details &lt;in this city&gt;
 适用范围：Conditional
 
@@ -5659,6 +5717,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `unitNameGroup` | The name of a unit name group found in UnitNameGroups.json, or one of their unique tags. |
 | `unitTriggerTarget` | `This Unit` or `Target Unit`. |
 | `unitType` | Unit Type Filters. |
+| `unitVariableName` | Variables.json 中定义的单位级变量名称（scope 为 'unit'）。 |
 | `validationWarning` | Mod-check warning |
 | `variableName` | The name of any variable defined in Variables.json. |
 | `victoryType` | The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names. |

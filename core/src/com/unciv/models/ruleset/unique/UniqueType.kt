@@ -883,12 +883,12 @@ enum class UniqueType(
     ConditionalWhenBelowGlobalVariable("when below [amount] [globalVariableName] globally", UniqueTarget.Conditional),
     ConditionalWhenBetweenGlobalVariable("when between [amount] and [amount] [globalVariableName] globally", UniqueTarget.Conditional),
 
-    // Unit-scope variable conditionals: the [unitFilter] pins the unit whose value is judged.
+    // Unit-scope variable conditionals: the [mapUnitFilter] pins the unit whose value is judged.
     // The constant 'on' keeps the placeholder structure distinct from the city-scope channel
     // (`when above [] [] []` would collide in uniqueTypeMap).
-    ConditionalWhenAboveUnitVariable("when above [amount] [unitVariableName] on [unitFilter]", UniqueTarget.Conditional),
-    ConditionalWhenBelowUnitVariable("when below [amount] [unitVariableName] on [unitFilter]", UniqueTarget.Conditional),
-    ConditionalWhenBetweenUnitVariable("when between [amount] and [amount] [unitVariableName] on [unitFilter]", UniqueTarget.Conditional),
+    ConditionalWhenAboveUnitVariable("when above [amount] [unitVariableName] on [mapUnitFilter]", UniqueTarget.Conditional),
+    ConditionalWhenBelowUnitVariable("when below [amount] [unitVariableName] on [mapUnitFilter]", UniqueTarget.Conditional),
+    ConditionalWhenBetweenUnitVariable("when between [amount] and [amount] [unitVariableName] on [mapUnitFilter]", UniqueTarget.Conditional),
 
     /////// city conditionals
     ConditionalInThisCity("in this city", UniqueTarget.Conditional),
@@ -1000,15 +1000,15 @@ enum class UniqueType(
     OneTimeSetCityVariable("Set [cityVariableName] to [countable] [cityFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
     OneTimeGainCityVariable("Instantly gain [amount] [cityVariableName] [cityFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
 
-    OneTimeProvideUnitVariable("Instantly provides [positiveAmount] [unitVariableName] on [unitFilter]", UniqueTarget.Triggerable),
-    OneTimeConsumeUnitVariable("Instantly consumes [positiveAmount] [unitVariableName] on [unitFilter]", UniqueTarget.Triggerable),
-    OneTimeSetUnitVariable("Set [unitVariableName] to [countable] on [unitFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
-    OneTimeGainUnitVariable("Instantly gain [amount] [unitVariableName] on [unitFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
+    OneTimeProvideUnitVariable("Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]", UniqueTarget.Triggerable),
+    OneTimeConsumeUnitVariable("Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]", UniqueTarget.Triggerable),
+    OneTimeSetUnitVariable("Set [unitVariableName] to [countable] on [mapUnitFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
+    OneTimeGainUnitVariable("Instantly gain [amount] [unitVariableName] on [mapUnitFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
 
     // Unit-scope variable yields: settled per unit turn end from the unit's own uniques.
     // The constant 'per turn' keeps the placeholder structure distinct from the stat/percent
     // channels (`[+2 Gold]` -> `[] []`, `[+50]% [Gold]` -> `[]% []`).
-    UnitVariableYield("[+amount] [unitVariableName] per turn", UniqueTarget.Unit),
+    UnitVariableYield("[amount] [unitVariableName] per turn", UniqueTarget.Unit),
     UnitVariablePercentBonus("[relativeAmount]% [unitVariableName] per turn", UniqueTarget.Unit),
 
     // Global-scope variable triggers: written to the game-wide storage

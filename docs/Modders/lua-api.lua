@@ -203,6 +203,10 @@
 ---@field takeDamage fun(amount: number)
 ---@field addXP fun(amount: number)
 ---@field setXP fun(amount: number)
+---@field getVariable fun(variableName: string): number
+---@field setVariable fun(variableName: string, amount: number)
+---@field addVariable fun(variableName: string, amount: number)
+---@field getVariables fun(): table
 ---@field setHealth fun(amount: number)
 ---@field addPromotion fun(promotionName: string)
 ---@field removePromotion fun(promotionName: string)

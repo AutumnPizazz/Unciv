@@ -209,6 +209,8 @@ unit.getPosition()                     -- {x, y} coordinate table
 unit.canMoveTo(x, y)                   -- Can move to tile
 unit.getOwner()                        -- Owner civilization name
 unit.isOwnedBy(civName)                -- Owned by civilization
+unit.getVariable(variableName)         -- Unit-scope variable value
+unit.getVariables()                    -- Table {variableName = amount} of this unit's unit-scope variables
 unit.getAttackingStrengthAgainst(x, y) -- Predicted final attack strength against the unit/city at a tile (0 if none)
 unit.getDefendingStrengthAgainst(x, y) -- Predicted final defence strength against the attacker at a tile (0 if none)
 unit.predictDamageTo(x, y)             -- Predicted damage dealt to the unit/city at a tile (0 if none)
@@ -220,23 +222,25 @@ unit.canReach(x, y)                    -- Can reach target tile
 **Write methods**:
 
 ```lua
-unit.healBy(amount)                 -- Heal
-unit.takeDamage(amount)             -- Take damage
-unit.addXP(amount)                  -- Add experience
-unit.setXP(amount)                  -- Set XP exactly
-unit.setHealth(amount)              -- Set health exactly (clamped)
-unit.addPromotion(promotionName)    -- Add promotion
-unit.removePromotion(promotionName) -- Remove promotion
-unit.addMovement(amount)            -- Add movement
-unit.useMovement(amount)            -- Spend movement
-unit.setStatus(statusName, turns)   -- Apply a unit status for N turns
-unit.setAttacksLeft(count)          -- Set attacks remaining
-unit.fortify()                      -- Fortify (action = "Fortify")
-unit.moveByPath(path)               -- Move along a findPathTo() path; returns steps taken
-unit.upgrade()                      -- Upgrade for free
-unit.destroy()                      -- Destroy the unit
-unit.attackTile(x, y)               -- Attack a unit/city at a tile; returns {attackerDamage=n, defenderDamage=m} or false (not attackable)
-unit.teleportTo(x, y)               -- Teleport to a tile
+unit.healBy(amount)                    -- Heal
+unit.takeDamage(amount)                -- Take damage
+unit.addXP(amount)                     -- Add experience
+unit.setXP(amount)                     -- Set XP exactly
+unit.setVariable(variableName, amount) -- Set a unit-scope variable (clamped to its bounds)
+unit.addVariable(variableName, amount) -- Add to a unit-scope variable (clamped to its bounds)
+unit.setHealth(amount)                 -- Set health exactly (clamped)
+unit.addPromotion(promotionName)       -- Add promotion
+unit.removePromotion(promotionName)    -- Remove promotion
+unit.addMovement(amount)               -- Add movement
+unit.useMovement(amount)               -- Spend movement
+unit.setStatus(statusName, turns)      -- Apply a unit status for N turns
+unit.setAttacksLeft(count)             -- Set attacks remaining
+unit.fortify()                         -- Fortify (action = "Fortify")
+unit.moveByPath(path)                  -- Move along a findPathTo() path; returns steps taken
+unit.upgrade()                         -- Upgrade for free
+unit.destroy()                         -- Destroy the unit
+unit.attackTile(x, y)                  -- Attack a unit/city at a tile; returns {attackerDamage=n, defenderDamage=m} or false (not attackable)
+unit.teleportTo(x, y)                  -- Teleport to a tile
 ```
 
 ## tile — Tile

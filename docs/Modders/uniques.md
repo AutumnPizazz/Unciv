@@ -203,6 +203,34 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
+::: details Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]
+Example: "Instantly provides [3] [Mana] on [Wounded]"
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]
+Example: "Instantly consumes [3] [Mana] on [Wounded]"
+
+Applicable to: Triggerable
+
+:::
+::: details Set [unitVariableName] to [countable] on [mapUnitFilter]
+Example: "Set [Mana] to [1000] on [Wounded]"
+
+This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly gain [amount] [unitVariableName] on [mapUnitFilter]
+Example: "Instantly gain [3] [Mana] on [Wounded]"
+
+This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Triggerable
+
+:::
 ::: details Instantly provides [positiveAmount] [globalVariableName] globally
 Example: "Instantly provides [3] [WorldTension] globally"
 
@@ -3311,6 +3339,18 @@ Example: "Is part of Great Person group [comment]"
 Applicable to: Unit
 
 :::
+::: details [amount] [unitVariableName] per turn
+Example: "[3] [Mana] per turn"
+
+Applicable to: Unit
+
+:::
+::: details [relativeAmount]% [unitVariableName] per turn
+Example: "[+20]% [Mana] per turn"
+
+Applicable to: Unit
+
+:::
 ::: details Will not be displayed in Civilopedia
 Supports conditionals that need only a Game as context and nothing else.
 
@@ -4813,6 +4853,24 @@ Example: "when between [3] and [3] [WorldTension] globally"
 Applicable to: Conditional
 
 :::
+::: details &lt;when above [amount] [unitVariableName] on [mapUnitFilter]&gt;
+Example: "when above [3] [Mana] on [Wounded]"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when below [amount] [unitVariableName] on [mapUnitFilter]&gt;
+Example: "when below [3] [Mana] on [Wounded]"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when between [amount] and [amount2] [unitVariableName] on [mapUnitFilter]&gt;
+Example: "when between [3] and [3] [Mana] on [Wounded]"
+
+Applicable to: Conditional
+
+:::
 ::: details &lt;in this city&gt;
 Applicable to: Conditional
 
@@ -5652,6 +5710,7 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `unitNameGroup` | The name of a unit name group found in UnitNameGroups.json, or one of their unique tags. |
 | `unitTriggerTarget` | `This Unit` or `Target Unit`. |
 | `unitType` | Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type, or a multi-filter of these. |
+| `unitVariableName` | The name of any unit-scope variable defined in Variables.json (scope 'unit'). |
 | `validationWarning` | Suppresses one specific Ruleset validation warning. This can specify the full text verbatim including correct upper/lower case, or it can be a wildcard case-insensitive simple pattern starting and ending in an asterisk ('*'). If the suppression unique is used within an object or as modifier (not ModOptions), the wildcard symbols can be omitted, as selectivity is better due to the limited scope. |
 | `variableName` | The name of any variable defined in Variables.json. |
 | `victoryType` | The name of any victory type: 'Cultural', 'Diplomatic', 'Domination', 'Scientific', 'Time' or one of your mod's VictoryTypes.json names. |
