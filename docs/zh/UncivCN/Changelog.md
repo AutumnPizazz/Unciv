@@ -12,6 +12,8 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：单位级变量现可通过条件、触发、每回合产出、Lua 与单位 UI 读写——经验系统本身也已迁移到 `Experience` 单位变量（旧存档自动迁移），模组可通过同一套通道读取与修改单位经验——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
+
 - 模组支持：Variables.json 变量新增第四档作用域 `unit`——模组可为每个单位实例附加整数计数器（如魔法值、护盾值、怒气值），可通过条件与 Lua 读取——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
 
 - 模组支持：Variables.json 变量现支持城市级、文明级和全局级作用域、上下限、每回合产出、百分比加成、购买成本、生产转换、分作用域 unique、Lua 读写与作用域 UI；现有文明级变量需显式声明 `scope`，详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) 与 [uniques](/zh/Modders/uniques)

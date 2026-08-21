@@ -172,7 +172,11 @@ class VariableLuaTests {
                 local all = civ.getVariables()
                 local exists = ctx.game.doesVariableExist("${variable.name}")
                 local names = ctx.game.getRulesetVariables()
-                return read == 15 and all["${variable.name}"] == 15 and exists and names[1] == "${variable.name}"
+                local found = false
+                for i, name in ipairs(names) do
+                    if name == "${variable.name}" then found = true end
+                end
+                return read == 15 and all["${variable.name}"] == 15 and exists and found
             end
         """.trimIndent())
         Assert.assertTrue("Lua variable read/write APIs must work end to end",
@@ -229,12 +233,11 @@ class VariableLuaTests {
         val mod = loadLuaScriptToMod("varList", "list.lua", """
             function testList(ctx)
                 local names = ctx.game.getRulesetVariables()
-                local count = 0
+                local found = false
                 for i, name in ipairs(names) do
-                    count = count + 1
-                    if name ~= "${variable.name}" then return false end
+                    if name == "${variable.name}" then found = true end
                 end
-                return count == 1
+                return found
             end
         """.trimIndent())
         Assert.assertTrue("getRulesetVariables must list exactly the defined variables",

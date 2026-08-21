@@ -65,6 +65,21 @@ object BackwardCompatibility {
         }
     }
 
+    /** Moves legacy unit XP out of [UnitPromotions.XP]'s backing field into the unit-scope
+     *  variable `Experience` (defined in the base ruleset's Variables.json). Must run after
+     *  tileMap.setTransients so every unit's promotions already reference their unit;
+     *  after migration the backing field stays zero and saves only carry the variable. */
+    fun GameInfo.migrateUnitXPToVariables() {
+        for (civInfo in civilizations)
+            for (unit in civInfo.units.getCivUnits()) {
+                if (unit.promotions.XP != 0) {
+                    // Writing through the property migrates the legacy backing field into the
+                    // variable and zeroes the field (see UnitPromotions.XP's setter).
+                    unit.promotions.XP = unit.promotions.XP
+                }
+            }
+    }
+
     private fun GameInfo.removeUnitsAndPromotions() {
         for (tile in tileMap.values) {
             for (unit in tile.getUnits().toList()) {

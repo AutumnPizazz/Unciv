@@ -1,0 +1,18 @@
+[
+    {
+        "name": "Experience",
+        "scope": "unit",
+        "default": 0,
+        "min": 0,
+        "isDisplay": false,
+        "comment": "Engine-managed unit variable backing the XP system; mods may read it, and overriding min/max changes how XP accumulates."
+    },
+    {
+        "name": "ReligiousStrengthLost",
+        "scope": "unit",
+        "default": 0,
+        "min": 0,
+        "isDisplay": false,
+        "comment": "Engine-managed unit variable tracking religious strength lost in foreign territory; mods may read it."
+    }
+]
