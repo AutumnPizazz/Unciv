@@ -319,6 +319,14 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
 
 - `scope` 为 `global` 的变量 `name`
 
+## unitVariableName
+
+单位级变量名称。单位级条件与触发 unique 使用此类型，并且这些 unique 还带有 `[mapUnitFilter]`（特殊值 `this unit`）；每回合产出与百分比加成通道带有固定词 `per turn`。
+
+允许的值：
+
+- `scope` 为 `unit` 的变量 `name`
+
 ## technologyFilter
 
 目前仅针对 [ModOptions.techsToRemove](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#modoptions-json)实现。

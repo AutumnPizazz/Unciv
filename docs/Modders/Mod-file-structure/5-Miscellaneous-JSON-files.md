@@ -383,42 +383,45 @@ When extension rulesets define GlobalUniques, all uniques are merged. To change 
 
 ## Variables.json
 
-This optional file defines mod variables as integer counters with three storage scopes:
+This optional file defines mod variables as integer counters with four storage scopes:
 
 - `city`: one value per city, for values such as loyalty, housing or amenities
 - `civ`: one value per civilization, for values such as war weariness
 - `global`: one value for the whole game, for values such as world tension or pollution
+- `unit`: one value per unit on the map, for values such as mana, shields or rage
 
-The `scope` field is required. It accepts `city`, `civ` or `global` (scope names are written in lowercase; the loader also accepts capitalized input).
+The `scope` field is required. It accepts `city`, `civ`, `global` or `unit` (scope names are written in lowercase; the loader also accepts capitalized input).
 
 Unlike resources or stats, a Variable carries no gameplay semantics by itself. It can be read and written through the scope-specific conditionals and triggerables, used in basic yield entries, percentage yield bonuses, purchase costs and production conversion:
 
 - Civ-scope conditional: `when above [5] [WarWeariness]`
 - City-scope conditional: `when above [5] [Loyalty] in this city`
 - Global-scope conditional: `when above [50] [WorldTension] globally`
+- Unit-scope conditional: `when above [5] [Mana] on [this unit]` (or any other [mapUnitFilter], e.g. `on [Melee]`)
 - Civ-scope trigger: `Instantly provides [2] [WarWeariness]`
 - City-scope trigger: `Instantly provides [2] [Loyalty] in this city`
 - Global-scope trigger: `Instantly provides [2] [WorldTension] globally`
-- Per-turn yield: `[+2 Loyalty]` (the same `[stats]` parameter used by stat yields)
-- Percentage yield bonus: `[+50]% [Loyalty]`
+- Unit-scope trigger: `Instantly provides [2] [Mana] on [this unit]` (or any other [mapUnitFilter])
+- Per-turn yield: `[+2 Loyalty]` (the same `[stats]` parameter used by stat yields); unit-scope yields use their own channel `[+2] [Mana] per turn`
+- Percentage yield bonus: `[+50]% [Loyalty]`; unit-scope: `[+50]% [Mana] per turn`
 - Production conversion: `Enables conversion of city production to [Loyalty]`
 - Purchase cost: `May buy [Melee] units for [10] [WarWeariness] [in this city]`
-- [Lua](../Lua-Modding.md): `civ.getVariable`, `city.getVariable`, `game.getGlobalVariable` and their `set`/`add` variants
+- [Lua](../Lua-Modding.md): `civ.getVariable`, `city.getVariable`, `game.getGlobalVariable`, `unit.getVariable` and their `set`/`add` variants
 
-The three conditional/trigger channels are deliberately separate. A city variable cannot be used in a civ-scope unique, and a global variable cannot be used in a city-scope unique. Basic yield and percentage entries are shared and are routed according to the variable's declared scope.
+The four conditional/trigger channels are deliberately separate. A city variable cannot be used in a civ-scope unique, and a global variable cannot be used in a city-scope unique. Basic yield and percentage entries are shared and are routed according to the variable's declared scope (unit yields only apply to unit-scope variables).
 
 Each variable has the following structure:
 
 | Attribute | Type | Default | Notes |
 |-----------|------|---------|-------|
 | name | String | Required | Must not collide with any stat, tile resource or construction name |
-| scope | String | Required | `city`, `civ` or `global` |
+| scope | String | Required | `city`, `civ`, `global` or `unit` |
 | default | Integer | 0 | Value used when a scope has no record yet |
 | min | Integer | None | Optional lower bound; every write is clamped to it |
 | max | Integer | None | Optional upper bound; every write is clamped to it |
 | isDisplay | Boolean | true | Whether the variable is shown in variable UI |
 | isAlwaysDisplay | Boolean | false | Whether it stays visible in the collapsed world-screen top bar |
-| uniqueTo | String | None | Restricts a `city` or `civ` variable to one civilization; other civilizations cannot read, write or use it; invalid for `global` variables |
+| uniqueTo | String | None | Restricts a `city`, `civ` or `unit` variable to one civilization; other civilizations cannot read, write or use it; invalid for `global` variables |
 
 Example:
 
@@ -442,13 +445,23 @@ Example:
     "scope": "global",
     "default": 0,
     "min": 0
+  },
+  {
+    "name": "Mana",
+    "scope": "unit",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "isDisplay": true
   }
 ]
 ```
 
-City variables are stored in each `City`, civ variables in each `Civilization`, and global variables in `GameInfo`. A missing record falls back to `default`; `min` and `max` are applied on every `set`, `add`, trigger, per-turn settlement and Lua write. Variables are integer counters and are not adjusted by game speed.
+City variables are stored in each `City`, civ variables in each `Civilization`, global variables in `GameInfo`, and unit variables in each `MapUnit`. A missing record falls back to `default`; `min` and `max` are applied on every `set`, `add`, trigger, per-turn settlement and Lua write. Variables are integer counters and are not adjusted by game speed.
 
-Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead. Displayable variables appear in the world-screen top bar, Resources overview and the Variables overview; city-scope values also appear in the city screen.
+Unit-scope variables are settled per unit turn end from the unit's own uniques (`[+2] [Mana] per turn`, percentage bonuses stack additively), and display in the unit panel and the unit overview when `isDisplay` is true. The special unit filter `this unit` targets the contextual unit only (e.g. a unique on the unit itself); without a unit context (a trigger on a building or policy) it resolves to no target, so use an explicit filter like `on [Melee]` to affect units from global sources. The base ruleset defines two engine-managed unit variables: `Experience` (backing the XP system; old saves migrate automatically) and `ReligiousStrengthLost` (missionaries in foreign territory); both are hidden from the UI (`isDisplay: false`) and may be read and modified by mods - note that overriding `Experience`'s `min`/`max` changes how XP accumulates, and Missionary's destruction at full loss is a base-ruleset unique combination (`when above [999] ...` equals `>= 1000` because the conditional is strictly greater-than) that mods can tune or replace.
+
+Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead. Displayable variables appear in the world-screen top bar, Resources overview and the Variables overview; city-scope values also appear in the city screen, and unit-scope values in the unit panel and the unit overview.
 
 Purchase costs paid with variables are integer values and are not rounded to the nearest ten.
 

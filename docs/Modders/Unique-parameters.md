@@ -317,6 +317,14 @@ Allowed values:
 
 - The `name` of a variable whose `scope` is `global`
 
+## unitVariableName
+
+The name of a `unit`-scope variable. This type is used by unit-scope conditionals and trigger uniques; those uniques also carry a `[mapUnitFilter]` (with the special value `this unit`), and the per-turn yield and percent channels carry the fixed `per turn` marker.
+
+Allowed values:
+
+- The `name` of a variable whose `scope` is `unit`
+
 ## technologyFilter
 
 At the moment only implemented for [ModOptions.techsToRemove](Mod-file-structure/5-Miscellaneous-JSON-files.md#modoptions-json).

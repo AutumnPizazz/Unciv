@@ -375,42 +375,45 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 
 ## Variables.json
 
-此可选文件定义整数模组变量，并提供三档存储作用域：
+此可选文件定义整数模组变量，并提供四档存储作用域：
 
 - `city`：每座城市一份数值，可用于忠诚度、住房、宜居度等
 - `civ`：每个文明一份数值，可用于厌战度等
 - `global`：全局一份数值，可用于世界紧张度、温室效应、核污染指数等
+- `unit`：地图上每个单位实例一份数值，可用于魔法值、护盾值、怒气值等
 
-`scope` 字段必填，可填写 `city`、`civ` 或 `global`（推荐使用小写；读取时也兼容首字母大写）。
+`scope` 字段必填，可填写 `city`、`civ`、`global` 或 `unit`（推荐使用小写；读取时也兼容首字母大写）。
 
 变量本身不像资源或属性那样携带固定玩法语义。它可以通过对应作用域的条件与触发 unique、基础产出、百分比产出加成、购买成本和生产转换使用：
 
 - 文明级条件：`when above [5] [WarWeariness]`
 - 城市级条件：`when above [5] [Loyalty] in this city`
 - 全局级条件：`when above [50] [WorldTension] globally`
+- 单位级条件：`when above [5] [Mana] on [this unit]`（或其他 [mapUnitFilter]，如 `on [Melee]`）
 - 文明级触发：`Instantly provides [2] [WarWeariness]`
 - 城市级触发：`Instantly provides [2] [Loyalty] in this city`
 - 全局级触发：`Instantly provides [2] [WorldTension] globally`
-- 每回合产出：`[+2 Loyalty]`（与属性产出使用相同的 `[stats]` 参数）
-- 百分比产出加成：`[+50]% [Loyalty]`
+- 单位级触发：`Instantly provides [2] [Mana] on [this unit]`（或其他 [mapUnitFilter]）
+- 每回合产出：`[+2 Loyalty]`（与属性产出使用相同的 `[stats]` 参数）；单位级产出使用独立通道 `[+2] [Mana] per turn`
+- 百分比产出加成：`[+50]% [Loyalty]`；单位级：`[+50]% [Mana] per turn`
 - 生产转换：`Enables conversion of city production to [Loyalty]`
 - 购买成本：`May buy [Melee] units for [10] [WarWeariness] [in this city]`
-- [Lua](/zh/Modders/Lua-Modding)：`civ.getVariable`、`city.getVariable`、`game.getGlobalVariable` 及对应的 `set`/`add` 方法
+- [Lua](/zh/Modders/Lua-Modding)：`civ.getVariable`、`city.getVariable`、`game.getGlobalVariable`、`unit.getVariable` 及对应的 `set`/`add` 方法
 
-三套条件/触发通道有意保持独立：城市级变量不能写入文明级 unique，全局级变量不能写入城市级 unique。基础产出和百分比加成共用写法，再按变量声明的作用域结算。
+四套条件/触发通道有意保持独立：城市级变量不能写入文明级 unique，全局级变量不能写入城市级 unique。基础产出和百分比加成共用写法，再按变量声明的作用域结算（单位级产出只作用于 unit 档变量）。
 
 每个变量具有以下结构：
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | name | String | 必填 | 不得与任何属性、地块资源或生产项目同名 |
-| scope | String | 必填 | `city`、`civ` 或 `global` |
+| scope | String | 必填 | `city`、`civ`、`global` 或 `unit` |
 | default | Integer | 0 | 该作用域没有记录时使用的值 |
 | min | Integer | 无 | 可选下限；每次写入都会截断到该值 |
 | max | Integer | 无 | 可选上限；每次写入都会截断到该值 |
 | isDisplay | Boolean | true | 是否在变量相关界面显示 |
 | isAlwaysDisplay | Boolean | false | 顶栏折叠时是否仍保持显示 |
-| uniqueTo | String | 无 | 将 `city` 或 `civ` 变量限制给一个文明；其他文明不能读写或使用它；`global` 变量填写此项会报错 |
+| uniqueTo | String | 无 | 将 `city`、`civ` 或 `unit` 变量限制给一个文明；其他文明不能读写或使用它；`global` 变量填写此项会报错 |
 
 示例：
 
@@ -434,13 +437,23 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
     "scope": "global",
     "default": 0,
     "min": 0
+  },
+  {
+    "name": "Mana",
+    "scope": "unit",
+    "default": 0,
+    "min": 0,
+    "max": 100,
+    "isDisplay": true
   }
 ]
 ```
 
-城市级变量存储在每座 `City` 中，文明级变量存储在每个 `Civilization` 中，全局级变量存储在 `GameInfo` 中。缺少记录时回退到 `default`；`min`/`max` 会在 `set`、`add`、触发器、每回合结算和 Lua 写入时生效。变量是整数逻辑计数器，不受游戏速度修正。
+城市级变量存储在每座 `City` 中，文明级变量存储在每个 `Civilization` 中，全局级变量存储在 `GameInfo` 中，单位级变量存储在每张地图的每个 `MapUnit` 中。缺少记录时回退到 `default`；`min`/`max` 会在 `set`、`add`、触发器、每回合结算和 Lua 写入时生效。变量是整数逻辑计数器，不受游戏速度修正。
 
-图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。可显示变量会出现在世界地图顶栏、资源概览和 Variables 概览中；城市级数值还会显示在城市界面。
+单位级变量在单位每回合结束时按单位自身 unique 结算（`[+2] [Mana] per turn`，百分比加成按加法叠加），`isDisplay` 为 true 时显示在单位面板与单位总览。特殊单位过滤器 `this unit` 只作用于上下文单位（如挂在单位自身的 unique）；在无单位上下文时（如建筑/政策上的触发）它无法定位目标，因此跨层给单位加值请使用显式过滤器（如 `on [Melee]`）。基础规则集定义了两个引擎管理的单位变量：`Experience`（经验系统后端，旧存档自动迁移）与 `ReligiousStrengthLost`（传教士在异教领土的损耗）；两者均不在 UI 显示（`isDisplay: false`），模组可读取和修改——注意覆盖 `Experience` 的 `min`/`max` 会改变经验的累积方式，而传教士满损耗摧毁是基础规则集的 unique 组合（`when above [999] ...` 因条件为严格大于，等效 `>= 1000`），模组可自行调整或替换。
+
+图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。可显示变量会出现在世界地图顶栏、资源概览和 Variables 概览中；城市级数值还会显示在城市界面，单位级数值显示在单位面板与单位总览。
 
 使用变量支付的购买成本按整数原值结算，不按十位取整。
 
