@@ -698,6 +698,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
     private fun matchesSingleFilter(filter: String, state: GameContext = GameContext.EmptyState): Boolean {
         return when (filter) {
             "other" -> state.unit != this
+            "this unit" -> state.relevantUnit == this
             Constants.wounded, "wounded units" -> health < getMaxHealth()
             Constants.barbarians, "Barbarian" -> civ.isBarbarian
             "City-State" -> civ.isCityState

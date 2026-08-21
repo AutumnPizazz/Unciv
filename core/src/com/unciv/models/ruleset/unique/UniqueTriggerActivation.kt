@@ -114,6 +114,17 @@ object UniqueTriggerActivation {
         return civInfo.cities.filter { it.matchesFilter(cityFilter) }
     }
 
+    /** The units a unit-scope variable trigger applies to. `this unit` targets the contextual unit;
+     *  every other unit filter targets all matching units of [civInfo]. */
+    @Readonly
+    private fun getTargetUnitsForUnitVariable(unit: MapUnit?, civInfo: Civilization, unitFilter: String): List<MapUnit> {
+        if (unitFilter == "this unit") {
+            if (unit == null) return emptyList()
+            return listOf(unit)
+        }
+        return civInfo.units.getCivUnits().filter { it.matchesFilter(unitFilter) }.toList()
+    }
+
     /** Check if a parameter is a valid amount (plain number or valid Countable expression) */
     @Readonly
     private fun isValidAmount(param: String, ruleset: Ruleset): Boolean =
@@ -935,6 +946,100 @@ object UniqueTriggerActivation {
                     if (targetCities.isEmpty()) false
                     else {
                         targetCities.forEach { it.setVariable(variable.name, amountRequired) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "[$variableName] has been set to [$amountRequired]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeProvideUnitVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(civInfo)) return null
+                val unitFilter = unique.params[2]
+                return {
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    val targetUnits = getTargetUnitsForUnitVariable(unit, civInfo, unitFilter)
+                    if (targetUnits.isEmpty()) false
+                    else {
+                        targetUnits.forEach { it.addVariable(variable.name, amount) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have gained [$amount] [$variableName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeConsumeUnitVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(civInfo)) return null
+                val unitFilter = unique.params[2]
+                return {
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    val targetUnits = getTargetUnitsForUnitVariable(unit, civInfo, unitFilter)
+                    if (targetUnits.isEmpty()) false
+                    else {
+                        targetUnits.forEach { it.addVariable(variable.name, -amount) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have lost [$amount] [$variableName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeGainUnitVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(civInfo)) return null
+                val unitFilter = unique.params[2]
+                return {
+                    var amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    if (unique.isModifiedByGameSpeed())
+                        amount = (amount * civInfo.gameInfo.speed.modifier).roundToInt()
+                    val targetUnits = getTargetUnitsForUnitVariable(unit, civInfo, unitFilter)
+                    if (targetUnits.isEmpty()) false
+                    else {
+                        targetUnits.forEach { it.addVariable(variable.name, amount) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have gained [$amount] [$variableName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeSetUnitVariable -> {
+                val variableName = unique.params[0]
+                val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(civInfo)) return null
+                val unitFilter = unique.params[2]
+                val gameContext = GameContext(civInfo, relevantCity, unit)
+                val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
+                return {
+                    var amountRequired = countableResult
+                    if (unique.isModifiedByGameSpeed())
+                        amountRequired = (amountRequired * civInfo.gameInfo.speed.modifier).roundToInt()
+                    val targetUnits = getTargetUnitsForUnitVariable(unit, civInfo, unitFilter)
+                    if (targetUnits.isEmpty()) false
+                    else {
+                        targetUnits.forEach { it.setVariable(variable.name, amountRequired) }
                         val notificationText = getNotificationText(
                             notification, triggerNotificationText,
                             "[$variableName] has been set to [$amountRequired]"

@@ -118,7 +118,7 @@ enum class UniqueParameterType(
     /** Implemented by [MapUnit.matchesFilter][com.unciv.logic.map.mapunit.MapUnit.matchesFilter] */
     MapUnitFilter("mapUnitFilter", Constants.wounded, null, "Map Unit Filters") {
         override val staticKnownValues = setOf(Constants.wounded, Constants.barbarians, "Barbarian",
-            "City-State", Constants.embarked, "Non-City", "other")
+            "City-State", Constants.embarked, "Non-City", "other", "this unit")
 
         override fun getErrorSeverity(parameterText: String, ruleset: Ruleset) = getErrorSeverityForFilter(parameterText, ruleset)
 
@@ -254,6 +254,15 @@ enum class UniqueParameterType(
             ruleset.variables.filter { it.value.resolvedScope == VariableScope.Global }.keys
         override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
             ruleset.variables[parameterText]?.resolvedScope == VariableScope.Global
+    },
+
+    /** Unit-scope variables only - used by the unit-scope conditional/trigger unique channels
+     *  (`when above [5] [Mana] [this unit]`, `Instantly provides [4] [Mana] [this unit]`). */
+    UnitVariableName("unitVariableName", "Mana", "The name of any unit-scope variable defined in Variables.json (scope 'unit').", "Variables.json 中定义的单位级变量名称（scope 为 'unit'）。") {
+        override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
+            ruleset.variables.filter { it.value.resolvedScope == VariableScope.Unit }.keys
+        override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
+            ruleset.variables[parameterText]?.resolvedScope == VariableScope.Unit
     },
 
     /** [UniqueType.DamageUnitsPlunder] and others near that one */
