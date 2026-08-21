@@ -491,10 +491,11 @@ enum class UniqueParameterType(
     },
 
     /** Used by [UniqueType.OneTimeGainResource], implementation not centralized */
-    Stockpile("stockpile", "Mana", "The name of any stockpiled resource") {
+    Stockpile("stockpile", "Mana", "The name of any stockpiled resource or a mod-defined variable") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset): Set<String> {
             return ruleset.tileResources.filter { it.value.isStockpiled }.keys +
-                Stat.entries.map { it.name } + SubStat.StoredFood.text + SubStat.GoldenAgePoints.text
+                Stat.entries.map { it.name } + SubStat.StoredFood.text + SubStat.GoldenAgePoints.text +
+                ruleset.variables.keys
         }
     },
 

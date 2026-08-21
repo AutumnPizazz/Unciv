@@ -159,7 +159,7 @@ Example: "Instantly provides [3] [Mana]"
 Applicable to: Triggerable
 
 :::
-::: details Set [stockpile] to [countable]
+::: details Set [stockpile/variableName] to [countable]
 Example: "Set [Mana] to [1000]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -5549,7 +5549,7 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `spyAction` | A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`. |
 | `stat` | This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized! |
 | `stats` | For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized! |
-| `stockpile` | The name of any stockpiled resource. |
+| `stockpile` | The name of any stockpiled resource or a mod-defined variable. |
 | `stockpiledResource` | The name of any stockpiled resource. |
 | `tech` | The name of any tech. |
 | `terrainFeature` | The name of any terrain that is a terrain feature according to the json file. |

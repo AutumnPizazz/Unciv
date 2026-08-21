@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+- Modding: variables (Variables.json) are now accepted in every countable position (e.g. `when number of [X] is more than [Y]`) and in the `Set [X] to [countable]` triggerable, so mods can move more resource-faked counters to variables - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) and the migration guide there
+
 - Merged upstream 7 commits: View refactoring continues (#15280) - unified View equality comparison, foreign-civ view access tightened (`getCiv()`), `viewingCiv` made private (a spectator posing as a player is now consistently treated as that player); fixed repair when only a pillaged road remains and an ANR when opening the Civilopedia; CN features (map pins/unit notes visibility, multiplayer chat online status, restart vote) migrated to the equivalent new API
 
 - Docs: docs site restructured - the English-side CoeHarMod changelog moved to [/Community/Mods/CoeHarMod/changelog/](/Community/Mods/CoeHarMod/changelog/) (roadmap at [/Community/Mods/CoeHarMod/changelog/roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)), community images on the English side use English filenames, and Chinese pages now reference the English-side images instead of storing duplicates

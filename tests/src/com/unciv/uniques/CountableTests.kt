@@ -681,5 +681,41 @@ class CountableTests {
         assertEquals("[City Population] * 3 should be 6", 6,
             Countables.getCountableAmount("[City Population] * 3", context))
     }
+
+    @Test
+    fun testVariableCountable() {
+        val ruleset = setupModdedGame(withCiv = true)
+        // Define a mod variable (as Variables.json would) and give the civ a value
+        ruleset.variables["WarWeariness"] = com.unciv.models.ruleset.Variable().apply {
+            name = "WarWeariness"; default = 0
+        }
+        civ.setVariable("WarWeariness", 5)
+
+        // Direct countable evaluation
+        assertEquals(5, Countables.getCountableAmount("WarWeariness", GameContext(civ)))
+
+        // Default fallback for a civ without a record yet
+        val otherCiv = game.addCiv()
+        assertEquals(0, Countables.getCountableAmount("WarWeariness", GameContext(otherCiv)))
+
+        // Non-zero default
+        ruleset.variables["Tension"] = com.unciv.models.ruleset.Variable().apply {
+            name = "Tension"; default = 3
+        }
+        assertEquals(3, Countables.getCountableAmount("Tension", GameContext(otherCiv)))
+
+        // In expressions (e.g. `when number of [X] is between [Y] and [Z]`)
+        assertEquals(6, Countables.getCountableAmount("[[WarWeariness]] + 1", GameContext(civ)))
+
+        // Autocomplete lists defined variables
+        assert("WarWeariness" in Countables.getKnownValuesForAutocomplete(ruleset))
+        assert(Countables.getMatching("WarWeariness", ruleset) == Countables.Variable)
+
+        // Ruleset validation accepts variables in countable positions
+        ruleset.addGlobalUniques("[+1 Gold] <when number of [WarWeariness] is more than [3]>")
+        val errors = RulesetValidator.create(ruleset).getErrorList()
+        val goldErrors = errors.filter { "[+1 Gold]" in it.text }
+        assertEquals("Variable countable should validate cleanly", 0, goldErrors.size)
+    }
     //endregion
 }

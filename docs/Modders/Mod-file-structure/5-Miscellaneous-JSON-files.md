@@ -415,6 +415,37 @@ Example:
 
 Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead.
 
+### Migrating from resource-faked variables (CoeHarMod as the reference)
+
+Variables exist so mods do not have to fake counters with resources. CoeHarMod migrated 8 such counters (governor titles, diplomatic favor, influence, monk/vampire counts, auxiliary counters) and serves as a reference implementation. The migration rules are:
+
+| Old (resource) | New (variable) | Notes |
+|---|---|---|
+| `Provides [N] [Resource.X]` (per-turn supply) | `Instantly provides [N] [X] <upon turn start>` | Building/civ-level uniques trigger per turn-start; remove the `Resource.` prefix from the name |
+| `Consumes [-N] [Resource.X]` | `Instantly provides [N] [X] <upon turn start>` | Negative consumption was a supply hack |
+| `Provides [-N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | Negative supply was a per-turn cost |
+| `Consumes [N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | |
+| `when above [N] [Resource.X]` | `when above [N] [X]` | |
+| `when number of [Resource.X] ...` | `when number of [X] ...` | Variables are valid [countables](Unique-parameters#countable) |
+| `Set [Resource.X] to [expr]` | `Set [X] to [expr]` | |
+| `civ.getResourceAmount("Resource.X")` | `civ.getVariable("X")` | Lua |
+| `civ.addResource("Resource.X", n)` | `civ.addVariable("X", n)` | Lua |
+| `Resource.X = 名字` (translation) | `X = 名字` | Translation template key |
+
+What stays a resource (do **not** migrate):
+
+- **`requiredResource` / `CostsResources`** - per-turn requirements are resource semantics; variables have no per-turn requirement settlement
+- **City-level counters** (`City-level resource` uniques) - variables are civilization-level only
+- **`Provides [N] [Resource.X]` on resource definitions themselves** - resource uniques do not participate in turn-start triggers, so the supply would never fire; keep such counters as resources (CoeHarMod's `AuxiliaryCounter4` is an example)
+- **Real map resources** (Iron, luxury, etc.) and unit-production slots (`Resource.Unit.*`)
+
+Behavior notes after migrating:
+
+- Supply/consumption moves from the city's resource settlement phase to per-turn-start triggers; the net effect per turn is identical for pure counters
+- A resource `revealedBy` tech has no variable equivalent - the counter exists (as its default) from game start
+- Icons: provide `image/Variable/<name>.png`, otherwise a short text label is shown
+
+
 ## Tutorials.json
 
 [link to original](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/Tutorials.json)

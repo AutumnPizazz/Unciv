@@ -405,6 +405,22 @@ enum class Countables(
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset) = ruleset.tileResources.keys
     },
 
+    Variable {
+        override val documentationHeader = "Variable name - From [Variables.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#variables-json)"
+        override val documentationStrings = listOf(
+            "The current value of a mod-defined variable (see Variables.json) for the relevant Civilization.",
+            "Variables are plain integer counters per civilization - unlike resources they have no stockpile/trade semantics, and unlike stats no per-turn yield.",
+            "They are accepted wherever a countable is, e.g. `when number of [WarWeariness] is more than [5]`."
+        )
+        override val matchesWithRuleset = true
+        override fun matches(parameterText: String, ruleset: Ruleset) = parameterText in ruleset.variables
+        override fun eval(parameterText: String, gameContext: GameContext): Int? =
+            gameContext.getVariableAmount(parameterText)
+
+        override val example = "WarWeariness"
+        override fun getKnownValuesForAutocomplete(ruleset: Ruleset) = ruleset.variables.keys
+    },
+
     TileResourcesByCivs("[resourceFilter] resource of [civFilter] Civilizations") {
         override fun eval(parameterText: String, gameContext: GameContext): Int? {
             val (resouceFilter, civFilter) = parameterText.getPlaceholderParameters()

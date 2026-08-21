@@ -6,6 +6,11 @@
 **v3.3.11** - adapted for Unciv 4.21.8.2
 :::
 
+## Unreleased
+
+- Migrated 8 resource-faked counters (Governor Titles, Diplomatic Favor, Influence, Monk count, auxiliary counters) to official mod variables ([Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)): per-turn supply/consumption now use turn-start triggerables, conditionals use plain variable names, Lua reads/writes via `getVariable`/`addVariable`, and top-bar display is now configurable per variable
+- Adapted recommended game version to 4.21.10.2 (requires the Variables.json and variable-countable support, see the migration guide in [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+
 ## v3.3.12 - for 4.21.8.2
 
 - Enabled the immediate production overflow system (new ModOptions unique "Production overflow applies immediately to the next construction"): overflow is uncapped and does not receive the completed construction's production bonuses, is applied to the next queue entry on the same turn (receiving its bonuses, chaining through the queue), and units completed through it can move immediately

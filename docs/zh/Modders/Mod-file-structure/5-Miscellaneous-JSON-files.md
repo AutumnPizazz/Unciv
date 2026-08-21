@@ -407,6 +407,37 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 
 图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。
 
+### 从资源伪装迁移（以 CoeHarMod 为范例）
+
+变量系统的存在意义就是让模组不必用资源伪装计数器。CoeHarMod 已迁移 8 个此类计数器（总督点数、外交支持、影响力、武僧数、辅助计数器等）作为参考实现，迁移规则如下：
+
+| 旧写法（资源） | 新写法（变量） | 说明 |
+|---|---|---|
+| `Provides [N] [Resource.X]`（每回合供给） | `Instantly provides [N] [X] <upon turn start>` | 建筑/文明级 uniques 在每回合开始时触发；名字去掉 `Resource.` 前缀 |
+| `Consumes [-N] [Resource.X]` | `Instantly provides [N] [X] <upon turn start>` | 负消耗是“提供”的 hack |
+| `Provides [-N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | 负供给是“每回合成本” |
+| `Consumes [N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | |
+| `when above [N] [Resource.X]` | `when above [N] [X]` | |
+| `when number of [Resource.X] ...` | `when number of [X] ...` | 变量是合法的 [countable](Unique-parameters#countable) |
+| `Set [Resource.X] to [expr]` | `Set [X] to [expr]` | |
+| `civ.getResourceAmount("Resource.X")` | `civ.getVariable("X")` | Lua |
+| `civ.addResource("Resource.X", n)` | `civ.addVariable("X", n)` | Lua |
+| `Resource.X = 名字`（翻译词条） | `X = 名字` | 翻译模板 key |
+
+**不要迁移**（保持资源）：
+
+- **`requiredResource` / `CostsResources`**——每回合需求是资源语义；变量没有每回合需求结算
+- **城市级计数器**（`City-level resource` unique）——变量只有文明级
+- **资源定义自身的 `Provides [N] [Resource.X]`**——资源 uniques 不参与回合开始触发器，供给永远不会触发；此类计数器保留为资源（CoeHarMod 的 `AuxiliaryCounter4` 即此例）
+- **真实地图资源**（铁、奢侈等）与单位生产槽（`Resource.Unit.*`）
+
+迁移后的行为注意点：
+
+- 供给/消耗从城市资源结算阶段移到每回合开始触发器；对纯计数器而言每回合净效果一致
+- 资源的 `revealedBy` 科技在变量中没有对应物——计数器从游戏开始即存在（值为 default）
+- 图标：提供 `image/Variable/<name>.png`，否则显示短文本标签
+
+
 ## Tutorials.json
 
 [链接到原始文件](https://github.com/yairm210/Unciv/tree/master/android/assets/jsons/Tutorials.json)

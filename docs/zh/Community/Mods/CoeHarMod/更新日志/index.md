@@ -8,6 +8,11 @@ title: 更新日志
 **v3.3.11** - 适配 Unciv 4.21.8.2
 :::
 
+## 未发布
+
+- 迁移到官方模组变量（[Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）：总督点数、外交支持、影响力、武僧数、辅助计数器等 8 个原先用资源伪装的计数器全部改由变量实现——每回合供给/消耗改用回合开始触发器，条件用纯变量名，Lua 改用 `getVariable`/`addVariable`，顶栏显示可按变量独立配置
+- 适配游戏版本更新到 4.21.10.2（依赖 Variables.json 与变量 countable 支持，迁移指南见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+
 ## v3.3.12 - 适配 4.21.8.2
 
 - 启用产能溢出即时转移机制（新 ModOptions unique「Production overflow applies immediately to the next construction」）：溢出无上限且不享受已完成项目产能加成，当回合立即作用于队列下一个项目（享受其加成、可沿队列连锁推进），依靠即时溢出完成的单位可立即移动

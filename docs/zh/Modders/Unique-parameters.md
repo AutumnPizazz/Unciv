@@ -458,6 +458,11 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 可以是城市统计或文明统计，取决于 unique 在何处使用
     - 例如：如果 unique 放在建筑上，获取的资源属于城市；如果放在政策上，则属于文明。
     - 这对例如按城市计数的本地资源会有影响。
+-   变量名称 - 来自 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
+    - 示例：`Only available <when number of [WarWeariness] is more than [0]>`
+    - 相关文明当前持有的模组定义变量（见 Variables.json）的值。
+    - 变量是每个文明独立的整数计数器——与资源不同，没有库存/交易语义；与统计不同，没有每回合产出。
+    - 变量可用于任何 countable 位置，例如 `when number of [WarWeariness] is more than [5]`。
 -   `[resourceFilter] resource of [civFilter] Civilizations`
     - 示例：`Only available <when number of [[Strategic] resource of [City-States] Civilizations] is more than [0]>`
 -   `Era number` - 当前玩家所处时代的编号
