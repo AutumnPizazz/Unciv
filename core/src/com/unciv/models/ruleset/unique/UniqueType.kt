@@ -67,9 +67,9 @@ enum class UniqueType(
     StatsFromGlobalFollowers("[stats] from every [positiveAmount] global followers [cityFilter]", UniqueTarget.FounderBelief),
 
     // Stat percentage boosts
-    StatPercentBonus("[relativeAmount]% [stat]", UniqueTarget.Global, UniqueTarget.FollowerBelief,
+    StatPercentBonus("[relativeAmount]% [stat/variableName]", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = ADDITIVE_BONUS_EXPLANATION, docDescriptionZh = ADDITIVE_BONUS_EXPLANATION_ZH),
-    StatPercentBonusCities("[relativeAmount]% [stat] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief,
+    StatPercentBonusCities("[relativeAmount]% [stat/variableName] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = ADDITIVE_BONUS_EXPLANATION, docDescriptionZh = ADDITIVE_BONUS_EXPLANATION_ZH),
     StatPercentFromObject("[relativeAmount]% [stat] from every [tileFilter/buildingFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = ADDITIVE_BONUS_EXPLANATION, docDescriptionZh = ADDITIVE_BONUS_EXPLANATION_ZH),

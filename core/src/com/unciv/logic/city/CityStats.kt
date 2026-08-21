@@ -101,6 +101,10 @@ class CityStats(val city: City) {
      *  to the variable's scope (city / civ / global) when the turn starts. */
     var variableYields = HashMap<String, Int>()
 
+    /** Percentage bonuses on variable per-turn yields (e.g. `[+50]% [MyVar]`), additive like stat bonuses.
+     *  Applied when the yields are settled at turn start. Transient - not serialized. */
+    var variableYieldPercentBonuses = HashMap<String, Float>()
+
     /**
      * Total production before percentage bonuses are applied (base tiles/buildings/specialists/uniques yields,
      * plus excess-food conversion and the minimum-1 production floor, which do not receive percentage bonuses).
@@ -294,6 +298,36 @@ class CityStats(val city: City) {
         return result
     }
 
+    /** Collects the percentage bonuses on variable yields (`[+50]% [MyVar]`, additive like stat bonuses),
+     *  from the same sources as [collectVariableYields]. Applied when yields are settled at turn start. */
+    private fun collectVariablePercentBonuses() {
+        val conditionalState = city.state
+        val civ = city.civ
+        val ruleset = civ.gameInfo.ruleset
+
+        fun addVariablePercentBonus(unique: Unique) {
+            val variableName = unique.params[1]
+            if (variableName !in ruleset.variables) return
+            // The [cityFilter] variant only applies when this city matches the filter
+            if (unique.type == UniqueType.StatPercentBonusCities && !city.matchesFilter(unique.params[2])) return
+            variableYieldPercentBonuses[variableName] =
+                (variableYieldPercentBonuses[variableName] ?: 0f) + unique.params[0].toFloat()
+        }
+
+        fun addForType(uniqueType: UniqueType) {
+            for (unique in city.getMatchingUniques(uniqueType, conditionalState, includeCivUniques = false))
+                addVariablePercentBonus(unique)
+            civ.nation.getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
+            civ.policies.policyUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
+            civ.tech.techUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
+            civ.getEra().getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
+            civ.gameInfo.getGlobalUniques().getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
+        }
+
+        addForType(UniqueType.StatPercentBonus)
+        addForType(UniqueType.StatPercentBonusCities)
+    }
+
     @Pure
     private fun getStatPercentBonusesFromGoldenAge(isGoldenAge: Boolean): Stats? {
         if (!isGoldenAge) return null
@@ -310,14 +344,17 @@ class CityStats(val city: City) {
             sourceToStats.addStats(stats, unique.getSourceNameForUser(), unique.sourceObjectName ?: "")
         }
 
-        city.forEachMatchingUnique(UniqueType.StatPercentBonus) { unique -> 
-            addUniqueStats(unique, Stat.valueOf(unique.params[1]), unique.params[0].toFloat())
+        city.forEachMatchingUnique(UniqueType.StatPercentBonus) { unique ->
+            val stat = Stat.safeValueOf(unique.params[1])
+            if (stat != null) addUniqueStats(unique, stat, unique.params[0].toFloat())
         }
 
 
         city.forEachMatchingUnique(UniqueType.StatPercentBonusCities) { unique ->
-            if (city.matchesFilter(unique.params[2]))
-                addUniqueStats(unique, Stat.valueOf(unique.params[1]), unique.params[0].toFloat())
+            if (city.matchesFilter(unique.params[2])) {
+                val stat = Stat.safeValueOf(unique.params[1])
+                if (stat != null) addUniqueStats(unique, stat, unique.params[0].toFloat())
+            }
         }
 
         val uniquesToCheck =
@@ -558,7 +595,9 @@ class CityStats(val city: City) {
         val statsFromUniquesBySource = getStatsFromUniquesBySource()
         updateBaseStatList(statsFromBuildings, statsFromSpecialists, statsFromUniquesBySource)
         updateCityHappiness(statsFromBuildings, statsFromSpecialists, statsFromUniquesBySource)
+        variableYieldPercentBonuses = HashMap()
         updateStatPercentBonusList(currentConstruction)
+        collectVariablePercentBonuses()
 
         updateFinalStatList(currentConstruction, calculateGrowthModifiers) // again, we don't edit the existing currentCityStats directly, in order to avoid concurrency exceptions
 

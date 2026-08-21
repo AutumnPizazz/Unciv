@@ -152,4 +152,51 @@ class VariableYieldTests {
     }
 
     //endregion
+
+    //region Percentage bonuses on yields
+
+    @Test
+    fun testVariableYieldPercentBonus() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
+        addBuilding(f, "[+2 ${variable.name}]", "[+50]% [${variable.name}]") // 2 * 1.5 = 3
+
+        CityTurnManager(f.city).startTurn()
+        Assert.assertEquals(3, f.city.getVariable(variable.name))
+    }
+
+    @Test
+    fun testVariableYieldPercentBonusesAreAdditive() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
+        addBuilding(f, "[+2 ${variable.name}]", "[+50]% [${variable.name}]", "[+50]% [${variable.name}]") // 2 * 2.0 = 4
+
+        CityTurnManager(f.city).startTurn()
+        Assert.assertEquals(4, f.city.getVariable(variable.name))
+    }
+
+    @Test
+    fun testVariableYieldPercentBonusWithCityFilter() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
+        addBuilding(f, "[+2 ${variable.name}]", "[+50]% [${variable.name}] [in this city]")
+
+        CityTurnManager(f.city).startTurn()
+        Assert.assertEquals(3, f.city.getVariable(variable.name))
+    }
+
+    @Test
+    fun testVariablePercentBonusAppliesToCivAndGlobalScopes() {
+        val f = Fixture()
+        val civVariable = f.game.createVariable(default = 0, scope = VariableScope.Civ)
+        val globalVariable = f.game.createVariable(default = 0, scope = VariableScope.Global)
+        addBuilding(f, "[+2 ${civVariable.name}]", "[+50]% [${civVariable.name}]",
+            "[+2 ${globalVariable.name}]", "[+50]% [${globalVariable.name}]")
+
+        CityTurnManager(f.city).startTurn()
+        Assert.assertEquals(3, f.civInfo.getVariable(civVariable.name))
+        Assert.assertEquals(3, f.game.gameInfo.getVariable(globalVariable.name))
+    }
+
+    //endregion
 }

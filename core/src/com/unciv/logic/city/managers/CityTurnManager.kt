@@ -60,16 +60,21 @@ class CityTurnManager(val city: City) {
     
     /** Settles this city's per-turn variable yields (see CityStats.variableYields) into the
      *  storage of each variable's scope: city -> this city, civ -> its civilization, global -> game-wide.
+     *  Percentage bonuses (CityStats.variableYieldPercentBonuses) are applied additively first.
      *  Mirrors the stat model: every city contributes its own yields each turn. */
     private fun settleVariableYields() {
         val yields = city.cityStats.variableYields
         if (yields.isEmpty()) return
         val ruleset = city.civ.gameInfo.ruleset
+        val percentBonuses = city.cityStats.variableYieldPercentBonuses
         for ((variableName, amount) in yields) {
+            val percent = percentBonuses[variableName] ?: 0f
+            val finalAmount = if (percent == 0f) amount
+                else (amount * (1f + percent / 100f)).roundToInt()
             when (ruleset.variables[variableName]?.resolvedScope) {
-                com.unciv.models.ruleset.VariableScope.City -> city.addVariable(variableName, amount)
-                com.unciv.models.ruleset.VariableScope.Civ -> city.civ.addVariable(variableName, amount)
-                com.unciv.models.ruleset.VariableScope.Global -> city.civ.gameInfo.addVariable(variableName, amount)
+                com.unciv.models.ruleset.VariableScope.City -> city.addVariable(variableName, finalAmount)
+                com.unciv.models.ruleset.VariableScope.Civ -> city.civ.addVariable(variableName, finalAmount)
+                com.unciv.models.ruleset.VariableScope.Global -> city.civ.gameInfo.addVariable(variableName, finalAmount)
                 null -> {} // undefined variable - skipped (would have failed validation)
             }
         }
