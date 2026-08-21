@@ -2,8 +2,10 @@ package com.unciv.logic.map.mapunit
 
 import com.unciv.logic.automation.Timers.Companion.timeThis
 import com.unciv.logic.civilization.*
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.unique.UniqueType
+import kotlin.math.roundToInt
 
 class UnitTurnManager(val unit: MapUnit) {
 
@@ -55,6 +57,7 @@ class UnitTurnManager(val unit: MapUnit) {
 
         doCitadelDamage()
         doTerrainDamage()
+        settleUnitVariableYields()
 
         unit.addMovementMemory()
 
@@ -71,6 +74,37 @@ class UnitTurnManager(val unit: MapUnit) {
         unit.healBy(amountToHealBy)
     }
 
+
+    /** Settles this unit's per-turn variable yields ([UniqueType.UnitVariableYield]) into its storage,
+     *  applying additive percentage bonuses ([UniqueType.UnitVariablePercentBonus]) first.
+     *  Mirrors the city stat model: yields come from the unit's own uniques (base unit, promotions,
+     *  statuses and global uniques targeting units) and are written through [MapUnit.addVariable]
+     *  (which clamps to the variable's min/max). Variables are not adjusted by game speed. */
+    private fun settleUnitVariableYields() {
+        val ruleset = unit.civ.gameInfo.ruleset
+        val conditionalState = unit.cache.state
+        val yields = HashMap<String, Int>()
+        for (unique in unit.getMatchingUniques(UniqueType.UnitVariableYield, conditionalState)) {
+            val variableName = unique.params[1]
+            val variable = ruleset.variables[variableName] ?: continue
+            if (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(unit.civ)) continue
+            yields[variableName] = (yields[variableName] ?: 0) + unique.params[0].toInt()
+        }
+        if (yields.isEmpty()) return
+
+        val percentBonuses = HashMap<String, Float>()
+        for (unique in unit.getMatchingUniques(UniqueType.UnitVariablePercentBonus, conditionalState)) {
+            val variableName = unique.params[1]
+            if (variableName !in yields) continue // percent bonuses only apply to variables with a base yield
+            percentBonuses[variableName] = (percentBonuses[variableName] ?: 0f) + unique.params[0].toFloat()
+        }
+
+        for ((variableName, amount) in yields) {
+            val percent = percentBonuses[variableName] ?: 0f
+            val finalAmount = if (percent == 0f) amount else (amount * (1f + percent / 100f)).roundToInt()
+            unit.addVariable(variableName, finalAmount)
+        }
+    }
 
     private fun doCitadelDamage() {
         // Check for Citadel damage - note: 'Damage does not stack with other Citadels'

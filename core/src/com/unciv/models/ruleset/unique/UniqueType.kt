@@ -1005,6 +1005,12 @@ enum class UniqueType(
     OneTimeSetUnitVariable("Set [unitVariableName] to [countable] on [unitFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
     OneTimeGainUnitVariable("Instantly gain [amount] [unitVariableName] on [unitFilter]", UniqueTarget.Triggerable, flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
 
+    // Unit-scope variable yields: settled per unit turn end from the unit's own uniques.
+    // The constant 'per turn' keeps the placeholder structure distinct from the stat/percent
+    // channels (`[+2 Gold]` -> `[] []`, `[+50]% [Gold]` -> `[]% []`).
+    UnitVariableYield("[+amount] [unitVariableName] per turn", UniqueTarget.Unit),
+    UnitVariablePercentBonus("[relativeAmount]% [unitVariableName] per turn", UniqueTarget.Unit),
+
     // Global-scope variable triggers: written to the game-wide storage
     OneTimeProvideGlobalVariable("Instantly provides [positiveAmount] [globalVariableName] globally", UniqueTarget.Triggerable),
     OneTimeConsumeGlobalVariable("Instantly consumes [positiveAmount] [globalVariableName] globally", UniqueTarget.Triggerable),
