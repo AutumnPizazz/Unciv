@@ -6,6 +6,7 @@ import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.tile.TerrainType
 import com.unciv.models.ruleset.unique.UniqueParameterType.Companion.guessTypeForTranslationWriter
@@ -202,8 +203,16 @@ enum class UniqueParameterType(
     Stats("stats", "+1 Gold, +2 Production", "For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized!",
         severityDefault = UniqueType.UniqueParameterErrorSeverity.RulesetInvariant
     ) {
-        override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
-            com.unciv.models.stats.Stats.isStats(parameterText)
+        private val statsEntryRegex = Regex("([+-])(\\d+) (.+)")
+        override fun isKnownValue(parameterText: String, ruleset: Ruleset): Boolean {
+            if (com.unciv.models.stats.Stats.isStats(parameterText)) return true
+            if (!com.unciv.models.stats.Stats.isStatsLike(parameterText)) return false
+            // A stats parameter may also mix in mod-defined variable entries (e.g. `+2 Gold, +1 MyVar`)
+            return parameterText.split(", ").all { entry ->
+                val match = statsEntryRegex.matchEntire(entry) ?: return@all false
+                Stat.isStat(match.groupValues[3]) || ruleset.variables.containsKey(match.groupValues[3])
+            }
+        }
     },
 
     /** Many UniqueTypes like [UniqueType.StatPercentBonus] */
@@ -218,6 +227,33 @@ enum class UniqueParameterType(
     VariableName("variableName", "WarWeariness", "The name of any variable defined in Variables.json") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset) = ruleset.variables.keys
         override fun isKnownValue(parameterText: String, ruleset: Ruleset) = parameterText in ruleset.variables
+    },
+
+    /** Civ-scope variables only - used by the civ-scope conditional/trigger unique channels
+     *  (`when above [5] [WarWeariness]`, `Instantly provides [4] [WarWeariness]`). */
+    CivVariableName("civVariableName", "WarWeariness", "The name of any civ-scope variable defined in Variables.json (scope 'civ')") {
+        override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
+            ruleset.variables.filter { it.value.resolvedScope == VariableScope.Civ }.keys
+        override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
+            ruleset.variables[parameterText]?.resolvedScope == VariableScope.Civ
+    },
+
+    /** City-scope variables only - used by the city-scope conditional/trigger unique channels
+     *  (`when above [5] [Loyalty] in this city`, `Instantly provides [4] [Loyalty] in this city`). */
+    CityVariableName("cityVariableName", "Loyalty", "The name of any city-scope variable defined in Variables.json (scope 'city')") {
+        override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
+            ruleset.variables.filter { it.value.resolvedScope == VariableScope.City }.keys
+        override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
+            ruleset.variables[parameterText]?.resolvedScope == VariableScope.City
+    },
+
+    /** Global-scope variables only - used by the global-scope conditional/trigger unique channels
+     *  (`when above [50] [WorldTension] globally`, `Instantly provides [4] [WorldTension] globally`). */
+    GlobalVariableName("globalVariableName", "WorldTension", "The name of any global-scope variable defined in Variables.json (scope 'global')") {
+        override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
+            ruleset.variables.filter { it.value.resolvedScope == VariableScope.Global }.keys
+        override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
+            ruleset.variables[parameterText]?.resolvedScope == VariableScope.Global
     },
 
     /** [UniqueType.DamageUnitsPlunder] and others near that one */
@@ -491,11 +527,11 @@ enum class UniqueParameterType(
     },
 
     /** Used by [UniqueType.OneTimeGainResource], implementation not centralized */
-    Stockpile("stockpile", "Mana", "The name of any stockpiled resource or a mod-defined variable") {
+    Stockpile("stockpile", "Mana", "The name of any stockpiled resource or a mod-defined civ-scope variable") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset): Set<String> {
             return ruleset.tileResources.filter { it.value.isStockpiled }.keys +
                 Stat.entries.map { it.name } + SubStat.StoredFood.text + SubStat.GoldenAgePoints.text +
-                ruleset.variables.keys
+                ruleset.variables.filter { it.value.resolvedScope == VariableScope.Civ }.keys
         }
     },
 

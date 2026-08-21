@@ -199,6 +199,45 @@ object Conditionals {
                     { current, lowerLimit, upperLimit -> current >= lowerLimit && current <= upperLimit }
             }
 
+            // City-scope variable conditionals: judged on the city matching the [cityFilter]
+            UniqueType.ConditionalWhenAboveCityVariable -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnCity {
+                    matchesFilter(conditional.params[2]) && getVariable(conditional.params[1]) > amount
+                }
+            }
+            UniqueType.ConditionalWhenBelowCityVariable -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnCity {
+                    matchesFilter(conditional.params[2]) && getVariable(conditional.params[1]) < amount
+                }
+            }
+            UniqueType.ConditionalWhenBetweenCityVariable -> {
+                val lowerAmount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val upperAmount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
+                checkOnCity {
+                    matchesFilter(conditional.params[3]) &&
+                        getVariable(conditional.params[2]) >= lowerAmount && getVariable(conditional.params[2]) <= upperAmount
+                }
+            }
+
+            // Global-scope variable conditionals: judged against the game-wide value
+            UniqueType.ConditionalWhenAboveGlobalVariable -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnGameInfo { getVariable(conditional.params[1]) > amount }
+            }
+            UniqueType.ConditionalWhenBelowGlobalVariable -> {
+                val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                checkOnGameInfo { getVariable(conditional.params[1]) < amount }
+            }
+            UniqueType.ConditionalWhenBetweenGlobalVariable -> {
+                val lowerAmount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val upperAmount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
+                checkOnGameInfo {
+                    getVariable(conditional.params[2]) >= lowerAmount && getVariable(conditional.params[2]) <= upperAmount
+                }
+            }
+
             UniqueType.ConditionalHappy -> checkOnCiv { stats.happiness >= 0 }
             UniqueType.ConditionalGoldenAge -> checkOnCiv { goldenAges.isGoldenAge() }
             UniqueType.ConditionalNotGoldenAge -> checkOnCiv { !goldenAges.isGoldenAge() }

@@ -11,6 +11,7 @@ import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.map.mapgenerator.mapregions.Region
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.stats.Stat
 import com.unciv.utils.hashOf
 import yairm210.purity.annotations.Readonly
@@ -113,13 +114,17 @@ data class GameContext(
         }
     }
 
-    /** Amount of a mod-defined variable (see Variable.json) for the relevant civilization.
-     *  Variables are civ-level only, so a relevant city falls back to its civilization. */
+    /** Amount of a mod-defined variable (see Variable.json) for the relevant scope.
+     *  - [VariableScope.Global]: always the game-wide value
+     *  - [VariableScope.Civ]: the relevant civilization's value (a relevant city falls back to its civilization)
+     *  - [VariableScope.City]: the relevant city's value, falling back to the ruleset default when there is no relevant city */
     @Readonly
     fun getVariableAmount(variableName: String): Int {
-        return when {
-            relevantCiv != null -> relevantCiv!!.getVariable(variableName)
-            else -> 0
+        val variable = gameInfo?.ruleset?.variables?.get(variableName) ?: return 0
+        return when (variable.resolvedScope) {
+            VariableScope.Global -> gameInfo?.getVariable(variableName) ?: 0
+            VariableScope.Civ -> relevantCiv?.getVariable(variableName) ?: 0
+            VariableScope.City -> relevantCity?.getVariable(variableName) ?: variable.default
         }
     }
 

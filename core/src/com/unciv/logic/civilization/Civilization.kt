@@ -1123,11 +1123,13 @@ class Civilization : IsPartOfGameInfoSerialization {
     fun getVariable(variable: Variable): Int = getVariable(variable.name)
 
     fun addVariable(variableName: String, amount: Int) {
-        variables[variableName] = getVariable(variableName) + amount
+        variables[variableName] = getVariable(variableName).let { current ->
+            gameInfo.ruleset.variables[variableName]?.clamp(current + amount) ?: (current + amount)
+        }
     }
 
     fun setVariable(variableName: String, amount: Int) {
-        variables[variableName] = amount
+        variables[variableName] = gameInfo.ruleset.variables[variableName]?.clamp(amount) ?: amount
     }
 
     //endregion

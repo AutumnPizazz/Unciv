@@ -9,6 +9,7 @@ import com.unciv.models.ruleset.INonPerpetualConstruction
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.models.ruleset.unique.VariableStatsParser
 import com.unciv.models.ruleset.unit.BaseUnit
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.StatMap
@@ -93,6 +94,12 @@ class CityStats(val city: City) {
     var statsFromTiles = Stats()
 
     var currentCityStats: Stats = Stats()  // This is so we won't have to calculate this multiple times - takes a lot of time, especially on phones
+
+    /** Per-turn yields of mod-defined variables (see Variable.json), computed on every [update].
+     *  Transient - not serialized; settled into the variable storage at turn start (see CityTurnManager).
+     *  Mirrors the stat model exactly: each city contributes its own yields, and the amount is written
+     *  to the variable's scope (city / civ / global) when the turn starts. */
+    var variableYields = HashMap<String, Int>()
 
     /**
      * Total production before percentage bonuses are applied (base tiles/buildings/specialists/uniques yields,
@@ -247,6 +254,44 @@ class CityStats(val city: City) {
 
 
         return sourceToStats
+    }
+
+    /** Collects the per-turn yields of mod-defined variables from every active `[stats]`-parameter unique of this city:
+     *  - local sources: this city's built buildings and religion (Stats and StatsPerCity uniques)
+     *  - civ-level sources applying per city (nation, policies, techs, era, global uniques) -
+     *    matching the stat model where a policy `[+2 Gold]` contributes to every city.
+     *  The amounts are settled by [CityTurnManager] into the variable's scope at turn start. */
+    @Readonly
+    private fun collectVariableYields(): HashMap<String, Int> {
+        val result = HashMap<String, Int>()
+        val ruleset = city.civ.gameInfo.ruleset
+        val conditionalState = city.state
+        val civ = city.civ
+
+        fun addUniqueStats(unique: Unique) {
+            val statsParam = unique.params.firstOrNull { Stats.isStatsLike(it) } ?: return
+            for ((name, amount) in VariableStatsParser.extract(statsParam, ruleset)) {
+                result[name] = (result[name] ?: 0) + amount
+            }
+        }
+
+        fun addForType(uniqueType: UniqueType) {
+            // Local: this city's buildings and religion (all Stats/StatsPerCity, local or not)
+            for (unique in city.getMatchingUniques(uniqueType, conditionalState, includeCivUniques = false))
+                addUniqueStats(unique)
+            // Civ-level sources, evaluated in this city's context (excludes cities' building uniques,
+            // which are already collected locally above - see Civilization.getMatchingUniques for the full set)
+            civ.nation.getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
+            civ.policies.policyUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
+            civ.tech.techUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
+            civ.getEra().getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
+            civ.gameInfo.getGlobalUniques().getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
+        }
+
+        addForType(UniqueType.Stats)
+        addForType(UniqueType.StatsPerCity)
+
+        return result
     }
 
     @Pure
@@ -520,6 +565,8 @@ class CityStats(val city: City) {
         val newCurrentCityStats = Stats()
         for (stat in finalStatList.values) newCurrentCityStats.add(stat)
         currentCityStats = newCurrentCityStats
+
+        variableYields = collectVariableYields()
 
         // Weighted production multiplier of the current construction, used by the immediate-overflow system
         productionMultiplier =

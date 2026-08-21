@@ -278,10 +278,11 @@ class TestGame(vararg addGlobalUniques: String, forUITesting: Boolean = false) {
     fun createResource(vararg uniques: String) =
         createRulesetObject(ruleset.tileResources, *uniques) { TileResource() }
 
-    fun createVariable(default: Int = 0, isDisplay: Boolean = true): Variable {
+    fun createVariable(default: Int = 0, isDisplay: Boolean = true, scope: VariableScope = VariableScope.Civ): Variable {
         val variable = createRulesetObject(ruleset.variables) { Variable() }
         variable.default = default
         variable.isDisplay = isDisplay
+        variable.scope = scope
         return variable
     }
 

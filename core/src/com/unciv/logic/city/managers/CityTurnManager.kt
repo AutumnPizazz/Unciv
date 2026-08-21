@@ -50,12 +50,31 @@ class CityTurnManager(val city: City) {
         } else
             city.cityStats.update()
 
+        settleVariableYields()
+
         // Seed resource demand countdown
         if (city.demandedResource == "" && !city.hasFlag(CityFlags.ResourceDemand)) {
             setWltkResourceDemandCooldown(true)
         }
     }
     
+    /** Settles this city's per-turn variable yields (see CityStats.variableYields) into the
+     *  storage of each variable's scope: city -> this city, civ -> its civilization, global -> game-wide.
+     *  Mirrors the stat model: every city contributes its own yields each turn. */
+    private fun settleVariableYields() {
+        val yields = city.cityStats.variableYields
+        if (yields.isEmpty()) return
+        val ruleset = city.civ.gameInfo.ruleset
+        for ((variableName, amount) in yields) {
+            when (ruleset.variables[variableName]?.resolvedScope) {
+                com.unciv.models.ruleset.VariableScope.City -> city.addVariable(variableName, amount)
+                com.unciv.models.ruleset.VariableScope.Civ -> city.civ.addVariable(variableName, amount)
+                com.unciv.models.ruleset.VariableScope.Global -> city.civ.gameInfo.addVariable(variableName, amount)
+                null -> {} // undefined variable - skipped (would have failed validation)
+            }
+        }
+    }
+
     private fun setWltkResourceDemandCooldown(isNewCity: Boolean) {
         val rng = city.state.stateBasedRandom("CityTurnManager.setWltkResourceDemandCooldown")
         // Demand a new resource in ~20 turns on Standard speed

@@ -99,6 +99,11 @@ class City : IsPartOfGameInfoSerialization, INamed {
 
     var resourceStockpiles = Counter<String>()
 
+    /** Mod-defined city-level variables (see Variable.json), stored per-city as integer counters.
+     *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
+     *  (which falls back to the ruleset default). */
+    var variables = HashMap<String, Int>()
+
     /** All tiles that this city controls */
     var tiles = HashSet<HexCoord>()
 
@@ -187,6 +192,7 @@ class City : IsPartOfGameInfoSerialization, INamed {
         toReturn.workedTiles = workedTiles
         toReturn.lockedTiles = lockedTiles
         toReturn.resourceStockpiles = resourceStockpiles.clone()
+        toReturn.variables = HashMap(variables)
         toReturn.isBeingRazed = isBeingRazed
         toReturn.attackedThisTurn = attackedThisTurn
         toReturn.foundingCiv = foundingCiv
@@ -305,6 +311,29 @@ class City : IsPartOfGameInfoSerialization, INamed {
     fun gainStockpiledResource(resource: TileResource, amount: Int) =
         if (resource.isCityWide) resourceStockpiles.add(resource.name, amount)
         else civ.resourceStockpiles.add(resource.name, amount)
+
+    //region Variables (mod-defined city-level counters, see Variable.json)
+
+    /** Returns the current value of a city-level mod-defined variable.
+     *  Falls back to the ruleset default when this city has no record yet (e.g. old saves). */
+    @Readonly
+    fun getVariable(variableName: String): Int {
+        val stored = variables[variableName]
+        if (stored != null) return stored
+        return civ.gameInfo.ruleset.variables[variableName]?.default ?: 0
+    }
+
+    fun addVariable(variableName: String, amount: Int) {
+        variables[variableName] = getVariable(variableName).let { current ->
+            civ.gameInfo.ruleset.variables[variableName]?.clamp(current + amount) ?: (current + amount)
+        }
+    }
+
+    fun setVariable(variableName: String, amount: Int) {
+        variables[variableName] = civ.gameInfo.ruleset.variables[variableName]?.clamp(amount) ?: amount
+    }
+
+    //endregion
 
     fun addStat(stat: Stat, amount: Int) = when (stat) {
         Stat.Production -> cityConstructions.addProductionPoints(amount)

@@ -14,7 +14,9 @@ import com.unciv.models.ruleset.unique.UniqueFlag
 import com.unciv.models.ruleset.unique.UniqueParameterType
 import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.models.ruleset.unique.VariableStatsParser
 import com.unciv.models.ruleset.unique.expressions.Expressions
+import com.unciv.models.stats.Stats
 import yairm210.purity.annotations.Cache
 import yairm210.purity.annotations.LocalState
 import yairm210.purity.annotations.Pure
@@ -135,6 +137,24 @@ class UniqueValidator(val ruleset: Ruleset) {
         }
 
         rulesetErrors += getUniqueTypeSpecificErrors(prefix, unique, uniqueContainer, reportRulesetSpecificErrors)
+
+        // Variables mixed into a [stats] parameter are only supported on the basic Stats and StatsPerCity
+        // yields; on derived yield uniques (per population, from tiles, ...) they would silently do nothing.
+        if (unique.type != UniqueType.Stats && unique.type != UniqueType.StatsPerCity) {
+            val statsParamIndexes = unique.type.parameterTypeMap.withIndex()
+                .filter { UniqueParameterType.Stats in it.value }
+                .map { it.index }
+            for (index in statsParamIndexes) {
+                val param = unique.params.getOrNull(index) ?: continue
+                if (Stats.isStatsLike(param) && !Stats.isStats(param)
+                    && VariableStatsParser.extract(param, ruleset).isNotEmpty())
+                    rulesetErrors.add(
+                        "$prefix mixes a mod-defined variable into a derived stats yield, which is not supported - " +
+                            "use the plain [+N MyVar] (or [+N MyVar] [in this city]) form instead.",
+                        RulesetErrorSeverity.ErrorOptionsOnly, uniqueContainer, unique
+                    )
+            }
+        }
 
         val conditionals = unique.modifiers.filter { it.type?.canAcceptUniqueTarget(UniqueTarget.Conditional) == true }
         if (conditionals.size > 1){

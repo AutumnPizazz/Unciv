@@ -160,6 +160,34 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** Persistent key-value storage for Lua mods. Outer key = mod name, inner key = storage key. */
     var modLuaStorage = HashMap<String, HashMap<String, String>>()
 
+    /** Mod-defined global variables (see Variable.json), stored game-wide as integer counters.
+     *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
+     *  (which falls back to the ruleset default). */
+    var variables = HashMap<String, Int>()
+
+    //region Variables (mod-defined game-wide counters, see Variable.json)
+
+    /** Returns the current value of a global mod-defined variable.
+     *  Falls back to the ruleset default when there is no record yet (e.g. old saves). */
+    @Readonly
+    fun getVariable(variableName: String): Int {
+        val stored = variables[variableName]
+        if (stored != null) return stored
+        return ruleset.variables[variableName]?.default ?: 0
+    }
+
+    fun addVariable(variableName: String, amount: Int) {
+        variables[variableName] = getVariable(variableName).let { current ->
+            ruleset.variables[variableName]?.clamp(current + amount) ?: (current + amount)
+        }
+    }
+
+    fun setVariable(variableName: String, amount: Int) {
+        variables[variableName] = ruleset.variables[variableName]?.clamp(amount) ?: amount
+    }
+
+    //endregion
+
     //endregion
     //region Fields - Transient
 

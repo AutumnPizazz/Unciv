@@ -21,6 +21,7 @@ import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.RulesetFile
 import com.unciv.models.ruleset.RulesetName
 import com.unciv.models.ruleset.RulesetObject
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.nation.Nation
 import com.unciv.models.ruleset.unique.IHasUniques
 import com.unciv.models.ruleset.unique.GameContext
@@ -469,6 +470,18 @@ open class RulesetValidator protected constructor(
                 lines.add("Variable ${variable.name} collides with a stat name!", sourceObject = variable)
             if (ruleset.tileResources.containsKey(variable.name))
                 lines.add("Variable ${variable.name} collides with a tile resource name!", sourceObject = variable)
+            // The storage scope must be declared explicitly
+            if (variable.scope == null)
+                lines.add("Variable ${variable.name} is missing a scope declaration ('city', 'civ' or 'global')!", sourceObject = variable)
+            // uniqueTo only makes sense per-city/per-civ; a game-wide variable cannot be restricted to one civ
+            if (variable.scope == VariableScope.Global && variable.uniqueTo != null)
+                lines.add("Variable ${variable.name} has scope 'global' and must not declare uniqueTo!", sourceObject = variable)
+            // min/max sanity and default bounds
+            if (variable.min != null && variable.max != null && variable.min!! > variable.max!!)
+                lines.add("Variable ${variable.name} has min greater than max!", sourceObject = variable)
+            else if (variable.min != null && variable.default < variable.min!!
+                || variable.max != null && variable.default > variable.max!!)
+                lines.add("Variable ${variable.name} has a default outside of its min/max range!", sourceObject = variable)
             uniqueValidator.checkUniques(variable, lines, reportRulesetSpecificErrors, tryFixUnknownUniques)
         }
     }

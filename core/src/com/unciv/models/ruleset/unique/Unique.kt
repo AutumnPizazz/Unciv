@@ -26,9 +26,10 @@ class Unique(val text: String, val sourceObjectType: UniqueTarget? = null, val s
     val deprecatedType: DeprecatedUniqueType? = if (type == null) DeprecatedUniqueType.uniqueTypeMap[placeholderText] else null
 
     val stats: Stats by lazy {
-        val firstStatParam = params.firstOrNull { Stats.isStats(it) }
+        val firstStatParam = params.firstOrNull { Stats.isStats(it) || Stats.isStatsLike(it) }
         if (firstStatParam == null) Stats() // So badly-defined stats don't crash the entire game
-        else Stats.parse(firstStatParam)
+        else if (Stats.isStats(firstStatParam)) Stats.parse(firstStatParam)
+        else Stats.parseLenient(firstStatParam) // may mix in mod-defined variable entries - those are collected separately
     }
     val modifiers: List<Unique> = text.getModifiers()
     val modifiersMap: Map<UniqueType, List<Unique>> = modifiers.filterNot { it.type == null }.groupBy { it.type!! }

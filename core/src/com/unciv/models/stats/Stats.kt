@@ -273,6 +273,34 @@ open class Stats(
             return toReturn
         }
 
+        private val statsEntryLikeRegex = Regex("([+-])(\\d+) [^,]+(, ([+-])(\\d+) [^,]+)*")
+
+        /** True if [string] looks like a stats parameter, even when it mixes in entries that are
+         *  not built-in stats (e.g. mod-defined variables): `+2 Gold`, `+2 Gold, +1 MyVar`, `+1 MyVar`.
+         *  Used to find the stats parameter of a unique before [parseLenient] separates stat from variable entries. */
+        @Pure
+        fun isStatsLike(string: String): Boolean {
+            if (string.isEmpty() || string[0] !in "+-") return false
+            return statsEntryLikeRegex.matches(string)
+        }
+
+        /** Like [parse], but skips entries that are not built-in stats (e.g. mod-defined variable names),
+         *  so that `+2 Gold, +1 MyVar` still yields its stat part while the variable part is ignored here.
+         *  The variable part is collected separately where mod variables are known (see VariableStatsParser). */
+        @Pure
+        fun parseLenient(string: String): Stats {
+            val toReturn = Stats()
+            val statsWithBonuses = string.split(", ")
+            statsWithBonuses.forEach { statWithBonuses ->
+                val match = statRegex.matchEntire(statWithBonuses) ?: return@forEach
+                @Immutable val groupValues = match.groupValues
+                val statName = groupValues[3]
+                val statAmount = groupValues[2].toFloat() * (if (groupValues[1] == "-") -1 else 1)
+                toReturn.add(Stat.valueOf(statName), statAmount)
+            }
+            return toReturn
+        }
+
         val ZERO = Stats()
         val DefaultCityCenterMinimum = Stats(food = 2f, production = 1f)
     }

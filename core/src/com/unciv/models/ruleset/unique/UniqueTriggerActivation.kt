@@ -101,6 +101,14 @@ object UniqueTriggerActivation {
         return Countables.getCountableAmount(param, gameContext)?.takeIf { it >= 0 }
     }
 
+    /** The cities a city-scope variable trigger applies to: the contextual city when it matches the [cityFilter],
+     *  otherwise all cities of [civInfo] matching the filter. Empty when no city matches. */
+    @Readonly
+    private fun getTargetCitiesForCityVariable(city: City?, civInfo: Civilization, cityFilter: String): List<City> {
+        if (city != null) return if (city.matchesFilter(cityFilter)) listOf(city) else emptyList()
+        return civInfo.cities.filter { it.matchesFilter(cityFilter) }
+    }
+
     /** Check if a parameter is a valid amount (plain number or valid Countable expression) */
     @Readonly
     private fun isValidAmount(param: String, ruleset: Ruleset): Boolean =
@@ -833,6 +841,170 @@ object UniqueTriggerActivation {
                     true
                 }
             }
+            UniqueType.OneTimeProvideCityVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                val cityFilter = unique.params[2]
+                return {
+                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    if (targetCities.isEmpty()) false
+                    else {
+                        targetCities.forEach { it.addVariable(variable.name, amount) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have gained [$amount] [$variableName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeConsumeCityVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                val cityFilter = unique.params[2]
+                return {
+                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    if (targetCities.isEmpty()) false
+                    else {
+                        targetCities.forEach { it.addVariable(variable.name, -amount) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have lost [$amount] [$variableName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeGainCityVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                val cityFilter = unique.params[2]
+                return {
+                    var amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    if (unique.isModifiedByGameSpeed())
+                        amount = (amount * civInfo.gameInfo.speed.modifier).roundToInt()
+                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    if (targetCities.isEmpty()) false
+                    else {
+                        targetCities.forEach { it.addVariable(variable.name, amount) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "You have gained [$amount] [$variableName]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeSetCityVariable -> {
+                val variableName = unique.params[0]
+                val variable = ruleset.variables[variableName] ?: return null
+                val cityFilter = unique.params[2]
+                val gameContext = GameContext(civInfo, city)
+                val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
+                return {
+                    var amountRequired = countableResult
+                    if (unique.isModifiedByGameSpeed())
+                        amountRequired = (amountRequired * civInfo.gameInfo.speed.modifier).roundToInt()
+                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    if (targetCities.isEmpty()) false
+                    else {
+                        targetCities.forEach { it.setVariable(variable.name, amountRequired) }
+                        val notificationText = getNotificationText(
+                            notification, triggerNotificationText,
+                            "[$variableName] has been set to [$amountRequired]"
+                        )
+                        if (notificationText != null)
+                            civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                        true
+                    }
+                }
+            }
+
+            UniqueType.OneTimeProvideGlobalVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                return {
+                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    civInfo.gameInfo.addVariable(variable.name, amount)
+
+                    val notificationText = getNotificationText(
+                        notification, triggerNotificationText,
+                        "You have gained [$amount] [$variableName]"
+                    )
+                    if (notificationText != null)
+                        civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                    true
+                }
+            }
+
+            UniqueType.OneTimeConsumeGlobalVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                return {
+                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    civInfo.gameInfo.addVariable(variable.name, -amount)
+
+                    val notificationText = getNotificationText(
+                        notification, triggerNotificationText,
+                        "You have lost [$amount] [$variableName]"
+                    )
+                    if (notificationText != null)
+                        civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                    true
+                }
+            }
+
+            UniqueType.OneTimeGainGlobalVariable -> {
+                val variableName = unique.params[1]
+                val variable = ruleset.variables[variableName] ?: return null
+                return {
+                    var amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    if (unique.isModifiedByGameSpeed())
+                        amount = (amount * civInfo.gameInfo.speed.modifier).roundToInt()
+                    civInfo.gameInfo.addVariable(variable.name, amount)
+
+                    val notificationText = getNotificationText(
+                        notification, triggerNotificationText,
+                        "You have gained [$amount] [$variableName]"
+                    )
+                    if (notificationText != null)
+                        civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                    true
+                }
+            }
+
+            UniqueType.OneTimeSetGlobalVariable -> {
+                val variableName = unique.params[0]
+                val variable = ruleset.variables[variableName] ?: return null
+                val gameContext = GameContext(civInfo, city)
+                val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
+                return {
+                    var amountRequired = countableResult
+                    if (unique.isModifiedByGameSpeed())
+                        amountRequired = (amountRequired * civInfo.gameInfo.speed.modifier).roundToInt()
+                    civInfo.gameInfo.setVariable(variable.name, amountRequired)
+
+                    val notificationText = getNotificationText(
+                        notification, triggerNotificationText,
+                        "[$variableName] has been set to [$amountRequired]"
+                    )
+                    if (notificationText != null)
+                        civInfo.addNotification(notificationText, NotificationCategory.General, variableName)
+                    true
+                }
+            }
+
             UniqueType.UnitsGainPromotion -> {
                 val filter = unique.params[0]
                 val promotionName = unique.params[1]
