@@ -12,7 +12,7 @@ title: UncivCN 更新日志
 
 ## 未发布
 
-- 模组支持：变量（Variables.json）现可用于所有 countable 位置（如 `when number of [X] is more than [Y]`）与 `Set [X] to [countable]` 设定触发器，更多用资源伪装的计数器可以迁移到变量——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) 及其中的迁移指南
+- 模组支持：变量（Variables.json）现可用于所有 countable 位置（如 `when number of [X] is more than [Y]`）与 `Set [X] to [countable]` 设定触发器，更多用资源伪装的计数器可以迁移到变量——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)；CoeHarMod 为参考实现
 
 - 合并上游 7 个提交：View 重构继续（#15280）——视图相等性比较统一、外文明视图访问收紧（getCiv()）、viewingCiv 私有化（观战者伪装成玩家时行为一致）；修复仅有被掠夺道路时的修复功能异常、打开文明百科时的 ANR；CN 特色功能（地图钉/单位备注可见性、多人聊天在线状态、重开投票）改用等价新 API
 
