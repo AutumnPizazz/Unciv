@@ -47,12 +47,12 @@ class UnitTurnManager(val unit: MapUnit) {
                 unit.getMatchingUniques(UniqueType.CanEnterForeignTilesButLosesReligiousStrength)
                     .minOfOrNull { it.params[0].toInt() }
             if (lostReligiousStrength != null)
+                // The religious strength loss is recorded in the unit variable
+                // `ReligiousStrengthLost`; the destruction at full loss is defined through
+                // base-ruleset unit uniques (`[this unit] is destroyed <upon turn end>
+                // <when above [...] [ReligiousStrengthLost] on [this unit]>`) so mods can
+                // tune or replace that behaviour.
                 unit.religiousStrengthLost += lostReligiousStrength
-            if (unit.religiousStrengthLost >= unit.baseUnit.religiousStrength) {
-                unit.civ.addNotification("Your [${unit.name}] lost its faith after spending too long inside enemy territory!",
-                    unit.getTile().position, NotificationCategory.Units, unit.name)
-                unit.destroy()
-            }
         }
 
         doCitadelDamage()

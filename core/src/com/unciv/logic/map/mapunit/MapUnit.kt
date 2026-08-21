@@ -90,7 +90,24 @@ class MapUnit : IsPartOfGameInfoSerialization {
     var abilityToTimesUsed: HashMap<String, Int> = hashMapOf()
 
     var religion: String? = null
-    var religiousStrengthLost = 0
+
+    /** Religious strength lost in foreign territory - since the religion system migrated to the
+     *  unit-scope variable `ReligiousStrengthLost` (see Variables.json in the base ruleset), this
+     *  backing field only carries legacy save data and is zeroed on the first write through
+     *  [religiousStrengthLost] (see [com.unciv.logic.BackwardCompatibility.migrateUnitVariablesFromLegacyFields]). */
+    var religiousStrengthLost: Int = 0
+        @Readonly get() = if (::civ.isInitialized && field == 0) getVariable(religiousStrengthLostVariableName) else field
+        set(value) {
+            if (::civ.isInitialized) {
+                setVariable(religiousStrengthLostVariableName, value)
+                field = 0 // the variable is now authoritative
+            } else field = value
+        }
+
+    /** Name of the unit-scope variable tracking religious strength lost in foreign territory. */
+    companion object {
+        const val religiousStrengthLostVariableName = "ReligiousStrengthLost"
+    }
 
     /** Mod-defined unit-scope variables (see Variables.json), stored per-unit as integer counters.
      *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
@@ -238,8 +255,8 @@ class MapUnit : IsPartOfGameInfoSerialization {
         toReturn.isTransported = isTransported
         toReturn.abilityToTimesUsed = HashMap(abilityToTimesUsed)
         toReturn.religion = religion
-        toReturn.religiousStrengthLost = religiousStrengthLost
         toReturn.variables = HashMap(variables)
+        toReturn.religiousStrengthLost = religiousStrengthLost
         toReturn.movementMemories = movementMemories.copy()
         @LocalState val newStatusMap = HashMap<String, UnitStatus>((statusMap.size * 4 + 2) / 3)
         for ((name, status) in statusMap) {
