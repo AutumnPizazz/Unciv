@@ -114,6 +114,15 @@ class UnitPresenter(private val unitTable: UnitTable, private val worldScreen: W
                 descriptionTable.add((baseUnit.religiousStrength - unit.religiousStrengthLost).tr())
             }
 
+            val unitInfo = unit.getUnit()
+            val ruleset = unitInfo.civ.gameInfo.ruleset
+            for (variable in ruleset.variables.values) {
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.Unit || !variable.isDisplay) continue
+                if (!variable.isAvailableTo(unitInfo.civ)) continue
+                descriptionTable.add(ImageGetter.getVariableIcon(variable.name)).size(20f)
+                descriptionTable.add(unitInfo.getVariable(variable.name).tr()).padRight(10f)
+            }
+
             if (unit.getPromotions().promotions.size != promotionsTable.children.size) // The unit has been promoted! Reload promotions!
                 shouldUpdate = true
         } else with(unitTable) { // multiple selected units

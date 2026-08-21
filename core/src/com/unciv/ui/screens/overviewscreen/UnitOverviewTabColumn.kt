@@ -21,11 +21,15 @@ import yairm210.purity.annotations.Readonly
 
 //todo Extending getEntryValue here to have a second String-based "channel" - could go into SortableGrid, possibly by defining a DataType per column???
 
+/** Common column type for the unit overview grid: the static [UnitOverviewTabColumn] enum
+ *  plus dynamic [UnitVariableColumn] instances for mod-defined unit variables. */
+interface UnitOverviewColumn : ISortableGridContentProvider<MapUnit, UnitOverviewTab>
+
 enum class UnitOverviewTabColumn(
     private val headerLabel: String? = null,
     override val headerTip: String = "",
     private val isNumeric: Boolean = false
-) : ISortableGridContentProvider<MapUnit, UnitOverviewTab> {
+) : UnitOverviewColumn {
     //region Enum Instances
     Name {
         override val fillX = true
@@ -150,4 +154,21 @@ enum class UnitOverviewTabColumn(
     //endregion
 
     companion object : UnitOverviewTabHelpers()
+}
+
+/** Dynamic column for a unit-scope mod variable (see Variables.json), shown in the unit overview
+ *  when the variable is displayable. */
+class UnitVariableColumn(private val variable: com.unciv.models.ruleset.Variable) : UnitOverviewColumn {
+    override val headerTip = "Variable: ${variable.name}"
+    override val align = Align.center
+    override val fillX = false
+    override val expandX = false
+    override val equalizeHeight = false
+    override val defaultSort get() = SortableGrid.SortDirection.Descending
+
+    override fun getHeaderActor(iconSize: Float) = ImageGetter.getVariableIcon(variable.name, iconSize)
+    @Readonly override fun getEntryValue(item: MapUnit) = item.getVariable(variable.name)
+    override fun getEntryActor(item: MapUnit, iconSize: Float, actionContext: UnitOverviewTab): Actor? =
+        getEntryValue(item).takeIf { it > 0 }?.tr()?.toLabel(alignment = Align.center, hideIcons = true)
+    override fun getTotalsActor(items: Iterable<MapUnit>) = items.sumOf { it.getVariable(variable.name) }.toCenteredLabel()
 }

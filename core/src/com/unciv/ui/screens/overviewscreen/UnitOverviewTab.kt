@@ -19,11 +19,11 @@ class UnitOverviewTab(
     overviewScreen: EmpireOverviewScreen,
     persistedData: EmpireOverviewTabPersistableData? = null
 ) : EmpireOverviewTab(viewingPlayer, overviewScreen) {
-    class UnitTabPersistableData : EmpireOverviewTabPersistableData(), SortableGrid.ISortState<UnitOverviewTabColumn> {
+    class UnitTabPersistableData : EmpireOverviewTabPersistableData(), SortableGrid.ISortState<UnitOverviewColumn> {
         @Transient
         var scrollY: Float? = null
 
-        override var sortedBy: UnitOverviewTabColumn = UnitOverviewTabColumn.Name
+        override var sortedBy: UnitOverviewColumn = UnitOverviewTabColumn.Name
         override var direction = SortableGrid.SortDirection.None
         override fun isEmpty() = sortedBy == UnitOverviewTabColumn.Name && direction != SortableGrid.SortDirection.Descending
     }
@@ -57,9 +57,16 @@ class UnitOverviewTab(
     // - Materializing the sort result would only waste memory
     // - But - isn't getCivUnits() deterministic anyway - controls "Next Unit" order? actually, getCivUnitsStartingAtNextDue would give that, it slices by an internal pointer
 
+    /** Static enum columns plus a dynamic column per displayable unit-scope mod variable. */
+    private val columns: List<UnitOverviewColumn> =
+        UnitOverviewTabColumn.entries +
+            viewingPlayer.getCiv().gameInfo.ruleset.variables.values
+                .filter { it.resolvedScope == com.unciv.models.ruleset.VariableScope.Unit && it.isDisplay }
+                .map { UnitVariableColumn(it) }
+
     //todo the comments and todo below are copied verbatim from CityOverviewTab - synergies?
     private val grid = SortableGrid(
-        columns = UnitOverviewTabColumn.entries.asIterable(),
+        columns = columns,
         data = viewingPlayer.getCiv().units.getCivUnits().asIterable(),
         actionContext = this,
         sortState = persistableData,
