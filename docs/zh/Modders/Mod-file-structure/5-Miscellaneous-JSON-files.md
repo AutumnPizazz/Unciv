@@ -418,7 +418,7 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 | `Provides [-N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | 负供给是“每回合成本” |
 | `Consumes [N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | |
 | `when above [N] [Resource.X]` | `when above [N] [X]` | |
-| `when number of [Resource.X] ...` | `when number of [X] ...` | 变量是合法的 [countable](Unique-parameters#countable) |
+| `when number of [Resource.X] ...` | `when number of [X] ...` | 变量是合法的 [countable](../Unique-parameters#countable) |
 | `Set [Resource.X] to [expr]` | `Set [X] to [expr]` | |
 | `civ.getResourceAmount("Resource.X")` | `civ.getVariable("X")` | Lua |
 | `civ.addResource("Resource.X", n)` | `civ.addVariable("X", n)` | Lua |

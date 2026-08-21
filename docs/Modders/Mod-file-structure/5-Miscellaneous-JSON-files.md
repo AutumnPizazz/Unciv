@@ -426,7 +426,7 @@ Variables exist so mods do not have to fake counters with resources. CoeHarMod m
 | `Provides [-N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | Negative supply was a per-turn cost |
 | `Consumes [N] [Resource.X]` | `Instantly consumes [N] [X] <upon turn start>` | |
 | `when above [N] [Resource.X]` | `when above [N] [X]` | |
-| `when number of [Resource.X] ...` | `when number of [X] ...` | Variables are valid [countables](Unique-parameters#countable) |
+| `when number of [Resource.X] ...` | `when number of [X] ...` | Variables are valid [countables](../Unique-parameters#countable) |
 | `Set [Resource.X] to [expr]` | `Set [X] to [expr]` | |
 | `civ.getResourceAmount("Resource.X")` | `civ.getVariable("X")` | Lua |
 | `civ.addResource("Resource.X", n)` | `civ.addVariable("X", n)` | Lua |
