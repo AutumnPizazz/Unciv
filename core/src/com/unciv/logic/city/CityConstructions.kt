@@ -1008,6 +1008,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
                 VariableScope.City -> city.addVariable(variableName, -constructionCost)
                 VariableScope.Civ -> city.civ.addVariable(variableName, -constructionCost)
                 VariableScope.Global -> city.civ.gameInfo.addVariable(variableName, -constructionCost)
+                VariableScope.Unit -> {} // unit-scope variables cannot be purchase costs (validation rejects them)
             }
 
             val conditionalState = city.state
@@ -1088,6 +1089,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         VariableScope.City -> city.getVariable(variableName)
         VariableScope.Civ -> city.civ.getVariable(variableName)
         VariableScope.Global -> city.civ.gameInfo.getVariable(variableName)
+        VariableScope.Unit -> 0 // unit-scope variables cannot be purchase costs (validation rejects them)
     }
 
     @Readonly

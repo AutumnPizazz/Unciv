@@ -158,6 +158,7 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
                 VariableScope.Civ -> civInfo.getVariable(variable.name)
                 VariableScope.Global -> civInfo.gameInfo.getVariable(variable.name)
                 VariableScope.City -> continue
+                VariableScope.Unit -> continue
             }
             val perTurn = getVariablePerTurn(civInfo, variable)
             resourcesWrapper.add(icon).padLeft(if (index == 0 && resourceActors.isEmpty()) 0f else extraPadBetweenResources)

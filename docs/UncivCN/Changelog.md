@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+- Modding: Variables.json variables now support a fourth storage scope - `unit` - so mods can attach integer counters to individual units (e.g. mana, shields, rage), readable through conditions and Lua - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
+
 - Modding: Variables.json variables now support city, civilization and global scopes, bounds, per-turn yields, percentage bonuses, purchase costs, production conversion, scope-specific uniques, Lua read/write APIs and scope-aware UI; existing civ variables remain available with an explicit `scope` declaration - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) and [uniques](/Modders/uniques)
 
 - Fix: Scoped Variables.json values now persist through game-state copies, enforce ownership and scope, honor city filters and bounds, charge exact variable purchase costs, and avoid AI/stat-parser crashes.

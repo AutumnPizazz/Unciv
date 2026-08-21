@@ -278,6 +278,15 @@ class VariableScopeTests {
                     game.gameInfo.addVariable(variable.name, Int.MIN_VALUE)
                     Assert.assertEquals(-100, game.gameInfo.getVariable(variable.name))
                 }
+                VariableScope.Unit -> {
+                    val unit = game.addDefaultMeleeUnitWithUniques(civInfo, game.getTile(1, 0))
+                    unit.setVariable(variable.name, 90)
+                    unit.addVariable(variable.name, Int.MAX_VALUE)
+                    Assert.assertEquals(100, unit.getVariable(variable.name))
+                    unit.setVariable(variable.name, -90)
+                    unit.addVariable(variable.name, Int.MIN_VALUE)
+                    Assert.assertEquals(-100, unit.getVariable(variable.name))
+                }
             }
         }
     }

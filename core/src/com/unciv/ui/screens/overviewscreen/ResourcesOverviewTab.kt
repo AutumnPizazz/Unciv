@@ -212,6 +212,7 @@ class ResourcesOverviewTab(
                     civ.gameInfo.civilizations.flatMap { it.cities }.sumOf {
                         it.cityStats.getSettledVariableYield(variable.name)
                     })
+                VariableScope.Unit -> {} // unit-scope variables are shown in the unit panel / unit overview
             }
         }
         add(variablesTable).left()

@@ -1079,6 +1079,7 @@ class Civilization : IsPartOfGameInfoSerialization {
                 VariableScope.Civ -> addVariable(stat.name, amount)
                 VariableScope.Global -> gameInfo.addVariable(stat.name, amount)
                 VariableScope.City -> throw IllegalArgumentException("City-scope variable '${stat.name}' requires a city context")
+                VariableScope.Unit -> throw IllegalArgumentException("Unit-scope variable '${stat.name}' requires a unit context")
             }
             return
         }
@@ -1104,6 +1105,7 @@ class Civilization : IsPartOfGameInfoSerialization {
                 VariableScope.Civ -> getVariable(gameResource)
                 VariableScope.Global -> gameInfo.getVariable(gameResource.name)
                 VariableScope.City -> throw IllegalArgumentException("City-scope variable '${gameResource.name}' requires a city context")
+                VariableScope.Unit -> throw IllegalArgumentException("Unit-scope variable '${gameResource.name}' requires a unit context")
             }
             is TileResource -> getResourceAmount(gameResource)
             is Stat -> getStatReserve(gameResource)

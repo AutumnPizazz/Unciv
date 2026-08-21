@@ -72,6 +72,7 @@ class CityTurnManager(val city: City) {
                 com.unciv.models.ruleset.VariableScope.City -> city.addVariable(variableName, finalAmount)
                 com.unciv.models.ruleset.VariableScope.Civ -> city.civ.addVariable(variableName, finalAmount)
                 com.unciv.models.ruleset.VariableScope.Global -> city.civ.gameInfo.addVariable(variableName, finalAmount)
+                com.unciv.models.ruleset.VariableScope.Unit -> {} // unit-scope yields are settled by UnitTurnManager, not cities
                 null -> {} // undefined variable - skipped (would have failed validation)
             }
         }

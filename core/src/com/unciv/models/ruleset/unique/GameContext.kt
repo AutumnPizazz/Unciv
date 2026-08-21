@@ -117,7 +117,8 @@ data class GameContext(
     /** Amount of a mod-defined variable (see Variable.json) for the relevant scope.
      *  - [VariableScope.Global]: always the game-wide value
      *  - [VariableScope.Civ]: the relevant civilization's value (a relevant city falls back to its civilization)
-     *  - [VariableScope.City]: the relevant city's value, falling back to the ruleset default when there is no relevant city */
+     *  - [VariableScope.City]: the relevant city's value, falling back to the ruleset default when there is no relevant city
+     *  - [VariableScope.Unit]: the relevant unit's value, falling back to the ruleset default when there is no relevant unit */
     @Readonly
     fun getVariableAmount(variableName: String): Int {
         val variable = gameInfo?.ruleset?.variables?.get(variableName) ?: return 0
@@ -126,6 +127,11 @@ data class GameContext(
             VariableScope.Civ -> relevantCiv?.getVariable(variableName) ?: 0
             VariableScope.City -> {
                 if (relevantCity != null) relevantCity!!.getVariable(variableName)
+                else if (relevantCiv != null && !variable.isAvailableTo(relevantCiv!!)) 0
+                else variable.default
+            }
+            VariableScope.Unit -> {
+                if (relevantUnit != null) relevantUnit!!.getVariable(variableName)
                 else if (relevantCiv != null && !variable.isAvailableTo(relevantCiv!!)) 0
                 else variable.default
             }

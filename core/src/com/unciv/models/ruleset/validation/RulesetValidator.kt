@@ -477,8 +477,8 @@ open class RulesetValidator protected constructor(
                 lines.add("Variable ${variable.name} collides with a construction name!", sourceObject = variable)
             // The storage scope must be declared explicitly
             if (variable.scope == null)
-                lines.add("Variable ${variable.name} is missing a scope declaration ('city', 'civ' or 'global')!", sourceObject = variable)
-            // uniqueTo only makes sense per-city/per-civ; a game-wide variable cannot be restricted to one civ
+                lines.add("Variable ${variable.name} is missing a scope declaration ('city', 'civ', 'global' or 'unit')!", sourceObject = variable)
+            // uniqueTo only makes sense per-city/per-civ/per-unit; a game-wide variable cannot be restricted to one civ
             if (variable.scope == VariableScope.Global && variable.uniqueTo != null)
                 lines.add("Variable ${variable.name} has scope 'global' and must not declare uniqueTo!", sourceObject = variable)
             // min/max sanity and default bounds

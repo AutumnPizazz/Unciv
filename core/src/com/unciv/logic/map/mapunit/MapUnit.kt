@@ -16,6 +16,7 @@ import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Counter
 import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.Ruleset
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.unique.*
 import com.unciv.models.ruleset.unit.BaseUnit
@@ -90,6 +91,11 @@ class MapUnit : IsPartOfGameInfoSerialization {
 
     var religion: String? = null
     var religiousStrengthLost = 0
+
+    /** Mod-defined unit-scope variables (see Variables.json), stored per-unit as integer counters.
+     *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
+     *  (which falls back to the ruleset default). */
+    var variables = HashMap<String, Int>()
 
     /** FIFO list of this unit's past positions. Should never exceed two items in length. New item added once at end of turn and once at start, to allow rare between-turn movements like melee withdrawal to be distinguished. Used in movement arrow overlay. */
     var movementMemories = ArrayList<UnitMovementMemory>()
@@ -233,6 +239,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
         toReturn.abilityToTimesUsed = HashMap(abilityToTimesUsed)
         toReturn.religion = religion
         toReturn.religiousStrengthLost = religiousStrengthLost
+        toReturn.variables = HashMap(variables)
         toReturn.movementMemories = movementMemories.copy()
         @LocalState val newStatusMap = HashMap<String, UnitStatus>((statusMap.size * 4 + 2) / 3)
         for ((name, status) in statusMap) {
@@ -244,6 +251,37 @@ class MapUnit : IsPartOfGameInfoSerialization {
         toReturn.attacksSinceTurnStart = ArrayList(attacksSinceTurnStart)
         return toReturn
     }
+
+    //region Variables (mod-defined unit-scope counters, see Variables.json)
+
+    /** Returns the current value of a unit-scope mod-defined variable.
+     *  Falls back to the ruleset default when this unit has no record yet (e.g. old saves). */
+    @Readonly
+    fun getVariable(variableName: String): Int {
+        val stored = variables[variableName]
+        if (!::civ.isInitialized) return stored ?: 0
+        val variable = civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && variable.resolvedScope != VariableScope.Unit) return 0
+        if (variable != null && !variable.isAvailableTo(civ)) return 0
+        if (stored != null) return stored
+        return variable?.default ?: 0
+    }
+
+    fun addVariable(variableName: String, amount: Int) {
+        val variable = civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(civ))) return
+        val current = getVariable(variableName)
+        if (variable != null) variables[variableName] = variable.clampAdd(current, amount)
+        else variables[variableName] = current + amount
+    }
+
+    fun setVariable(variableName: String, amount: Int) {
+        val variable = civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && (variable.resolvedScope != VariableScope.Unit || !variable.isAvailableTo(civ))) return
+        variables[variableName] = variable?.clamp(amount) ?: amount
+    }
+
+    //endregion
 
     val type: UnitType
         get() = baseUnit.type

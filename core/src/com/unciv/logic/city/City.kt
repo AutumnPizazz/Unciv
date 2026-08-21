@@ -357,6 +357,7 @@ class City : IsPartOfGameInfoSerialization, INamed {
             VariableScope.City -> getVariable(gameResource.name)
             VariableScope.Civ -> civ.getVariable(gameResource.name)
             VariableScope.Global -> civ.gameInfo.getVariable(gameResource.name)
+            VariableScope.Unit -> throw IllegalArgumentException("Unit-scope variable '${gameResource.name}' requires a unit context")
         }
         is TileResource -> getAvailableResourceAmount(gameResource)
         is Stat -> getStatReserve(gameResource)
@@ -375,6 +376,7 @@ class City : IsPartOfGameInfoSerialization, INamed {
                 VariableScope.City -> addVariable(stat.name, amount)
                 VariableScope.Civ -> civ.addVariable(stat.name, amount)
                 VariableScope.Global -> civ.gameInfo.addVariable(stat.name, amount)
+                VariableScope.Unit -> throw IllegalArgumentException("Unit-scope variable '${stat.name}' requires a unit context")
             }
             Stat.Production -> cityConstructions.addProductionPoints(amount)
             Stat.Food, SubStat.StoredFood -> population.foodStored += amount

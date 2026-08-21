@@ -12,6 +12,8 @@ title: UncivCN 更新日志
 
 ## 未发布
 
+- 模组支持：Variables.json 变量新增第四档作用域 `unit`——模组可为每个单位实例附加整数计数器（如魔法值、护盾值、怒气值），可通过条件与 Lua 读取——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
+
 - 模组支持：Variables.json 变量现支持城市级、文明级和全局级作用域、上下限、每回合产出、百分比加成、购买成本、生产转换、分作用域 unique、Lua 读写与作用域 UI；现有文明级变量需显式声明 `scope`，详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) 与 [uniques](/zh/Modders/uniques)
 
 - 修复：分作用域 Variables.json 变量现会在游戏状态复制后保留数值，遵守文明与作用域限制、城市筛选器和上下限，按整数原值扣除购买成本，并避免 AI/属性解析崩溃。

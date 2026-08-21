@@ -65,6 +65,7 @@ class VariableProductionConversionTests {
                 VariableScope.City -> f.city.getVariable(f.variable.name)
                 VariableScope.Civ -> f.civ.getVariable(f.variable.name)
                 VariableScope.Global -> f.game.gameInfo.getVariable(f.variable.name)
+                VariableScope.Unit -> throw AssertionError("unit scope cannot be a city production conversion")
             }
             Assert.assertEquals("scope $scope", expected, actual)
         }
