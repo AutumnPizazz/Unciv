@@ -17,6 +17,7 @@ import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.INonPerpetualConstruction
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.unique.Conditionals
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
@@ -285,8 +286,12 @@ object LuaAPI {
         })
         t.registerApi("civ", "getVariables", luaFunction {
             val variables = LuaValue.tableOf()
-            for ((name, amount) in civ.variables)
-                variables.set(name, LuaValue.valueOf(amount))
+            for ((name, amount) in civ.variables) {
+                val variable = civ.gameInfo.ruleset.variables[name]
+                if (variable == null ||
+                    (variable.resolvedScope == VariableScope.Civ && variable.isAvailableTo(civ)))
+                    variables.set(name, LuaValue.valueOf(amount))
+            }
             variables
         })
 

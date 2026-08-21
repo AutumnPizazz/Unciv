@@ -29,6 +29,7 @@ import com.unciv.models.ruleset.GlobalUniques
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.Speed
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.nation.Difficulty
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.ruleset.unique.IHasUniques
@@ -171,19 +172,25 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
      *  Falls back to the ruleset default when there is no record yet (e.g. old saves). */
     @Readonly
     fun getVariable(variableName: String): Int {
+        val variable = ruleset.variables[variableName]
+        if (variable != null && variable.resolvedScope != VariableScope.Global) return 0
         val stored = variables[variableName]
         if (stored != null) return stored
-        return ruleset.variables[variableName]?.default ?: 0
+        return variable?.default ?: 0
     }
 
     fun addVariable(variableName: String, amount: Int) {
-        variables[variableName] = getVariable(variableName).let { current ->
-            ruleset.variables[variableName]?.clamp(current + amount) ?: (current + amount)
-        }
+        val variable = ruleset.variables[variableName]
+        if (variable != null && variable.resolvedScope != VariableScope.Global) return
+        val current = getVariable(variableName)
+        if (variable != null) variables[variableName] = variable.clampAdd(current, amount)
+        else variables[variableName] = current + amount
     }
 
     fun setVariable(variableName: String, amount: Int) {
-        variables[variableName] = ruleset.variables[variableName]?.clamp(amount) ?: amount
+        val variable = ruleset.variables[variableName]
+        if (variable != null && variable.resolvedScope != VariableScope.Global) return
+        variables[variableName] = variable?.clamp(amount) ?: amount
     }
 
     //endregion
@@ -260,6 +267,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         toReturn.lastUnitId = lastUnitId
         toReturn.unitNamesTaken.addAll(unitNamesTaken)
         toReturn.playersFinishedThisTurn.addAll(playersFinishedThisTurn)
+        toReturn.variables = HashMap(variables)
 
         return toReturn
     }

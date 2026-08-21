@@ -124,7 +124,11 @@ data class GameContext(
         return when (variable.resolvedScope) {
             VariableScope.Global -> gameInfo?.getVariable(variableName) ?: 0
             VariableScope.Civ -> relevantCiv?.getVariable(variableName) ?: 0
-            VariableScope.City -> relevantCity?.getVariable(variableName) ?: variable.default
+            VariableScope.City -> {
+                if (relevantCity != null) relevantCity!!.getVariable(variableName)
+                else if (relevantCiv != null && !variable.isAvailableTo(relevantCiv!!)) 0
+                else variable.default
+            }
         }
     }
 

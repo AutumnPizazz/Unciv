@@ -200,7 +200,7 @@ enum class UniqueParameterType(
     },
 
     /** Implemented in [Unique.stats][com.unciv.models.ruleset.unique.Unique.stats] */
-    Stats("stats", "+1 Gold, +2 Production", "For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized!",
+    Stats("stats", "+1 Gold, +2 Production", "For example: `+2 Production, +3 Food`. Stat names need to be capitalized; mixed entries may also contain declared mod variables.", "例如：`+2 Production, +3 Food`。属性名称必须首字母大写；混合条目也可以包含已声明的模组变量。",
         severityDefault = UniqueType.UniqueParameterErrorSeverity.RulesetInvariant
     ) {
         private val statsEntryRegex = Regex("([+-])(\\d+) (.+)")
@@ -231,7 +231,7 @@ enum class UniqueParameterType(
 
     /** Civ-scope variables only - used by the civ-scope conditional/trigger unique channels
      *  (`when above [5] [WarWeariness]`, `Instantly provides [4] [WarWeariness]`). */
-    CivVariableName("civVariableName", "WarWeariness", "The name of any civ-scope variable defined in Variables.json (scope 'civ')") {
+    CivVariableName("civVariableName", "WarWeariness", "The name of any civ-scope variable defined in Variables.json (scope 'civ').", "Variables.json 中定义的文明级变量名称（scope 为 'civ'）。") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
             ruleset.variables.filter { it.value.resolvedScope == VariableScope.Civ }.keys
         override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
@@ -240,7 +240,7 @@ enum class UniqueParameterType(
 
     /** City-scope variables only - used by the city-scope conditional/trigger unique channels
      *  (`when above [5] [Loyalty] in this city`, `Instantly provides [4] [Loyalty] in this city`). */
-    CityVariableName("cityVariableName", "Loyalty", "The name of any city-scope variable defined in Variables.json (scope 'city')") {
+    CityVariableName("cityVariableName", "Loyalty", "The name of any city-scope variable defined in Variables.json (scope 'city').", "Variables.json 中定义的城市级变量名称（scope 为 'city'）。") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
             ruleset.variables.filter { it.value.resolvedScope == VariableScope.City }.keys
         override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
@@ -249,7 +249,7 @@ enum class UniqueParameterType(
 
     /** Global-scope variables only - used by the global-scope conditional/trigger unique channels
      *  (`when above [50] [WorldTension] globally`, `Instantly provides [4] [WorldTension] globally`). */
-    GlobalVariableName("globalVariableName", "WorldTension", "The name of any global-scope variable defined in Variables.json (scope 'global')") {
+    GlobalVariableName("globalVariableName", "WorldTension", "The name of any global-scope variable defined in Variables.json (scope 'global').", "Variables.json 中定义的全局级变量名称（scope 为 'global'）。") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset) =
             ruleset.variables.filter { it.value.resolvedScope == VariableScope.Global }.keys
         override fun isKnownValue(parameterText: String, ruleset: Ruleset) =
@@ -527,7 +527,7 @@ enum class UniqueParameterType(
     },
 
     /** Used by [UniqueType.OneTimeGainResource], implementation not centralized */
-    Stockpile("stockpile", "Mana", "The name of any stockpiled resource or a mod-defined civ-scope variable") {
+    Stockpile("stockpile", "Mana", "The name of any stockpiled resource or a mod-defined civ-scope variable.", "任意库存资源或文明级模组变量的名称。") {
         override fun getKnownValuesForAutocomplete(ruleset: Ruleset): Set<String> {
             return ruleset.tileResources.filter { it.value.isStockpiled }.keys +
                 Stat.entries.map { it.name } + SubStat.StoredFood.text + SubStat.GoldenAgePoints.text +

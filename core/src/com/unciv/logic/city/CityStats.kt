@@ -290,11 +290,9 @@ class CityStats(val city: City) {
         return sourceToStats
     }
 
-    /** Collects the per-turn yields of mod-defined variables from every active `[stats]`-parameter unique of this city:
-     *  - local sources: this city's built buildings and religion (Stats and StatsPerCity uniques)
-     *  - civ-level sources applying per city (nation, policies, techs, era, global uniques) -
-     *    matching the stat model where a policy `[+2 Gold]` contributes to every city.
-     *  The amounts are settled by [CityTurnManager] into the variable's scope at turn start. */
+    /** Collects per-turn yields of mod-defined variables from the `[stats]` parameters that feed city yields.
+     *  Basic Stats preserves the established city settlement path. StatsPerCity uses the same source
+     *  resolution as native city stats so a non-local building effect reaches every matching city. */
     @Readonly
     private fun collectVariableYields(): HashMap<String, Int> {
         val result = HashMap<String, Int>()
@@ -303,18 +301,16 @@ class CityStats(val city: City) {
         val civ = city.civ
 
         fun addUniqueStats(unique: Unique) {
+            if (unique.type == UniqueType.StatsPerCity && !city.matchesFilter(unique.params[1])) return
             val statsParam = unique.params.firstOrNull { Stats.isStatsLike(it) } ?: return
             for ((name, amount) in VariableStatsParser.extract(statsParam, ruleset)) {
+                val variable = ruleset.variables[name] ?: continue
+                if (!variable.isAvailableTo(civ)) continue
                 result[name] = (result[name] ?: 0) + amount
             }
         }
 
-        fun addForType(uniqueType: UniqueType) {
-            // Local: this city's buildings and religion (all Stats/StatsPerCity, local or not)
-            for (unique in city.getMatchingUniques(uniqueType, conditionalState, includeCivUniques = false))
-                addUniqueStats(unique)
-            // Civ-level sources, evaluated in this city's context (excludes cities' building uniques,
-            // which are already collected locally above - see Civilization.getMatchingUniques for the full set)
+        fun addExplicitCivSources(uniqueType: UniqueType) {
             civ.nation.getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
             civ.policies.policyUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
             civ.tech.techUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
@@ -322,8 +318,14 @@ class CityStats(val city: City) {
             civ.gameInfo.getGlobalUniques().getMatchingUniques(uniqueType, conditionalState).forEach { addUniqueStats(it) }
         }
 
-        addForType(UniqueType.Stats)
-        addForType(UniqueType.StatsPerCity)
+        // Basic Stats are local to the city for buildings/religion, plus the listed civ-wide sources.
+        for (unique in city.getMatchingUniques(UniqueType.Stats, conditionalState, includeCivUniques = false))
+            addUniqueStats(unique)
+        addExplicitCivSources(UniqueType.Stats)
+
+        // StatsPerCity follows the native city-stat source resolution, including non-local buildings.
+        for (unique in city.getMatchingUniques(UniqueType.StatsPerCity, conditionalState))
+            addUniqueStats(unique)
 
         return result
     }
@@ -337,25 +339,16 @@ class CityStats(val city: City) {
 
         fun addVariablePercentBonus(unique: Unique) {
             val variableName = unique.params[1]
-            if (variableName !in ruleset.variables) return
+            val variable = ruleset.variables[variableName] ?: return
+            if (!variable.isAvailableTo(civ)) return
             // The [cityFilter] variant only applies when this city matches the filter
             if (unique.type == UniqueType.StatPercentBonusCities && !city.matchesFilter(unique.params[2])) return
             variableYieldPercentBonuses[variableName] =
                 (variableYieldPercentBonuses[variableName] ?: 0f) + unique.params[0].toFloat()
         }
 
-        fun addForType(uniqueType: UniqueType) {
-            for (unique in city.getMatchingUniques(uniqueType, conditionalState, includeCivUniques = false))
-                addVariablePercentBonus(unique)
-            civ.nation.getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
-            civ.policies.policyUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
-            civ.tech.techUniques.getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
-            civ.getEra().getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
-            civ.gameInfo.getGlobalUniques().getMatchingUniques(uniqueType, conditionalState).forEach { addVariablePercentBonus(it) }
-        }
-
-        addForType(UniqueType.StatPercentBonus)
-        addForType(UniqueType.StatPercentBonusCities)
+        city.forEachMatchingUnique(UniqueType.StatPercentBonus, conditionalState, true, ::addVariablePercentBonus)
+        city.forEachMatchingUnique(UniqueType.StatPercentBonusCities, conditionalState, true, ::addVariablePercentBonus)
     }
 
     @Pure

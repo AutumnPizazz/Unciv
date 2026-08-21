@@ -295,8 +295,9 @@ open class Stats(
                 val match = statRegex.matchEntire(statWithBonuses) ?: return@forEach
                 @Immutable val groupValues = match.groupValues
                 val statName = groupValues[3]
+                val stat = Stat.safeValueOf(statName) ?: return@forEach
                 val statAmount = groupValues[2].toFloat() * (if (groupValues[1] == "-") -1 else 1)
-                toReturn.add(Stat.valueOf(statName), statAmount)
+                toReturn.add(stat, statAmount)
             }
             return toReturn
         }

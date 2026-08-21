@@ -21,6 +21,8 @@ import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Counter
 import com.unciv.models.ruleset.Building
+import com.unciv.models.ruleset.Variable
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.Unique
@@ -319,18 +321,26 @@ class City : IsPartOfGameInfoSerialization, INamed {
     @Readonly
     fun getVariable(variableName: String): Int {
         val stored = variables[variableName]
+        if (!::civ.isInitialized) return stored ?: 0
+        val variable = civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && variable.resolvedScope != VariableScope.City) return 0
+        if (variable != null && !variable.isAvailableTo(civ)) return 0
         if (stored != null) return stored
-        return civ.gameInfo.ruleset.variables[variableName]?.default ?: 0
+        return variable?.default ?: 0
     }
 
     fun addVariable(variableName: String, amount: Int) {
-        variables[variableName] = getVariable(variableName).let { current ->
-            civ.gameInfo.ruleset.variables[variableName]?.clamp(current + amount) ?: (current + amount)
-        }
+        val variable = civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && (variable.resolvedScope != VariableScope.City || !variable.isAvailableTo(civ))) return
+        val current = getVariable(variableName)
+        if (variable != null) variables[variableName] = variable.clampAdd(current, amount)
+        else variables[variableName] = current + amount
     }
 
     fun setVariable(variableName: String, amount: Int) {
-        variables[variableName] = civ.gameInfo.ruleset.variables[variableName]?.clamp(amount) ?: amount
+        val variable = civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && (variable.resolvedScope != VariableScope.City || !variable.isAvailableTo(civ))) return
+        variables[variableName] = variable?.clamp(amount) ?: amount
     }
 
     //endregion
@@ -342,7 +352,12 @@ class City : IsPartOfGameInfoSerialization, INamed {
     }
     
     @Readonly
-    fun getGameResource(gameResource: GameResource): Int = when (gameResource){
+    fun getGameResource(gameResource: GameResource): Int = when (gameResource) {
+        is Variable -> when (gameResource.resolvedScope) {
+            VariableScope.City -> getVariable(gameResource.name)
+            VariableScope.Civ -> civ.getVariable(gameResource.name)
+            VariableScope.Global -> civ.gameInfo.getVariable(gameResource.name)
+        }
         is TileResource -> getAvailableResourceAmount(gameResource)
         is Stat -> getStatReserve(gameResource)
         SubStat.StoredFood -> population.foodStored
@@ -356,6 +371,11 @@ class City : IsPartOfGameInfoSerialization, INamed {
             return
         }
         when (stat) {
+            is Variable -> when (stat.resolvedScope) {
+                VariableScope.City -> addVariable(stat.name, amount)
+                VariableScope.Civ -> civ.addVariable(stat.name, amount)
+                VariableScope.Global -> civ.gameInfo.addVariable(stat.name, amount)
+            }
             Stat.Production -> cityConstructions.addProductionPoints(amount)
             Stat.Food, SubStat.StoredFood -> population.foodStored += amount
             else -> civ.addGameResource(stat, amount)

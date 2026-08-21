@@ -411,14 +411,14 @@ Each variable has the following structure:
 
 | Attribute | Type | Default | Notes |
 |-----------|------|---------|-------|
-| name | String | Required | Must not collide with any stat or tile resource name |
+| name | String | Required | Must not collide with any stat, tile resource or construction name |
 | scope | String | Required | `city`, `civ` or `global` |
 | default | Integer | 0 | Value used when a scope has no record yet |
 | min | Integer | None | Optional lower bound; every write is clamped to it |
 | max | Integer | None | Optional upper bound; every write is clamped to it |
 | isDisplay | Boolean | true | Whether the variable is shown in variable UI |
 | isAlwaysDisplay | Boolean | false | Whether it stays visible in the collapsed world-screen top bar |
-| uniqueTo | String | None | Restricts a `city` or `civ` variable to one civilization; invalid for `global` variables |
+| uniqueTo | String | None | Restricts a `city` or `civ` variable to one civilization; other civilizations cannot read, write or use it; invalid for `global` variables |
 
 Example:
 
@@ -449,6 +449,8 @@ Example:
 City variables are stored in each `City`, civ variables in each `Civilization`, and global variables in `GameInfo`. A missing record falls back to `default`; `min` and `max` are applied on every `set`, `add`, trigger, per-turn settlement and Lua write. Variables are integer counters and are not adjusted by game speed.
 
 Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead. Displayable variables appear in the world-screen top bar, Resources overview and the Variables overview; city-scope values also appear in the city screen.
+
+Purchase costs paid with variables are integer values and are not rounded to the nearest ten.
 
 For a complete example of variables in action, see [CoeHarMod's Variables.json](https://github.com/AutumnPizazz/CoeHarMod/blob/workspace/jsons/Variables.json).
 

@@ -3,6 +3,8 @@ package com.unciv.logic.civilization
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
 import com.unciv.models.ruleset.VariableScope
+import com.unciv.models.ruleset.unique.Unique
+import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.ruleset.validation.RulesetValidator
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
@@ -52,6 +54,44 @@ class VariableScopeTests {
         city1.setVariable(variable.name, 7)
         Assert.assertEquals(7, city1.getVariable(variable.name))
         Assert.assertEquals(0, city2.getVariable(variable.name))
+    }
+
+    @Test
+    fun testUniqueToRestrictsCityAndCivVariables() {
+        val otherCiv = game.addCiv()
+        val city = game.addCity(civInfo, game.getTile(1, 0))
+        val otherCity = game.addCity(otherCiv, game.getTile(2, 0))
+        val uniqueTo = civInfo.nation.name
+
+        val civVariable = game.createVariable(default = 0, scope = VariableScope.Civ).apply { this.uniqueTo = uniqueTo }
+        civInfo.setVariable(civVariable.name, 7)
+        otherCiv.setVariable(civVariable.name, 9)
+        Assert.assertEquals(7, civInfo.getVariable(civVariable.name))
+        Assert.assertEquals(0, otherCiv.getVariable(civVariable.name))
+
+        val cityVariable = game.createVariable(default = 0, scope = VariableScope.City).apply { this.uniqueTo = uniqueTo }
+        city.setVariable(cityVariable.name, 7)
+        otherCity.setVariable(cityVariable.name, 9)
+        Assert.assertEquals(7, city.getVariable(cityVariable.name))
+        Assert.assertEquals(0, otherCity.getVariable(cityVariable.name))
+    }
+
+    @Test
+    fun testScopedGameResourceRoutesFromCityContext() {
+        val city = game.addCity(civInfo, game.getTile(1, 0))
+        val cityVariable = game.createVariable(scope = VariableScope.City)
+        val civVariable = game.createVariable(scope = VariableScope.Civ)
+        val globalVariable = game.createVariable(scope = VariableScope.Global)
+
+        city.addGameResource(cityVariable, 1)
+        city.addGameResource(civVariable, 2)
+        city.addGameResource(globalVariable, 3)
+
+        Assert.assertEquals(1, city.getVariable(cityVariable.name))
+        Assert.assertEquals(2, civInfo.getVariable(civVariable.name))
+        Assert.assertEquals(3, game.gameInfo.getVariable(globalVariable.name))
+        Assert.assertEquals(2, city.getGameResource(civVariable))
+        Assert.assertEquals(3, city.getGameResource(globalVariable))
     }
 
     @Test
@@ -153,6 +193,16 @@ class VariableScopeTests {
     }
 
     @Test
+    fun testGlobalVariablesSurviveGameClone() {
+        val variable = game.createVariable(default = 5, scope = VariableScope.Global)
+        game.gameInfo.setVariable(variable.name, 42)
+
+        val cloned = game.gameInfo.clone()
+        cloned.ruleset = game.ruleset
+        Assert.assertEquals(42, cloned.getVariable(variable.name))
+    }
+
+    @Test
     fun testOldGameSaveWithoutVariablesFallsBackToDefault() {
         val variable = game.createVariable(default = 7, scope = VariableScope.Global)
         game.gameInfo.setVariable(variable.name, 42)
@@ -183,6 +233,53 @@ class VariableScopeTests {
 
         civInfo.addVariable(variable.name, -1000)
         Assert.assertEquals(0, civInfo.getVariable(variable.name))
+    }
+
+    @Test
+    fun testCivVariableGenericGainRespectsClamp() {
+        val variable = game.createVariable(default = 0, scope = VariableScope.Civ)
+        variable.max = 10
+
+        val triggered = UniqueTriggerActivation.triggerUnique(
+            Unique("Instantly gain [50] [${variable.name}]"), civInfo)
+        Assert.assertTrue(triggered)
+        Assert.assertEquals(10, civInfo.getVariable(variable.name))
+    }
+
+    @Test
+    fun testVariableAddDoesNotOverflowBeforeClamping() {
+        val city = game.addCity(civInfo, game.getTile(1, 0))
+        for (scope in VariableScope.entries) {
+            val variable = game.createVariable(default = 0, scope = scope)
+            variable.min = -100
+            variable.max = 100
+            when (scope) {
+                VariableScope.City -> {
+                    city.setVariable(variable.name, 90)
+                    city.addVariable(variable.name, Int.MAX_VALUE)
+                    Assert.assertEquals(100, city.getVariable(variable.name))
+                    city.setVariable(variable.name, -90)
+                    city.addVariable(variable.name, Int.MIN_VALUE)
+                    Assert.assertEquals(-100, city.getVariable(variable.name))
+                }
+                VariableScope.Civ -> {
+                    civInfo.setVariable(variable.name, 90)
+                    civInfo.addVariable(variable.name, Int.MAX_VALUE)
+                    Assert.assertEquals(100, civInfo.getVariable(variable.name))
+                    civInfo.setVariable(variable.name, -90)
+                    civInfo.addVariable(variable.name, Int.MIN_VALUE)
+                    Assert.assertEquals(-100, civInfo.getVariable(variable.name))
+                }
+                VariableScope.Global -> {
+                    game.gameInfo.setVariable(variable.name, 90)
+                    game.gameInfo.addVariable(variable.name, Int.MAX_VALUE)
+                    Assert.assertEquals(100, game.gameInfo.getVariable(variable.name))
+                    game.gameInfo.setVariable(variable.name, -90)
+                    game.gameInfo.addVariable(variable.name, Int.MIN_VALUE)
+                    Assert.assertEquals(-100, game.gameInfo.getVariable(variable.name))
+                }
+            }
+        }
     }
 
     @Test
@@ -232,6 +329,25 @@ class VariableScopeTests {
         val errors = RulesetValidator.create(cleanGame.ruleset).getErrorList()
         Assert.assertTrue("default outside min/max must be reported",
             errors.any { "default outside of its min/max range" in it.text })
+    }
+
+    @Test
+    fun testVariableWithConstructionNameIsAnError() {
+        val cleanGame = TestGame().apply { makeHexagonalMap(3) }
+        val buildingName = cleanGame.ruleset.buildings.keys.first()
+        val perpetualName = "Nothing"
+        for (name in listOf(buildingName, perpetualName)) {
+            cleanGame.ruleset.variables[name] = com.unciv.models.ruleset.Variable().apply {
+                this.name = name
+                scope = VariableScope.City
+            }
+        }
+
+        val errors = RulesetValidator.create(cleanGame.ruleset).getErrorList()
+        Assert.assertTrue("Building name collision must be reported",
+            errors.any { buildingName in it.text && "collides with a construction name" in it.text })
+        Assert.assertTrue("Perpetual construction name collision must be reported",
+            errors.any { perpetualName in it.text && "collides with a construction name" in it.text })
     }
 
     @Test

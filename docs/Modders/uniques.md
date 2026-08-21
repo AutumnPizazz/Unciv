@@ -5643,7 +5643,7 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `speed` | The name of any speed. |
 | `spyAction` | A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`. |
 | `stat` | This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized! |
-| `stats` | For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized! |
+| `stats` | For example: `+2 Production, +3 Food`. Stat names need to be capitalized; mixed entries may also contain declared mod variables. |
 | `stockpile` | The name of any stockpiled resource or a mod-defined civ-scope variable. |
 | `stockpiledResource` | The name of any stockpiled resource. |
 | `tech` | The name of any tech. |

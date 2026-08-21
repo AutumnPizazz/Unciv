@@ -16,6 +16,7 @@ import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.EventChoice
 import com.unciv.models.ruleset.IRulesetObject
 import com.unciv.models.ruleset.ModVersion
+import com.unciv.models.ruleset.PerpetualConstruction
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.RulesetFile
@@ -470,6 +471,10 @@ open class RulesetValidator protected constructor(
                 lines.add("Variable ${variable.name} collides with a stat name!", sourceObject = variable)
             if (ruleset.tileResources.containsKey(variable.name))
                 lines.add("Variable ${variable.name} collides with a tile resource name!", sourceObject = variable)
+            if (ruleset.buildings.containsKey(variable.name)
+                || ruleset.units.containsKey(variable.name)
+                || PerpetualConstruction.perpetualConstructionsMap.containsKey(variable.name))
+                lines.add("Variable ${variable.name} collides with a construction name!", sourceObject = variable)
             // The storage scope must be declared explicitly
             if (variable.scope == null)
                 lines.add("Variable ${variable.name} is missing a scope declaration ('city', 'civ' or 'global')!", sourceObject = variable)

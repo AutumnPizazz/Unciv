@@ -150,12 +150,12 @@ class VariableThreeScopeTests {
     }
 
     @Test
-    fun testCityTriggerProvideInAllCities() {
+    fun testCityTriggerProvideInAllCitiesFromCityContext() {
         val f = Fixture()
         val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
         val otherCity = f.game.addCity(f.civInfo, f.game.getTile(2, 0))
         val triggered = UniqueTriggerActivation.triggerUnique(
-            Unique("Instantly provides [3] [${variable.name}] [in all cities]"), f.civInfo)
+            Unique("Instantly provides [3] [${variable.name}] [in all cities]"), f.city)
         Assert.assertTrue(triggered)
         Assert.assertEquals(3, f.city.getVariable(variable.name))
         Assert.assertEquals(3, otherCity.getVariable(variable.name))
@@ -283,6 +283,24 @@ class VariableThreeScopeTests {
         val variable = f.game.createVariable(default = 0, scope = VariableScope.Global)
         Assert.assertTrue("global variable must not validate in the civ conditional",
             checkErrors(f.game, "when above [5] [${variable.name}]"))
+    }
+
+    @Test
+    fun testWrongScopeCivConditionalDoesNotEvaluate() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
+        f.city.setVariable(variable.name, 99)
+        val conditional = Unique("<when above [5] [${variable.name}]>").modifiers.first()
+        Assert.assertFalse(Conditionals.conditionalApplies(null, conditional, GameContext(civInfo = f.civInfo, city = f.city)))
+    }
+
+    @Test
+    fun testWrongScopeGenericTriggerDoesNotActivate() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.Global)
+        Assert.assertFalse(UniqueTriggerActivation.triggerUnique(
+            Unique("Instantly provides [4] [${variable.name}]"), f.civInfo))
+        Assert.assertEquals(0, f.game.gameInfo.getVariable(variable.name))
     }
 
     @Test

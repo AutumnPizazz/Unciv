@@ -5620,8 +5620,8 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `belief` | The name of any belief. |
 | `beliefType` | 'Pantheon', 'Follower', 'Founder' or 'Enhancer' |
 | `buildingName` | The name of any building. |
-| `cityVariableName` | The name of any city-scope variable defined in Variables.json (scope 'city'). |
-| `civVariableName` | The name of any civ-scope variable defined in Variables.json (scope 'civ'). |
+| `cityVariableName` | Variables.json 中定义的城市级变量名称（scope 为 'city'）。 |
+| `civVariableName` | Variables.json 中定义的文明级变量名称（scope 为 'civ'）。 |
 | `civWideStat` | All the following stats have civ-wide fields: `Gold`, `Science`, `Culture`, `Faith`. |
 | `combatantFilter` | This indicates a combatant, which can either be a unit or a city (when bombarding). Must either be `City` or a `mapUnitFilter`. |
 | `costOrStrength` | `Cost` or `Strength`. |
@@ -5632,7 +5632,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `event` | The name of any event. |
 | `foundingOrEnhancing` | Prophet Action Filters. |
 | `fraction` | Indicates a fractional number, which can be negative. Also accepts Countable expressions. |
-| `globalVariableName` | The name of any global-scope variable defined in Variables.json (scope 'global'). |
+| `globalVariableName` | Variables.json 中定义的全局级变量名称（scope 为 'global'）。 |
 | `improvementName` | The name of any improvement excluding 'Cancel improvement order' |
 | `leaderTitle` | Leader Title |
 | `luaFunction` | A Lua function reference in the form [modName:]functionName. |
@@ -5650,8 +5650,8 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 | `speed` | The name of any speed. |
 | `spyAction` | A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`. |
 | `stat` | This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized! |
-| `stats` | For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized! |
-| `stockpile` | The name of any stockpiled resource or a mod-defined civ-scope variable. |
+| `stats` | 例如：`+2 Production, +3 Food`。属性名称必须首字母大写；混合条目也可以包含已声明的模组变量。 |
+| `stockpile` | 任意库存资源或文明级模组变量的名称。 |
 | `stockpiledResource` | The name of any stockpiled resource. |
 | `tech` | The name of any tech. |
 | `terrainFeature` | The name of any terrain that is a terrain feature according to the json file. |

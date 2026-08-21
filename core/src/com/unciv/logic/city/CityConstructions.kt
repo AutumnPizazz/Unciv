@@ -1066,6 +1066,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
     @Readonly
     fun isConstructionPurchaseAllowed(construction: INonPerpetualConstruction, variableName: String, constructionBuyCost: Int): Boolean {
         val variable = city.civ.gameInfo.ruleset.variables[variableName] ?: return false
+        if (!variable.isAvailableTo(city.civ)) return false
         return when {
             city.isPuppet && !city.getMatchingUniques(UniqueType.MayBuyConstructionsInPuppets).any() -> false
             city.isInResistance() -> false
@@ -1074,7 +1075,11 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             !construction.canBePurchasedWithVariable(city, variableName) -> false
             city.civ.gameInfo.gameParameters.godMode -> true
             constructionBuyCost == 0 -> true
-            else -> getVariableBalance(variableName, variable.resolvedScope) >= constructionBuyCost
+            else -> {
+                val balance = getVariableBalance(variableName, variable.resolvedScope)
+                balance >= constructionBuyCost &&
+                    (variable.min == null || balance.toLong() - constructionBuyCost >= variable.min!!.toLong())
+            }
         }
     }
 

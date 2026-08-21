@@ -10,6 +10,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 - Modding: Variables.json variables now support city, civilization and global scopes, bounds, per-turn yields, percentage bonuses, purchase costs, production conversion, scope-specific uniques, Lua read/write APIs and scope-aware UI; existing civ variables remain available with an explicit `scope` declaration - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) and [uniques](/Modders/uniques)
 
+- Fix: Scoped Variables.json values now persist through game-state copies, enforce ownership and scope, honor city filters and bounds, charge exact variable purchase costs, and avoid AI/stat-parser crashes.
+
 - Modding: variables (Variables.json) are now accepted in every countable position (e.g. `when number of [X] is more than [Y]`) and in the `Set [X] to [countable]` triggerable, so mods can move more resource-faked counters to variables - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json); CoeHarMod serves as a reference implementation
 
 - Merged upstream 7 commits: View refactoring continues (#15280) - unified View equality comparison, foreign-civ view access tightened (`getCiv()`), `viewingCiv` made private (a spectator posing as a player is now consistently treated as that player); fixed repair when only a pillaged road remains and an ANR when opening the Civilopedia; CN features (map pins/unit notes visibility, multiplayer chat online status, restart vote) migrated to the equivalent new API

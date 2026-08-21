@@ -370,14 +370,22 @@ object ReligionAutomation {
                     ) 0f
                     // This is something completely different from the original, but I have no idea
                     // what happens over there
-                    else civInfo.stats.statsForNextTurn[Stat.valueOf(unique.params[2])] * 300f / unique.params[1].toFloat() //the costs of these are probably similar to the baseUnitBuyCost
+                    else {
+                        val stat = Stat.safeValueOf(unique.params[2])
+                        if (stat == null) 0f
+                        else civInfo.stats.statsForNextTurn[stat] * 300f / unique.params[1].toFloat()
+                    } //the costs of these are probably similar to the baseUnitBuyCost
                 UniqueType.BuyUnitsWithStat, UniqueType.BuyBuildingsWithStat ->
                     if (civInfo.religionManager.religion != null
                         && civInfo.religionManager.religion!!.followerBeliefUniqueMap.getUniques(unique.type).any()
                     ) 0f
                     // This is something completely different from the original, but I have no idea
                     // what happens over there
-                    else civInfo.stats.statsForNextTurn[Stat.valueOf(unique.params[1])] * 300f / civInfo.getEra().baseUnitBuyCost
+                    else {
+                        val stat = Stat.safeValueOf(unique.params[1])
+                        if (stat == null) 0f
+                        else civInfo.stats.statsForNextTurn[stat] * 300f / civInfo.getEra().baseUnitBuyCost
+                    }
                     //baseUnitBuyCost is 200 in Standard speed pre-Renaissance, but overvalue such as to let the high-faith civs pick the good faith sinks 
                 UniqueType.BuyUnitsByProductionCost ->
                     0f //Holy Warriors is a waste if we don't buy units with it, and if we buy units with it'll cost us great persons

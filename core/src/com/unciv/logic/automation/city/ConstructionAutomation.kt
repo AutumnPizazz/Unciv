@@ -384,7 +384,7 @@ class ConstructionAutomation(val cityConstructions: CityConstructions) {
     private fun getBuildingStatsFromUniques(building: Building, buildingStats: Stats) : Stats {
         val stats = Stats()
         for (unique in building.getMatchingUniques(UniqueType.StatPercentBonusCities, cityState)) {
-            val statType = Stat.valueOf(unique.params[1])
+            val statType = Stat.safeValueOf(unique.params[1]) ?: continue
             val relativeAmount = unique.params[0].toFloat() / 100f
             val amount = civInfo.stats.statsForNextTurn[statType] * relativeAmount
             stats[statType] += amount

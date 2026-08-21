@@ -55,14 +55,18 @@ enum class EmpireOverviewCategories(
                 ResourcesOverviewTab(viewingPlayer, overviewScreen, persistedData)
         override fun showDisabled(viewingPlayer: CivView) =
                 viewingPlayer.getCiv().detailedCivResources.none { it.resource.resourceType != ResourceType.Bonus } &&
-                viewingPlayer.getCiv().gameInfo.ruleset.variables.values.none { it.isDisplay }
+                viewingPlayer.getCiv().gameInfo.ruleset.variables.values.none {
+                    it.isDisplay && (it.uniqueTo == null || viewingPlayer.getCiv().matchesFilter(it.uniqueTo!!))
+                }
         override fun getPersistDataClass() = ResourcesOverviewTab.ResourcesTabPersistableData::class.java
     },
     Variables("StatIcons/Resistance", 'V', Align.topLeft) {
         override fun createTab(viewingPlayer: CivView, overviewScreen: EmpireOverviewScreen, persistedData: EmpireOverviewTabPersistableData?) =
                 VariablesOverviewTab(viewingPlayer, overviewScreen)
         override fun showDisabled(viewingPlayer: CivView) =
-                viewingPlayer.getCiv().gameInfo.ruleset.variables.values.none { it.isDisplay }
+                viewingPlayer.getCiv().gameInfo.ruleset.variables.values.none {
+                    it.isDisplay && (it.uniqueTo == null || viewingPlayer.getCiv().matchesFilter(it.uniqueTo!!))
+                }
     },
     Religion("StatIcons/Faith", 'F', Align.top) {
         override fun createTab(viewingPlayer: CivView, overviewScreen: EmpireOverviewScreen, persistedData: EmpireOverviewTabPersistableData?) =

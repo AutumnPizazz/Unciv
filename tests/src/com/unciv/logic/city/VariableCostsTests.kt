@@ -1,5 +1,7 @@
 package com.unciv.logic.city
 
+import com.unciv.logic.automation.civilization.ReligionAutomation
+import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.testing.BaseTestRunner
@@ -70,6 +72,17 @@ class VariableCostsTests {
     }
 
     @Test
+    fun testPurchaseCannotPartiallySpendPastVariableMinimum() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 10, scope = VariableScope.Civ)
+        variable.min = 5
+        addBuyBuilding(f, "May buy [All] units for [10] [${variable.name}] [in this city]")
+
+        val unit = f.game.createBaseUnit()
+        Assert.assertFalse(f.city.cityConstructions.isConstructionPurchaseAllowed(unit, variable.name, 10))
+    }
+
+    @Test
     fun testPurchaseDeductsFromCivScope() {
         val f = Fixture()
         val variable = f.game.createVariable(default = 100, scope = VariableScope.Civ)
@@ -91,6 +104,18 @@ class VariableCostsTests {
         val bought = f.city.cityConstructions.purchaseConstruction(unit, -1, automatic = false, variableName = variable.name)
         Assert.assertTrue(bought)
         Assert.assertEquals(90, f.city.getVariable(variable.name))
+    }
+
+    @Test
+    fun testPurchaseDeductsFromGlobalScope() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 100, scope = VariableScope.Global)
+        addBuyBuilding(f, "May buy [All] units for [10] [${variable.name}] [in this city]")
+
+        val unit = f.game.createBaseUnit()
+        val bought = f.city.cityConstructions.purchaseConstruction(unit, -1, automatic = false, variableName = variable.name)
+        Assert.assertTrue(bought)
+        Assert.assertEquals(90, f.game.gameInfo.getVariable(variable.name))
     }
 
     @Test
@@ -135,6 +160,18 @@ class VariableCostsTests {
 
 
     @Test
+    fun testVariableBuyCostsAreNotRoundedToTens() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 100, scope = VariableScope.Civ)
+        addBuyBuilding(f,
+            "May buy [All] units for [5] [${variable.name}] [in this city]",
+            "May buy [All] buildings for [5] [${variable.name}] [in this city]")
+
+        Assert.assertEquals(5, f.game.createBaseUnit().getVariableBuyCost(f.city, variable.name))
+        Assert.assertEquals(5, f.game.createBuilding().getVariableBuyCost(f.city, variable.name))
+    }
+
+    @Test
     fun testUnitActionVariableCostBlocksAndCharges() {
         val f = Fixture()
         val variable = f.game.createVariable(default = 10, scope = VariableScope.Civ)
@@ -158,6 +195,27 @@ class VariableCostsTests {
         Assert.assertEquals(5, f.civInfo.getVariable(variable.name))
         f.civInfo.addVariable(variable.name, -100)
         Assert.assertEquals(0, f.civInfo.getVariable(variable.name))
+    }
+
+    @Test
+    fun testUnitActionVariableCostCannotPartiallySpendPastMinimum() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 10, scope = VariableScope.Civ)
+        variable.min = 5
+        val unit = f.game.addUnit("Warrior", f.civInfo, f.game.getTile(1, 0))
+        val action = Unique("Can transform to [Warrior] <costs [10] [${variable.name}]>")
+
+        Assert.assertFalse(UnitActionModifiers.canActivateSideEffects(unit, action))
+    }
+
+    @Test
+    fun testReligionAiCanRateVariablePurchaseBelief() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 10, scope = VariableScope.Civ)
+        val belief = f.game.createBelief(BeliefType.Founder,
+            "May buy [All] units for [10] [${variable.name}] [in all cities]")
+
+        Assert.assertTrue(ReligionAutomation.rateBelief(f.civInfo, belief).isFinite())
     }
 
     //endregion

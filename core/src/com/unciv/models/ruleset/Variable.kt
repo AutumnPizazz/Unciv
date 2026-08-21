@@ -1,7 +1,9 @@
 package com.unciv.models.ruleset
 
+import com.unciv.logic.civilization.Civilization
 import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.stats.GameResource
+import yairm210.purity.annotations.Readonly
 
 /** The storage scope of a mod-defined variable.
  *  - [City]: stored per-city (e.g. loyalty, housing, amenities - simulating Civ6 city stats)
@@ -42,12 +44,17 @@ class Variable : RulesetObject(), GameResource {
     /** Whether this variable stays visible even when the display menu collapses. Default: false */
     var isAlwaysDisplay = false
 
-    /** Optional restriction to a single civilization (by name). Only meaningful for [VariableScope.City] and [VariableScope.Civ];
+    /** Optional restriction to a single civilization (by name). City/civ variables are unavailable to other civilizations;
      *  declaring it for [VariableScope.Global] is a validation error. Default: null = applies to all. */
     var uniqueTo: String? = null
 
     /** The effective scope, falling back to [VariableScope.Civ] for records missing an explicit declaration. */
     val resolvedScope: VariableScope get() = scope ?: VariableScope.Civ
+
+    /** Whether this variable is available to the given civilization under [uniqueTo]. */
+    @Readonly
+    fun isAvailableTo(civInfo: Civilization): Boolean =
+        uniqueTo == null || civInfo.matchesFilter(uniqueTo!!)
 
     /** Clamps [value] to the declared [min]/[max] bounds (no-op when both are null). */
     fun clamp(value: Int): Int {
@@ -55,6 +62,14 @@ class Variable : RulesetObject(), GameResource {
         if (min != null && result < min!!) result = min!!
         if (max != null && result > max!!) result = max!!
         return result
+    }
+
+    /** Adds [amount] to [current] without overflowing, then clamps to the declared bounds. */
+    fun clampAdd(current: Int, amount: Int): Int {
+        var result = current.toLong() + amount.toLong()
+        if (min != null && result < min!!.toLong()) result = min!!.toLong()
+        if (max != null && result > max!!.toLong()) result = max!!.toLong()
+        return result.coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
     }
 
     override fun getUniqueTarget() = UniqueTarget.Variable

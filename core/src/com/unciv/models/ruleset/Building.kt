@@ -186,6 +186,10 @@ class Building : RulesetStatsObject(), INonPerpetualConstruction {
     }
 
     override fun canBePurchasedWithVariable(city: City?, variableName: String): Boolean {
+        if (city != null) {
+            val variable = city.civ.gameInfo.ruleset.variables[variableName]
+            if (variable != null && !variable.isAvailableTo(city.civ)) return false
+        }
         val purchaseReason = canBePurchasedWithNameReasons(null, variableName)
         if (city == null) return purchaseReason.purchasable
 
@@ -337,7 +341,7 @@ class Building : RulesetStatsObject(), INonPerpetualConstruction {
                 cost *= unique.params[2].toPercent()
         }
 
-        return (cost / 10f).toInt() * 10
+        return cost.toInt().coerceAtLeast(0)
     }
 
     override fun shouldBeDisplayed(cityConstructions: CityConstructions): Boolean {

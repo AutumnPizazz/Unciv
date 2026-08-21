@@ -2,6 +2,7 @@ package com.unciv.logic.city
 
 import com.unciv.logic.city.managers.CityTurnManager
 import com.unciv.models.ruleset.VariableScope
+import com.unciv.models.ruleset.unique.Unique
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import org.junit.Assert
@@ -48,6 +49,35 @@ class VariableYieldTests {
 
         CityTurnManager(f.city).startTurn()
         Assert.assertEquals(2, f.city.getVariable(variable.name))
+    }
+
+    @Test
+    fun testCityFilteredVariableYieldSkipsNonMatchingCity() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
+        f.game.ruleset.addGlobalUniques("[+2 ${variable.name}] [in capital]")
+        f.game.gameInfo.setGlobalTransients()
+        val otherCity = f.game.addCity(f.civInfo, f.game.getTile(2, 0))
+
+        CityTurnManager(f.city).startTurn()
+        CityTurnManager(otherCity).startTurn()
+
+        Assert.assertEquals(2, f.city.getVariable(variable.name))
+        Assert.assertEquals(0, otherCity.getVariable(variable.name))
+    }
+
+    @Test
+    fun testNonLocalBuildingVariableYieldsAndPercentApplyInAllCities() {
+        val f = Fixture()
+        val variable = f.game.createVariable(default = 0, scope = VariableScope.City)
+        addBuilding(f, "[+1 ${variable.name}] [in all cities]", "[+100]% [${variable.name}] [in all cities]")
+        val otherCity = f.game.addCity(f.civInfo, f.game.getTile(2, 0))
+
+        CityTurnManager(f.city).startTurn()
+        CityTurnManager(otherCity).startTurn()
+
+        Assert.assertEquals(2, f.city.getVariable(variable.name))
+        Assert.assertEquals(2, otherCity.getVariable(variable.name))
     }
 
     @Test
@@ -149,6 +179,13 @@ class VariableYieldTests {
 
         f.city.cityStats.update()
         Assert.assertEquals(2, f.city.cityStats.variableYields[variable.name])
+    }
+
+    @Test
+    fun testLenientStatsSkipUnknownEntries() {
+        val stats = Unique("[+2 Gold, +1 NotADeclaredVariable]").stats
+        Assert.assertEquals(2f, stats.gold)
+        Assert.assertFalse(stats.isEmpty())
     }
 
     //endregion

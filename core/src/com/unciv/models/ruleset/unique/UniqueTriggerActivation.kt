@@ -22,6 +22,8 @@ import com.unciv.models.UpgradeUnitAction
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.Event
 import com.unciv.models.ruleset.Ruleset
+import com.unciv.models.ruleset.Variable
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.TerrainType
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.stats.Stat
@@ -101,11 +103,14 @@ object UniqueTriggerActivation {
         return Countables.getCountableAmount(param, gameContext)?.takeIf { it >= 0 }
     }
 
-    /** The cities a city-scope variable trigger applies to: the contextual city when it matches the [cityFilter],
-     *  otherwise all cities of [civInfo] matching the filter. Empty when no city matches. */
+    /** The cities a city-scope variable trigger applies to. `in this city` targets the contextual city;
+     *  every other city filter targets all matching cities of [civInfo]. */
     @Readonly
     private fun getTargetCitiesForCityVariable(city: City?, civInfo: Civilization, cityFilter: String): List<City> {
-        if (city != null) return if (city.matchesFilter(cityFilter)) listOf(city) else emptyList()
+        if (cityFilter == "in this city") {
+            if (city == null) return emptyList()
+            return listOf(city)
+        }
         return civInfo.cities.filter { it.matchesFilter(cityFilter) }
     }
 
@@ -736,9 +741,10 @@ object UniqueTriggerActivation {
                     }
                 }
                 val variable = ruleset.variables[resourceName] ?: return null
+                if (variable.resolvedScope != VariableScope.Civ || !variable.isAvailableTo(civInfo)) return null
                 return {
-                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
-                    (city?.civ ?: civInfo).addVariable(variable.name, amount)
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    (relevantCity?.civ ?: civInfo).addVariable(variable.name, amount)
 
                     val notificationText = getNotificationText(
                         notification, triggerNotificationText,
@@ -770,9 +776,10 @@ object UniqueTriggerActivation {
                     }
                 }
                 val variable = ruleset.variables[resourceName] ?: return null
+                if (variable.resolvedScope != VariableScope.Civ || !variable.isAvailableTo(civInfo)) return null
                 return {
-                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
-                    (city?.civ ?: civInfo).addVariable(variable.name, -amount)
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    (relevantCity?.civ ?: civInfo).addVariable(variable.name, -amount)
 
                     val notificationText = getNotificationText(
                         notification, triggerNotificationText,
@@ -788,6 +795,8 @@ object UniqueTriggerActivation {
                 val resourceName = unique.params[1]
                 val resource = ruleset.getGameResource(resourceName) ?: return null
                 if (resource is TileResource && !resource.isStockpiled) return null
+                if (resource is Variable &&
+                    (resource.resolvedScope != VariableScope.Civ || !resource.isAvailableTo(civInfo))) return null
 
                 return {
                     var amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
@@ -811,8 +820,10 @@ object UniqueTriggerActivation {
                 val resourceName = unique.params[0]
                 val resource = ruleset.getGameResource(resourceName) ?: return null
                 if (resource is TileResource && !resource.isStockpiled) return null
+                if (resource is Variable &&
+                    (resource.resolvedScope != VariableScope.Civ || !resource.isAvailableTo(civInfo))) return null
 
-                val gameContext = GameContext(civInfo, city)
+                val gameContext = GameContext(civInfo, relevantCity)
                 val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
 
                 return {
@@ -821,10 +832,10 @@ object UniqueTriggerActivation {
                         amountRequired = if (resource is Stat) (amountRequired * civInfo.gameInfo.speed.statCostModifiers[resource]!!).roundToInt()
                         else (amountRequired * civInfo.gameInfo.speed.modifier).roundToInt()
                     }
-                    if (city != null){
-                        val currentAmount = city.getGameResource(resource)
+                    if (relevantCity != null){
+                        val currentAmount = relevantCity!!.getGameResource(resource)
                         val missingAmount = amountRequired - currentAmount
-                        city.addGameResource(resource, missingAmount)
+                        relevantCity!!.addGameResource(resource, missingAmount)
                     }
                     else {
                         val currentAmount = civInfo.getGameResource(resource)
@@ -844,10 +855,11 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeProvideCityVariable -> {
                 val variableName = unique.params[1]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.City || !variable.isAvailableTo(civInfo)) return null
                 val cityFilter = unique.params[2]
                 return {
-                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
-                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    val targetCities = getTargetCitiesForCityVariable(relevantCity, civInfo, cityFilter)
                     if (targetCities.isEmpty()) false
                     else {
                         targetCities.forEach { it.addVariable(variable.name, amount) }
@@ -865,10 +877,11 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeConsumeCityVariable -> {
                 val variableName = unique.params[1]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.City || !variable.isAvailableTo(civInfo)) return null
                 val cityFilter = unique.params[2]
                 return {
-                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
-                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
+                    val targetCities = getTargetCitiesForCityVariable(relevantCity, civInfo, cityFilter)
                     if (targetCities.isEmpty()) false
                     else {
                         targetCities.forEach { it.addVariable(variable.name, -amount) }
@@ -886,12 +899,13 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeGainCityVariable -> {
                 val variableName = unique.params[1]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.City || !variable.isAvailableTo(civInfo)) return null
                 val cityFilter = unique.params[2]
                 return {
-                    var amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    var amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
                     if (unique.isModifiedByGameSpeed())
                         amount = (amount * civInfo.gameInfo.speed.modifier).roundToInt()
-                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    val targetCities = getTargetCitiesForCityVariable(relevantCity, civInfo, cityFilter)
                     if (targetCities.isEmpty()) false
                     else {
                         targetCities.forEach { it.addVariable(variable.name, amount) }
@@ -909,14 +923,15 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeSetCityVariable -> {
                 val variableName = unique.params[0]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.City || !variable.isAvailableTo(civInfo)) return null
                 val cityFilter = unique.params[2]
-                val gameContext = GameContext(civInfo, city)
+                val gameContext = GameContext(civInfo, relevantCity)
                 val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
                 return {
                     var amountRequired = countableResult
                     if (unique.isModifiedByGameSpeed())
                         amountRequired = (amountRequired * civInfo.gameInfo.speed.modifier).roundToInt()
-                    val targetCities = getTargetCitiesForCityVariable(city, civInfo, cityFilter)
+                    val targetCities = getTargetCitiesForCityVariable(relevantCity, civInfo, cityFilter)
                     if (targetCities.isEmpty()) false
                     else {
                         targetCities.forEach { it.setVariable(variable.name, amountRequired) }
@@ -934,8 +949,9 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeProvideGlobalVariable -> {
                 val variableName = unique.params[1]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Global) return null
                 return {
-                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
                     civInfo.gameInfo.addVariable(variable.name, amount)
 
                     val notificationText = getNotificationText(
@@ -951,8 +967,9 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeConsumeGlobalVariable -> {
                 val variableName = unique.params[1]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Global) return null
                 return {
-                    val amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    val amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
                     civInfo.gameInfo.addVariable(variable.name, -amount)
 
                     val notificationText = getNotificationText(
@@ -968,8 +985,9 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeGainGlobalVariable -> {
                 val variableName = unique.params[1]
                 val variable = ruleset.variables[variableName] ?: return null
+                if (variable.resolvedScope != VariableScope.Global) return null
                 return {
-                    var amount = resolveAmount(unique.params[0], civInfo, city) ?: 0
+                    var amount = resolveAmount(unique.params[0], civInfo, relevantCity) ?: 0
                     if (unique.isModifiedByGameSpeed())
                         amount = (amount * civInfo.gameInfo.speed.modifier).roundToInt()
                     civInfo.gameInfo.addVariable(variable.name, amount)
@@ -987,7 +1005,8 @@ object UniqueTriggerActivation {
             UniqueType.OneTimeSetGlobalVariable -> {
                 val variableName = unique.params[0]
                 val variable = ruleset.variables[variableName] ?: return null
-                val gameContext = GameContext(civInfo, city)
+                if (variable.resolvedScope != VariableScope.Global) return null
+                val gameContext = GameContext(civInfo, relevantCity)
                 val countableResult = Countables.getCountableAmount(unique.params[1], gameContext) ?: return null
                 return {
                     var amountRequired = countableResult

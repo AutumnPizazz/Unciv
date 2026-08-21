@@ -403,14 +403,14 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| name | String | 必填 | 不得与任何属性或地块资源同名 |
+| name | String | 必填 | 不得与任何属性、地块资源或生产项目同名 |
 | scope | String | 必填 | `city`、`civ` 或 `global` |
 | default | Integer | 0 | 该作用域没有记录时使用的值 |
 | min | Integer | 无 | 可选下限；每次写入都会截断到该值 |
 | max | Integer | 无 | 可选上限；每次写入都会截断到该值 |
 | isDisplay | Boolean | true | 是否在变量相关界面显示 |
 | isAlwaysDisplay | Boolean | false | 顶栏折叠时是否仍保持显示 |
-| uniqueTo | String | 无 | 将 `city` 或 `civ` 变量限制给一个文明；`global` 变量填写此项会报错 |
+| uniqueTo | String | 无 | 将 `city` 或 `civ` 变量限制给一个文明；其他文明不能读写或使用它；`global` 变量填写此项会报错 |
 
 示例：
 
@@ -441,6 +441,8 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 城市级变量存储在每座 `City` 中，文明级变量存储在每个 `Civilization` 中，全局级变量存储在 `GameInfo` 中。缺少记录时回退到 `default`；`min`/`max` 会在 `set`、`add`、触发器、每回合结算和 Lua 写入时生效。变量是整数逻辑计数器，不受游戏速度修正。
 
 图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。可显示变量会出现在世界地图顶栏、资源概览和 Variables 概览中；城市级数值还会显示在城市界面。
+
+使用变量支付的购买成本按整数原值结算，不按十位取整。
 
 变量完整用法可参考 [CoeHarMod 的 Variables.json](https://github.com/AutumnPizazz/CoeHarMod/blob/workspace/jsons/Variables.json)。
 

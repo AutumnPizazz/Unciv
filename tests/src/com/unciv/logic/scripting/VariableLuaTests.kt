@@ -135,6 +135,30 @@ class VariableLuaTests {
         Assert.assertNotNull(cityVariable)
         Assert.assertNotNull(globalVariable)
     }
+
+    @Test
+    fun luaVariableApisDoNotCrossScopes() {
+        val civVariable = testGame.createVariable(scope = VariableScope.Civ)
+        val cityVariable = testGame.createVariable(scope = VariableScope.City)
+        val globalVariable = testGame.createVariable(scope = VariableScope.Global)
+        val civ = addCivWithCity()
+        val city = civ.cities.first()
+        val mod = loadLuaScriptToMod("varScopeIsolation", "isolation.lua", """
+            function testIsolation(ctx)
+                ctx.civ.setVariable("${cityVariable.name}", 9)
+                ctx.city.setVariable("${civVariable.name}", 9)
+                ctx.game.setGlobalVariable("${civVariable.name}", 9)
+                return ctx.civ.getVariable("${cityVariable.name}") == 0
+                    and ctx.city.getVariable("${civVariable.name}") == 0
+                    and ctx.game.getGlobalVariable("${civVariable.name}") == 0
+            end
+        """.trimIndent())
+
+        Assert.assertTrue(runLuaFunction("varScopeIsolation", "testIsolation", civ, city))
+        Assert.assertEquals(0, city.getVariable(cityVariable.name))
+        Assert.assertEquals(0, civ.getVariable(civVariable.name))
+        Assert.assertEquals(0, testGame.gameInfo.getVariable(globalVariable.name))
+    }
     @Test
     fun luaCanReadWriteVariables() {
         val variable = testGame.createVariable(default = 0)

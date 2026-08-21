@@ -63,6 +63,8 @@ interface INonPerpetualConstruction : IConstruction, INamed, IHasUniques {
     @Readonly
     fun canBePurchasedWithNameReasons(city: City?, name: String): PurchaseReason {
         val gameContext = city?.state ?: GameContext.EmptyState
+        val variable = city?.civ?.gameInfo?.ruleset?.variables?.get(name)
+        if (variable != null && !variable.isAvailableTo(city.civ)) return PurchaseReason.Invalid
         if (name == Stat.Production.name || name == Stat.Happiness.name) return PurchaseReason.Invalid
         if (hasUnique(UniqueType.CannotBePurchased, gameContext)) return PurchaseReason.Unpurchasable
         // Can be purchased with [Stat] [cityFilter]

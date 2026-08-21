@@ -216,8 +216,10 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         }
 
         val variableTable = Table()
+        val cityCiv = cityView.getCity().civ
         for (variable in cityView.getRuleset().variables.values.filter {
-            it.isDisplay && it.resolvedScope == VariableScope.City
+            it.isDisplay && it.resolvedScope == VariableScope.City &&
+                (it.uniqueTo == null || cityCiv.matchesFilter(it.uniqueTo!!))
         }) {
             val perTurn = cityView.getVariableYield(variable.name)
             val value = cityView.getVariableValue(variable.name)

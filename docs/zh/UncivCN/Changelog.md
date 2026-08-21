@@ -14,6 +14,8 @@ title: UncivCN 更新日志
 
 - 模组支持：Variables.json 变量现支持城市级、文明级和全局级作用域、上下限、每回合产出、百分比加成、购买成本、生产转换、分作用域 unique、Lua 读写与作用域 UI；现有文明级变量需显式声明 `scope`，详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) 与 [uniques](/zh/Modders/uniques)
 
+- 修复：分作用域 Variables.json 变量现会在游戏状态复制后保留数值，遵守文明与作用域限制、城市筛选器和上下限，按整数原值扣除购买成本，并避免 AI/属性解析崩溃。
+
 - 模组支持：变量（Variables.json）现可用于所有 countable 位置（如 `when number of [X] is more than [Y]`）与 `Set [X] to [countable]` 设定触发器，更多用资源伪装的计数器可以迁移到变量——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)；CoeHarMod 为参考实现
 
 - 合并上游 7 个提交：View 重构继续（#15280）——视图相等性比较统一、外文明视图访问收紧（getCiv()）、viewingCiv 私有化（观战者伪装成玩家时行为一致）；修复仅有被掠夺道路时的修复功能异常、打开文明百科时的 ANR；CN 特色功能（地图钉/单位备注可见性、多人聊天在线状态、重开投票）改用等价新 API

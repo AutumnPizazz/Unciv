@@ -20,6 +20,7 @@ import com.unciv.models.metadata.GameParameters
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.Policy
 import com.unciv.models.ruleset.Variable
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.nation.CityStateType
 import com.unciv.models.ruleset.nation.Difficulty
 import com.unciv.models.ruleset.nation.Nation
@@ -1074,7 +1075,11 @@ class Civilization : IsPartOfGameInfoSerialization {
 
     fun addGameResource(stat: GameResource, amount: Int) {
         if (stat is Variable) {
-            variables[stat.name] = getVariable(stat.name) + amount
+            when (stat.resolvedScope) {
+                VariableScope.Civ -> addVariable(stat.name, amount)
+                VariableScope.Global -> gameInfo.addVariable(stat.name, amount)
+                VariableScope.City -> throw IllegalArgumentException("City-scope variable '${stat.name}' requires a city context")
+            }
             return
         }
         if (stat is TileResource && stat.isStockpiled) gainStockpiledResource(stat, amount)
@@ -1095,7 +1100,11 @@ class Civilization : IsPartOfGameInfoSerialization {
     @Readonly
     fun getGameResource(gameResource:GameResource): Int {
         return when (gameResource) {
-            is Variable -> getVariable(gameResource)
+            is Variable -> when (gameResource.resolvedScope) {
+                VariableScope.Civ -> getVariable(gameResource)
+                VariableScope.Global -> gameInfo.getVariable(gameResource.name)
+                VariableScope.City -> throw IllegalArgumentException("City-scope variable '${gameResource.name}' requires a city context")
+            }
             is TileResource -> getResourceAmount(gameResource)
             is Stat -> getStatReserve(gameResource)
             SubStat.GoldenAgePoints -> goldenAges.storedHappiness
@@ -1115,21 +1124,29 @@ class Civilization : IsPartOfGameInfoSerialization {
     @Readonly
     fun getVariable(variableName: String): Int {
         val stored = variables[variableName]
+        if (!::gameInfo.isInitialized) return stored ?: 0
+        val variable = gameInfo.ruleset.variables[variableName]
+        if (variable != null && variable.resolvedScope != VariableScope.Civ) return 0
+        if (variable != null && !variable.isAvailableTo(this)) return 0
         if (stored != null) return stored
-        return gameInfo.ruleset.variables[variableName]?.default ?: 0
+        return variable?.default ?: 0
     }
 
     @Readonly
     fun getVariable(variable: Variable): Int = getVariable(variable.name)
 
     fun addVariable(variableName: String, amount: Int) {
-        variables[variableName] = getVariable(variableName).let { current ->
-            gameInfo.ruleset.variables[variableName]?.clamp(current + amount) ?: (current + amount)
-        }
+        val variable = gameInfo.ruleset.variables[variableName]
+        if (variable != null && (variable.resolvedScope != VariableScope.Civ || !variable.isAvailableTo(this))) return
+        val current = getVariable(variableName)
+        if (variable != null) variables[variableName] = variable.clampAdd(current, amount)
+        else variables[variableName] = current + amount
     }
 
     fun setVariable(variableName: String, amount: Int) {
-        variables[variableName] = gameInfo.ruleset.variables[variableName]?.clamp(amount) ?: amount
+        val variable = gameInfo.ruleset.variables[variableName]
+        if (variable != null && (variable.resolvedScope != VariableScope.Civ || !variable.isAvailableTo(this))) return
+        variables[variableName] = variable?.clamp(amount) ?: amount
     }
 
     //endregion

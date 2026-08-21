@@ -57,6 +57,7 @@ sealed class PerpetualConstruction(override var name: String, val description: S
             (1 / city.cityStats.getVariableConversionRate(variable.name)).roundToInt().coerceAtLeast(1)
 
         override fun isBuildable(cityConstructions: CityConstructions): Boolean {
+            if (!variable.isAvailableTo(cityConstructions.city.civ)) return false
             val context = cityConstructions.city.state
             return cityConstructions.city.civ.getMatchingUniques(UniqueType.EnablesStatProduction, context)
                 .any { it.params[0] == variable.name }

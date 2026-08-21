@@ -93,6 +93,8 @@ class BaseUnitCost(val baseUnit: BaseUnit) {
     /** Whether this unit can be purchased with the given mod-defined variable, through any of the buy uniques. */
     @Readonly
     fun canBePurchasedWithVariable(city: City, variableName: String): Boolean {
+        val variable = city.civ.gameInfo.ruleset.variables[variableName]
+        if (variable != null && !variable.isAvailableTo(city.civ)) return false
         val conditionalState = city.state
         return city.getMatchingUniques(UniqueType.BuyUnitsIncreasingCost, conditionalState)
             .any { it.params[2] == variableName && baseUnit.matchesFilter(it.params[0], conditionalState) && city.matchesFilter(it.params[3]) }
@@ -119,7 +121,7 @@ class BaseUnitCost(val baseUnit: BaseUnit) {
             if (variableName == unique.params[0])
                 cost *= unique.params[1].toPercent()
 
-        return (cost / 10f).toInt() * 10
+        return cost.toInt().coerceAtLeast(0)
     }
 
     /** Variable variant of [getBaseBuyCosts] - no game-speed modifier. */

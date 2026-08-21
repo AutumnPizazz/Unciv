@@ -78,7 +78,9 @@ object UnitActionModifiers {
             val ruleset = unit.civ.gameInfo.ruleset
             val variable = ruleset.variables[resourceName]
             if (variable?.resolvedScope == VariableScope.Civ) {
-                if (unit.civ.getVariable(resourceName) < amount) return false
+                val balance = unit.civ.getVariable(resourceName)
+                if (balance < amount) return false
+                if (variable.min != null && balance.toLong() - amount < variable.min!!.toLong()) return false
             } else if (variable != null) {
                 return false
             } else if (unit.civ.getResourceAmount(resourceName) < amount) {

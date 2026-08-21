@@ -124,8 +124,12 @@ object Conditionals {
 
             if (state.gameInfo.ruleset.tileResources.containsKey(resourceOrStatName))
                 return compare(state.getResourceAmount(resourceOrStatName), lowerLimit * gameSpeedModifier, upperLimit * gameSpeedModifier)
-            if (state.gameInfo.ruleset.variables.containsKey(resourceOrStatName))
+            val variable = state.gameInfo.ruleset.variables[resourceOrStatName]
+            if (variable != null) {
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.Civ || !variable.isAvailableTo(relevantCiv)) return false
                 return compare(state.getVariableAmount(resourceOrStatName), lowerLimit * gameSpeedModifier, upperLimit * gameSpeedModifier)
+            }
             val stat = Stat.safeValueOf(resourceOrStatName)
                 ?: return false
             val statReserve = state.getStatAmount(stat)
@@ -202,12 +206,18 @@ object Conditionals {
             // City-scope variable conditionals: judged on the city matching the [cityFilter]
             UniqueType.ConditionalWhenAboveCityVariable -> {
                 val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val variable = state.gameInfo?.ruleset?.variables[conditional.params[1]] ?: return false
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.City || !variable.isAvailableTo(relevantCiv)) return false
                 checkOnCity {
                     matchesFilter(conditional.params[2]) && getVariable(conditional.params[1]) > amount
                 }
             }
             UniqueType.ConditionalWhenBelowCityVariable -> {
                 val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val variable = state.gameInfo?.ruleset?.variables[conditional.params[1]] ?: return false
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.City || !variable.isAvailableTo(relevantCiv)) return false
                 checkOnCity {
                     matchesFilter(conditional.params[2]) && getVariable(conditional.params[1]) < amount
                 }
@@ -215,6 +225,9 @@ object Conditionals {
             UniqueType.ConditionalWhenBetweenCityVariable -> {
                 val lowerAmount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
                 val upperAmount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
+                val variable = state.gameInfo?.ruleset?.variables[conditional.params[2]] ?: return false
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.City || !variable.isAvailableTo(relevantCiv)) return false
                 checkOnCity {
                     matchesFilter(conditional.params[3]) &&
                         getVariable(conditional.params[2]) >= lowerAmount && getVariable(conditional.params[2]) <= upperAmount
@@ -224,15 +237,24 @@ object Conditionals {
             // Global-scope variable conditionals: judged against the game-wide value
             UniqueType.ConditionalWhenAboveGlobalVariable -> {
                 val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val variable = state.gameInfo?.ruleset?.variables[conditional.params[1]] ?: return false
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.Global || !variable.isAvailableTo(relevantCiv)) return false
                 checkOnGameInfo { getVariable(conditional.params[1]) > amount }
             }
             UniqueType.ConditionalWhenBelowGlobalVariable -> {
                 val amount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
+                val variable = state.gameInfo?.ruleset?.variables[conditional.params[1]] ?: return false
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.Global || !variable.isAvailableTo(relevantCiv)) return false
                 checkOnGameInfo { getVariable(conditional.params[1]) < amount }
             }
             UniqueType.ConditionalWhenBetweenGlobalVariable -> {
                 val lowerAmount = Countables.getCountableAmount(conditional.params[0], state) ?: return false
                 val upperAmount = Countables.getCountableAmount(conditional.params[1], state) ?: return false
+                val variable = state.gameInfo?.ruleset?.variables[conditional.params[2]] ?: return false
+                val relevantCiv = state.relevantCiv ?: return false
+                if (variable.resolvedScope != com.unciv.models.ruleset.VariableScope.Global || !variable.isAvailableTo(relevantCiv)) return false
                 checkOnGameInfo {
                     getVariable(conditional.params[2]) >= lowerAmount && getVariable(conditional.params[2]) <= upperAmount
                 }
