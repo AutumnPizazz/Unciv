@@ -151,23 +151,26 @@ city.getConstructionQueue()    -- 建设队列
 city.getMajorityReligion()     -- 多数宗教名
 city.isHolyCity()              -- 是否为圣城
 city.hasUnique(uniqueText)     -- 已建建筑中是否有此 unique
+city.getVariable(variableName) -- 城市级变量值
 ```
 
 **写入方法**:
 
 ```lua
-city.addPopulation(amount)        -- 增加人口
-city.setPopulation(count)         -- 精确设置人口（最低 1）
-city.addFood(amount)              -- 增加存粮
-city.addProduction(amount)        -- 增加当前建造产能
-city.addHealth(amount)            -- 治疗城市
-city.setName(newName)             -- 城市改名
-city.addBuilding(buildingName)    -- 免费建造
-city.removeBuilding(buildingName) -- 移除建筑
-city.sellBuilding(buildingName)   -- 出售建筑换取金币
-city.setProduction(itemName)      -- 将当前建造项目设为指定项目
-city.addToQueue(itemName)         -- 追加到建造队列末尾
-city.clearQueue()                 -- 清空整个建造队列
+city.addPopulation(amount)             -- 增加人口
+city.setPopulation(count)              -- 精确设置人口（最低 1）
+city.addFood(amount)                   -- 增加存粮
+city.addProduction(amount)             -- 增加当前建造产能
+city.addHealth(amount)                 -- 治疗城市
+city.setName(newName)                  -- 城市改名
+city.addBuilding(buildingName)         -- 免费建造
+city.removeBuilding(buildingName)      -- 移除建筑
+city.sellBuilding(buildingName)        -- 出售建筑换取金币
+city.setProduction(itemName)           -- 将当前建造项目设为指定项目
+city.addToQueue(itemName)              -- 追加到建造队列末尾
+city.clearQueue()                      -- 清空整个建造队列
+city.setVariable(variableName, amount) -- 设置城市级变量
+city.addVariable(variableName, amount) -- 增加城市级变量
 ```
 
 ## unit — 单位
@@ -350,6 +353,8 @@ game.doesTerrainExist(terrainName)         -- 地形是否存在
 game.doesResourceExist(resourceName)       -- 资源是否存在
 game.doesVariableExist(variableName)       -- 变量是否存在
 game.getRulesetVariables()                 -- 变量名列表
+game.getGlobalVariable(variableName)       -- 全局级变量值
+game.getVariablesOfScope(scope)            -- 指定作用域（city、civ 或 global）中的变量名
 game.doesImprovementExist(improvementName) -- 改良是否存在
 game.doesNationExist(nationName)           -- 文明（nation）是否存在
 game.doesBeliefExist(beliefName)           -- 信条是否存在
@@ -359,6 +364,8 @@ game.doesEventExist(eventName)             -- 事件是否存在
 **写入方法**:
 
 ```lua
+game.setGlobalVariable(variableName, amount)  -- 设置全局级变量
+game.addGlobalVariable(variableName, amount)  -- 增加全局级变量
 game.addGlobalNotification(text)              -- 向所有人类玩家发通知
 game.revealEntireMap(civName)                 -- 对某文明揭示全地图
 game.revealTilesAround(civName, x, y, radius) -- 对某文明揭示指定位置周边地块

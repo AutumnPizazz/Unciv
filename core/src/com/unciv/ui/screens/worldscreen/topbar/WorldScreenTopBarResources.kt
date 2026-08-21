@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.logic.civilization.Civilization
 import com.unciv.models.ruleset.Variable
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.ruleset.unique.UniqueType
@@ -74,7 +75,10 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
             resourceActors += ResourceActors(resource, resourceLabel, resourceImage)
         }
 
-        val displayVariables = worldScreen.gameInfo.ruleset.variables.values.filter { it.isDisplay }
+        val displayVariables = worldScreen.gameInfo.ruleset.variables.values.filter {
+            it.isDisplay && it.resolvedScope != VariableScope.City &&
+                (it.uniqueTo == null || worldScreen.selectedCiv.matchesFilter(it.uniqueTo!!))
+        }
         val modOptions = worldScreen.gameInfo.ruleset.modOptions
         val shownVariables = if (modOptions.variableMenuThreshold > 0 && displayVariables.size > modOptions.variableMenuThreshold) {
             // Menu collapsed: keep only always-display variables (capped by alwaysDisplayVariableCount)
@@ -150,12 +154,24 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
 
         for ((index, variableActors) in variableActors.withIndex()) {
             val (variable, label, icon) = variableActors
-            val amount = civInfo.getVariable(variable.name)
+            val amount = when (variable.resolvedScope) {
+                VariableScope.Civ -> civInfo.getVariable(variable.name)
+                VariableScope.Global -> civInfo.gameInfo.getVariable(variable.name)
+                VariableScope.City -> continue
+            }
+            val perTurn = getVariablePerTurn(civInfo, variable)
             resourcesWrapper.add(icon).padLeft(if (index == 0 && resourceActors.isEmpty()) 0f else extraPadBetweenResources)
-            label.setText(amount.tr())
+            label.setText(if (perTurn == 0) amount.tr() else "${amount.tr()} (${perTurn.toStringSigned()})")
             resourcesWrapper.add(label).padTop(resourceAmountDescentTweak)
         }
 
         scaleTo(worldScreen.stage.width)
+    }
+
+    private fun getVariablePerTurn(civInfo: Civilization, variable: Variable): Int {
+        val cities = if (variable.resolvedScope == VariableScope.Global)
+            civInfo.gameInfo.civilizations.asSequence().flatMap { it.cities.asSequence() }
+        else civInfo.cities.asSequence()
+        return cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) }
     }
 }

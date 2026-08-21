@@ -1,8 +1,10 @@
 package com.unciv.logic.scripting
 
 import com.badlogic.gdx.Gdx
+import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
 import com.unciv.models.ruleset.Ruleset
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.testing.GdxTestRunner
 import com.unciv.testing.TestGame
@@ -48,12 +50,91 @@ class VariableLuaTests {
         return result
     }
 
+    private fun runLuaFunction(modName: String, funcName: String, civ: Civilization, city: City?): Boolean {
+        val (foundMod, func) = LuaScriptManager.getFunction(modName, funcName) ?: run {
+            Assert.fail("$funcName not found")
+            return false
+        }
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), foundMod)
+        var result = false
+        LuaScriptManager.callFunction(func, ctx, civ, funcName, onSuccess = { result = it }, modName = foundMod)
+        return result
+    }
     private fun addCivWithCity(): Civilization {
         val civ = testGame.addCiv(isPlayer = true)
         testGame.addCity(civ, testGame.getTile(0, 0))
         return civ
     }
 
+    @Test
+    fun luaCityAndGlobalVariableApisRespectScopeAndClamp() {
+        val cityVariable = testGame.createVariable(default = 5, scope = VariableScope.City)
+        cityVariable.min = 0
+        cityVariable.max = 10
+        val globalVariable = testGame.createVariable(default = 2, scope = VariableScope.Global)
+        val civ = addCivWithCity()
+        val city = civ.cities.first()
+        val mod = loadLuaScriptToMod("varScopes", "scopes.lua", """
+            function testScopes(ctx)
+                local city = ctx.city
+                city.setVariable("${cityVariable.name}", 99)
+                city.addVariable("${cityVariable.name}", -3)
+                local game = ctx.game
+                game.setGlobalVariable("${globalVariable.name}", 7)
+                game.addGlobalVariable("${globalVariable.name}", 2)
+                local names = game.getVariablesOfScope("city")
+                return city.getVariable("${cityVariable.name}") == 7
+                    and game.getGlobalVariable("${globalVariable.name}") == 9
+                    and names[1] == "${cityVariable.name}"
+            end
+        """.trimIndent())
+        Assert.assertTrue(runLuaFunction("varScopes", "testScopes", civ, city))
+        Assert.assertEquals(7, city.getVariable(cityVariable.name))
+        Assert.assertEquals(9, testGame.gameInfo.getVariable(globalVariable.name))
+    }
+
+    @Test
+    fun luaCityAndGlobalVariableWritesAreClamped() {
+        val cityVariable = testGame.createVariable(default = 0, scope = VariableScope.City)
+        cityVariable.min = 0
+        cityVariable.max = 10
+        val globalVariable = testGame.createVariable(default = 0, scope = VariableScope.Global)
+        globalVariable.min = -2
+        globalVariable.max = 4
+        val civ = addCivWithCity()
+        val city = civ.cities.first()
+        val mod = loadLuaScriptToMod("varClampScopes", "clamp.lua", """
+            function testClamp(ctx)
+                ctx.city.setVariable("${cityVariable.name}", 100)
+                ctx.game.setGlobalVariable("${globalVariable.name}", -100)
+                return ctx.city.getVariable("${cityVariable.name}") == 10
+                    and ctx.game.getGlobalVariable("${globalVariable.name}") == -2
+            end
+        """.trimIndent())
+        Assert.assertTrue(runLuaFunction("varClampScopes", "testClamp", civ, city))
+    }
+
+    @Test
+    fun luaCityAndGlobalVariableApisAreAvailableInContext() {
+        val cityVariable = testGame.createVariable(scope = VariableScope.City)
+        val globalVariable = testGame.createVariable(scope = VariableScope.Global)
+        val civ = addCivWithCity()
+        val city = civ.cities.first()
+        val mod = loadLuaScriptToMod("varApiNames", "names.lua", """
+            function testNames(ctx)
+                return ctx.city.getVariable ~= nil
+                    and ctx.city.setVariable ~= nil
+                    and ctx.city.addVariable ~= nil
+                    and ctx.game.getGlobalVariable ~= nil
+                    and ctx.game.setGlobalVariable ~= nil
+                    and ctx.game.addGlobalVariable ~= nil
+                    and ctx.game.getVariablesOfScope ~= nil
+            end
+        """.trimIndent())
+        Assert.assertTrue(runLuaFunction("varApiNames", "testNames", civ, city))
+        Assert.assertNotNull(cityVariable)
+        Assert.assertNotNull(globalVariable)
+    }
     @Test
     fun luaCanReadWriteVariables() {
         val variable = testGame.createVariable(default = 0)

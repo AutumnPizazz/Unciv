@@ -383,39 +383,74 @@ When extension rulesets define GlobalUniques, all uniques are merged. To change 
 
 ## Variables.json
 
-This optional file defines mod-wide global variables - plain integer counters stored per civilization, useful for tracking state like war weariness without faking it with [Resources](3-Map-related-JSON-files.md#tile-resources-json).
+This optional file defines mod variables as integer counters with three storage scopes:
 
-Unlike resources or stats, a Variable carries no gameplay semantics by itself: it is only read/written through the parameter channel shared with stats and resources, so the following all work out of the box:
+- `city`: one value per city, for values such as loyalty, housing or amenities
+- `civ`: one value per civilization, for values such as war weariness
+- `global`: one value for the whole game, for values such as world tension or pollution
 
-- Conditionals: `when above [5] [WarWeariness]`, `when below [...]`, `when between [...]`
-- Triggerables: `Instantly provides [2] [WarWeariness]`, `Instantly consumes [1] [WarWeariness]`, `Instantly gain [3] [WarWeariness]`
-- [Lua](../Lua-Modding.md): `civ.getVariable / setVariable / addVariable`, `game.getRulesetVariables / doesVariableExist`
+The `scope` field is required. It accepts `city`, `civ` or `global` (scope names are written in lowercase; the loader also accepts capitalized input).
+
+Unlike resources or stats, a Variable carries no gameplay semantics by itself. It can be read and written through the scope-specific conditionals and triggerables, used in basic yield entries, percentage yield bonuses, purchase costs and production conversion:
+
+- Civ-scope conditional: `when above [5] [WarWeariness]`
+- City-scope conditional: `when above [5] [Loyalty] in this city`
+- Global-scope conditional: `when above [50] [WorldTension] globally`
+- Civ-scope trigger: `Instantly provides [2] [WarWeariness]`
+- City-scope trigger: `Instantly provides [2] [Loyalty] in this city`
+- Global-scope trigger: `Instantly provides [2] [WorldTension] globally`
+- Per-turn yield: `[+2 Loyalty]` (the same `[stats]` parameter used by stat yields)
+- Percentage yield bonus: `[+50]% [Loyalty]`
+- Production conversion: `Enables conversion of city production to [Loyalty]`
+- Purchase cost: `May buy [Melee] units for [10] [WarWeariness] [in this city]`
+- [Lua](../Lua-Modding.md): `civ.getVariable`, `city.getVariable`, `game.getGlobalVariable` and their `set`/`add` variants
+
+The three conditional/trigger channels are deliberately separate. A city variable cannot be used in a civ-scope unique, and a global variable cannot be used in a city-scope unique. Basic yield and percentage entries are shared and are routed according to the variable's declared scope.
 
 Each variable has the following structure:
 
-| Attribute       | Type    | Default | Notes                                                                                                                             |
-|-----------------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------|
-| name            | String  | Required | Must not collide with any stat or tile resource name                                                                              |
-| default         | Integer | 0       | Value used when a civilization has no record yet (e.g. old saves)                                                                 |
-| isDisplay       | Boolean | true    | Whether the variable is shown in the top bar and the Resources overview                                                           |
-| isAlwaysDisplay | Boolean | false   | Whether the variable stays visible in the top bar when the variable menu collapses (see `variableMenuThreshold` in [ModOptions.json](#modoptions-json)) |
-| uniqueTo        | String  | None    | Optional: restrict the variable to a single civilization (by nation name); None = all civilizations                                |
+| Attribute | Type | Default | Notes |
+|-----------|------|---------|-------|
+| name | String | Required | Must not collide with any stat or tile resource name |
+| scope | String | Required | `city`, `civ` or `global` |
+| default | Integer | 0 | Value used when a scope has no record yet |
+| min | Integer | None | Optional lower bound; every write is clamped to it |
+| max | Integer | None | Optional upper bound; every write is clamped to it |
+| isDisplay | Boolean | true | Whether the variable is shown in variable UI |
+| isAlwaysDisplay | Boolean | false | Whether it stays visible in the collapsed world-screen top bar |
+| uniqueTo | String | None | Restricts a `city` or `civ` variable to one civilization; invalid for `global` variables |
 
 Example:
 
 ```jsonc
 [
   {
-    "name": "WarWeariness",
-    "default": 0,
+    "name": "Loyalty",
+    "scope": "city",
+    "default": 50,
+    "min": 0,
+    "max": 100,
     "isDisplay": true
+  },
+  {
+    "name": "WarWeariness",
+    "scope": "civ",
+    "default": 0
+  },
+  {
+    "name": "WorldTension",
+    "scope": "global",
+    "default": 0,
+    "min": 0
   }
 ]
 ```
 
-Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead.
+City variables are stored in each `City`, civ variables in each `Civilization`, and global variables in `GameInfo`. A missing record falls back to `default`; `min` and `max` are applied on every `set`, `add`, trigger, per-turn settlement and Lua write. Variables are integer counters and are not adjusted by game speed.
 
-For a complete example of variables in action (per-turn supply/consumption, conditionals, `Set`, Lua and display config), see how [CoeHarMod](https://github.com/AutumnPizazz/CoeHarMod/blob/workspace/jsons/Variables.json) uses them.
+Icons are loaded from `image/Variable/<name>.png` in your mod folder; when no image is provided, a short text label is shown instead. Displayable variables appear in the world-screen top bar, Resources overview and the Variables overview; city-scope values also appear in the city screen.
+
+For a complete example of variables in action, see [CoeHarMod's Variables.json](https://github.com/AutumnPizazz/CoeHarMod/blob/workspace/jsons/Variables.json).
 
 ## Tutorials.json
 

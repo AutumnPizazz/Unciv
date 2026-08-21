@@ -10,6 +10,7 @@ import com.unciv.Constants
 import com.unciv.logic.city.*
 import com.unciv.models.Counter
 import com.unciv.models.ruleset.Building
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.TileResource
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.stats.Stat
@@ -213,6 +214,20 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
                 cityScreen.openCivilopedia("Tutorial/We Love The King Day")
             }
         }
+
+        val variableTable = Table()
+        for (variable in cityView.getRuleset().variables.values.filter {
+            it.isDisplay && it.resolvedScope == VariableScope.City
+        }) {
+            val perTurn = cityView.getVariableYield(variable.name)
+            val value = cityView.getVariableValue(variable.name)
+            val valueText = if (perTurn == 0) value.tr() else "${value.tr()} (${perTurn.toStringSigned()})"
+            variableTable.add(ImageGetter.getVariableIcon(variable.name, 20f)).size(20f).padRight(5f)
+            variableTable.add((variable.name + ":").toLabel(hideIcons = true)).padRight(5f)
+            variableTable.add(valueText.toLabel()).row()
+        }
+        if (variableTable.cells.notEmpty())
+            tableWithIcons.add(variableTable)
 
         lowerTable.add(tableWithIcons).row()
     }

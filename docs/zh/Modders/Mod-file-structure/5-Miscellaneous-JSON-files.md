@@ -375,39 +375,74 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 
 ## Variables.json
 
-此可选文件定义模组级全局变量——每个文明独立的整数计数器，用于跟踪诸如厌战度之类的状态，而无需用[资源](3-Map-related-JSON-files.md#tile-resources-json)伪装变量。
+此可选文件定义整数模组变量，并提供三档存储作用域：
 
-与资源或属性不同，变量本身不携带任何玩法语义：它只通过与属性/资源共享的参数通道被读写，因此以下用法开箱即用：
+- `city`：每座城市一份数值，可用于忠诚度、住房、宜居度等
+- `civ`：每个文明一份数值，可用于厌战度等
+- `global`：全局一份数值，可用于世界紧张度、温室效应、核污染指数等
 
-- 条件：`when above [5] [WarWeariness]`、`when below [...]`、`when between [...]`
-- 触发：`Instantly provides [2] [WarWeariness]`、`Instantly consumes [1] [WarWeariness]`、`Instantly gain [3] [WarWeariness]`
-- [Lua](/zh/Modders/Lua-Modding)：`civ.getVariable / setVariable / addVariable`、`game.getRulesetVariables / doesVariableExist`
+`scope` 字段必填，可填写 `city`、`civ` 或 `global`（推荐使用小写；读取时也兼容首字母大写）。
+
+变量本身不像资源或属性那样携带固定玩法语义。它可以通过对应作用域的条件与触发 unique、基础产出、百分比产出加成、购买成本和生产转换使用：
+
+- 文明级条件：`when above [5] [WarWeariness]`
+- 城市级条件：`when above [5] [Loyalty] in this city`
+- 全局级条件：`when above [50] [WorldTension] globally`
+- 文明级触发：`Instantly provides [2] [WarWeariness]`
+- 城市级触发：`Instantly provides [2] [Loyalty] in this city`
+- 全局级触发：`Instantly provides [2] [WorldTension] globally`
+- 每回合产出：`[+2 Loyalty]`（与属性产出使用相同的 `[stats]` 参数）
+- 百分比产出加成：`[+50]% [Loyalty]`
+- 生产转换：`Enables conversion of city production to [Loyalty]`
+- 购买成本：`May buy [Melee] units for [10] [WarWeariness] [in this city]`
+- [Lua](/zh/Modders/Lua-Modding)：`civ.getVariable`、`city.getVariable`、`game.getGlobalVariable` 及对应的 `set`/`add` 方法
+
+三套条件/触发通道有意保持独立：城市级变量不能写入文明级 unique，全局级变量不能写入城市级 unique。基础产出和百分比加成共用写法，再按变量声明的作用域结算。
 
 每个变量具有以下结构：
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | name | String | 必填 | 不得与任何属性或地块资源同名 |
-| default | Integer | 0 | 文明尚无记录时使用的值（例如旧存档） |
-| isDisplay | Boolean | true | 是否在顶栏与资源概览中显示 |
-| isAlwaysDisplay | Boolean | false | 当变量菜单折叠时（见 [ModOptions.json](#modoptions-json) 的 `variableMenuThreshold`），是否仍显示在顶栏 |
-| uniqueTo | String | 无 | 可选：将变量限制为单个文明（按国家名）；无 = 所有文明 |
+| scope | String | 必填 | `city`、`civ` 或 `global` |
+| default | Integer | 0 | 该作用域没有记录时使用的值 |
+| min | Integer | 无 | 可选下限；每次写入都会截断到该值 |
+| max | Integer | 无 | 可选上限；每次写入都会截断到该值 |
+| isDisplay | Boolean | true | 是否在变量相关界面显示 |
+| isAlwaysDisplay | Boolean | false | 顶栏折叠时是否仍保持显示 |
+| uniqueTo | String | 无 | 将 `city` 或 `civ` 变量限制给一个文明；`global` 变量填写此项会报错 |
 
 示例：
 
 ```jsonc
 [
   {
-    "name": "WarWeariness",
-    "default": 0,
+    "name": "Loyalty",
+    "scope": "city",
+    "default": 50,
+    "min": 0,
+    "max": 100,
     "isDisplay": true
+  },
+  {
+    "name": "WarWeariness",
+    "scope": "civ",
+    "default": 0
+  },
+  {
+    "name": "WorldTension",
+    "scope": "global",
+    "default": 0,
+    "min": 0
   }
 ]
 ```
 
-图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。
+城市级变量存储在每座 `City` 中，文明级变量存储在每个 `Civilization` 中，全局级变量存储在 `GameInfo` 中。缺少记录时回退到 `default`；`min`/`max` 会在 `set`、`add`、触发器、每回合结算和 Lua 写入时生效。变量是整数逻辑计数器，不受游戏速度修正。
 
-变量完整用法的范例（每回合供给/消耗、条件、`Set`、Lua 与显示配置）可参考 [CoeHarMod](https://github.com/AutumnPizazz/CoeHarMod/blob/workspace/jsons/Variables.json) 的写法。
+图标从模组文件夹的 `image/Variable/<name>.png` 加载；未提供图片时显示短文本标签。可显示变量会出现在世界地图顶栏、资源概览和 Variables 概览中；城市级数值还会显示在城市界面。
+
+变量完整用法可参考 [CoeHarMod 的 Variables.json](https://github.com/AutumnPizazz/CoeHarMod/blob/workspace/jsons/Variables.json)。
 
 ## Tutorials.json
 

@@ -287,13 +287,35 @@ Allowed values:
 
 ## variableName
 
-This indicates a text that corresponds to a mod-defined global variable (see [Variables.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#variables-json)).
-
-Variables are plain integer counters stored per civilization, useful for tracking state like war weariness without faking it with Resources. They are accepted wherever `[stat/resource/variableName]` or `[stockpiledResource/variableName]` appears, e.g. `when above [5] [WarWeariness]` or `Instantly provides [2] [WarWeariness]`.
+This indicates the name of a mod-defined variable (see [Variables.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#variables-json)). A variable is an integer counter whose storage is determined by its `scope` (`city`, `civ` or `global`). Shared parameter positions such as variable yields, percentage bonuses, purchase costs and production conversion accept this type.
 
 Allowed values:
 
 - The `name` of any variable defined in `Variables.json` of the ruleset
+
+## civVariableName
+
+The name of a `civ`-scope variable. This type is used by the civilization-scope conditional and trigger uniques, and by unit-action stockpile costs.
+
+Allowed values:
+
+- The `name` of a variable whose `scope` is `civ`
+
+## cityVariableName
+
+The name of a `city`-scope variable. This type is used by city-scope conditionals and trigger uniques; those uniques also carry a `[cityFilter]`.
+
+Allowed values:
+
+- The `name` of a variable whose `scope` is `city`
+
+## globalVariableName
+
+The name of a `global`-scope variable. This type is used by global-scope conditionals and trigger uniques; those uniques carry the fixed `globally` marker.
+
+Allowed values:
+
+- The `name` of a variable whose `scope` is `global`
 
 ## technologyFilter
 
@@ -457,8 +479,8 @@ Allowed values:
     - This can make a difference for e.g. local resources, which are counted per city.
 -   Variable name - From [Variables.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#variables-json)
     - Example: `Only available <when number of [WarWeariness] is more than [0]>`
-    - The current value of a mod-defined variable (see Variables.json) for the relevant Civilization.
-    - Variables are plain integer counters per civilization - unlike resources they have no stockpile/trade semantics, and unlike stats no per-turn yield.
+    - The current value of a mod-defined variable (see Variables.json) for the relevant city, civilization or game.
+    - Variables are plain integer counters with city, civilization or global storage - unlike resources they have no stockpile/trade semantics, but they can be produced per turn like basic stats.
     - They are accepted wherever a countable is, e.g. `when number of [WarWeariness] is more than [5]`.
 -   `[resourceFilter] resource of [civFilter] Civilizations`
     - Example: `Only available <when number of [[Strategic] resource of [City-States] Civilizations] is more than [0]>`

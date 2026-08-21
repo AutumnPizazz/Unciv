@@ -8,6 +8,7 @@ import com.unciv.UncivGame
 import com.unciv.logic.city.City
 import com.unciv.logic.map.tile.Tile
 import com.unciv.logic.trade.TradeOfferType
+import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.tile.ResourceSupplyList
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.tile.TileResource
@@ -20,6 +21,7 @@ import com.unciv.ui.components.extensions.equalizeColumns
 import com.unciv.ui.components.input.onClick
 import com.unciv.ui.components.extensions.pad
 import com.unciv.ui.components.extensions.surroundWithCircle
+import com.unciv.ui.components.extensions.toStringSigned
 import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.screens.basescreen.BaseScreen
@@ -179,19 +181,38 @@ class ResourcesOverviewTab(
         addVariablesSection()
     }
 
-    /** Appends a simple section listing all displayable mod-defined variables (see Variables.json). */
+    /** Appends all displayable mod-defined variables, grouped by their storage scope. */
     private fun addVariablesSection() {
         val civ = viewingPlayer.getCiv()
-        val displayVariables = civ.gameInfo.ruleset.variables.values.filter { it.isDisplay }
+        val displayVariables = civ.gameInfo.ruleset.variables.values.filter {
+            it.isDisplay && (it.uniqueTo == null || civ.matchesFilter(it.uniqueTo!!))
+        }
         if (displayVariables.isEmpty()) return
+
         addSeparator()
         val variablesTable = Table()
         variablesTable.defaults().padRight(defaultPad)
-        for (variable in displayVariables) {
+
+        fun addRow(variableName: String, variable: com.unciv.models.ruleset.Variable, value: Int, perTurn: Int) {
             variablesTable.add(ImageGetter.getVariableIcon(variable.name, iconSize / 2f)).padTop(3f)
-            variablesTable.add(variable.name.toLabel()).left().padLeft(5f)
-            variablesTable.add(civ.getVariable(variable.name).tr().toLabel()).left().padLeft(10f)
+            variablesTable.add(variableName.toLabel(hideIcons = true)).left().padLeft(5f)
+            val valueText = if (perTurn == 0) value.tr() else "${value.tr()} (${perTurn.toStringSigned()})"
+            variablesTable.add(valueText.toLabel()).left().padLeft(10f)
             variablesTable.row()
+        }
+
+        for (variable in displayVariables) {
+            when (variable.resolvedScope) {
+                VariableScope.City -> for (city in civ.cities)
+                    addRow(city.name + ": " + variable.name, variable,
+                        city.getVariable(variable.name), city.cityStats.getSettledVariableYield(variable.name))
+                VariableScope.Civ -> addRow(variable.name, variable, civ.getVariable(variable.name),
+                    civ.cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) })
+                VariableScope.Global -> addRow(variable.name, variable, civ.gameInfo.getVariable(variable.name),
+                    civ.gameInfo.civilizations.flatMap { it.cities }.sumOf {
+                        it.cityStats.getSettledVariableYield(variable.name)
+                    })
+            }
         }
         add(variablesTable).left()
     }

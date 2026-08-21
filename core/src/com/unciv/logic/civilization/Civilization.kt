@@ -194,7 +194,7 @@ class Civilization : IsPartOfGameInfoSerialization {
 
     var resourceStockpiles = Counter<String>()
 
-    /** Mod-defined global variables (see Variable.json), stored per-civilization as integer counters.
+    /** Mod-defined civ-scope variables (see Variables.json), stored per-civilization as integer counters.
      *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
      *  (which falls back to the ruleset default). */
     var variables = HashMap<String, Int>()
@@ -1108,7 +1108,7 @@ class Civilization : IsPartOfGameInfoSerialization {
         resourceStockpiles.add(resource.name, amount)
     }
 
-    //region Variables (mod-defined global counters, see Variable.json)
+    //region Variables (mod-defined civ-scope counters, see Variables.json)
 
     /** Returns the current value of a mod-defined variable.
      *  Falls back to the ruleset default when this civ has no record yet (e.g. old saves). */

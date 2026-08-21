@@ -289,13 +289,35 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
 
 ## variableName
 
-指模组定义的全局变量名（见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）。
-
-变量是每个文明独立的整数计数器，用于跟踪诸如厌战度之类的状态，而无需用资源伪装变量。凡出现 `[stat/resource/variableName]` 或 `[stockpiledResource/variableName]` 的地方都可使用，例如 `when above [5] [WarWeariness]` 或 `Instantly provides [2] [WarWeariness]`。
+指模组定义的变量名称（见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）。变量是整数计数器，实际存储位置由 `scope`（`city`、`civ` 或 `global`）决定。变量产出、百分比加成、购买成本和生产转换等共享参数位置使用此类型。
 
 允许的值：
 
 - 规则集 `Variables.json` 中定义的任意变量的 `name`
+
+## civVariableName
+
+文明级变量名称。文明级条件/触发 unique 以及单位行动库存成本使用此类型。
+
+允许的值：
+
+- `scope` 为 `civ` 的变量 `name`
+
+## cityVariableName
+
+城市级变量名称。城市级条件与触发 unique 使用此类型，并且这些 unique 还带有 `[cityFilter]`。
+
+允许的值：
+
+- `scope` 为 `city` 的变量 `name`
+
+## globalVariableName
+
+全局级变量名称。全局级条件与触发 unique 使用此类型，并且这些 unique 带有固定词 `globally`。
+
+允许的值：
+
+- `scope` 为 `global` 的变量 `name`
 
 ## technologyFilter
 
@@ -460,8 +482,8 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 这对例如按城市计数的本地资源会有影响。
 -   变量名称 - 来自 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
     - 示例：`Only available <when number of [WarWeariness] is more than [0]>`
-    - 相关文明当前持有的模组定义变量（见 Variables.json）的值。
-    - 变量是每个文明独立的整数计数器——与资源不同，没有库存/交易语义；与统计不同，没有每回合产出。
+    - 相关城市、文明或游戏当前持有的模组定义变量（见 Variables.json）的值。
+    - 变量是整数计数器，按城市、文明或全局存储——与资源不同，没有库存/交易语义，但和基础统计一样可以拥有每回合产出。
     - 变量可用于任何 countable 位置，例如 `when number of [WarWeariness] is more than [5]`。
 -   `[resourceFilter] resource of [civFilter] Civilizations`
     - 示例：`Only available <when number of [[Strategic] resource of [City-States] Civilizations] is more than [0]>`

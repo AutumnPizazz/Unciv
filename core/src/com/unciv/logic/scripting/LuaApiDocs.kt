@@ -239,6 +239,9 @@ object LuaApiDocs {
         w("setProduction", "fun(itemName: string)", "Set the current construction item", "将当前建造项目设为指定项目"),
         w("addToQueue", "fun(itemName: string)", "Append to the construction queue", "追加到建造队列末尾"),
         w("clearQueue", "fun()", "Clear the whole construction queue", "清空整个建造队列"),
+        q("getVariable", "fun(variableName: string): number", "City-scope variable value", "城市级变量值"),
+        w("setVariable", "fun(variableName: string, amount: number)", "Set a city-scope variable", "设置城市级变量"),
+        w("addVariable", "fun(variableName: string, amount: number)", "Add to a city-scope variable", "增加城市级变量"),
     )
 
     // endregion
@@ -423,6 +426,10 @@ object LuaApiDocs {
         q("doesResourceExist", "fun(resourceName: string): boolean", "Resource exists in the ruleset", "资源是否存在"),
         q("doesVariableExist", "fun(variableName: string): boolean", "Variable exists in the ruleset", "变量是否存在"),
         q("getRulesetVariables", "fun(): string[]", "Variable names", "变量名列表"),
+        q("getGlobalVariable", "fun(variableName: string): number", "Global-scope variable value", "全局级变量值"),
+        w("setGlobalVariable", "fun(variableName: string, amount: number)", "Set a global-scope variable", "设置全局级变量"),
+        w("addGlobalVariable", "fun(variableName: string, amount: number)", "Add to a global-scope variable", "增加全局级变量"),
+        q("getVariablesOfScope", "fun(scope: string): string[]", "Variable names in a scope (city, civ or global)", "指定作用域（city、civ 或 global）中的变量名"),
         q("doesImprovementExist", "fun(improvementName: string): boolean", "Improvement exists in the ruleset", "改良是否存在"),
         q("doesNationExist", "fun(nationName: string): boolean", "Nation exists in the ruleset", "文明（nation）是否存在"),
         q("doesBeliefExist", "fun(beliefName: string): boolean", "Belief exists in the ruleset", "信条是否存在"),

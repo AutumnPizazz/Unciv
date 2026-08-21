@@ -147,19 +147,19 @@ Applicable to: Triggerable
 Applicable to: Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [stockpiledResource/variableName]
+::: details Instantly consumes [positiveAmount] [stockpiledResource/civVariableName]
 Example: "Instantly consumes [3] [Mana]"
 
 Applicable to: Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [stockpiledResource/variableName]
+::: details Instantly provides [positiveAmount] [stockpiledResource/civVariableName]
 Example: "Instantly provides [3] [Mana]"
 
 Applicable to: Triggerable
 
 :::
-::: details Set [stockpile/variableName] to [countable]
+::: details Set [stockpile/civVariableName] to [countable]
 Example: "Set [Mana] to [1000]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -167,8 +167,64 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly gain [amount] [stockpile/variableName]
+::: details Instantly gain [amount] [stockpile/civVariableName]
 Example: "Instantly gain [3] [Mana]"
+
+This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly provides [positiveAmount] [cityVariableName] [cityFilter]
+Example: "Instantly provides [3] [Loyalty] [in all cities]"
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly consumes [positiveAmount] [cityVariableName] [cityFilter]
+Example: "Instantly consumes [3] [Loyalty] [in all cities]"
+
+Applicable to: Triggerable
+
+:::
+::: details Set [cityVariableName] to [countable] [cityFilter]
+Example: "Set [Loyalty] to [1000] [in all cities]"
+
+This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly gain [amount] [cityVariableName] [cityFilter]
+Example: "Instantly gain [3] [Loyalty] [in all cities]"
+
+This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly provides [positiveAmount] [globalVariableName] globally
+Example: "Instantly provides [3] [WorldTension] globally"
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly consumes [positiveAmount] [globalVariableName] globally
+Example: "Instantly consumes [3] [WorldTension] globally"
+
+Applicable to: Triggerable
+
+:::
+::: details Set [globalVariableName] to [countable] globally
+Example: "Set [WorldTension] to [1000] globally"
+
+This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Triggerable
+
+:::
+::: details Instantly gain [amount] [globalVariableName] globally
+Example: "Instantly gain [3] [WorldTension] globally"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
 
@@ -557,7 +613,7 @@ Example: "[+1 Gold, +2 Production] from each Trade Route"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat]
+::: details [relativeAmount]% [stat/variableName]
 Multiple bonuses stack additively: +50% + +50% = +100%
 
 Example: "[+20]% [Culture]"
@@ -565,7 +621,7 @@ Example: "[+20]% [Culture]"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat] [cityFilter]
+::: details [relativeAmount]% [stat/variableName] [cityFilter]
 Multiple bonuses stack additively: +50% + +50% = +100%
 
 Example: "[+20]% [Culture] [in all cities]"
@@ -781,55 +837,55 @@ Applicable to: Global
 Applicable to: Global
 
 :::
-::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat/variableName] [cityFilter] at an increasing price ([amount])
 Example: "May buy [Melee] units for [3] [Culture] [in all cities] at an increasing price ([3])"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat/variableName] [cityFilter] at an increasing price ([amount])
 Example: "May buy [Culture] buildings for [3] [Culture] [in all cities] at an increasing price ([3])"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter]
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat/variableName] [cityFilter]
 Example: "May buy [Melee] units for [3] [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter]
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat/variableName] [cityFilter]
 Example: "May buy [Culture] buildings for [3] [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units with [stat] [cityFilter]
+::: details May buy [baseUnitFilter] units with [stat/variableName] [cityFilter]
 Example: "May buy [Melee] units with [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings with [stat] [cityFilter]
+::: details May buy [buildingFilter] buildings with [stat/variableName] [cityFilter]
 Example: "May buy [Culture] buildings with [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units with [stat] for [nonNegativeAmount] times their normal Production cost
+::: details May buy [baseUnitFilter] units with [stat/variableName] for [nonNegativeAmount] times their normal Production cost
 Example: "May buy [Melee] units with [Culture] for [3] times their normal Production cost"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings with [stat] for [nonNegativeAmount] times their normal Production cost
+::: details May buy [buildingFilter] buildings with [stat/variableName] for [nonNegativeAmount] times their normal Production cost
 Example: "May buy [Culture] buildings with [Culture] for [3] times their normal Production cost"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [stat] cost of purchasing items in cities [relativeAmount]%
+::: details [stat/variableName] cost of purchasing items in cities [relativeAmount]%
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 Example: "[Culture] cost of purchasing items in cities [+20]%"
@@ -837,7 +893,7 @@ Example: "[Culture] cost of purchasing items in cities [+20]%"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%
+::: details [stat/variableName] cost of purchasing [buildingFilter] buildings [relativeAmount]%
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 Example: "[Culture] cost of purchasing [Culture] buildings [+20]%"
@@ -845,7 +901,7 @@ Example: "[Culture] cost of purchasing [Culture] buildings [+20]%"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%
+::: details [stat/variableName] cost of purchasing [baseUnitFilter] units [relativeAmount]%
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 Example: "[Culture] cost of purchasing [Melee] units [+20]%"
@@ -853,13 +909,13 @@ Example: "[Culture] cost of purchasing [Melee] units [+20]%"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details Enables conversion of city production to [stat]
+::: details Enables conversion of city production to [stat/variableName]
 Example: "Enables conversion of city production to [Culture]"
 
 Applicable to: Global
 
 :::
-::: details Production to [stat] conversion in cities changed by [relativeAmount]%
+::: details Production to [stat/variableName] conversion in cities changed by [relativeAmount]%
 Example: "Production to [Culture] conversion in cities changed by [+20]%"
 
 Applicable to: Global
@@ -1868,7 +1924,7 @@ Example: "[+1 Gold, +2 Production] from each Trade Route"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat]
+::: details [relativeAmount]% [stat/variableName]
 Multiple bonuses stack additively: +50% + +50% = +100%
 
 Example: "[+20]% [Culture]"
@@ -1876,7 +1932,7 @@ Example: "[+20]% [Culture]"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [relativeAmount]% [stat] [cityFilter]
+::: details [relativeAmount]% [stat/variableName] [cityFilter]
 Multiple bonuses stack additively: +50% + +50% = +100%
 
 Example: "[+20]% [Culture] [in all cities]"
@@ -1962,55 +2018,55 @@ Example: "[+20]% Unhappiness from [Followers of this Religion] [in all cities]"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat/variableName] [cityFilter] at an increasing price ([amount])
 Example: "May buy [Melee] units for [3] [Culture] [in all cities] at an increasing price ([3])"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter] at an increasing price ([amount])
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat/variableName] [cityFilter] at an increasing price ([amount])
 Example: "May buy [Culture] buildings for [3] [Culture] [in all cities] at an increasing price ([3])"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat] [cityFilter]
+::: details May buy [baseUnitFilter] units for [nonNegativeAmount] [stat/variableName] [cityFilter]
 Example: "May buy [Melee] units for [3] [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat] [cityFilter]
+::: details May buy [buildingFilter] buildings for [nonNegativeAmount] [stat/variableName] [cityFilter]
 Example: "May buy [Culture] buildings for [3] [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units with [stat] [cityFilter]
+::: details May buy [baseUnitFilter] units with [stat/variableName] [cityFilter]
 Example: "May buy [Melee] units with [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings with [stat] [cityFilter]
+::: details May buy [buildingFilter] buildings with [stat/variableName] [cityFilter]
 Example: "May buy [Culture] buildings with [Culture] [in all cities]"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [baseUnitFilter] units with [stat] for [nonNegativeAmount] times their normal Production cost
+::: details May buy [baseUnitFilter] units with [stat/variableName] for [nonNegativeAmount] times their normal Production cost
 Example: "May buy [Melee] units with [Culture] for [3] times their normal Production cost"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details May buy [buildingFilter] buildings with [stat] for [nonNegativeAmount] times their normal Production cost
+::: details May buy [buildingFilter] buildings with [stat/variableName] for [nonNegativeAmount] times their normal Production cost
 Example: "May buy [Culture] buildings with [Culture] for [3] times their normal Production cost"
 
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [stat] cost of purchasing items in cities [relativeAmount]%
+::: details [stat/variableName] cost of purchasing items in cities [relativeAmount]%
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 Example: "[Culture] cost of purchasing items in cities [+20]%"
@@ -2018,7 +2074,7 @@ Example: "[Culture] cost of purchasing items in cities [+20]%"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [stat] cost of purchasing [buildingFilter] buildings [relativeAmount]%
+::: details [stat/variableName] cost of purchasing [buildingFilter] buildings [relativeAmount]%
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 Example: "[Culture] cost of purchasing [Culture] buildings [+20]%"
@@ -2026,7 +2082,7 @@ Example: "[Culture] cost of purchasing [Culture] buildings [+20]%"
 Applicable to: Global, FollowerBelief
 
 :::
-::: details [stat] cost of purchasing [baseUnitFilter] units [relativeAmount]%
+::: details [stat/variableName] cost of purchasing [baseUnitFilter] units [relativeAmount]%
 Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%
 
 Example: "[Culture] cost of purchasing [Melee] units [+20]%"
@@ -2189,13 +2245,13 @@ Applicable to: Building, Unit, Improvement
 Applicable to: Building, Unit
 
 :::
-::: details Can be purchased with [stat] [cityFilter]
+::: details Can be purchased with [stat/variableName] [cityFilter]
 Example: "Can be purchased with [Culture] [in all cities]"
 
 Applicable to: Building, Unit
 
 :::
-::: details Can be purchased for [amount] [stat] [cityFilter]
+::: details Can be purchased for [amount] [stat/variableName] [cityFilter]
 Example: "Can be purchased for [3] [Culture] [in all cities]"
 
 Applicable to: Building, Unit
@@ -2531,13 +2587,13 @@ Applicable to: Building, Unit, Improvement
 Applicable to: Building, Unit
 
 :::
-::: details Can be purchased with [stat] [cityFilter]
+::: details Can be purchased with [stat/variableName] [cityFilter]
 Example: "Can be purchased with [Culture] [in all cities]"
 
 Applicable to: Building, Unit
 
 :::
-::: details Can be purchased for [amount] [stat] [cityFilter]
+::: details Can be purchased for [amount] [stat/variableName] [cityFilter]
 Example: "Can be purchased for [3] [Culture] [in all cities]"
 
 Applicable to: Building, Unit
@@ -4691,7 +4747,7 @@ Example: "without [Iron]"
 Applicable to: Conditional
 
 :::
-::: details &lt;when above [amount] [stat/resource/variableName]&gt;
+::: details &lt;when above [amount] [stat/resource/civVariableName]&gt;
 Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when above [amount] Happiness'
 
 Example: "when above [3] [Culture]"
@@ -4701,7 +4757,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Conditional
 
 :::
-::: details &lt;when below [amount] [stat/resource/variableName]&gt;
+::: details &lt;when below [amount] [stat/resource/civVariableName]&gt;
 Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness - for that use 'when below [amount] Happiness'
 
 Example: "when below [3] [Culture]"
@@ -4711,12 +4767,48 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [stat/resource/variableName]&gt;
+::: details &lt;when between [amount] and [amount2] [stat/resource/civVariableName]&gt;
 Stats refers to the accumulated stat, not stat-per-turn. Therefore, does not support Happiness. 'Between' is inclusive - so 'between 1 and 5' includes 1 and 5.
 
 Example: "when between [3] and [3] [Culture]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when above [amount] [cityVariableName] [cityFilter]&gt;
+Example: "when above [3] [Loyalty] [in all cities]"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when below [amount] [cityVariableName] [cityFilter]&gt;
+Example: "when below [3] [Loyalty] [in all cities]"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when between [amount] and [amount2] [cityVariableName] [cityFilter]&gt;
+Example: "when between [3] and [3] [Loyalty] [in all cities]"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when above [amount] [globalVariableName] globally&gt;
+Example: "when above [3] [WorldTension] globally"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when below [amount] [globalVariableName] globally&gt;
+Example: "when below [3] [WorldTension] globally"
+
+Applicable to: Conditional
+
+:::
+::: details &lt;when between [amount] and [amount2] [globalVariableName] globally&gt;
+Example: "when between [3] and [3] [WorldTension] globally"
 
 Applicable to: Conditional
 
@@ -5377,7 +5469,7 @@ Example: "costs [+1 Gold, +2 Production] stats"
 Applicable to: UnitActionModifier
 
 :::
-::: details &lt;costs [amount] [stockpiledResource]&gt;
+::: details &lt;costs [amount] [stockpiledResource/civVariableName]&gt;
 A positive Integer value will be subtracted from your stock. Do not confuse with "Costs [amount] [stockpiledResource]" (uppercase 'C') for Improvements, Buildings, and Units.
 
 Example: "costs [3] [Mana]"
@@ -5521,6 +5613,8 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `belief` | The name of any belief. |
 | `beliefType` | 'Pantheon', 'Follower', 'Founder' or 'Enhancer' |
 | `buildingName` | The name of any building. |
+| `cityVariableName` | The name of any city-scope variable defined in Variables.json (scope 'city'). |
+| `civVariableName` | The name of any civ-scope variable defined in Variables.json (scope 'civ'). |
 | `civWideStat` | All the following stats have civ-wide fields: `Gold`, `Science`, `Culture`, `Faith`. |
 | `combatantFilter` | This indicates a combatant, which can either be a unit or a city (when bombarding). Must either be `City` or a `mapUnitFilter`. |
 | `costOrStrength` | `Cost` or `Strength`. |
@@ -5531,6 +5625,7 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `event` | The name of any event. |
 | `foundingOrEnhancing` | `founding` or `enhancing`. |
 | `fraction` | Indicates a fractional number, which can be negative. Also accepts Countable expressions. |
+| `globalVariableName` | The name of any global-scope variable defined in Variables.json (scope 'global'). |
 | `improvementName` | The name of any improvement excluding 'Cancel improvement order' |
 | `leaderTitle` | Provides a leader title that includes the leader's name in parameters. |
 | `luaFunction` | A Lua function reference in the form [modName:]functionName. |
@@ -5549,7 +5644,7 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `spyAction` | A spy action display name, e.g. `Counter-intelligence`, `Stealing Tech`. |
 | `stat` | This is one of the 7 major stats in the game - `Gold`, `Science`, `Production`, `Food`, `Happiness`, `Culture` and `Faith`. Note that the stat names need to be capitalized! |
 | `stats` | For example: `+2 Production, +3 Food`. Note that the stat names need to be capitalized! |
-| `stockpile` | The name of any stockpiled resource or a mod-defined variable. |
+| `stockpile` | The name of any stockpiled resource or a mod-defined civ-scope variable. |
 | `stockpiledResource` | The name of any stockpiled resource. |
 | `tech` | The name of any tech. |
 | `terrainFeature` | The name of any terrain that is a terrain feature according to the json file. |

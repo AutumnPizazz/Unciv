@@ -152,23 +152,26 @@ city.getConstructionQueue()    -- Construction queue
 city.getMajorityReligion()     -- Majority religion name
 city.isHolyCity()              -- Is a holy city
 city.hasUnique(uniqueText)     -- Check built buildings for this unique
+city.getVariable(variableName) -- City-scope variable value
 ```
 
 **Write methods**:
 
 ```lua
-city.addPopulation(amount)        -- Add population
-city.setPopulation(count)         -- Set population exactly (min 1)
-city.addFood(amount)              -- Add stored food
-city.addProduction(amount)        -- Add production to current construction
-city.addHealth(amount)            -- Heal the city
-city.setName(newName)             -- Rename the city
-city.addBuilding(buildingName)    -- Free-build a building
-city.removeBuilding(buildingName) -- Remove a building
-city.sellBuilding(buildingName)   -- Sell a building for gold
-city.setProduction(itemName)      -- Set the current construction item
-city.addToQueue(itemName)         -- Append to the construction queue
-city.clearQueue()                 -- Clear the whole construction queue
+city.addPopulation(amount)             -- Add population
+city.setPopulation(count)              -- Set population exactly (min 1)
+city.addFood(amount)                   -- Add stored food
+city.addProduction(amount)             -- Add production to current construction
+city.addHealth(amount)                 -- Heal the city
+city.setName(newName)                  -- Rename the city
+city.addBuilding(buildingName)         -- Free-build a building
+city.removeBuilding(buildingName)      -- Remove a building
+city.sellBuilding(buildingName)        -- Sell a building for gold
+city.setProduction(itemName)           -- Set the current construction item
+city.addToQueue(itemName)              -- Append to the construction queue
+city.clearQueue()                      -- Clear the whole construction queue
+city.setVariable(variableName, amount) -- Set a city-scope variable
+city.addVariable(variableName, amount) -- Add to a city-scope variable
 ```
 
 ## unit — Unit
@@ -351,6 +354,8 @@ game.doesTerrainExist(terrainName)         -- Terrain exists in the ruleset
 game.doesResourceExist(resourceName)       -- Resource exists in the ruleset
 game.doesVariableExist(variableName)       -- Variable exists in the ruleset
 game.getRulesetVariables()                 -- Variable names
+game.getGlobalVariable(variableName)       -- Global-scope variable value
+game.getVariablesOfScope(scope)            -- Variable names in a scope (city, civ or global)
 game.doesImprovementExist(improvementName) -- Improvement exists in the ruleset
 game.doesNationExist(nationName)           -- Nation exists in the ruleset
 game.doesBeliefExist(beliefName)           -- Belief exists in the ruleset
@@ -360,6 +365,8 @@ game.doesEventExist(eventName)             -- Event exists in the ruleset
 **Write methods**:
 
 ```lua
+game.setGlobalVariable(variableName, amount)  -- Set a global-scope variable
+game.addGlobalVariable(variableName, amount)  -- Add to a global-scope variable
 game.addGlobalNotification(text)              -- Notify all human players
 game.revealEntireMap(civName)                 -- Reveal the whole map for a civ
 game.revealTilesAround(civName, x, y, radius) -- Reveal tiles around a position for a civ

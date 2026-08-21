@@ -8,6 +8,7 @@
 
 ## Unreleased
 
+- Declared all existing Variables.json entries as civilization-scope variables for compatibility with the strengthened three-scope variable system
 - Migrated 8 resource-faked counters (Governor Titles, Diplomatic Favor, Influence, Monk count, auxiliary counters) to official mod variables ([Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)): per-turn supply/consumption now use turn-start triggerables, conditionals use plain variable names, Lua reads/writes via `getVariable`/`addVariable`, and top-bar display is now configurable per variable
 - Adapted recommended game version to 4.21.10.2 (requires the Variables.json and variable-countable support)
 

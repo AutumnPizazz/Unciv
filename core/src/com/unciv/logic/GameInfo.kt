@@ -160,7 +160,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** Persistent key-value storage for Lua mods. Outer key = mod name, inner key = storage key. */
     var modLuaStorage = HashMap<String, HashMap<String, String>>()
 
-    /** Mod-defined global variables (see Variable.json), stored game-wide as integer counters.
+    /** Mod-defined global-scope variables (see Variables.json), stored game-wide as integer counters.
      *  Uses a plain HashMap (not Counter) so that an explicit 0 stays distinguishable from "no record yet"
      *  (which falls back to the ruleset default). */
     var variables = HashMap<String, Int>()

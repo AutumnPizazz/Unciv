@@ -157,6 +157,9 @@
 ---@field setProduction fun(itemName: string)
 ---@field addToQueue fun(itemName: string)
 ---@field clearQueue fun()
+---@field getVariable fun(variableName: string): number
+---@field setVariable fun(variableName: string, amount: number)
+---@field addVariable fun(variableName: string, amount: number)
 
 ---@class UncivUnit
 ---@field id string
@@ -326,6 +329,10 @@
 ---@field doesResourceExist fun(resourceName: string): boolean
 ---@field doesVariableExist fun(variableName: string): boolean
 ---@field getRulesetVariables fun(): string[]
+---@field getGlobalVariable fun(variableName: string): number
+---@field setGlobalVariable fun(variableName: string, amount: number)
+---@field addGlobalVariable fun(variableName: string, amount: number)
+---@field getVariablesOfScope fun(scope: string): string[]
 ---@field doesImprovementExist fun(improvementName: string): boolean
 ---@field doesNationExist fun(nationName: string): boolean
 ---@field doesBeliefExist fun(beliefName: string): boolean

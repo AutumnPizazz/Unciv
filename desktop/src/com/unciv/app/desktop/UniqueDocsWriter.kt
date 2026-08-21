@@ -360,8 +360,8 @@ class UniqueDocsWriter : DocsWriter() {
             "For example: If a unique is placed on a building, then the retrieved resources will be of the city. If placed on a policy, they will be of the civilization." ->
                 "例如：如果 unique 放在建筑上，获取的资源属于城市；如果放在政策上，则属于文明。"
             "This can make a difference for e.g. local resources, which are counted per city." -> "这对例如按城市计数的本地资源会有影响。"
-            "The current value of a mod-defined variable (see Variables.json) for the relevant Civilization." -> "相关文明当前持有的模组定义变量（见 Variables.json）的值。"
-            "Variables are plain integer counters per civilization - unlike resources they have no stockpile/trade semantics, and unlike stats no per-turn yield." -> "变量是每个文明独立的整数计数器——与资源不同，没有库存/交易语义；与统计不同，没有每回合产出。"
+            "The current value of a mod-defined variable (see Variables.json) for the relevant city, civilization or game." -> "相关城市、文明或游戏当前持有的模组定义变量（见 Variables.json）的值。"
+            "Variables are plain integer counters with city, civilization or global storage - unlike resources they have no stockpile/trade semantics, but they can be produced per turn like basic stats." -> "变量是整数计数器，按城市、文明或全局存储——与资源不同，没有库存/交易语义，但和基础统计一样可以拥有每回合产出。"
             "They are accepted wherever a countable is, e.g. `when number of [WarWeariness] is more than [5]`." -> "变量可用于任何 countable 位置，例如 `when number of [WarWeariness] is more than [5]`。"
             else -> text
         }

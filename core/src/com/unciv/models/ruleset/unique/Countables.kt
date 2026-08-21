@@ -408,8 +408,8 @@ enum class Countables(
     Variable {
         override val documentationHeader = "Variable name - From [Variables.json](Mod-file-structure/5-Miscellaneous-JSON-files.md#variables-json)"
         override val documentationStrings = listOf(
-            "The current value of a mod-defined variable (see Variables.json) for the relevant Civilization.",
-            "Variables are plain integer counters per civilization - unlike resources they have no stockpile/trade semantics, and unlike stats no per-turn yield.",
+            "The current value of a mod-defined variable (see Variables.json) for the relevant city, civilization or game.",
+            "Variables are plain integer counters with city, civilization or global storage - unlike resources they have no stockpile/trade semantics, but they can be produced per turn like basic stats.",
             "They are accepted wherever a countable is, e.g. `when number of [WarWeariness] is more than [5]`."
         )
         override val matchesWithRuleset = true
