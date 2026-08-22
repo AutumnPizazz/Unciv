@@ -8,7 +8,9 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
-## 4.21.10.5 (build 1260)
+## 4.21.10.6 (build 1261)
+
+- Release: synchronize generated Lua API documentation
 
 - Multiplayer: simultaneous-turn submissions accept omitted default fields
 - Multiplayer: fixed clients incorrectly falling back after successful operation uploads
