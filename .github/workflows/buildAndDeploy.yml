@@ -365,7 +365,6 @@ jobs:
           fi
 
       - name: Upload binaries to Github release
-        continue-on-error: true
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -391,7 +390,7 @@ jobs:
   #   CN_DL_SERVER : 下载服务器地址，如 http://sp.unciv.cn:30123
   #   CN_DL_USER   : 服务器管理员账号（与 server-ts 的 ADMIN_USERNAME 一致）
   #   CN_DL_PASS   : 服务器管理员密码（与 server-ts 的 ADMIN_PASSWORD 一致）
-  # 未配置 Secrets 时本 job 自动跳过（不阻塞 release）。
+  # 未配置 Secrets 或同步失败时，正式版本发布任务必须失败，避免国内更新源停留在旧版本。
   sync-installers-to-cn-server:
     needs: upload-github-release-and-post-to-discord
     runs-on: ubuntu-latest
@@ -403,12 +402,28 @@ jobs:
           DL_PASS: ${{ secrets.CN_DL_PASS }}
         run: |
           if [ -z "$DL_SERVER" ] || [ -z "$DL_USER" ] || [ -z "$DL_PASS" ]; then
-            echo "未配置 CN_DL_SERVER / CN_DL_USER / CN_DL_PASS，跳过安装包同步"
-            exit 0
+            echo "错误：未配置 CN_DL_SERVER / CN_DL_USER / CN_DL_PASS，无法完成 CN 安装包同步"
+            exit 1
           fi
           echo "触发服务器同步 tag=${{ github.ref_name }}"
-          curl -sS -u "$DL_USER:$DL_PASS" -X POST \
-            "$DL_SERVER/api/downloads/sync?tag=${{ github.ref_name }}" \
-            -w '\nHTTP %{http_code}\n'
-          echo "\n服务器同步完成，托管文件清单："
-          curl -sS -u "$DL_USER:$DL_PASS" "$DL_SERVER/api/downloads"
+          curl --fail --show-error --silent --user "$DL_USER:$DL_PASS" \
+            --request POST \
+            "$DL_SERVER/api/downloads/sync?tag=${{ github.ref_name }}"
+
+          echo "等待服务器完成同步并更新 latest.json..."
+          for attempt in {1..30}; do
+            latest_tag=$(curl --fail --show-error --silent \
+              --user "$DL_USER:$DL_PASS" \
+              "$DL_SERVER/api/downloads/latest.json" | jq -r '.tag_name // empty')
+            if [ "$latest_tag" = "${{ github.ref_name }}" ]; then
+              apk_url="$DL_SERVER/dl/${{ github.ref_name }}/UncivCN-${{ github.ref_name }}.Apk"
+              curl --fail --show-error --silent --head "$apk_url" >/dev/null
+              echo "CN 下载服务器已切换到 $latest_tag，APK 可下载"
+              exit 0
+            fi
+            echo "第 $attempt 次检查：当前 latest.json 为 ${latest_tag:-<empty>}，10 秒后重试"
+            sleep 10
+          done
+
+          echo "CN 下载服务器在超时时间内未更新到 ${{ github.ref_name }}"
+          exit 1
