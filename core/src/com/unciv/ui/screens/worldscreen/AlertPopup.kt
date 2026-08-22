@@ -18,6 +18,7 @@ import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.civilization.diplomacy.*
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.tr
@@ -82,6 +83,10 @@ class AlertPopup(
     //endregion
 
     // This redirects all addCloseButton uses with only text and no action to accept the space key
+    private fun runSimultaneousPopupChange(action: () -> Unit) {
+        worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique, action)
+    }
+
     private fun addCloseButton(text: String = Constants.close) =
         addCloseButton(text, KeyboardBinding.NextTurnAlternate, null)
 
@@ -180,20 +185,22 @@ class AlertPopup(
         
         if (!player.isAtWarWith(bullyOrAttacker)) {
             addCloseButton("THIS MEANS WAR!", KeyboardBinding.Confirm) {
-            player.getDiplomacyManager(bullyOrAttacker)!!.sideWithCityState()
-            val warReason = if (popupAlert.type == AlertType.AttackedAllyMinor) WarType.AlliedCityStateWar else WarType.ProtectedCityStateWar
-            player.getDiplomacyManager(bullyOrAttacker)!!.declareWar(DeclareWarReason(warReason, cityState))
-            cityState.getDiplomacyManager(player)!!.influence += 20f // You went to war for us!!
+            runSimultaneousPopupChange {
+                player.getDiplomacyManager(bullyOrAttacker)!!.sideWithCityState()
+                val warReason = if (popupAlert.type == AlertType.AttackedAllyMinor) WarType.AlliedCityStateWar else WarType.ProtectedCityStateWar
+                player.getDiplomacyManager(bullyOrAttacker)!!.declareWar(DeclareWarReason(warReason, cityState))
+                cityState.getDiplomacyManager(player)!!.influence += 20f // You went to war for us!!
+            }
         }.row()}
 
-        addCloseButton("You'll pay for this!", KeyboardBinding.Confirm) {
-            player.getDiplomacyManager(bullyOrAttacker)!!.sideWithCityState()
-        }.row()
+            runSimultaneousPopupChange { player.getDiplomacyManager(bullyOrAttacker)!!.sideWithCityState() }
 
         addCloseButton("Very well.", KeyboardBinding.Cancel) {
-            player.addNotification("You have broken your Pledge to Protect [${cityState.civName}]!",
-                cityState.cityStateFunctions.getNotificationActions(), NotificationCategory.Diplomacy, cityState.civName)
-            cityState.cityStateFunctions.removeProtectorCiv(player, forced = true)
+            runSimultaneousPopupChange {
+                player.addNotification("You have broken your Pledge to Protect [${cityState.civName}]!",
+                    cityState.cityStateFunctions.getNotificationActions(), NotificationCategory.Diplomacy, cityState.civName)
+                cityState.cityStateFunctions.removeProtectorCiv(player, forced = true)
+            }
         }.row()
         
         return true
@@ -263,10 +270,12 @@ class AlertPopup(
                 if (otherciv.nation.declaringFriendship.isNotEmpty()) otherciv.nation.declaringFriendship else "My friend, shall we declare our friendship to the world?"
         ).row()
         addCloseButton("Declare Friendship ([30] turns)", KeyboardBinding.Confirm) {
-            playerDiploManager.signDeclarationOfFriendship()
+            runSimultaneousPopupChange { playerDiploManager.signDeclarationOfFriendship() }
         }.row()
         addCloseButton("We are not interested.", KeyboardBinding.Cancel) {
-            playerDiploManager.otherCivDiplomacy().setFlag(DiplomacyFlags.DeclinedDeclarationOfFriendship, 20)
+            runSimultaneousPopupChange {
+                playerDiploManager.otherCivDiplomacy().setFlag(DiplomacyFlags.DeclinedDeclarationOfFriendship, 20)
+            }
         }.row()
         val music = UncivGame.Current.musicController
         music.playVoice("${otherciv.nation.name}.declaringFriendship")
@@ -291,7 +300,7 @@ class AlertPopup(
         val diplomacy = viewingCiv.getDiplomacyManager(denouncer)!!
         if (diplomacy.canDeclareWar()) {
             addCloseButton("THIS MEANS WAR! (Declare war)") {
-                diplomacy.declareWar()
+                runSimultaneousPopupChange { diplomacy.declareWar() }
             }.row()
         }
         addCloseButton("Very well.", KeyboardBinding.Cancel).row()
@@ -315,12 +324,14 @@ class AlertPopup(
         addLeaderName(otherciv)
         addGoodSizedLabel(demand.demandText).row()
         addCloseButton(demand.acceptDemandText, KeyboardBinding.Confirm) {
-            playerDiploManager.agreeToDemand(demand)
+            runSimultaneousPopupChange { playerDiploManager.agreeToDemand(demand) }
         }.row()
         addCloseButton(demand.refuseDemandText, KeyboardBinding.Cancel) {
-            playerDiploManager.refuseDemand(demand)
-            if (demand == Demand.DoNotAttackUs)
-                viewingCiv.getDiplomacyManager(otherciv)!!.declareWar()
+            runSimultaneousPopupChange {
+                playerDiploManager.refuseDemand(demand)
+                if (demand == Demand.DoNotAttackUs)
+                    viewingCiv.getDiplomacyManager(otherciv)!!.declareWar()
+            }
         }
         return true
     }
@@ -436,20 +447,16 @@ class AlertPopup(
         addCloseButton(Constants.yes, KeyboardBinding.Confirm) {
             // Return it to original owner
             val unitName = capturedUnit.baseUnit.name
-            capturedUnit.destroy()
             val closestCity = originalOwner.cities.minByOrNull { it.getCenterTile().aerialDistanceTo(tile) }
-
-            if (closestCity != null) {
-                // Attempt to place the unit near their nearest city
-                originalOwner.units.placeUnitNearTile(closestCity.location.toHexCoord(), unitName)
-            }
-
-            if (originalOwner.isCityState) {
-                originalOwner.getDiplomacyManagerOrMeet(captor).addInfluence(45f)
-            } else if (originalOwner.isMajorCiv()) {
-                // No extra bonus from doing it several times
-                originalOwner.getDiplomacyManagerOrMeet(captor)
-                    .setModifier(DiplomaticModifiers.ReturnedCapturedUnits, 20f)
+            runSimultaneousPopupChange {
+                capturedUnit.destroy()
+                if (closestCity != null)
+                    originalOwner.units.placeUnitNearTile(closestCity.location.toHexCoord(), unitName)
+                if (originalOwner.isCityState)
+                    originalOwner.getDiplomacyManagerOrMeet(captor).addInfluence(45f)
+                else if (originalOwner.isMajorCiv())
+                    originalOwner.getDiplomacyManagerOrMeet(captor)
+                        .setModifier(DiplomaticModifiers.ReturnedCapturedUnits, 20f)
             }
             val notificationSequence = sequence {
                 yield(LocationAction(tile.position))
@@ -462,7 +469,9 @@ class AlertPopup(
         }
         addCloseButton(Constants.no, KeyboardBinding.Cancel) {
             // Take it for ourselves
-            BattleUnitCapture.captureOrConvertToWorker(capturedUnit, captor)
+            runSimultaneousPopupChange {
+                BattleUnitCapture.captureOrConvertToWorker(capturedUnit, captor)
+            }
         }
         return true
     }
@@ -568,7 +577,7 @@ class AlertPopup(
     private fun addDestroyOption(destroyAction: () -> Unit) {
         val button = "Destroy".toTextButton()
         button.onActivation {
-            destroyAction()
+            runSimultaneousPopupChange { destroyAction() }
             close()
         }
         button.keyShortcuts.add('d')
@@ -581,8 +590,10 @@ class AlertPopup(
         button.apply {
             if (!mayAnnex) disable() else {
                 button.onActivation {
-                    annexAction()
-                    city.annexCity()
+                    runSimultaneousPopupChange {
+                        annexAction()
+                        city.annexCity()
+                    }
                     close()
                 }
                 button.keyShortcuts.add('a')
@@ -601,7 +612,7 @@ class AlertPopup(
     private fun addPuppetOption(mayAnnex: Boolean, puppetAction: () -> Unit) {
         val button = "Puppet".toTextButton()
         button.onActivation {
-            puppetAction()
+            runSimultaneousPopupChange { puppetAction() }
             close()
         }
         button.keyShortcuts.add('p')
@@ -615,7 +626,7 @@ class AlertPopup(
     private fun addLiberateOption(city: City, conqueringCiv: Civilization) {
         val button = "Liberate (city returns to [originalOwner])".fillPlaceholders(city.foundingCivObject!!.civName).toTextButton()
         button.onActivation {
-            city.liberateCity(conqueringCiv)
+            runSimultaneousPopupChange { city.liberateCity(conqueringCiv) }
             close()
         }
         button.keyShortcuts.add('l')
@@ -630,10 +641,12 @@ class AlertPopup(
             if (!canRaze) disable()
             else {
                 onActivation {
+                runSimultaneousPopupChange {
                     city.puppetCity(conqueringCiv)
-                    if (mayAnnex) { city.annexCity() }
+                    if (mayAnnex) city.annexCity()
                     city.isBeingRazed = true
-                    close()
+                }
+                close()
                 }
                 keyShortcuts.add('r')
             }

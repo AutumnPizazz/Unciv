@@ -98,7 +98,9 @@ object SimultaneousTurnOperations {
         UnitActionType.SpreadReligion,
         UnitActionType.RemoveHeresy,
         UnitActionType.EnhanceReligion,
-        UnitActionType.AddInCapital
+        UnitActionType.AddInCapital,
+        UnitActionType.Promote,
+        UnitActionType.GiftUnit
     )
 
     fun requiresGameStateSnapshot(type: UnitActionType) = type in snapshottedUnitActions

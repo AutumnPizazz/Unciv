@@ -59,7 +59,9 @@ class RenderEvent(
         val button = choice.text.toTextButton()
         button.onActivation {
             onChoice(choice)
-            choice.triggerChoice(gameInfo.currentPlayerCiv, unit)
+            worldScreen.runAndRecordSimultaneousGameStateChange(com.unciv.models.UnitActionType.TriggerUnique) {
+                choice.triggerChoice(gameInfo.currentPlayerCiv, unit)
+            }
         }
         val key = KeyCharAndCode.parse(choice.keyShortcut)
         if (key != KeyCharAndCode.UNKNOWN) {

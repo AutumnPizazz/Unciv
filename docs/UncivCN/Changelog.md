@@ -13,6 +13,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Multiplayer: simultaneous turns now replay unit orders without rerolling combat
 - Multiplayer: fortify, sleep and skip orders are included in simultaneous turns
 - Multiplayer: simultaneous-turn settlement now uses an atomic server lock
+- Multiplayer: expanded simultaneous-turn snapshots to diplomacy popups, events and special unit UI
 - Multiplayer: automated, Lua and triggered unit effects are replayed from result snapshots
 - Multiplayer: simultaneous turns now record city production, technology and policy choices
 - Multiplayer: complex unit actions now replay modded state changes

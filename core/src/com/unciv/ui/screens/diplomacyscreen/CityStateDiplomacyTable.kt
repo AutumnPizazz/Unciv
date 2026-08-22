@@ -15,6 +15,7 @@ import com.unciv.logic.civilization.managers.quests.AssignedQuest
 import com.unciv.logic.trade.TradeLogic
 import com.unciv.logic.trade.TradeOffer
 import com.unciv.logic.trade.TradeOfferType
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.Quest
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.unique.GameContext
@@ -33,6 +34,12 @@ import com.unciv.ui.popups.ConfirmPopup
 
 class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
     val viewingCiv = diplomacyScreen.viewingCiv
+
+    private fun runSimultaneousDiplomacyChange(action: () -> Unit) {
+        UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+            UnitActionType.TriggerUnique, action
+        ) ?: action()
+    }
 
     fun getCityStateDiplomacyTable(otherCiv: Civilization): Table {
         val otherCivDiplomacyManager = otherCiv.getDiplomacyManager(viewingCiv)!!
@@ -213,7 +220,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
         val revokeProtectionButton = "Revoke Protection".toTextButton()
         revokeProtectionButton.onClick {
             ConfirmPopup(diplomacyScreen, "Revoke protection for [${otherCiv.civName}]?", "Revoke Protection") {
-                otherCiv.cityStateFunctions.removeProtectorCiv(viewingCiv)
+                runSimultaneousDiplomacyChange { otherCiv.cityStateFunctions.removeProtectorCiv(viewingCiv) }
                 diplomacyScreen.updateLeftSideTable(otherCiv)
                 diplomacyScreen.updateRightSide(otherCiv)
             }.open()
@@ -232,7 +239,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
                 "Pledge to protect",
                 true
             ) {
-                otherCiv.cityStateFunctions.addProtectorCiv(viewingCiv)
+                runSimultaneousDiplomacyChange { otherCiv.cityStateFunctions.addProtectorCiv(viewingCiv) }
                 diplomacyScreen.updateLeftSideTable(otherCiv)
                 diplomacyScreen.updateRightSide(otherCiv)
             }.open()
@@ -323,8 +330,10 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
         val diplomaticMarriageButton =
             "Diplomatic Marriage ([${otherCiv.cityStateFunctions.getDiplomaticMarriageCost()}] Gold)".toTextButton()
         diplomaticMarriageButton.onClick {
-            val newCities = otherCiv.cities
-            otherCiv.cityStateFunctions.diplomaticMarriage(viewingCiv)
+            val newCities = otherCiv.cities.toList()
+            runSimultaneousDiplomacyChange {
+                otherCiv.cityStateFunctions.diplomaticMarriage(viewingCiv)
+            }
             UncivGame.Current.popScreen() // The other civ will no longer exist
             for (city in newCities)
                 viewingCiv.popupAlerts.add(PopupAlert(AlertType.DiplomaticMarriage, city.id))   // Player gets to choose between annex and puppet
@@ -343,7 +352,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
             val giftButton =
                 "Gift [$giftAmount] gold (+[$influenceAmount] influence)".toTextButton()
             giftButton.onClick {
-                otherCiv.cityStateFunctions.receiveGoldGift(viewingCiv, giftAmount)
+                runSimultaneousDiplomacyChange { otherCiv.cityStateFunctions.receiveGoldGift(viewingCiv, giftAmount) }
                 diplomacyScreen.updateLeftSideTable(otherCiv)
                 diplomacyScreen.updateRightSide(otherCiv)
             }
@@ -383,10 +392,12 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
                     val improveTileButton =
                         "Build [${tileImprovement}] on [${improvableTile.tileResource}] (200 Gold)".toTextButton()
                     improveTileButton.onClick {
-                        viewingCiv.addGold(-200)
-                        improvableTile.stopWorkingOnImprovement()
-                        improvableTile.setImprovement(tileImprovement)
-                        otherCiv.cache.updateCivResources()
+                        runSimultaneousDiplomacyChange {
+                            viewingCiv.addGold(-200)
+                            improvableTile.stopWorkingOnImprovement()
+                            improvableTile.setImprovement(tileImprovement)
+                            otherCiv.cache.updateCivResources()
+                        }
                         diplomacyScreen.rightSideTable.clear()
                         diplomacyScreen.rightSideTable.add(ScrollPane(getCityStateDiplomacyTable(otherCiv)))
                     }
@@ -426,7 +437,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
 
         val demandGoldButton = "Take [${otherCiv.cityStateFunctions.goldGainedByTribute()}] gold (-15 Influence)".toTextButton()
         demandGoldButton.onClick {
-            otherCiv.cityStateFunctions.tributeGold(viewingCiv)
+            runSimultaneousDiplomacyChange { otherCiv.cityStateFunctions.tributeGold(viewingCiv) }
             diplomacyScreen.rightSideTable.clear()
             diplomacyScreen.rightSideTable.add(ScrollPane(getCityStateDiplomacyTable(otherCiv)))
         }
@@ -435,7 +446,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
 
         val demandWorkerButton = "Take worker (-50 Influence)".toTextButton()
         demandWorkerButton.onClick {
-            otherCiv.cityStateFunctions.tributeWorker(viewingCiv)
+            runSimultaneousDiplomacyChange { otherCiv.cityStateFunctions.tributeWorker(viewingCiv) }
             diplomacyScreen.rightSideTable.clear()
             diplomacyScreen.rightSideTable.add(ScrollPane(getCityStateDiplomacyTable(otherCiv)))
         }
@@ -475,7 +486,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
         }
 
         questTable.onClick {
-            assignedQuest.onClickAction()
+            runSimultaneousDiplomacyChange { assignedQuest.onClickAction() }
         }
         return questTable
     }

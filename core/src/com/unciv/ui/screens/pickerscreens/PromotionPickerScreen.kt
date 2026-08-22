@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.GUI
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.TutorialTrigger
+import com.unciv.models.UnitActionType
 import com.unciv.models.UncivSound
 import com.unciv.models.ruleset.unit.Promotion
 import com.unciv.models.translations.tr
@@ -118,10 +119,11 @@ class PromotionPickerScreen private constructor(
         val path = tree.getPathTo(button.node.promotion)
         SoundPlayer.playRepeated(UncivSound.Promote, path.size.coerceAtMost(2))
 
-        for (promotion in path)
-            unit.promotions.addPromotion(promotion.name)
-
-        onChange?.invoke()
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.Promote) {
+            for (promotion in path)
+                unit.promotions.addPromotion(promotion.name)
+            onChange?.invoke()
+        }
 
         if (!closeOnPick || unit.promotions.canBePromoted())
             game.replaceCurrentScreen(recreate(false))

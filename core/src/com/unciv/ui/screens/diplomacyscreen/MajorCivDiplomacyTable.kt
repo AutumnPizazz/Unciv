@@ -11,6 +11,7 @@ import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.civilization.diplomacy.*
 import com.unciv.logic.trade.TradeOffer
 import com.unciv.logic.trade.TradeOfferType
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.tr
@@ -25,6 +26,12 @@ import kotlin.math.roundToInt
 
 class MajorCivDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
     val viewingCiv = diplomacyScreen.viewingCiv
+
+    private fun runSimultaneousDiplomacyChange(action: () -> Unit) {
+        UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+            UnitActionType.TriggerUnique, action
+        ) ?: action()
+    }
 
     fun getMajorCivDiplomacyTable(otherCiv: Civilization): Table {
         val otherCivDiplomacyManager = otherCiv.getDiplomacyManager(viewingCiv)!!
@@ -130,7 +137,7 @@ class MajorCivDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
         val denounceButton = "Denounce ([30] turns)".toTextButton()
         denounceButton.onClick {
             ConfirmPopup(diplomacyScreen, "Denounce [${otherCiv.civName}]?", "Denounce ([30] turns)") {
-                diplomacyManager.denounce()
+                runSimultaneousDiplomacyChange { diplomacyManager.denounce() }
                 diplomacyScreen.updateLeftSideTable(otherCiv)
                 diplomacyScreen.setRightSideFlavorText(
                     otherCiv,
@@ -150,12 +157,14 @@ class MajorCivDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
         val declareFriendshipButton =
             "Offer Declaration of Friendship ([30] turns)".toTextButton()
         declareFriendshipButton.onClick {
-            otherCiv.popupAlerts.add(
-                PopupAlert(
-                    AlertType.DeclarationOfFriendship,
-                    viewingCiv.civID
+            runSimultaneousDiplomacyChange {
+                otherCiv.popupAlerts.add(
+                    PopupAlert(
+                        AlertType.DeclarationOfFriendship,
+                        viewingCiv.civID
+                    )
                 )
-            )
+            }
             declareFriendshipButton.disable()
         }
         if (diplomacyScreen.isNotPlayersTurn() || otherCiv.popupAlerts
@@ -234,7 +243,9 @@ class MajorCivDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
                 button.disable()
             } else {
                 button.onClick {
-                    otherCiv.popupAlerts.add(PopupAlert(demand.demandAlert, viewingCiv.civID))
+                    runSimultaneousDiplomacyChange {
+                        otherCiv.popupAlerts.add(PopupAlert(demand.demandAlert, viewingCiv.civID))
+                    }
                     button.disable()
                 }
             }

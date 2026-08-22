@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.unciv.GUI
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.Counter
@@ -106,16 +107,20 @@ class UnitUpgradeMenu(
 
     private fun doUpgrade() {
         SoundPlayer.play(unitAction.uncivSound)
-        unitAction.action!!()
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(com.unciv.models.UnitActionType.Promote) {
+            unitAction.action!!()
+        }
     }
 
     private fun doAllUpgrade() {
         SoundPlayer.playRepeated(unitAction.uncivSound)
-        for (unit in allUpgradableUnits) {
-            val otherAction = UnitActionsUpgrade.getUpgradeActions(unit)
-                .firstOrNull{ (it as UpgradeUnitAction).unitToUpgradeTo == unitToUpgradeTo &&
-                    it.action != null }
-            otherAction?.action?.invoke()
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(com.unciv.models.UnitActionType.Promote) {
+            for (unit in allUpgradableUnits) {
+                val otherAction = UnitActionsUpgrade.getUpgradeActions(unit)
+                    .firstOrNull{ (it as UpgradeUnitAction).unitToUpgradeTo == unitToUpgradeTo &&
+                        it.action != null }
+                otherAction?.action?.invoke()
+            }
         }
     }
 }

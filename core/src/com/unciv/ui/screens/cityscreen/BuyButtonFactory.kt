@@ -3,6 +3,8 @@ package com.unciv.ui.screens.cityscreen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.unciv.Constants
+import com.unciv.GUI
+import com.unciv.models.UnitActionType
 import com.unciv.models.Religion
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IConstruction
@@ -225,7 +227,11 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
     ) {
         SoundPlayer.play(stat.purchaseSound)
         val cityView = cityScreen.cityView
-        if (!cityView.constructions.purchaseConstruction(construction, cityScreen.selectedQueueEntry, stat, tile)) {
+        var purchased = false
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.ConstructImprovement) {
+            purchased = cityView.constructions.purchaseConstruction(construction, cityScreen.selectedQueueEntry, stat, tile)
+        }
+        if (!purchased) {
             Popup(cityScreen).apply {
                 add("No space available to place [${construction.name}] near [${cityView.name}]".tr()).row()
                 addCloseButton()
@@ -252,7 +258,11 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
         tile: TileView? = null
     ) {
         val cityView = cityScreen.cityView
-        if (!cityView.constructions.purchaseConstruction(construction, cityScreen.selectedQueueEntry, variableName, tile)) {
+        var purchased = false
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.ConstructImprovement) {
+            purchased = cityView.constructions.purchaseConstruction(construction, cityScreen.selectedQueueEntry, variableName, tile)
+        }
+        if (!purchased) {
             Popup(cityScreen).apply {
                 add("No space available to place [${construction.name}] near [${cityView.name}]".tr()).row()
                 addCloseButton()
