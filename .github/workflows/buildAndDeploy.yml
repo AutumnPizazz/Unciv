@@ -115,7 +115,7 @@ jobs:
           ./gradlew server:dist
 
       - name: Checkout TS server submodule
-        run: git submodule update --init --depth 1 server-ts
+        run: git submodule update --init server-ts
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
