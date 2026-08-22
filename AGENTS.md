@@ -47,11 +47,11 @@
 ## 子仓库模组（CoeHarMod）
 
 - CoeHarMod 是 `android/assets/mods/CoeHarMod` 的 git submodule（独立仓库 AutumnPizazz/CoeHarMod），**实际工作分支是 `workspace`**（`main` 由 GitHub Action 按标签同步核心文件生成）；模组改动在子模块目录内提交，再在主仓库提交更新 submodule 指针
-- **每次改动 CoeHarMod（功能/修复/CI/文档）时，必须在同一批改动中同步更新文档站模组板块更新日志 `docs/Community/Mods/CoeHarMod/changelog/index.md`（英文）与 `docs/zh/Community/Mods/CoeHarMod/更新日志/index.md`（中文）**：在顶部「未发布 / Unreleased」小节各加一条；发版时整合进版本条目并更新 `::: tip 最新版本 / Latest version` 提示块（详见 Coding-standards 第八节）；条目面向模组玩家，只写用户可见变化，不写实现细节
+- **每次改动 CoeHarMod（功能/修复/CI/文档）时，必须在同一批改动中同步更新文档站模组板块更新日志 `docs/Community/Mods/CoeHarMod/changelog/index.md`（英文）与 `docs/zh/Community/Mods/CoeHarMod/更新日志/index.md`（中文）**：在顶部「未发布 / Unreleased」小节各加一条；发版时整合进版本条目并更新 `::: tip 最新版本 / Latest version` 提示块（详见 Coding-standards 第八节）；条目面向模组玩家，只写用户可见变化，不写实现细节，**每条不超过 30 字（中文按汉字、英文按单词计，链接与标点不计），重要改动拆成多条小点**
 
 ## 其他
 
-- 任何改动合入时，同步在中英 Changelog（`docs/{,zh/}UncivCN/Changelog.md`）顶部「未发布」小节各加一行（详见 Coding-standards 第八节）；**条目面向玩家**：只写玩家可感知的行为变化，禁止类名/函数名/重构与测试细节，纯测试与行为不变的重构可不记；模组/Lua 条目一句带过并附对应文档链接指路细节
+- 任何改动合入时，同步在中英 Changelog（`docs/{,zh/}UncivCN/Changelog.md`）顶部「未发布」小节各加一行（详见 Coding-standards 第八节）；**条目面向玩家**：只写玩家可感知的行为变化，禁止类名/函数名/重构与测试细节，纯测试与行为不变的重构可不记；**每条不超过 30 字（中文按汉字、英文按单词计，链接与标点不计），重要改动拆成多条小点、每条独立达标；底层改动与优化一律略写**；模组/Lua 条目一句带过并附对应文档链接指路细节
 - git操作：自行参照历史提交风格组织提交标题与正文并执行，无需再询问；一个提交一个主题，粒度参照历史提交拆分；在没有用户明确命令时不得执行提交之外的破坏性git操作
 - 核心代码必须兼容所有平台；游戏逻辑主要在主线程执行，异步操作需谨慎
 - 修改规则集相关代码时考虑 Mod 兼容性

@@ -12,21 +12,21 @@ title: UncivCN 更新日志
 
 ## 未发布
 
-- 模组支持：单位级变量现可通过条件、触发、每回合产出、Lua 与单位 UI 读写——经验系统本身也已迁移到 `Experience` 单位变量（旧存档自动迁移），模组可通过同一套通道读取与修改单位经验——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
-
-- 模组支持：Variables.json 变量新增第四档作用域 `unit`——模组可为每个单位实例附加整数计数器（如魔法值、护盾值、怒气值），可通过条件与 Lua 读取——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
-
-- 模组支持：Variables.json 变量现支持城市级、文明级和全局级作用域、上下限、每回合产出、百分比加成、购买成本、生产转换、分作用域 unique、Lua 读写与作用域 UI；现有文明级变量需显式声明 `scope`，详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) 与 [uniques](/zh/Modders/uniques)
-
-- 修复：分作用域 Variables.json 变量现会在游戏状态复制后保留数值，遵守文明与作用域限制、城市筛选器和上下限，按整数原值扣除购买成本，并避免 AI/属性解析崩溃。
-
-- 模组支持：变量（Variables.json）现可用于所有 countable 位置（如 `when number of [X] is more than [Y]`）与 `Set [X] to [countable]` 设定触发器，更多用资源伪装的计数器可以迁移到变量——详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)；CoeHarMod 为参考实现
-
-- 合并上游 7 个提交：View 重构继续（#15280）——视图相等性比较统一、外文明视图访问收紧（getCiv()）、viewingCiv 私有化（观战者伪装成玩家时行为一致）；修复仅有被掠夺道路时的修复功能异常、打开文明百科时的 ANR；CN 特色功能（地图钉/单位备注可见性、多人聊天在线状态、重开投票）改用等价新 API
-
-- 文档站：结构重组——英文区 CoeHarMod 更新日志移至 [/Community/Mods/CoeHarMod/changelog/](/Community/Mods/CoeHarMod/changelog/)（更新计划在 [/Community/Mods/CoeHarMod/changelog/roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)），英文区社区图片改用英文文件名，中文页面不再重复存储图片、直接引用英文版图片
-
-- 文档站：移除上游更新日志页，上游版本记录请通过本页顶部链接查看 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)
+- 模组支持：单位级变量，可为每个单位附加数值计数器（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 模组支持：单位经验改为变量实现，模组可读写，旧存档自动兼容（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 模组支持：变量支持城市、文明、全局作用域（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 模组支持：变量可设上下限、每回合产出、百分比加成（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 模组支持：变量可购买、可生产转换、可显示在界面（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 模组注意：文明级变量需显式声明作用域，旧模组需更新
+- 修复：变量购买成本按原值扣除
+- 修复：AI 使用变量时不再崩溃
+- 修复：复制游戏状态后变量数值保留
+- 模组支持：变量可用于所有数量条件与设定触发（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 合并上游：修复被掠夺道路无法修复、打开百科卡死
+- 合并上游：CN 特色功能适配上游重构，行为不变
+- 文档站：CoeHarMod 更新日志移至模组板块（详见 [changelog](/Community/Mods/CoeHarMod/changelog/)）
+- 文档站：上游更新日志改为顶部链接查看
+- 文档站：更新日志条目限 30 字内，重要改动可拆分多条
 
 ## 4.21.10.2（build 1257）
 

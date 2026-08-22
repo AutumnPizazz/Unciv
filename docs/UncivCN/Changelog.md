@@ -8,21 +8,21 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
-- Modding: unit-scope variables are now readable and writable through conditions, triggers, per-turn yields, Lua and the unit UI - the XP system itself now runs on a `Experience` unit variable (old saves migrate automatically), so mods can also read and modify unit experience through the same channels - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
-
-- Modding: Variables.json variables now support a fourth storage scope - `unit` - so mods can attach integer counters to individual units (e.g. mana, shields, rage), readable through conditions and Lua - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
-
-- Modding: Variables.json variables now support city, civilization and global scopes, bounds, per-turn yields, percentage bonuses, purchase costs, production conversion, scope-specific uniques, Lua read/write APIs and scope-aware UI; existing civ variables remain available with an explicit `scope` declaration - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json) and [uniques](/Modders/uniques)
-
-- Fix: Scoped Variables.json values now persist through game-state copies, enforce ownership and scope, honor city filters and bounds, charge exact variable purchase costs, and avoid AI/stat-parser crashes.
-
-- Modding: variables (Variables.json) are now accepted in every countable position (e.g. `when number of [X] is more than [Y]`) and in the `Set [X] to [countable]` triggerable, so mods can move more resource-faked counters to variables - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json); CoeHarMod serves as a reference implementation
-
-- Merged upstream 7 commits: View refactoring continues (#15280) - unified View equality comparison, foreign-civ view access tightened (`getCiv()`), `viewingCiv` made private (a spectator posing as a player is now consistently treated as that player); fixed repair when only a pillaged road remains and an ANR when opening the Civilopedia; CN features (map pins/unit notes visibility, multiplayer chat online status, restart vote) migrated to the equivalent new API
-
-- Docs: docs site restructured - the English-side CoeHarMod changelog moved to [/Community/Mods/CoeHarMod/changelog/](/Community/Mods/CoeHarMod/changelog/) (roadmap at [/Community/Mods/CoeHarMod/changelog/roadmap](/Community/Mods/CoeHarMod/changelog/roadmap)), community images on the English side use English filenames, and Chinese pages now reference the English-side images instead of storing duplicates
-
-- Docs: the docs site no longer mirrors the upstream changelog - upstream release notes are available via the [official Unciv changelog](https://github.com/yairm210/Unciv/blob/master/changelog.md) linked above
+- Modding: unit-scope variables - attach integer counters to individual units (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Modding: unit experience is now a variable, old saves migrate automatically (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Modding: variables support city, civilization and global scopes (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Modding: variables support bounds, per-turn yields, percentage bonuses, purchase costs, production conversion (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Modding: variables support Lua read/write and scope-aware UI (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Modding: civilization-scope variables now need an explicit scope declaration
+- Fix: variable purchase costs now charge the exact integer value
+- Fix: AI no longer crashes when processing variables
+- Fix: variable values survive game-state copies
+- Modding: variables work in all countable positions and Set triggerables (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Merged upstream: fixed repair with only a pillaged road left, and an ANR when opening the Civilopedia
+- Merged upstream: CN features adapted to the new architecture, behavior unchanged
+- Docs: CoeHarMod changelog moved to the mods section (see [changelog](/Community/Mods/CoeHarMod/changelog/))
+- Docs: upstream changelog replaced by a link at the top of this page
+- Docs: changelog entries limited to 30 words; big changes may be split into multiple entries
 
 ## 4.21.10.2 (build 1257)
 

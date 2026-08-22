@@ -10,9 +10,10 @@ title: 更新日志
 
 ## 未发布
 
-- 为适配强化后的三档变量系统，Variables.json 中现有条目全部声明为文明级变量，保持原有玩法
-- 迁移到官方模组变量（[Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）：总督点数、外交支持、影响力、武僧数、辅助计数器等 8 个原先用资源伪装的计数器全部改由变量实现——每回合供给/消耗改用回合开始触发器，条件用纯变量名，Lua 改用 `getVariable`/`addVariable`，顶栏显示可按变量独立配置
-- 适配游戏版本更新到 4.21.10.2（依赖 Variables.json 与变量 countable 支持）
+- 适配新变量系统：现有变量条目统一声明为文明级，玩法不变
+- 总督点数、外交支持、影响力等 8 个计数器改用官方变量（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 顶栏变量显示可按变量独立配置
+- 适配游戏版本更新到 4.21.10.2
 
 ## v3.3.12 - 适配 4.21.8.2
 
