@@ -134,9 +134,10 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
     },
     FinishAction("I'm done", Color.WHITE) {
         override fun isChoice(worldScreen: WorldScreen) =
-            worldScreen.gameInfo.isPollingMode() && worldScreen.isPlayersTurn
+            (worldScreen.gameInfo.isPollingMode() || worldScreen.gameInfo.isSimultaneousTurnsMode()) && worldScreen.isPlayersTurn
         override fun action(worldScreen: WorldScreen) =
-            worldScreen.finishPollingTurn()
+            if (worldScreen.gameInfo.isSimultaneousTurnsMode()) worldScreen.finishSimultaneousTurn()
+            else worldScreen.finishPollingTurn()
     },
     NextTurn("Next turn", Color.WHITE) {
         override fun isChoice(worldScreen: WorldScreen) =

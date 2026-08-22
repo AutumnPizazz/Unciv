@@ -5,6 +5,7 @@ import com.unciv.UncivGame
 import com.unciv.logic.automation.unit.UnitAutomation
 import com.unciv.logic.civilization.diplomacy.DiplomaticModifiers
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.multiplayer.SimultaneousTurnUnitActionResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.UnitAction
 import com.unciv.models.UnitActionType
@@ -265,6 +266,20 @@ object UnitActions {
         })
     }
 
+    private fun recordSimultaneousUnitAction(unit: MapUnit) {
+        GUI.getWorldScreen().recordSimultaneousTurnOperation(
+            "unit.action",
+            SimultaneousTurnUnitActionResult(
+                unitId = unit.id,
+                owner = unit.owner,
+                action = unit.action,
+                due = unit.due,
+                health = unit.health,
+                movement = unit.currentMovement
+            )
+        )
+    }
+
     private suspend fun SequenceScope<UnitAction>.addFortifyActions(unit: MapUnit) {
         if (unit.isFortified()) {
             yield(UnitAction(
@@ -281,13 +296,13 @@ object UnitActions {
         if (!unit.canFortify() || !unit.hasMovement()) return
 
         yield(UnitAction(UnitActionType.Fortify,
-            action = { unit.fortify() }.takeIf { !unit.isFortified() || unit.isFortifyingUntilHealed() },
+            action = { unit.fortify(); recordSimultaneousUnitAction(unit) }.takeIf { !unit.isFortified() || unit.isFortifyingUntilHealed() },
             useFrequency = 30f
         ))
 
         if (unit.health == unit.getMaxHealth()) return
         yield(UnitAction(UnitActionType.FortifyUntilHealed,
-            action = { unit.fortifyUntilHealed() }
+            action = { unit.fortifyUntilHealed(); recordSimultaneousUnitAction(unit) }
                 .takeIf { !unit.isFortifyingUntilHealed() && unit.canHealInCurrentTile() },
             useFrequency = 45f
         ))
@@ -299,13 +314,13 @@ object UnitActions {
 
         yield(UnitAction(UnitActionType.Sleep,
             useFrequency = if (!unit.isSleeping()) 29f else 21f,
-            action = { unit.action = UnitActionType.Sleep.value }.takeIf { !unit.isSleeping() || unit.isSleepingUntilHealed() }
+            action = { unit.action = UnitActionType.Sleep.value; recordSimultaneousUnitAction(unit) }.takeIf { !unit.isSleeping() || unit.isSleepingUntilHealed() }
         ))
 
         if (unit.health == unit.getMaxHealth()) return
         yield(UnitAction(UnitActionType.SleepUntilHealed,
             useFrequency = if (!unit.isSleepingUntilHealed()) 44f else 20f,
-            action = { unit.action = UnitActionType.SleepUntilHealed.value }
+            action = { unit.action = UnitActionType.SleepUntilHealed.value; recordSimultaneousUnitAction(unit) }
                 .takeIf { !unit.isSleepingUntilHealed() && unit.canHealInCurrentTile() }
         ))
     }
@@ -382,6 +397,7 @@ object UnitActions {
             useFrequency = 0f, // Last on first page (defaultPage=0)
             action = {
                 unit.due = !unit.due
+                recordSimultaneousUnitAction(unit)
                 // If it's on, skips to next unit due to worldScreen.switchToNextUnit() in activateAction
                 // We don't want to switch twice since then we skip units :)
                 if (!unit.due && !UncivGame.Current.settings.autoUnitCycle)

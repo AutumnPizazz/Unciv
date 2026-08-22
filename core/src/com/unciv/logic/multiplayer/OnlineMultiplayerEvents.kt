@@ -66,3 +66,11 @@ class RestartVoteUpdated(
 class RestartVoteSignalReceived(
     val gameId: String
 ) : Event
+
+
+class SimultaneousTurnOperationReceived(
+    val gameId: String,
+    val turn: Int,
+    val playerId: String,
+    val sequence: Long
+) : Event

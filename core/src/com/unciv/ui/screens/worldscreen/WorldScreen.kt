@@ -16,11 +16,16 @@ import com.unciv.logic.civilization.diplomacy.DiplomaticStatus
 import com.unciv.logic.event.EventBus
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.MapVisualization
+import com.unciv.json.json
 import com.unciv.logic.multiplayer.MultiplayerGameUpdated
 import com.unciv.logic.multiplayer.OnlineStatusUpdated
 import com.unciv.logic.multiplayer.RestartVoteStatus
 import com.unciv.logic.multiplayer.RestartVoteUpdated
+import com.unciv.logic.multiplayer.SimultaneousTurnOperation
+import com.unciv.logic.multiplayer.SimultaneousTurnOperations
+import com.unciv.logic.multiplayer.SimultaneousTurnReplay
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
+import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
 import com.unciv.logic.trade.TradeEvaluation
@@ -100,12 +105,39 @@ class WorldScreen(
     private val viewingCiv: Civilization,
     restoreState: RestoreState? = null
 ) : BaseScreen() {
-    /** When set, causes the screen to update in the next [render][render] event */
+    /** When set, causes the screen to update in the next render event. */
     var shouldUpdate = false
 
+    @Transient
+    private val simultaneousTurnOperations = ArrayList<SimultaneousTurnOperation>()
+    @Transient
+    private var nextSimultaneousOperationSequence = 0L
+
+
     /** Indicates it's the player's ([viewingCiv]) turn */
-    var isPlayersTurn = viewingCiv.isCurrentPlayer()
-        internal set     // only this class is allowed to make changes
+    var isPlayersTurn = viewingCiv.isCurrentPlayer() || gameInfo.isSimultaneousTurnsMode()
+        internal set
+
+    /** Records a completed local operation for the future simultaneous-turn settlement pass. */
+    fun recordSimultaneousTurnOperation(type: String, payload: Any) {
+        if (!gameInfo.isSimultaneousTurnsMode()) return
+        val playerId = viewingCiv.playerId
+        if (playerId.isEmpty()) return
+        val operation = SimultaneousTurnOperation(
+            turn = gameInfo.turns,
+            playerId = playerId,
+            sequence = nextSimultaneousOperationSequence++,
+            type = type,
+            payload = json().toJson(payload)
+        )
+        simultaneousTurnOperations.add(operation)
+        ChatWebSocket.sendOperationSignal(gameInfo.gameId, operation.turn, playerId, operation.sequence)
+    }
+
+    /** Returns a stable snapshot for a future settlement worker. */
+    fun getSimultaneousTurnOperations(): List<SimultaneousTurnOperation> =
+        SimultaneousTurnOperations.merge(emptyList(), simultaneousTurnOperations)
+     // only this class is allowed to make changes
 
     /** Indicates that a game failed to upload, and needs to be uploaded */
     var failedUpload = false
@@ -241,6 +273,7 @@ class WorldScreen(
         if (gameInfo.gameParameters.isOnlineMultiplayer) {
             val gameId = gameInfo.gameId
             events.receive(MultiplayerGameUpdated::class, { it.preview.gameId == gameId }) {
+                if (gameInfo.isSimultaneousTurnsMode()) return@receive
                 if (isNextTurnUpdateRunning() || game.onlineMultiplayer.hasLatestGameState(gameInfo, it.preview)) {
                     return@receive
                 }
@@ -258,9 +291,9 @@ class WorldScreen(
             }
         }
 
-        if (gameInfo.isPollingMode()) {
+        if (gameInfo.isPollingMode() || gameInfo.isSimultaneousTurnsMode()) {
             ChatWebSocket.start()  // ensure push notifications for game updates
-            if (isPlayersTurn)
+            if (gameInfo.isPollingMode() && isPlayersTurn)
                 startPollingTimer()
 
             playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
@@ -851,8 +884,69 @@ class WorldScreen(
         }
     }
 
-    /** Called when the countdown timer expires.
-     *  Passes the save to the next active player WITHOUT marking the current player as done. */
+    /**
+     * Completes a simultaneous turn without uploading the local game snapshot. The last player
+     * to finish owns settlement for this turn and rebuilds the authoritative snapshot by replaying
+     * the sidecar operations from the turn-start save.
+     */
+    fun finishSimultaneousTurn() {
+        if (!isPlayersTurn || isNextTurnUpdateRunning()) return
+        isPlayersTurn = false
+        shouldUpdate = true
+        val progressBar = NextTurnProgress(nextTurnButton)
+        progressBar.start(this)
+
+        nextTurnUpdateJob = Concurrency.runOnNonDaemonThreadPool("SimultaneousPass") {
+            val playerId = viewingCiv.playerId
+            val done = SimultaneousTurnOperation(
+                turn = gameInfo.turns,
+                playerId = playerId,
+                sequence = nextSimultaneousOperationSequence++,
+                type = "done"
+            )
+            val uploadOperations = getSimultaneousTurnOperations() + done
+            try {
+                game.onlineMultiplayer.multiplayerServer.uploadSimultaneousTurnOperations(
+                    gameInfo.gameId, uploadOperations
+                )
+                ChatWebSocket.sendOperationSignal(gameInfo.gameId, done.turn, playerId, done.sequence)
+
+                val allOperations = try {
+                    game.onlineMultiplayer.multiplayerServer.downloadSimultaneousTurnOperations(gameInfo.gameId)
+                } catch (_: MultiplayerFileNotFoundException) {
+                    emptyList()
+                }
+                val humanPlayerIds = gameInfo.civilizations
+                    .filter { it.isHuman() && it.isAlive() }
+                    .map { it.playerId }
+                    .toSet()
+                val finishedPlayerIds = allOperations
+                    .filter { it.turn == gameInfo.turns && it.type == "done" }
+                    .map { it.playerId }
+                    .toSet()
+                if (humanPlayerIds.any { it !in finishedPlayerIds }) {
+                    progressBar.increment()
+                    launchOnGLThread { nextTurnButton.update() }
+                    return@runOnNonDaemonThreadPool
+                }
+
+                val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
+                val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
+                SimultaneousTurnReplay.replay(turnStart, turnOperations)
+                turnStart.nextTurnPolling(progressBar)
+                game.onlineMultiplayer.updateGame(turnStart)
+                if (game.gameInfo == gameInfo)
+                    launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
+            } catch (_: Exception) {
+                launchOnGLThread {
+                    isPlayersTurn = true
+                    shouldUpdate = true
+                }
+            }
+        }
+    }
+
+
     private fun passPollingTurn() {
         if (!isPlayersTurn || isNextTurnUpdateRunning()) return
         isPlayersTurn = false

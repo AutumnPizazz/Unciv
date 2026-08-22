@@ -18,6 +18,7 @@ import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.battle.Nuke
 import com.unciv.logic.battle.TargetHelper
 import com.unciv.logic.map.tile.Tile
+import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.models.UncivSound
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.tr
@@ -363,6 +364,19 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         val (damageToDefender, damageToAttacker) = Battle.attackOrNuke(attacker, attackableTile)
 
         worldScreen.battleAnimationDeferred(attacker, damageToAttacker, defender, damageToDefender)
+        if (attacker is MapUnitCombatant && defender is MapUnitCombatant)
+            worldScreen.recordSimultaneousTurnOperation(
+                "unit.attack",
+                SimultaneousTurnAttackResult(
+                    attackerId = attacker.unit.id,
+                    targetId = defender.unit.id,
+                    targetOwner = defender.unit.owner,
+                    attackerHp = attacker.unit.health,
+                    targetHp = defender.unit.health,
+                    targetX = defender.unit.currentTile.position.x,
+                    targetY = defender.unit.currentTile.position.y
+                )
+            )
         if (!attacker.canAttack()) hide()
     }
 

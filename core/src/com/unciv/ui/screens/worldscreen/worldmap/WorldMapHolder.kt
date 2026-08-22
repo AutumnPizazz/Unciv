@@ -18,6 +18,8 @@ import com.unciv.logic.city.City
 import com.unciv.logic.map.*
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.mapunit.movement.UnitMovement
+import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
+import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Spy
 import com.unciv.models.UncivSound
@@ -295,6 +297,19 @@ class WorldMapHolder(
                 val (damageToDefender, damageToAttacker) = Battle.attackOrNuke(attacker, attackableTile)
                 if (attackableTile.combatant != null)
                     worldScreen.battleAnimationDeferred(attacker, damageToAttacker, attackableTile.combatant, damageToDefender)
+                val target = attackableTile.combatant as? MapUnitCombatant
+                if (target != null) worldScreen.recordSimultaneousTurnOperation(
+                    "unit.attack",
+                    SimultaneousTurnAttackResult(
+                        attackerId = unit.id,
+                        targetId = target.unit.id,
+                        targetOwner = target.unit.owner,
+                        attackerHp = unit.health,
+                        targetHp = target.unit.health,
+                        targetX = target.unit.currentTile.position.x,
+                        targetY = target.unit.currentTile.position.y
+                    )
+                )
                 localShouldUpdate = true
             } else if (unitView.canReach(tileView)) {
                 /** ****** Right-click Move ****** */
@@ -358,6 +373,7 @@ class WorldMapHolder(
                     // but it's so rare and edge-case-y that ignoring its failure is actually acceptable, hence the empty catch
                     val tileMapView = worldScreen.selectedGameView.tileMapView
                     val previousTileView = tileMapView.getTile(selectedUnit.currentTile)
+                    val previousPosition = selectedUnit.currentTile.position
                     selectedUnit.movement.moveToTile(tileToMoveTo)
 
                     // If you try to send a unit to a tile that it can't even get nearer to, then this is actualy a dud
@@ -372,6 +388,19 @@ class WorldMapHolder(
                     if (selectedUnit.currentTile != targetTile)
                         selectedUnit.action =
                                 "moveTo ${targetTile.position.x},${targetTile.position.y}"
+                    worldScreen.recordSimultaneousTurnOperation(
+                        "unit.move",
+                        SimultaneousTurnMoveResult(
+                            unitId = selectedUnit.id,
+                            owner = selectedUnit.owner,
+                            fromX = previousPosition.x,
+                            fromY = previousPosition.y,
+                            toX = selectedUnit.currentTile.position.x,
+                            toY = selectedUnit.currentTile.position.y,
+                            hp = selectedUnit.health,
+                            movement = selectedUnit.currentMovement
+                        )
+                    )
                     if (selectedUnit.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
                     worldScreen.shouldUpdate = true

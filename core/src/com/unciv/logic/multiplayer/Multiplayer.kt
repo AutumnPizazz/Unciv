@@ -116,7 +116,7 @@ class Multiplayer {
 
                 val currentGame = getCurrentGame()
                 val preview = currentGame?.preview
-                if (currentGame != null && (usesCustomServer() || preview == null || !preview.isUsersTurn())) {
+                if (currentGame != null && (usesCustomServer() || preview == null || (!preview.isUsersTurn() && preview.gameParameters.simultaneousTurns != true))) {
                     throttle(lastCurGameRefresh, multiplayerSettings.currentGameRefreshDelay, {}, {}) { currentGame.requestUpdate() }
                 }
 

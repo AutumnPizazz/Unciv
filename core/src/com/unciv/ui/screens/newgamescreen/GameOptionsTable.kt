@@ -123,6 +123,7 @@ class GameOptionsTable(
             checkboxTable.addAnyoneCanSpectateCheckbox()
             checkboxTable.addRequireSameVersionCheckbox()
             checkboxTable.addForbidReloadCheckbox()
+            checkboxTable.addSimultaneousTurnsCheckbox()
             selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0)
             selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
             selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)
@@ -205,6 +206,10 @@ class GameOptionsTable(
     private fun Table.addNuclearWeaponsCheckbox() =
             addCheckbox("Enable Nuclear Weapons", gameParameters.nuclearWeaponsEnabled)
             { gameParameters.nuclearWeaponsEnabled = it }
+
+    private fun Table.addSimultaneousTurnsCheckbox() =
+        addCheckbox("Simultaneous turns (experimental)", gameParameters.simultaneousTurns, lockable = true)
+        { gameParameters.simultaneousTurns = it }
 
     private fun Table.addIsOnlineMultiplayerCheckbox() =
             addCheckbox("Online Multiplayer", gameParameters.isOnlineMultiplayer, lockable = false)

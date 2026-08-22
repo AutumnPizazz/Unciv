@@ -973,8 +973,11 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
 
     //endregion
 
+    /** Returns true when this game uses the experimental operation-log turn protocol. */
+    fun isSimultaneousTurnsMode() = gameParameters.isOnlineMultiplayer && gameParameters.simultaneousTurns
+
     /** Returns true if this game uses the polling multiplayer mode. */
-    fun isPollingMode() = gameParameters.isOnlineMultiplayer && gameParameters.pollingIntervalSeconds > 0
+    fun isPollingMode() = gameParameters.isOnlineMultiplayer && gameParameters.pollingIntervalSeconds > 0 && !gameParameters.simultaneousTurns
 
     /** Returns true if all alive human players have finished this polling turn. */
     @Readonly fun allHumansFinishedPollingTurn() =

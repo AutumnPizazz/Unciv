@@ -77,6 +77,12 @@ sealed class Message {
     data class OnlineResponse(
         val gameId: String, val civName: String
     ) : Message()
+
+    @Serializable
+    @SerialName("opSignal")
+    data class OpSignal(
+        val gameId: String, val turn: Int, val playerId: String, val sequence: Long
+    ) : Message()
 }
 
 // used when receiving a message
@@ -116,6 +122,12 @@ sealed class Response {
     @SerialName("onlineResponse")
     data class OnlineResponse(
         val gameId: String, val civName: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("opSignal")
+    data class OpSignal(
+        val gameId: String, val turn: Int, val playerId: String, val sequence: Long
     ) : Response()
 }
 
@@ -472,6 +484,12 @@ private class UncivServerRunner : CliktCommand() {
                                         val gameId = message.gameId.toUuidOrNull()
                                         if (gameId != null && wsSessionManager.isSubscribed(this, gameId)) {
                                             wsSessionManager.publish(gameId, Response.OnlineResponse(message.gameId, message.civName))
+                                        }
+                                    }
+                                    is Message.OpSignal -> {
+                                        val gameId = message.gameId.toUuidOrNull()
+                                        if (gameId != null && wsSessionManager.isSubscribed(this, gameId)) {
+                                            wsSessionManager.publish(gameId, Response.OpSignal(message.gameId, message.turn, message.playerId, message.sequence))
                                         }
                                     }
                                 }

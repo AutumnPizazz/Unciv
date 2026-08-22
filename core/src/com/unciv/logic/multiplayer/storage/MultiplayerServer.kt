@@ -161,6 +161,18 @@ class MultiplayerServer(
      * @throws FileStorageRateLimitReached if the file storage backend can't handle any additional actions for a time
      * @throws FileNotFoundException if the file can't be found
      */
+    /** Uploads the operation sidecar without changing the authoritative game save. */
+    suspend fun uploadSimultaneousTurnOperations(
+        gameId: String,
+        operations: List<com.unciv.logic.multiplayer.SimultaneousTurnOperation>
+    ) = com.unciv.logic.multiplayer.SimultaneousTurnOperations.upload(this, gameId, operations)
+
+    /** Downloads the operation sidecar; callers should treat missing files as an empty log. */
+    suspend fun downloadSimultaneousTurnOperations(
+        gameId: String
+    ): List<com.unciv.logic.multiplayer.SimultaneousTurnOperation> =
+        com.unciv.logic.multiplayer.SimultaneousTurnOperations.download(this, gameId)
+
     suspend fun tryDownloadGame(gameId: String): GameInfo {
         val zippedGameInfo = fileStorage().loadFileData(gameId)
         val gameInfo = UncivFiles.gameInfoFromString(zippedGameInfo)

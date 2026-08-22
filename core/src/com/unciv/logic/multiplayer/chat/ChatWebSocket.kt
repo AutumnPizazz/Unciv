@@ -65,6 +65,12 @@ sealed class Message {
     data class OnlineResponse(
         val gameId: String, val civName: String
     ) : Message()
+
+    @Serializable
+    @SerialName("opSignal")
+    data class OpSignal(
+        val gameId: String, val turn: Int, val playerId: String, val sequence: Long
+    ) : Message()
 }
 
 // used when receiving a message
@@ -104,6 +110,12 @@ sealed class Response {
     @SerialName("onlineResponse")
     data class OnlineResponse(
         val gameId: String, val civName: String
+    ) : Response()
+
+    @Serializable
+    @SerialName("opSignal")
+    data class OpSignal(
+        val gameId: String, val turn: Int, val playerId: String, val sequence: Long
     ) : Response()
 }
 
@@ -269,6 +281,11 @@ object ChatWebSocket {
                                 ))
                             }
                         }
+                        is Response.OpSignal -> EventBus.send(
+                            com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived(
+                                response.gameId, response.turn, response.playerId, response.sequence
+                            )
+                        )
                     }
                 }
             }
@@ -279,13 +296,16 @@ object ChatWebSocket {
         }
     }
 
+    fun sendOperationSignal(gameId: String, turn: Int, playerId: String, sequence: Long) {
+        requestMessageSend(Message.OpSignal(gameId, turn, playerId, sequence))
+    }
+
     fun start() {
         if (!isStarted) {
             isStarted = true
             job = Concurrency.run("MultiplayerChat") { startSession() }
         }
     }
-
     /**
      * Stops the socket and clears all type of chat from [ChatStore]
      */
