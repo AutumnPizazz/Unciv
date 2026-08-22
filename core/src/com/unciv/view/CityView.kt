@@ -1,5 +1,6 @@
 package com.unciv.view
 
+import com.unciv.UncivGame
 import com.unciv.logic.city.City
 import com.unciv.logic.city.CityFlags
 import com.unciv.logic.civilization.Civilization
@@ -175,23 +176,33 @@ class CityView(city: City,
         if (!canChangeState()) return false
         return city.stopWorkingTile(getTile(tileView))
     }
+    private fun runSimultaneousConstructionChange(action: () -> Unit) {
+        UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+            com.unciv.models.UnitActionType.ConstructImprovement, action
+        ) ?: action()
+    }
+
     fun tryAddToQueue(name: String): Boolean {
         if (!canChangeState()) return false
-        city.cityConstructions.addToQueue(name)
+        runSimultaneousConstructionChange { city.cityConstructions.addToQueue(name) }
         return true
     }
     fun tryRemoveFromQueue(index: Int, automatic: Boolean): Boolean {
         if (!canChangeState()) return false
-        city.cityConstructions.removeFromQueue(index, automatic)
+        runSimultaneousConstructionChange { city.cityConstructions.removeFromQueue(index, automatic) }
         return true
     }
     fun tryRaisePriority(index: Int): Int? {
         if (!canChangeState()) return null
-        return city.cityConstructions.raisePriority(index)
+        var result: Int? = null
+        runSimultaneousConstructionChange { result = city.cityConstructions.raisePriority(index) }
+        return result
     }
     fun tryLowerPriority(index: Int): Int? {
         if (!canChangeState()) return null
-        return city.cityConstructions.lowerPriority(index)
+        var result: Int? = null
+        runSimultaneousConstructionChange { result = city.cityConstructions.lowerPriority(index) }
+        return result
     }
     fun updateTileStats() = city.cityStats.updateTileStats()
 
@@ -213,7 +224,9 @@ class CityView(city: City,
     }
     fun tryAddToQueueWithTile(construction: IConstruction, tileView: TileView): Boolean {
         if (!canChangeState()) return false
-        city.cityConstructions.addToQueue(construction, tile = tileView.unwrap())
+        runSimultaneousConstructionChange {
+            city.cityConstructions.addToQueue(construction, tile = tileView.unwrap())
+        }
         return true
     }
     fun trySetUnitShouldUseSavedPromotion(baseUnit: String, value: Boolean): Boolean {
@@ -228,19 +241,19 @@ class CityView(city: City,
     }
     fun tryMoveEntryToTop(index: Int) {
         if (!canChangeState()) return
-        city.cityConstructions.moveEntryToTop(index)
+        runSimultaneousConstructionChange { city.cityConstructions.moveEntryToTop(index) }
     }
     fun tryMoveEntryToEnd(index: Int) {
         if (!canChangeState()) return
-        city.cityConstructions.moveEntryToEnd(index)
+        runSimultaneousConstructionChange { city.cityConstructions.moveEntryToEnd(index) }
     }
     fun tryAddToQueueConstruction(construction: IConstruction, addToTop: Boolean = false) {
         if (!canChangeState()) return
-        city.cityConstructions.addToQueue(construction, addToTop = addToTop)
+        runSimultaneousConstructionChange { city.cityConstructions.addToQueue(construction, addToTop = addToTop) }
     }
     fun tryRemoveAllByName(name: String) {
         if (!canChangeState()) return
-        city.cityConstructions.removeAllByName(name)
+        runSimultaneousConstructionChange { city.cityConstructions.removeAllByName(name) }
     }
     fun tryDisableConstruction(name: String) {
         if (!canChangeState()) return

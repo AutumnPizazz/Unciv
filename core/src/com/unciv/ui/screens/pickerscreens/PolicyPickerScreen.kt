@@ -8,8 +8,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
+import com.unciv.GUI
 import com.unciv.logic.civilization.Civilization
 import com.unciv.models.TutorialTrigger
+import com.unciv.models.UnitActionType
 import com.unciv.models.UncivSound
 import com.unciv.models.ruleset.Policy
 import com.unciv.models.ruleset.Policy.PolicyBranchType
@@ -666,7 +668,9 @@ class PolicyPickerScreen(
         // Evil people clicking on buttons too fast to confuse the screen - #4977
         if (!policy.isPickable(viewingCiv, canChangeState)) return
 
-        viewingCiv.policies.adopt(policy)
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.HurryPolicy) {
+            viewingCiv.policies.adopt(policy)
+        }
 
         // If we've moved to another screen in the meantime (great person pick, victory screen) ignore this
         // update policies

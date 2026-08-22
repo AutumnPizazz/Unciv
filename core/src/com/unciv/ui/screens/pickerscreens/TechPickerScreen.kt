@@ -14,6 +14,7 @@ import com.unciv.GUI
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.TechManager
 import com.unciv.models.UncivSound
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.tech.Technology
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.tr
@@ -122,19 +123,21 @@ class TechPickerScreen(
 
 
     private fun tryExit() {
-        if (freeTechPick) {
-            val freeTech = selectedTech!!.name
-            // More evil people fast-clicking to cheat - #4977
-            if (!researchableTechs.contains(freeTech)) return
-            civTech.getFreeTechnology(selectedTech!!.name)
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.HurryResearch) {
+            if (freeTechPick) {
+                val freeTech = selectedTech!!.name
+                // More evil people fast-clicking to cheat - #4977
+                if (!researchableTechs.contains(freeTech)) return@runAndRecordSimultaneousGameStateChange
+                civTech.getFreeTechnology(selectedTech!!.name)
+            }
+            else civTech.techsToResearch = tempTechsToResearch
+
+            civTech.updateResearchProgress()
+
+            game.settings.addCompletedTutorialTask("Pick technology")
+
+            game.popScreen()
         }
-        else civTech.techsToResearch = tempTechsToResearch
-
-        civTech.updateResearchProgress()
-
-        game.settings.addCompletedTutorialTask("Pick technology")
-
-        game.popScreen()
     }
 
     private fun createTechTable() {
