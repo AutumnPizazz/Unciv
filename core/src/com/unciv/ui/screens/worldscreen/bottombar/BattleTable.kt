@@ -20,6 +20,7 @@ import com.unciv.logic.battle.TargetHelper
 import com.unciv.logic.map.tile.Tile
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.models.UncivSound
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
@@ -349,6 +350,9 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         defender: ICombatant,
         attackableTile: AttackableTile
     ) {
+        val gameInfoBefore = if (attacker is CityCombatant || defender is CityCombatant)
+            worldScreen.gameInfo.clone()
+        else null
         val canStillAttack = Battle.movePreparingAttack(attacker, attackableTile)
         worldScreen.mapHolder.removeUnitActionOverlay() // the overlay was one of attacking
         // There was a direct worldScreen.update() call here, removing its 'private' but not the comment justifying the modifier.
@@ -377,6 +381,8 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
                     targetY = defender.unit.currentTile.position.y
                 )
             )
+        if (gameInfoBefore != null)
+            worldScreen.recordSimultaneousGameStateChange(UnitActionType.Pillage, gameInfoBefore)
         if (!attacker.canAttack()) hide()
     }
 

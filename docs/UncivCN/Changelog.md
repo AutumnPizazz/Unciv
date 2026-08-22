@@ -12,6 +12,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Multiplayer: simultaneous-turn operation files are deduplicated by player and sequence
 - Multiplayer: simultaneous turns now replay unit orders without rerolling combat
 - Multiplayer: fortify, sleep and skip orders are included in simultaneous turns
+- Multiplayer: simultaneous turns now record diplomacy, trade and city combat results
 - Multiplayer: simultaneous turns now record city production, technology and policy choices
 - Multiplayer: complex unit actions now replay modded state changes
 - Modding: unit-scope variables - attach integer counters to individual units (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))

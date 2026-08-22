@@ -88,7 +88,9 @@ class TradePopup(worldScreen: WorldScreen) : Popup(worldScreen) {
         addButton("Sounds good!", 'y') {
             val tradeLogic = TradeLogic(viewingCiv, requestingCiv)
             tradeLogic.currentTrade.set(trade)
-            tradeLogic.acceptTrade()
+            worldScreen.runAndRecordSimultaneousGameStateChange(com.unciv.models.UnitActionType.TriggerUnique) {
+                tradeLogic.acceptTrade()
+            }
             close()
             TradeThanksPopup(leaderIntroTable, worldScreen)
             requestingCiv.addNotification("[${viewingCiv.civName}] has accepted your trade request", NotificationCategory.Trade, viewingCiv.civName, NotificationIcon.Trade)

@@ -261,7 +261,11 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
                 tradeLogic.currentTrade.theirOffers.add(
                     TradeOffer(Constants.peaceTreaty, TradeOfferType.Treaty, speed = viewingCiv.gameInfo.speed)
                 )
-                tradeLogic.acceptTrade()
+                com.unciv.UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+                    com.unciv.models.UnitActionType.TriggerUnique
+                ) {
+                    tradeLogic.acceptTrade()
+                } ?: tradeLogic.acceptTrade()
                 diplomacyScreen.updateLeftSideTable(otherCiv)
                 diplomacyScreen.updateRightSide(otherCiv)
             }.open()

@@ -322,7 +322,11 @@ class DiplomacyScreen(
         }
         declareWarButton.onClick {
             ConfirmPopup(this, getDeclareWarButtonText(otherCiv), "Declare war") {
-                diplomacyManager.declareWar()
+                UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+                    com.unciv.models.UnitActionType.TriggerUnique
+                ) {
+                    diplomacyManager.declareWar()
+                } ?: diplomacyManager.declareWar()
                 setRightSideFlavorText(otherCiv, otherCiv.nation.attacked, "Very well.")
                 updateLeftSideTable(otherCiv)
                 val music = UncivGame.Current.musicController
