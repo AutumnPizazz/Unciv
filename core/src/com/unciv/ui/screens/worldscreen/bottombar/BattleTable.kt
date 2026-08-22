@@ -350,9 +350,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         defender: ICombatant,
         attackableTile: AttackableTile
     ) {
-        val gameInfoBefore = if (attacker is CityCombatant || defender is CityCombatant)
-            worldScreen.gameInfo.clone()
-        else null
+        val gameInfoBefore = worldScreen.gameInfo.clone()
         val canStillAttack = Battle.movePreparingAttack(attacker, attackableTile)
         worldScreen.mapHolder.removeUnitActionOverlay() // the overlay was one of attacking
         // There was a direct worldScreen.update() call here, removing its 'private' but not the comment justifying the modifier.
@@ -381,8 +379,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
                     targetY = defender.unit.currentTile.position.y
                 )
             )
-        if (gameInfoBefore != null)
-            worldScreen.recordSimultaneousGameStateChange(UnitActionType.Pillage, gameInfoBefore)
+        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
         if (!attacker.canAttack()) hide()
     }
 

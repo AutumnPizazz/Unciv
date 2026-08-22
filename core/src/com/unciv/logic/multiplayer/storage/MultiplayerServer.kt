@@ -173,6 +173,13 @@ class MultiplayerServer(
     ): List<com.unciv.logic.multiplayer.SimultaneousTurnOperation> =
         com.unciv.logic.multiplayer.SimultaneousTurnOperations.download(this, gameId)
 
+    suspend fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
+        fileStorage().acquireSimultaneousTurnSettlementLock(gameId, turn, owner)
+
+    suspend fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {
+        fileStorage().releaseSimultaneousTurnSettlementLock(gameId, turn, owner)
+    }
+
     suspend fun tryDownloadGame(gameId: String): GameInfo {
         val zippedGameInfo = fileStorage().loadFileData(gameId)
         val gameInfo = UncivFiles.gameInfoFromString(zippedGameInfo)

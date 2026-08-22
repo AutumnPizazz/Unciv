@@ -327,6 +327,37 @@ private class UncivServerRunner : CliktCommand() {
                 }
 
                 @OptIn(ExperimentalUuidApi::class) authenticate {
+                    post("/simultaneous-turn-lock/{gameId}") {
+                        val gameId = call.parameters["gameId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+                        val authInfo = call.principal<BasicAuthInfo>() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+                        val lockFile = File(fileFolderName, "$gameId.simultaneous.lock")
+                        val parts = call.receiveText().split(":", limit = 2)
+                        val turn = parts.firstOrNull()?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                        val owner = parts.getOrNull(1) ?: return@post call.respond(HttpStatusCode.BadRequest)
+                        if (owner != authInfo.userId.toString()) return@post call.respond(HttpStatusCode.Forbidden)
+                        val now = System.currentTimeMillis()
+                        if (lockFile.exists() && now - lockFile.lastModified() > 120_000) lockFile.delete()
+                        val acquired = try {
+                            if (lockFile.createNewFile()) {
+                                lockFile.writeText("$turn:$owner")
+                                true
+                            } else lockFile.readText() == "$turn:$owner"
+                        } catch (_: Exception) {
+                            false
+                        }
+                        call.respond(if (acquired) HttpStatusCode.Created else HttpStatusCode.Conflict)
+                    }
+                    delete("/simultaneous-turn-lock/{gameId}") {
+                        val gameId = call.parameters["gameId"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                        val authInfo = call.principal<BasicAuthInfo>() ?: return@delete call.respond(HttpStatusCode.Unauthorized)
+                        val lockFile = File(fileFolderName, "$gameId.simultaneous.lock")
+                        val parts = call.receiveText().split(":", limit = 2)
+                        val turn = parts.firstOrNull()?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                        val owner = parts.getOrNull(1) ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                        if (owner != authInfo.userId.toString()) return@delete call.respond(HttpStatusCode.Forbidden)
+                        if (lockFile.exists() && lockFile.readText() == "$turn:$owner") lockFile.delete()
+                        call.respond(HttpStatusCode.OK)
+                    }
                     put("/files/{fileName}") {
                         val fileName = call.parameters["fileName"] ?: return@put call.respond(
                             HttpStatusCode.BadRequest, "Missing filename!"

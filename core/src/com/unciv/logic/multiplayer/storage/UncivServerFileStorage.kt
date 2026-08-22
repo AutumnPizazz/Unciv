@@ -43,6 +43,30 @@ object UncivServerFileStorage : FileStorage {
         TODO("Not yet implemented")
     }
 
+    override fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
+        var acquired = false
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-lock/$gameId",
+            content = "$turn:$owner",
+            timeout = timeout,
+            header = authHeader
+        ) { success, _, code ->
+            acquired = success && code == 201
+        }
+        return acquired
+    }
+
+    override fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.DELETE,
+            "$serverUrl/simultaneous-turn-lock/$gameId",
+            content = "$turn:$owner",
+            timeout = timeout,
+            header = authHeader
+        ) { _, _, _ -> }
+    }
+
     override fun deleteFile(fileName: String) {
         SimpleHttp.sendRequest(Net.HttpMethods.DELETE, fileUrl(fileName), content="", timeout=timeout, header=authHeader) {
                 success, result, code ->

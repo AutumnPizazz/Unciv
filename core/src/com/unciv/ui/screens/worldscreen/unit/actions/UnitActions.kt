@@ -39,7 +39,13 @@ object UnitActions {
             getUnitActions(unit, unitActionType)
             .firstOrNull { it.action != null }   // If there's more than one, take the first enabled one.
             ?.action ?: return false
-        internalAction.invoke()
+        val invokeAction = {
+            val worldScreen = com.unciv.UncivGame.Current.worldScreen
+            if (worldScreen != null)
+                worldScreen.runAndRecordSimultaneousGameStateChange(unitActionType) { internalAction.invoke() }
+            else internalAction.invoke()
+        }
+        invokeAction()
         return true
     }
 

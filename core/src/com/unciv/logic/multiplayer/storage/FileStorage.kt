@@ -53,5 +53,10 @@ interface FileStorage {
      */
     fun setPassword(newPassword: String): Boolean
     
+    /** Atomically claims settlement for one simultaneous-turn game turn. */
+    fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean = false
+    /** Releases a settlement claim owned by [owner]. */
+    fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {}
+
     fun checkAuthStatus(userId: String, password: String): AuthStatus
 }

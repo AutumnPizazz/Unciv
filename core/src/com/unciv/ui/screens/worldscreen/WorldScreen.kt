@@ -945,16 +945,33 @@ class WorldScreen(
                     return@runOnNonDaemonThreadPool
                 }
 
-                val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
-                val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
-                val failedOperations = SimultaneousTurnReplay.replay(turnStart, turnOperations)
-                check(failedOperations.isEmpty()) {
-                    "Failed to replay ${failedOperations.size} simultaneous-turn operations"
+                val lockAcquired = game.onlineMultiplayer.multiplayerServer
+                    .acquireSimultaneousTurnSettlementLock(gameInfo.gameId, gameInfo.turns, playerId)
+                if (!lockAcquired) {
+                    launchOnGLThread {
+                        isPlayersTurn = true
+                        shouldUpdate = true
+                        nextTurnButton.update()
+                    }
+                    return@runOnNonDaemonThreadPool
                 }
-                turnStart.nextTurnPolling(progressBar)
-                game.onlineMultiplayer.updateGame(turnStart)
-                if (game.gameInfo == gameInfo)
-                    launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
+
+                try {
+                    val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
+                    val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
+                    val failedOperations = SimultaneousTurnReplay.replay(turnStart, turnOperations)
+                    check(failedOperations.isEmpty()) {
+                        "Failed to replay ${failedOperations.size} simultaneous-turn operations"
+                    }
+                    turnStart.nextTurnPolling(progressBar)
+                    game.onlineMultiplayer.updateGame(turnStart)
+                    if (game.gameInfo == gameInfo)
+                        launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
+                } finally {
+                    game.onlineMultiplayer.multiplayerServer.releaseSimultaneousTurnSettlementLock(
+                        gameInfo.gameId, gameInfo.turns, playerId
+                    )
+                }
             } catch (_: Exception) {
                 launchOnGLThread {
                     isPlayersTurn = true

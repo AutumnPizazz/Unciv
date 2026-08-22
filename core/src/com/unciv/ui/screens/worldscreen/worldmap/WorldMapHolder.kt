@@ -23,6 +23,7 @@ import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
 import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Spy
+import com.unciv.models.UnitActionType
 import com.unciv.models.UncivSound
 import com.unciv.view.CivView
 import com.unciv.view.ForeignMapUnitView
@@ -375,6 +376,9 @@ class WorldMapHolder(
                     val tileMapView = worldScreen.selectedGameView.tileMapView
                     val previousTileView = tileMapView.getTile(selectedUnit.currentTile)
                     val previousPosition = selectedUnit.currentTile.position
+                    val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
+                        worldScreen.gameInfo.clone()
+                    else null
                     selectedUnit.movement.moveToTile(tileToMoveTo)
 
                     // If you try to send a unit to a tile that it can't even get nearer to, then this is actualy a dud
@@ -402,6 +406,8 @@ class WorldMapHolder(
                             movement = selectedUnit.currentMovement
                         )
                     )
+                    if (gameInfoBefore != null)
+                        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
                     if (selectedUnit.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
                     worldScreen.shouldUpdate = true
