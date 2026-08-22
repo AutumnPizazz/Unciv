@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+- Multiplayer: simultaneous-turn submissions accept omitted default fields
+
 ## 4.21.10.4 (build 1259)
 
 - Fix: in-game update checks now verify CN download server synchronization
