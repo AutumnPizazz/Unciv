@@ -9,6 +9,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 ## Unreleased
 
 - Fix: in-game update checks now verify CN download server synchronization
+- Multiplayer: simultaneous turns now advance after all players submit
+- Multiplayer: simultaneous-turn submissions no longer overwrite each other
 
 ## 4.21.10.3 (build 1258)
 

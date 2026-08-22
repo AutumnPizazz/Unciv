@@ -43,6 +43,20 @@ object UncivServerFileStorage : FileStorage {
         TODO("Not yet implemented")
     }
 
+    override fun appendSimultaneousTurnOperations(gameId: String, operations: String): Boolean {
+        var appended = false
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-operations/$gameId",
+            content = operations,
+            timeout = timeout,
+            header = authHeader
+        ) { success, _, code ->
+            appended = success && code == 200
+        }
+        return appended
+    }
+
     override fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
         var acquired = false
         SimpleHttp.sendRequest(

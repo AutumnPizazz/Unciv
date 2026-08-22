@@ -180,6 +180,7 @@ object SimultaneousTurnOperations {
         operations: List<SimultaneousTurnOperation>
     ) {
         if (operations.isEmpty()) return
+        if (server.appendSimultaneousTurnOperations(gameId, encode(operations))) return
         val old = try {
             download(server, gameId)
         } catch (_: MultiplayerFileNotFoundException) {

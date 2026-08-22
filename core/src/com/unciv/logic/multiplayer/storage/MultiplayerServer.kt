@@ -173,6 +173,9 @@ class MultiplayerServer(
     ): List<com.unciv.logic.multiplayer.SimultaneousTurnOperation> =
         com.unciv.logic.multiplayer.SimultaneousTurnOperations.download(this, gameId)
 
+    suspend fun appendSimultaneousTurnOperations(gameId: String, operations: String): Boolean =
+        fileStorage().appendSimultaneousTurnOperations(gameId, operations)
+
     suspend fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
         fileStorage().acquireSimultaneousTurnSettlementLock(gameId, turn, owner)
 

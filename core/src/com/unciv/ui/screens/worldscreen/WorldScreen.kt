@@ -22,6 +22,7 @@ import com.unciv.logic.multiplayer.OnlineStatusUpdated
 import com.unciv.logic.multiplayer.RestartVoteStatus
 import com.unciv.logic.multiplayer.RestartVoteUpdated
 import com.unciv.logic.multiplayer.SimultaneousTurnOperation
+import com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived
 import com.unciv.logic.multiplayer.SimultaneousTurnOperations
 import com.unciv.logic.multiplayer.SimultaneousTurnReplay
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
@@ -209,6 +210,8 @@ class WorldScreen(
     private var tutorialTaskTableHash = 0
 
     private var nextTurnUpdateJob: Job? = null
+    @Transient
+    private var simultaneousTurnSettlementRetryPending = false
 
     /** Countdown timer for polling multiplayer mode. */
     private var pollingTimerJob: Job? = null
@@ -296,6 +299,10 @@ class WorldScreen(
                     loadLatestMultiplayerState()
                     sendOnlineQuery()
                 }
+            }
+            events.receive(SimultaneousTurnOperationReceived::class, { it.gameId == gameId }) { signal ->
+                if (!gameInfo.isSimultaneousTurnsMode() || signal.turn != gameInfo.turns) return@receive
+                retrySimultaneousTurnAfterSignal()
             }
             events.receive(OnlineStatusUpdated::class, { it.gameId == gameId }) { update ->
                 playerOnlineTimes[update.civName] = System.currentTimeMillis()
@@ -905,7 +912,9 @@ class WorldScreen(
      * the sidecar operations from the turn-start save.
      */
     fun finishSimultaneousTurn() {
-        if (!isPlayersTurn || isNextTurnUpdateRunning()) return
+        // A player who already submitted is waiting for the last player. An operation signal
+        // may call this again to perform the settlement check, but never while its upload job runs.
+        if ((!isPlayersTurn && !gameInfo.isSimultaneousTurnsMode()) || isNextTurnUpdateRunning()) return
         isPlayersTurn = false
         shouldUpdate = true
         val progressBar = NextTurnProgress(nextTurnButton)
@@ -978,6 +987,25 @@ class WorldScreen(
                     shouldUpdate = true
                 }
             }
+        }
+    }
+
+    /** Re-checks the done markers after another simultaneous-turn client submits. */
+    private fun retrySimultaneousTurnAfterSignal() {
+        if (simultaneousTurnSettlementRetryPending) return
+        simultaneousTurnSettlementRetryPending = true
+        Concurrency.run("SimultaneousPassSignal") {
+            repeat(40) {
+                delay(250)
+                if (!simultaneousTurnSettlementRetryPending) return@run
+                launchOnGLThread {
+                    if (gameInfo.isSimultaneousTurnsMode() && !isPlayersTurn && !isNextTurnUpdateRunning()) {
+                        simultaneousTurnSettlementRetryPending = false
+                        finishSimultaneousTurn()
+                    }
+                }
+            }
+            simultaneousTurnSettlementRetryPending = false
         }
     }
 
