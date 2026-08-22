@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+## 4.21.10.3 (build 1258)
+
 - Multiplayer: added the experimental simultaneous-turn operation protocol
 - Multiplayer: simultaneous-turn operation files are deduplicated by player and sequence
 - Multiplayer: simultaneous turns now replay unit orders without rerolling combat
