@@ -176,6 +176,9 @@ class MultiplayerServer(
     suspend fun appendSimultaneousTurnOperations(gameId: String, operations: String): Boolean =
         fileStorage().appendSimultaneousTurnOperations(gameId, operations)
 
+    suspend fun loadSimultaneousTurnOperations(gameId: String): String? =
+        fileStorage().loadSimultaneousTurnOperations(gameId)
+
     suspend fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
         fileStorage().acquireSimultaneousTurnSettlementLock(gameId, turn, owner)
 

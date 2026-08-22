@@ -189,6 +189,13 @@ object SimultaneousTurnOperations {
         server.fileStorage().saveFileData(fileName(gameId), encode(merge(old, operations)))
     }
 
-    suspend fun download(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> =
-        decode(server.fileStorage().loadFileData(fileName(gameId)))
+    suspend fun download(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> {
+        val atomicData = server.loadSimultaneousTurnOperations(gameId)
+        if (atomicData != null) return decode(atomicData)
+        return try {
+            decode(server.fileStorage().loadFileData(fileName(gameId)))
+        } catch (_: MultiplayerFileNotFoundException) {
+            emptyList()
+        }
+    }
 }

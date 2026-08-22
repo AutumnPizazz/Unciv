@@ -55,6 +55,8 @@ interface FileStorage {
     
     /** Atomically appends simultaneous-turn operations. Returns false if unsupported. */
     fun appendSimultaneousTurnOperations(gameId: String, operations: String): Boolean = false
+    /** Loads the atomically stored simultaneous-turn operations, or null if unsupported. */
+    fun loadSimultaneousTurnOperations(gameId: String): String? = null
     /** Atomically claims settlement for one simultaneous-turn game turn. */
     fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean = false
     /** Releases a settlement claim owned by [owner]. */

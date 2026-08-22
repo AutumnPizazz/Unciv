@@ -10,7 +10,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 - Fix: in-game update checks now verify CN download server synchronization
 - Multiplayer: simultaneous turns now advance after all players submit
-- Multiplayer: simultaneous-turn submissions no longer overwrite each other
+- Multiplayer: simultaneous-turn submissions now use the dedicated atomic operation store
 
 ## 4.21.10.3 (build 1258)
 

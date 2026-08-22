@@ -57,6 +57,14 @@ object UncivServerFileStorage : FileStorage {
         return appended
     }
 
+    override fun loadSimultaneousTurnOperations(gameId: String): String? {
+        var data: String? = null
+        SimpleHttp.sendGetRequest("$serverUrl/simultaneous-turn-operations/$gameId", timeout, authHeader) { success, result, code ->
+            if (success) data = result else if (code != 404) throw Exception("$code $result")
+        }
+        return data
+    }
+
     override fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
         var acquired = false
         SimpleHttp.sendRequest(
