@@ -196,6 +196,7 @@ object UnitActions {
                 useFrequency = 50f,
                 action = {
                     unit.startEscorting()
+                    recordSimultaneousUnitAction(unit)
                 }))
         } else {
             yield(UnitAction(
@@ -203,6 +204,7 @@ object UnitActions {
                 useFrequency = 50f,
                 action = {
                     unit.stopEscorting()
+                    recordSimultaneousUnitAction(unit)
                 }))
         }
     }
@@ -283,7 +285,8 @@ object UnitActions {
                 action = unit.action,
                 due = unit.due,
                 health = unit.health,
-                movement = unit.currentMovement
+                movement = unit.currentMovement,
+                escorting = unit.isEscorting()
             )
         )
     }

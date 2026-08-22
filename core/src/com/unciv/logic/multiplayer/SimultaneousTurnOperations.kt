@@ -42,6 +42,18 @@ data class SimultaneousTurnUnitActionResult(
     val action: String?,
     val due: Boolean,
     val health: Int,
+    val movement: Float,
+    val escorting: Boolean = false
+)
+
+data class SimultaneousTurnSwapResult(
+    val unitId: Int,
+    val owner: String,
+    val fromX: Int,
+    val fromY: Int,
+    val toX: Int,
+    val toY: Int,
+    val health: Int,
     val movement: Float
 )
 

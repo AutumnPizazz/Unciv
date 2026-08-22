@@ -20,6 +20,7 @@ import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.mapunit.movement.UnitMovement
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
+import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.Spy
 import com.unciv.models.UncivSound
@@ -474,6 +475,7 @@ class WorldMapHolder(
 
     internal fun swapMoveUnitToTargetTile(selectedUnitView: MapUnitView, targetTileView: TileView) {
         val selectedUnit = selectedUnitView.getUnit()
+        val previousPosition = selectedUnit.currentTile.position
         markUnitMoveTutorialComplete(selectedUnitView)
         selectedUnitView.trySwapMoveToTile(targetTileView, keepEscorting = true)
 
@@ -485,8 +487,20 @@ class WorldMapHolder(
 
         if (selectedUnit.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
+        worldScreen.recordSimultaneousTurnOperation(
+            "unit.swap",
+            SimultaneousTurnSwapResult(
+                unitId = selectedUnit.id,
+                owner = selectedUnit.owner,
+                fromX = previousPosition.x,
+                fromY = previousPosition.y,
+                toX = selectedUnit.currentTile.position.x,
+                toY = selectedUnit.currentTile.position.y,
+                health = selectedUnit.health,
+                movement = selectedUnit.currentMovement
+            )
+        )
         worldScreen.shouldUpdate = true
-        removeUnitActionOverlay()
     }
 
     private fun addTileOverlaysWithUnitMovement(selectedUnits: List<MapUnitView>, tileView: TileView) {

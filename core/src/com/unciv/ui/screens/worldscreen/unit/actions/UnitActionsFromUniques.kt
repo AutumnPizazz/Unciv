@@ -143,6 +143,7 @@ object UnitActionsFromUniques {
             action = {
                 unit.action = UnitActionType.SetUp.value
                 unit.useMovementPoints(1f)
+                recordSimultaneousUnitAction(unit)
             }.takeIf { unit.hasMovement() && !isSetUp })
         )
     }
@@ -172,6 +173,7 @@ object UnitActionsFromUniques {
             action = {
                 if (unit.isPreparingParadrop()) unit.action = null
                 else unit.action = UnitActionType.Paradrop.value
+                recordSimultaneousUnitAction(unit)
             }.takeIf {
                 !unit.hasUnitMovedThisTurn()
             })
@@ -188,6 +190,7 @@ object UnitActionsFromUniques {
             action = {
                 if (unit.isPreparingAirSweep()) unit.action = null
                 else unit.action = UnitActionType.AirSweep.value
+                recordSimultaneousUnitAction(unit)
             }.takeIf {
                 unit.canAttack()
             }
@@ -229,7 +232,8 @@ object UnitActionsFromUniques {
                 action = unit.action,
                 due = unit.due,
                 health = unit.health,
-                movement = unit.currentMovement
+                movement = unit.currentMovement,
+                escorting = unit.isEscorting()
             )
         )
     }

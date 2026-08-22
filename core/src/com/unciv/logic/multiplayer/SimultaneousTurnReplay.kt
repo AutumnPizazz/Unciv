@@ -25,6 +25,9 @@ object SimultaneousTurnReplay {
             "unit.action" -> applyUnitAction(gameInfo, json().fromJson(
                 SimultaneousTurnUnitActionResult::class.java, operation.payload
             ))
+            "unit.swap" -> applySwap(gameInfo, json().fromJson(
+                SimultaneousTurnSwapResult::class.java, operation.payload
+            ))
             "done" -> true
             else -> false
         }
@@ -48,6 +51,18 @@ object SimultaneousTurnReplay {
         return true
     }
 
+    private fun applySwap(gameInfo: GameInfo, result: SimultaneousTurnSwapResult): Boolean {
+        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
+        if (unit.isDestroyed || unit.currentTile.position.x != result.fromX || unit.currentTile.position.y != result.fromY)
+            return false
+        val destination = gameInfo.tileMap[result.toX, result.toY]
+        unit.movement.swapMoveToTile(destination, keepEscorting = true)
+        if (unit.isDestroyed || unit.currentTile.position.x != result.toX || unit.currentTile.position.y != result.toY)
+            return false
+        unit.health = result.health
+        unit.currentMovement = result.movement
+        return true
+    }
     private fun applyUnitAction(gameInfo: GameInfo, result: SimultaneousTurnUnitActionResult): Boolean {
         val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
         if (unit.isDestroyed) return false
@@ -55,6 +70,7 @@ object SimultaneousTurnReplay {
         unit.due = result.due
         unit.health = result.health
         unit.currentMovement = result.movement
+        if (result.escorting) unit.startEscorting() else unit.stopEscorting()
         return true
     }
     private fun applyAttack(gameInfo: GameInfo, result: SimultaneousTurnAttackResult): Boolean {
