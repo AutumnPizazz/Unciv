@@ -194,7 +194,9 @@ class UnitActionsTable(val worldScreen: WorldScreen) : Table() {
     }
 
     private fun activateAction(unitAction: UnitAction, unit: MapUnit) {
-        unitAction.action!!.invoke()
+        worldScreen.runAndRecordSimultaneousGameStateChange(unitAction.type) {
+            unitAction.action!!.invoke()
+        }
         worldScreen.shouldUpdate = true
         // We keep the unit action/selection overlay from the previous unit open even when already selecting another unit
         // so you need less clicks/touches to do things, but once we do an action with the new unit, we want to close this

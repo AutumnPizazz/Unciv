@@ -5,10 +5,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.Constants
+import com.unciv.GUI
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.ReligionState
 import com.unciv.models.Counter
 import com.unciv.models.Religion
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.Belief
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.unique.GameContext
@@ -77,9 +79,14 @@ class ReligiousBeliefsPickerScreen (
             if (pickIconAndName) "Choose a Religion"
             else "Enhance [${currentReligion.getReligionDisplayName()}]"
         ) {
-            if (civInfo.religionManager.religionState == ReligionState.FoundingReligion)
-                civInfo.religionManager.foundReligion(displayName!!, religionName!!)
-            chooseBeliefs(beliefsToChoose.map { it.belief!! }, usingFreeBeliefs())
+            val actionType = if (civInfo.religionManager.religionState == ReligionState.FoundingReligion)
+                UnitActionType.FoundReligion
+            else UnitActionType.EnhanceReligion
+            GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(actionType) {
+                if (civInfo.religionManager.religionState == ReligionState.FoundingReligion)
+                    civInfo.religionManager.foundReligion(displayName!!, religionName!!)
+                chooseBeliefs(beliefsToChoose.map { it.belief!! }, usingFreeBeliefs())
+            }
         }
     }
 

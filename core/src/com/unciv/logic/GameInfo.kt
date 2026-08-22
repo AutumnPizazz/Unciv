@@ -273,6 +273,12 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         return toReturn
     }
 
+    internal fun getLastUnitIdForSimultaneousTurns() = lastUnitId
+
+    internal fun setLastUnitIdForSimultaneousTurns(value: Int) {
+        lastUnitId = value
+    }
+
     @Synchronized // Important - duplicate unit ID's have been observed during debugging.
     fun getNextUnitId(): Int {
         return ++lastUnitId

@@ -106,7 +106,11 @@ object UnitActionsFromUniques {
                         GUI.getWorldScreen(),
                         text,
                         "Break promise",
-                        action = foundAction
+                        action = {
+                            GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.FoundCity) {
+                                foundAction()
+                            }
+                        }
                     ).open(force = true)
                 }
             }.takeIf { UnitActionModifiers.canActivateSideEffects(unit, unique) }

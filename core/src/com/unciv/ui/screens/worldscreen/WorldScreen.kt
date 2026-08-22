@@ -30,6 +30,7 @@ import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
 import com.unciv.logic.trade.TradeEvaluation
 import com.unciv.models.TutorialTrigger
+import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.ruleset.Event
 import com.unciv.models.ruleset.tile.ResourceType
@@ -132,6 +133,20 @@ class WorldScreen(
         )
         simultaneousTurnOperations.add(operation)
         ChatWebSocket.sendOperationSignal(gameInfo.gameId, operation.turn, playerId, operation.sequence)
+    }
+
+    fun runAndRecordSimultaneousGameStateChange(type: UnitActionType, action: () -> Unit) {
+        val before = if (gameInfo.isSimultaneousTurnsMode()
+            && SimultaneousTurnOperations.requiresGameStateSnapshot(type)
+        ) gameInfo.clone() else null
+        action()
+        recordSimultaneousGameStateChange(type, before)
+    }
+
+    fun recordSimultaneousGameStateChange(type: UnitActionType, before: GameInfo?) {
+        if (before == null || !gameInfo.isSimultaneousTurnsMode()) return
+        val result = SimultaneousTurnOperations.captureGameStateChange(type, before, gameInfo) ?: return
+        recordSimultaneousTurnOperation("game.state", result)
     }
 
     /** Returns a stable snapshot for a future settlement worker. */
@@ -932,7 +947,10 @@ class WorldScreen(
 
                 val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
                 val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
-                SimultaneousTurnReplay.replay(turnStart, turnOperations)
+                val failedOperations = SimultaneousTurnReplay.replay(turnStart, turnOperations)
+                check(failedOperations.isEmpty()) {
+                    "Failed to replay ${failedOperations.size} simultaneous-turn operations"
+                }
                 turnStart.nextTurnPolling(progressBar)
                 game.onlineMultiplayer.updateGame(turnStart)
                 if (game.gameInfo == gameInfo)

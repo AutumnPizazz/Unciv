@@ -31,7 +31,9 @@ object UnitActionsPillage {
                 "Pillage",
                 true
             ) {
-                (pillageAction.action)()
+                GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.Pillage) {
+                    (pillageAction.action)()
+                }
                 GUI.setUpdateWorldOnNextRender()
             }.open()
         })
