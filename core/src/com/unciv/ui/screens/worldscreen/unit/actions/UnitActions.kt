@@ -136,13 +136,20 @@ object UnitActions {
         // General actions
         addAutomateActions(unit)
         if (unit.isMoving())
-            yield(UnitAction(UnitActionType.StopMovement, 20f) { unit.action = null })
+            yield(UnitAction(UnitActionType.StopMovement, 20f) {
+                unit.action = null
+                recordSimultaneousUnitAction(unit)
+            })
         if (unit.isExploring())
-            yield(UnitAction(UnitActionType.StopExploration, 20f) { unit.action = null })
+            yield(UnitAction(UnitActionType.StopExploration, 20f) {
+                unit.action = null
+                recordSimultaneousUnitAction(unit)
+            })
         if (unit.isAutomated())
             yield(UnitAction(UnitActionType.StopAutomation, 10f) {
                 unit.action = null
                 unit.automated = false
+                recordSimultaneousUnitAction(unit)
             })
 
         addPromoteActions(unit)
@@ -262,6 +269,7 @@ object UnitActions {
         if (unit.isExploring()) return
         yield(UnitAction(UnitActionType.Explore, 5f) {
             unit.action = UnitActionType.Explore.value
+            recordSimultaneousUnitAction(unit)
             if (unit.hasMovement()) UnitAutomation.automatedExplore(unit)
         })
     }
@@ -278,6 +286,10 @@ object UnitActions {
                 movement = unit.currentMovement
             )
         )
+    }
+
+    private fun recordSimultaneousUnitActionState(unit: MapUnit) {
+        recordSimultaneousUnitAction(unit)
     }
 
     private suspend fun SequenceScope<UnitAction>.addFortifyActions(unit: MapUnit) {

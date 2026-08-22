@@ -16,6 +16,7 @@ title: UncivCN 更新日志
 - 多人联机：同步回合操作按玩家与序号去重
 - 多人联机：同步回合重放单位操作时不会重新随机战斗
 - 多人联机：同步回合支持驻防、休眠与跳过单位操作
+- 多人联机：同步回合现可重放纯单位状态操作
 - 模组支持：单位级变量，可为每个单位附加数值计数器（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 模组支持：单位经验改为变量实现，模组可读写，旧存档自动兼容（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 模组支持：变量支持城市、文明、全局作用域（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）

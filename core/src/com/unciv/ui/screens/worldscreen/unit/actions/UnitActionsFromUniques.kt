@@ -9,6 +9,7 @@ import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.civilization.diplomacy.DiplomacyFlags
 import com.unciv.logic.civilization.managers.ImprovementFunctions
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.multiplayer.SimultaneousTurnUnitActionResult
 import com.unciv.logic.map.tile.ImprovementBuildingProblem
 import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.logic.map.tile.Tile
@@ -214,10 +215,24 @@ object UnitActionsFromUniques {
             useFrequency = useFrequency,
             action = {
                 unit.action = UnitActionType.Guard.value
+                recordSimultaneousUnitAction(unit)
             }.takeIf { !unit.isGuarding() })
         )
     }
 
+    private fun recordSimultaneousUnitAction(unit: MapUnit) {
+        GUI.getWorldScreen().recordSimultaneousTurnOperation(
+            "unit.action",
+            SimultaneousTurnUnitActionResult(
+                unitId = unit.id,
+                owner = unit.owner,
+                action = unit.action,
+                due = unit.due,
+                health = unit.health,
+                movement = unit.currentMovement
+            )
+        )
+    }
     internal fun getTriggerUniqueActions(unit: MapUnit, tile: Tile) = sequence {
         for (unique in unit.getUniques()) {
             // not a unit action
