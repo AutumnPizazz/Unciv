@@ -212,6 +212,8 @@ class WorldScreen(
     private var nextTurnUpdateJob: Job? = null
     @Transient
     private var simultaneousTurnSettlementRetryPending = false
+    /** Watches the sidecar operation list so a missed WebSocket signal cannot strand a player. */
+    private var simultaneousTurnWatcherJob: Job? = null
 
     /** Countdown timer for polling multiplayer mode. */
     private var pollingTimerJob: Job? = null
@@ -317,6 +319,8 @@ class WorldScreen(
             ChatWebSocket.start()  // ensure push notifications for game updates
             if (gameInfo.isPollingMode() && isPlayersTurn)
                 startPollingTimer()
+            if (gameInfo.isSimultaneousTurnsMode())
+                startSimultaneousTurnWatcher()
 
             playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
         }
@@ -331,6 +335,8 @@ class WorldScreen(
     override fun dispose() {
         resizeDeferTimer?.cancel()
         stopPollingTimer()
+        simultaneousTurnWatcherJob?.cancel()
+        simultaneousTurnWatcherJob = null
         events.stopReceiving()
         statusButtons.dispose()
         super.dispose()
@@ -985,6 +991,37 @@ class WorldScreen(
                 launchOnGLThread {
                     isPlayersTurn = true
                     shouldUpdate = true
+                }
+            }
+        }
+    }
+
+    /** Periodically checks completion markers as a fallback for unavailable WebSocket signals. */
+    private fun startSimultaneousTurnWatcher() {
+        simultaneousTurnWatcherJob?.cancel()
+        simultaneousTurnWatcherJob = Concurrency.run("SimultaneousTurnWatcher") {
+            while (isActive) {
+                delay(2000)
+                if (!gameInfo.isSimultaneousTurnsMode() || isPlayersTurn || isNextTurnUpdateRunning()) continue
+                try {
+                    val operations = game.onlineMultiplayer.multiplayerServer
+                        .downloadSimultaneousTurnOperations(gameInfo.gameId)
+                    val humanPlayerIds = gameInfo.civilizations
+                        .filter { it.isHuman() && it.isAlive() }
+                        .map { it.playerId }
+                        .toSet()
+                    val finishedPlayerIds = operations
+                        .filter { it.turn == gameInfo.turns && it.type == "done" }
+                        .map { it.playerId }
+                        .toSet()
+                    if (humanPlayerIds.all { it in finishedPlayerIds }) {
+                        launchOnGLThread {
+                            if (gameInfo.isSimultaneousTurnsMode() && !isPlayersTurn && !isNextTurnUpdateRunning())
+                                finishSimultaneousTurn()
+                        }
+                    }
+                } catch (_: Exception) {
+                    // The next poll retries transient network failures.
                 }
             }
         }

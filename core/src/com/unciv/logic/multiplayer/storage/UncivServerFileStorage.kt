@@ -52,7 +52,7 @@ object UncivServerFileStorage : FileStorage {
             timeout = timeout,
             header = authHeader
         ) { success, _, code ->
-            appended = success && code == 200
+            appended = success && (code == 200 || code == 204)
         }
         return appended
     }
