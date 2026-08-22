@@ -24,7 +24,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.10.2 (build 1257)
 
-- Update: updates are now routed by region - mainland China uses the official CN server (see [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md))
+- Update: updates are now routed by region - mainland China uses the official CN server (see [server-ts/README.md](https://github.com/blyrin/unciv-srv/blob/main/README.md))
 - Update: first launch asks your region (changeable in Options - Advanced)
 - Merged upstream: fixed several spectator and city-screen crashes
 

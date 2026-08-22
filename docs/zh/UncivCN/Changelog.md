@@ -28,7 +28,7 @@ title: UncivCN 更新日志
 
 ## 4.21.10.2（build 1257）
 
-- 更新：更新检查与下载按地区分流，大陆玩家走 CN 服务器（详见 [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)）
+- 更新：更新检查与下载按地区分流，大陆玩家走 CN 服务器（详见 [server-ts/README.md](https://github.com/blyrin/unciv-srv/blob/main/README.md)）
 - 更新：首次启动询问所在地区，可在「选项 - 高级」修改
 - 合并上游：修复观战与城市操作的多处崩溃
 
