@@ -32,6 +32,7 @@
 - Lua API 文档（`lua-api.lua` + 中英 `Lua-API-Reference.md`）由 `LuaApiDocs` 数据表驱动：新增 Lua API 时同步 `LuaAPI.apiCatalog` 与 `LuaApiDocs`（签名 + 中英说明）后重新生成，`LuaApiDocsTests` 强制一致
 - 本分支文档工具链只需 JDK + Node，**无 Python 依赖**（上游 mkdocs 流程已弃用，合入上游时注意）
 - VitePress 踩坑与预览方式见 Coding-standards 第四节
+- 文档写作宁删勿堆：重复表述、读者无感的内容直接删掉，不怕丢（git 可复原），也减轻后续提示词压力
 
 ## 合并上游
 
