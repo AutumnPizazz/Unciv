@@ -18,9 +18,7 @@ title: UncivCN 更新日志
 - 模组支持：变量可设上下限、每回合产出、百分比加成（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 模组支持：变量可购买、可生产转换、可显示在界面（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 模组注意：文明级变量需显式声明作用域，旧模组需更新
-- 修复：变量购买成本按原值扣除
-- 修复：AI 使用变量时不再崩溃
-- 修复：复制游戏状态后变量数值保留
+- 修复：变量购买按原值扣、读档后保留、AI 不崩溃
 - 模组支持：变量可用于所有数量条件与设定触发（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 合并上游：修复被掠夺道路无法修复、打开百科卡死
 - 合并上游：CN 特色功能适配上游重构，行为不变

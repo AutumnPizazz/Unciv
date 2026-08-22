@@ -14,9 +14,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Modding: variables support bounds, per-turn yields, percentage bonuses, purchase costs, production conversion (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Modding: variables support Lua read/write and scope-aware UI (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Modding: civilization-scope variables now need an explicit scope declaration
-- Fix: variable purchase costs now charge the exact integer value
-- Fix: AI no longer crashes when processing variables
-- Fix: variable values survive game-state copies
+- Fix: variable purchases charge exact cost, values survive reloads, no AI crashes
 - Modding: variables work in all countable positions and Set triggerables (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Merged upstream: fixed repair with only a pillaged road left, and an ANR when opening the Civilopedia
 - Merged upstream: CN features adapted to the new architecture, behavior unchanged
