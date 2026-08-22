@@ -15,15 +15,15 @@
 
 ## v3.3.12 - for 4.21.8.2
 
-- Enabled the immediate production overflow system (new ModOptions unique "Production overflow applies immediately to the next construction"): overflow is uncapped and does not receive the completed construction's production bonuses, is applied to the next queue entry on the same turn (receiving its bonuses, chaining through the queue), and units completed through it can move immediately
-- Cleaned up all green (OK-level) mod-checker entries: removed 166 unreferenced `Class.*` custom tag declarations plus an empty unique and unregistered uniques (e.g. `Aircraft`); dropped the always-true conditionals on Maori embarkation and Mech ignores-terrain-cost (games can only start in the Ancient era / Robotics is necessarily after Cybernetics); kept the Vampire all-tiles-1-movement conditional (real effect) with an object-level suppression unique
-- Fixed all 38 mod-checker warnings: removed the invalid "VersionNotice" event trigger (the event was never defined), added the official suppression unique to the Mil/Eco/Dip/Gene.Reveal buildings (mutually-exclusive Reveal/Hide toggle design), and suppressed the benign city-state-name = capital-name translation-collision warnings in ModOptions (33 entries, same pattern as vanilla)
+- Enabled immediate production overflow: applies on the same turn, finished units can move instantly
+- Cleaned up all green mod-checker entries (166 unused tag declarations removed)
+- Fixed all 38 mod-checker warnings
 
 ## v3.3.11 - for 4.21.8.2
 
 ### ⚖️ Maintenance system rework
 
-- Migrated to the Civilization 6 style unit maintenance system: the per-level tiered maintenance uniques gated by command level are gone, replaced by the `maintenanceCost` field + the `unitMaintenanceBaseCost` global constant - fixed per-unit upkeep, no game-progress inflation, no default free units
+- Migrated to Civ6-style unit maintenance: fixed upkeep, no inflation
 - Cleaned up redundant Comments and orphan translations left over from the migration
 
 ### 📜 National mobilization optimization
@@ -32,7 +32,7 @@
 
 ### 🤖 Lua system rework
 
-- Made good use of the Lua system: the general/admiral aura (command level decides which eras it covers) and AI civic unlocking by era are now Lua implementations - the former per-era/per-entry 60+ uniques were removed
+- General/admiral auras and era-based AI civics now run on Lua
 - Resource data converted to tables; Lua functions renamed to PascalCase, eliminating LuaLS diagnostics
 
 ### 🧹 Cleanup & tooling

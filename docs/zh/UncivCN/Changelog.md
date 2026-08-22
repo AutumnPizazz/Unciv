@@ -28,53 +28,52 @@ title: UncivCN 更新日志
 
 ## 4.21.10.2（build 1257）
 
-- 更新：游戏内更新检查与安装包下载改为按玩家地区分流——首次启动弹窗询问所在地区（可在「选项 - 高级 - 玩家地区」修改）：选择「中国大陆」的玩家走 CN 官方下载服务器（与联机服务器同域，由 server-ts 安装包托管提供），即使无法访问 github.com 也能稳定完成自动更新，服务器只保留最新版本（旧版自动清理）且带限速与并发保护，发布后由服务器自己经镜像（gh-proxy）从 GitHub 拉取安装包；其他玩家仍走其在选项中设置的下载源。模组下载不受影响，详见 [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)
-
-- 合并上游 4.21.10-patch1/patch2（9 个提交）：修复观战视角选择外国城市/单位时的崩溃、城市在点击瞬间被夷平的崩溃、同时触发城市界面两个箭头按钮的崩溃；大量单位可晋升时通知合并为一条；计时器在应用暂停时报告
+- 更新：更新检查与下载按地区分流，大陆玩家走 CN 服务器（详见 [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)）
+- 更新：首次启动询问所在地区，可在「选项 - 高级」修改
+- 合并上游：修复观战与城市操作的多处崩溃
 
 ## 4.21.10.1（build 1256）
 
-- 模组支持：新增模组全局变量（Variables.json）——每个文明独立的整数计数器（如厌战度），支持 `when above/below/between` 条件、`Instantly provides/consumes/gain` 触发与 Lua（`civ.getVariable/setVariable/addVariable`、`game.getRulesetVariables/doesVariableExist`）；可在变量级及 ModOptions（`variableMenuThreshold`、`alwaysDisplayVariableCount`）配置顶栏与资源概览的显示，详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
+- 模组支持：新增文明级全局变量，可配条件、触发与 Lua（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 模组支持：变量显示位置可配置（顶栏与资源概览）（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 模组支持：条件类 `[amount]`（如 `when above [amount] ...`、血量/移动力/人口阈值）现支持 Countable 表达式（如 `[Cities]`），详见 [Unique parameters](/zh/Modders/Unique-parameters#countable)
-
-- 合并上游 4.21.10（46 个提交）：View 重构继续（地块/单位视图层、观战修复）；大量单位可晋升时通知合并为一条；军团不能再修复；改进设施选择器不再隐藏可研发的改进；胜利界面文明列表保持滚动位置；图表改用实时数据；全球政治概览隐藏观战者；单机被击败玩家获得全图视野；WLTKD 庆祝期间需求改写修复；不再因资源出售太空船部件；控制台可傀儡城市；多项 Android 与崩溃修复；Kotlin 升级到 2.4.10
-- 修复：地图钉（地块备注）预览图不再提前显示科技未揭示的战略资源（如远古时代看不到石油）
-- 地图生成旋转对称重构：对称改为在生成时参与而非事后打补丁——修复环形地图 3/6 折对称失效、镜像大陆不一致、资源/奇观复制异常；生成性能无退化，详见 [分支特色](/zh/UncivCN/Features)
+- 合并上游：多项界面与崩溃修复、晋升通知合并
+- 修复：环形与镜像地图的对称生成异常（详见 [分支特色](/zh/UncivCN/Features)）
 
 ## 4.21.8.3（build 1255）
 
-- 联机：新游戏选项「禁止读档」——退出重进无法再回到回合开始重新操作（重新进入时从你最新的回合状态继续）
-- 模组支持：新增 ModOptions unique「Production overflow applies immediately to the next construction」——无上限的产能溢出当回合立即作用于下一个项目，靠即时溢出完成的单位可立即移动；未启用时原版机制不变，详见 [uniques](/zh/Modders/uniques)
+- 联机：新游戏选项「禁止读档」，退出重进无法重来
+- 模组支持：新增产能溢出即时转移 unique（详见 [uniques](/zh/Modders/uniques)）
 
 ## 4.21.8.2（build 1254）
 
-- 修复：地图钉（地块备注）预览图不再提前显示科技未揭示的资源（如远古时代看不到石油）
-- 模组支持：文明6式单位维护费（ModOptions 加 unique 启用）——按单位固定维护费、扁平金币减免、不随游戏进度膨胀，旧体系不变；维护费与最大血量现显示在文明百科中，详见 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files) 与 [uniques](/zh/Modders/uniques)
-- 模组支持：`[amount]` 类参数全面支持 Countable 表达式（半径、数量、免费单位数、治疗/伤害/经验、回合条件），详见 [Unique parameters](/zh/Modders/Unique-parameters)
-- 模组支持：新增触发/条件/反向 unique（战斗/劫掠/焚毁触发、驻防/登船条件、失去地块/间谍/黄金时代、隐藏已探索地块），详见 [uniques](/zh/Modders/uniques)
-- 模组/Lua：Lua 可修改地块产出、接管战斗力与伤害公式，并响应战斗/俘获事件（含完整攻防上下文），详见 [Lua Modding](/zh/Modders/Lua-Modding)
+- 修复：地图钉预览不再提前显示未揭示的资源
+- 模组支持：文明6式单位维护费（unique 启用），维护费可见于百科（详见 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files) 与 [uniques](/zh/Modders/uniques)）
+- 模组支持：数量类参数全面支持 Countable 表达式（详见 [Unique parameters](/zh/Modders/Unique-parameters)）
+- 模组支持：新增战斗触发、驻防登船等 unique（详见 [uniques](/zh/Modders/uniques)）
+- 模组/Lua：Lua 可改地块产出、接管战斗公式（详见 [Lua Modding](/zh/Modders/Lua-Modding)）
 - 模组支持：ModOptions.json 新增版本字段（`recommendedGameVersion`、依赖的 `recommendedVersion`），游戏版本不符时给出非阻塞警告，详见 [ModOptions.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files)
 - 模组支持：修复 REMOVE_FIELD 合并对 float 字段的崩溃，详见 [MergeActions](/zh/Modders/Mod-file-structure/6-MergeActions)
 
 ## 4.21.8.1（build 1253）
 
-- 合并上游 4.21.8（17 个提交）：View 重构继续、新增排名类型「已探索地块」（可选）、观战位玩家上限、修复崩溃界面 OOM 与多处 ANR、直布罗陀巨岩附近水域河流
+- 合并上游：修复多处崩溃，新增「已探索地块」排名
 - 难度：国王及以上难度的 AI 不满修正改为 100/90/85/75（原 90/85/75/60）
-- 模组支持：单位血量上限可模组化——Units.json 新增 `maxHP` 字段 + unique「[relativeAmount] Max HP」，残血减伤按血量百分比缩放，详见 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files)
-- 主菜单右下角按钮：Discord 改为 QQ 群入口，新增百度贴吧按钮，GitHub 改指 CN 分支仓库；关于页链接更新
+- 模组支持：单位血量上限可模组化（详见 [Units.json](/zh/Modders/Mod-file-structure/4-Unit-related-JSON-files)）
+- 主菜单按钮：Discord 换 QQ 群，新增贴吧入口
 - 文档站链接按客户端语言自适应（中文客户端跳 /zh/ 区）
 - 游戏内 wiki 链接改为 CN 文档站
 - 全项目代码清理与审查修复（删除死代码、修复城市/过滤器等 bug）
 
 ## 4.21.7.2（build 1252）
 
-- Android：更新弹窗游戏内直接下载 APK（带进度），一键调起系统安装，自动引导「安装未知来源应用」授权
-- Android：下载断点救援，「安装/重新下载」双按钮，复制一份到系统下载文件夹，自动清理旧安装包
+- Android：更新弹窗内直接下载并安装 APK
+- Android：下载支持断点续传与一键重装
 - 主菜单「下载最新版本」改为列出当前平台安装包并直接下载所选包
 
 ## 4.21.7.1（build 1251）
 
-- 合并上游 4.21.7 / 4.21.7-patch1 / patch2（41 个提交）：AI 战争逻辑修复、隐形轰炸机闪避、MP 平均回合用时、迷你地图 ANR 修复、Gradle 9.4.1 + LibGDX 1.14.2
+- 合并上游：AI 战争逻辑、轰炸机闪避等多项修复
 - Lua API：新增 `unit.getEraNumber()`、`civ.discoverTech()`，详见 [Lua API 参考](/zh/Modders/Lua-API-Reference)
 - 模组：CoeHarMod 改为独立仓库的 git 子模块，规则经 Lua 精简
 
@@ -94,7 +93,7 @@ title: UncivCN 更新日志
 ## 4.21.6.4（build 1248）
 
 - 新增「模组下载源」设置，支持国内镜像加速
-- 开图界面：支持命名槽位保存/读取配置；剪贴板按钮移到右下角；「重置为默认」改为内置「默认配置」
+- 开图界面：配置可保存到命名槽位
 
 ## 4.21.6.3（build 1247）
 
@@ -124,7 +123,7 @@ title: UncivCN 更新日志
 ## 4.21.5.1（build 1242）
 
 - 合并上游 4.21.5（AI 金币/战争逻辑修复、CPU 性能优化）
-- 撤销自带 UCCC 模组；新增开图设置剪贴板导出/导入；人口锁地按钮调整；修复统计显示级联 bug
+- 撤销自带 UCCC 模组；开图设置可剪贴板导出
 
 ## 4.21.0.2（2026.8.1）
 
@@ -138,7 +137,7 @@ title: UncivCN 更新日志
 
 ## 4.20.17.2（2026.7.12）
 
-- 新增单位钉/地图钉；取消旋转对称地图半径奇偶限制；存档版本隔离；训练移民不再饿死市民
+- 新增单位钉/地图钉；训练移民不再饿死市民
 
 ## 4.20.17.1（2026.7.4）
 

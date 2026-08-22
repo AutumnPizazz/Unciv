@@ -24,28 +24,27 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.10.2 (build 1257)
 
-- Update: update checks and installer downloads are now routed by player region - players in mainland China (a one-time dialog asks on first launch, changeable in Options - Advanced) use the official CN download server (`server-ts` installer hosting, same domain as the multiplayer server), which works even when github.com is unreachable; the server hosts only the latest version (old ones cleaned up automatically) with rate limiting and concurrency protection, and pulls installers from GitHub through a mirror (gh-proxy) itself after each release. Everyone else follows their download source setting as before. Mod downloads are unaffected - see [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md)
-
-- Merged upstream 4.21.10-patch1/patch2 (9 commits): fixed crashes when a spectator selects a foreign city or unit, when a city is razed mid-click, and when activating two city screen arrows at once; cleaner "unit(s) can promote" notification (single notification when many units are promotable); timers report when the app is paused
+- Update: updates are now routed by region - mainland China uses the official CN server (see [server-ts/README.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/server-ts/README.md))
+- Update: first launch asks your region (changeable in Options - Advanced)
+- Merged upstream: fixed several spectator and city-screen crashes
 
 ## 4.21.10.1 (build 1256)
 
-- Modding: new mod-defined global variables (Variables.json) - per-civilization integer counters (e.g. war weariness) that work with `when above/below/between` conditionals, `Instantly provides/consumes/gain` triggerables and Lua (`civ.getVariable/setVariable/addVariable`, `game.getRulesetVariables/doesVariableExist`); display in the top bar and Resources overview is configurable per variable and via ModOptions (`variableMenuThreshold`, `alwaysDisplayVariableCount`) - see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)
+- Modding: new civilization-scope variables with conditionals, triggers and Lua (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
+- Modding: variable display (top bar, resources overview) is configurable (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Modding: conditional amounts (e.g. `when above [amount] ...`, HP/movement/population thresholds) now accept Countable expressions like `[Cities]` - see [Unique parameters](/Modders/Unique-parameters#countable)
-
-- Merged upstream 4.21.10 (46 commits): View refactor continues (tile/unit view layer, spectator fixes); promotion notifications squashed when many units are promoted; legion can no longer repair; improvement picker no longer hides researchable improvements; victory screen civ list keeps its scroll position; charts use live data; spectators hidden in global politics; defeated singleplayer players get full map visibility; WLTKD demand rewrite mid-celebration fixed; spaceship parts no longer sold for resources; puppeting cities via console; several Android and crash fixes; Kotlin upgraded to 2.4.10
-- Fix: map pin (tile note) previews no longer reveal strategic resources before their revealing tech is researched (e.g. no Oil in the Ancient era)
-- Map generation with rotational symmetry rebuilt: symmetry is now applied during generation instead of as a post-process - fixes broken 3/6-fold symmetry on wrapped maps, mirror-continent inconsistencies, and resource/wonder copy glitches; generation performance unchanged - see [Features](/UncivCN/Features)
+- Merged upstream: UI and crash fixes, squashed promotion notifications
+- Fix: rotational-symmetry map generation glitches (wrapped/mirror maps) (see [Features](/UncivCN/Features))
 
 ## 4.21.8.3 (build 1255)
 
-- Multiplayer: new game option "Forbid reloading" - quitting and re-entering the game can no longer return to the turn-start state to redo moves (you resume from your latest turn state instead)
-- Modding: new ModOptions unique "Production overflow applies immediately to the next construction" - uncapped overflow flows into the next build on the same turn, and units finished by immediate overflow can move right away; vanilla behavior unchanged without the unique - see [uniques](/Modders/uniques)
+- Multiplayer: new "Forbid reloading" option - no redoing turns by re-entering
+- Modding: new immediate production overflow unique (see [uniques](/Modders/uniques))
 
 ## 4.21.8.2 (build 1254)
 
 - Fix: map pin (tile note) previews no longer render unrevealed resources ahead of time (e.g. no oil in the Ancient era)
-- Modding: Civilization 6 style unit maintenance (opt-in via a ModOptions unique) - fixed per-unit upkeep, flat Gold reductions, no inflation over game progress, legacy system unchanged; maintenance and max HP now also show in the Civilopedia - see [Units.json](/Modders/Mod-file-structure/4-Unit-related-JSON-files) and [uniques](/Modders/uniques)
+- Modding: Civ6-style unit maintenance (opt-in), upkeep shown in Civilopedia (see [Units.json](/Modders/Mod-file-structure/4-Unit-related-JSON-files) and [uniques](/Modders/uniques))
 - Modding: [amount]-type parameters now fully support Countable expressions (radii, amounts, free units, heal/damage/XP values, turn conditions) - see [Unique parameters](/Modders/Unique-parameters)
 - Modding: new trigger, conditional and reverse uniques (combat / pillage / raze triggers, fortified / embarked conditionals, lose control over tiles / lose a spy / end a golden age / hide explored tiles) - see [uniques](/Modders/uniques)
 - Modding/Lua: Lua can modify tile yields, take over combat strength and damage formulas, and react to combat / capture events with full attacker-defender context - see [Lua Modding](/Modders/Lua-Modding)
@@ -54,7 +53,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.8.1 (build 1253)
 
-- Merged upstream 4.21.8 (17 commits): View refactor continues, new "Tiles Explored" ranking type (optional), spectator slot for max players, crash-screen OOM and several ANR fixes, rivers on water near Rock of Gibraltar fixed
+- Merged upstream: crash fixes, new optional "Tiles Explored" ranking
 - Difficulty: AI unhappiness modifier for King and above is now 100/90/85/75 (was 90/85/75/60)
 - Modding: unit max HP is now moddable - `maxHP` field plus the new "[relativeAmount] Max HP" unique; wounded penalty scales with HP percentage - see [Units.json](/Modders/Mod-file-structure/4-Unit-related-JSON-files)
 - Main menu bottom-right buttons: Discord entry replaced by a QQ group link, Baidu Tieba button added, GitHub button points to the CN fork; About page links updated
