@@ -18,24 +18,9 @@ class UnitPromotions : IsPartOfGameInfoSerialization {
     @Transient
     private lateinit var unit: MapUnit
 
-    /** Experience this unit has accumulated on top of the last promotion.
-     *  Since the XP system migrated to the unit-scope variable `Experience` (see Variables.json in
-     *  the base ruleset), this backing field only carries legacy save data and is zeroed on the
-     *  first write through [XP] (see [com.unciv.logic.BackwardCompatibility.migrateUnitXPToVariables]). */
+    /** Experience this unit has accumulated on top of the last promotion */
     @Suppress("PropertyName")
-    var XP: Int = 0
-        @Readonly get() = if (::unit.isInitialized && field == 0) unit.getVariable(experienceVariableName) else field
-        set(value) {
-            if (::unit.isInitialized) {
-                unit.setVariable(experienceVariableName, value)
-                field = 0 // the variable is now authoritative
-            } else field = value
-        }
-
-    companion object {
-        /** Name of the unit-scope variable backing the XP system (see Variables.json in the base ruleset). */
-        const val experienceVariableName = "Experience"
-    }
+    var XP = 0
 
     /** The _names_ of the promotions this unit has acquired - see [getPromotions] for object access */
     var promotions = HashSet<String>()

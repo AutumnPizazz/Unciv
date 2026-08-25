@@ -65,25 +65,6 @@ object BackwardCompatibility {
         }
     }
 
-    /** Moves legacy unit XP and religious-strength loss out of their backing fields into the
-     *  unit-scope variables `Experience` / `ReligiousStrengthLost` (defined in the base ruleset's
-     *  Variables.json). Must run after tileMap.setTransients so every unit's promotions already
-     *  reference their unit; after migration the backing fields stay zero and saves only carry
-     *  the variables. */
-    fun GameInfo.migrateUnitVariablesFromLegacyFields() {
-        for (civInfo in civilizations)
-            for (unit in civInfo.units.getCivUnits()) {
-                if (unit.promotions.XP != 0) {
-                    // Writing through the property migrates the legacy backing field into the
-                    // variable and zeroes the field (see UnitPromotions.XP's setter).
-                    unit.promotions.XP = unit.promotions.XP
-                }
-                if (unit.religiousStrengthLost != 0) {
-                    unit.religiousStrengthLost = unit.religiousStrengthLost
-                }
-            }
-    }
-
     private fun GameInfo.removeUnitsAndPromotions() {
         for (tile in tileMap.values) {
             for (unit in tile.getUnits().toList()) {
