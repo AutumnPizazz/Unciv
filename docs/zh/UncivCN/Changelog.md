@@ -14,6 +14,8 @@ title: UncivCN 更新日志
 
 - 回退：单位经验不再是变量——恢复引擎管理，模组读取 Experience 将得到 0（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
 - 回退：传教士损耗恢复引擎判定——ReligiousStrengthLost 变量及其摧毁组合已移除（详见 [Variables.json](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json)）
+- 修复：局内更新后点击按钮不再崩溃（安装引导与浏览器链接已加防护）
+- 新增：常驻更新下载进度条——关闭弹窗后仍显示，可手动关闭且不中断下载
 
 ## 4.21.10.6（build 1261）
 

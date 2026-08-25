@@ -19,6 +19,7 @@ import com.unciv.logic.HolidayDates
 import com.unciv.logic.UncivShowableException
 import com.unciv.logic.UpdateCheckResult
 import com.unciv.logic.UpdateChecker
+import com.unciv.logic.github.DownloadAndExtractState
 import com.unciv.logic.github.GithubAPI
 import com.unciv.logic.github.GithubAPI.downloadTo
 import com.unciv.logic.map.MapParameters
@@ -36,6 +37,8 @@ import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.UncivTooltip.Companion.addTooltip
 import com.unciv.ui.components.extensions.center
+import com.unciv.ui.components.extensions.disable
+import com.unciv.ui.components.extensions.getCloseButton
 import com.unciv.ui.components.extensions.surroundWithCircle
 import com.unciv.ui.components.extensions.surroundWithThinCircle
 import com.unciv.ui.components.extensions.toLabel
@@ -91,7 +94,10 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
     private var updateCheckJob: Job? = null
     private var updateAvailable: GithubAPI.LatestRelease? = null
     private var installerDownloadJob: Job? = null
+    /** GL 回调守卫：屏幕销毁/重建后不再操作旧 stage 上的 UI，防止后台下载回调写入已释放资源 */
+    private var isDisposed = false
     private lateinit var versionTable: Table
+    private lateinit var installerProgressBar: InstallerDownloadProgress
 
     companion object {
         const val mapFadeTime = 1.3f
@@ -278,6 +284,11 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             popup.open()
         }
         stage.addActor(versionTable)
+
+        // 常驻安装包下载进度条：独立于更新弹窗，弹窗关闭后仍可见
+        installerProgressBar = InstallerDownloadProgress()
+        installerProgressBar.setPosition(stage.width / 2, versionTable.height + 12f, Align.bottom)
+        stage.addActor(installerProgressBar)
         askPlayerRegionIfNeeded()
     }
 
@@ -447,7 +458,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             val releasePageButton = "Open release page".toTextButton()
             releasePageButton.onClick {
                 popup.close()
-                Gdx.net.openURI(GithubAPI.proxify(release.html_url))
+                openInstallerUrl(release.html_url)
             }
             content.add(releasePageButton).pad(10f).row()
         } else if (downloadAssets.size == 1) {
@@ -470,6 +481,15 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         popup.add(content).row()
     }
 
+    /** Open an installer URL in the system browser - failure (e.g. no default browser) must not crash the game */
+    private fun openInstallerUrl(url: String) {
+        try {
+            Gdx.net.openURI(GithubAPI.proxify(url))
+        } catch (_: Exception) {
+            ToastPopup("Could not open the download link.".tr(), this@MainMenuScreen)
+        }
+    }
+
     /**
      * One installer package row: on Android it downloads in-game (showing progress on the button)
      * and then offers [Install] through the system installer, with a Redownload fallback and a note
@@ -485,7 +505,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             val downloadButton = asset.name.toTextButton()
             downloadButton.onClick {
                 popup.close()
-                Gdx.net.openURI(GithubAPI.proxify(asset.browser_download_url))
+                openInstallerUrl(asset.browser_download_url)
             }
             row.add(downloadButton)
             return row
@@ -496,14 +516,20 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         val apkFile = installerFolder.child(asset.name)
         val partFile = installerFolder.child("${asset.name}.part")
         var downloaded = apkFile.exists() && apkFile.length() > 0
+        val downloading = installerDownloadJob?.isActive == true
         val savedNote = "The APK is also saved to your system download folder."
             .toLabel(fontSize = 14, alignment = Align.center)
             .apply { isVisible = downloaded }
 
-        val mainButton = if (downloaded) "Install".toTextButton() else asset.name.toTextButton()
+        val mainButton = when {
+            downloaded -> "Install".toTextButton()
+            downloading -> "Downloading...".toTextButton().apply { disable() }
+            else -> asset.name.toTextButton()
+        }
         val redownloadButton = "Redownload".toTextButton().apply { isVisible = downloaded }
         fun startDownload() {
             if (installerDownloadJob?.isActive == true) return
+            installerProgressBar.startDownload(asset, installerFolder)
             startInstallerDownload(asset, mainButton, installerFolder) { success, savedToPublic ->
                 downloaded = success
                 redownloadButton.isVisible = success
@@ -525,10 +551,13 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
     }
 
     /**
-     * Download an installer package in the background, showing progress on [button].
+     * Download an installer package in the background, showing progress on [button] and on the
+     * persistent [installerProgressBar].
      * Downloads to a `.part` file first and renames it on success, so an interrupted download
      * can never be mistaken for a complete package; on success a copy is also offered to the
      * public Downloads folder ([onFinished] receives both results, runs on the GL thread).
+     * All UI updates are guarded by [isDisposed] so late callbacks after the screen was
+     * destroyed/recreated cannot touch a disposed stage.
      */
     private fun startInstallerDownload(
         asset: GithubAPI.ReleaseAsset,
@@ -541,7 +570,11 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             val partFile = installerFolder.child("${asset.name}.part")
             val apkFile = installerFolder.child(asset.name)
             val success = asset.downloadTo(partFile) { state, progress ->
-                launchOnGLThread { button.setText(state.message(progress)) }
+                launchOnGLThread {
+                    if (isDisposed) return@launchOnGLThread
+                    installerProgressBar.updateProgress(state, progress)
+                    button.setText(state.message(progress).tr())
+                }
             }
             val moved = try {
                 if (success) {
@@ -553,15 +586,92 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
             }
             val savedToPublic = moved && game.saveInstallerToPublicFolder(apkFile.file().absolutePath)
             launchOnGLThread {
+                if (isDisposed) return@launchOnGLThread
+                installerProgressBar.onDownloadFinished(moved)
                 onFinished(moved, savedToPublic)
                 if (moved) {
-                    button.setText("Install")
+                    button.setText("Install".tr())
                 } else {
                     partFile.delete()
                     button.setText(asset.name)
-                    ToastPopup("Download failed", this@MainMenuScreen)
+                    ToastPopup("Download failed".tr(), this@MainMenuScreen)
                 }
             }
+        }
+    }
+
+    /**
+     * Persistent installer download progress bar: lives on the main menu stage independently of
+     * the update popup, so it stays visible when the popup is closed; the player can dismiss it
+     * manually (which only hides it - the download continues). When the download finishes it
+     * turns into the install entry until dismissed again.
+     * All updates must run on the GL thread while the screen is alive (see the [isDisposed] guards).
+     */
+    private inner class InstallerDownloadProgress : Table() {
+        private val statusLabel = "".toLabel(fontSize = 14, alignment = Align.center)
+        private val progressBar = ImageGetter.ProgressBar(260f, 12f, vertical = false)
+            .setBackground(ImageGetter.CHARCOAL)
+            .setProgress(Color.GOLD, 0f)
+        private val installButton = "Install".toTextButton()
+        private val dismissButton = getCloseButton(size = 26f, iconSize = 18f, action = ::dismiss)
+
+        private var apkFile: FileHandle? = null
+
+        init {
+            isVisible = false
+            background = skinStrings.getUiBackground("MainMenuScreen/Version",
+                skinStrings.roundedEdgeRectangleShape, Color.DARK_GRAY.cpy().apply { a = 0.7f })
+            installButton.isVisible = false
+            installButton.onClick {
+                val apk = apkFile ?: return@onClick
+                game.installDownloadedApk(apk.file().absolutePath)
+            }
+
+            add(statusLabel).expandX().center().pad(6f, 12f, 2f, 12f)
+            add(installButton).pad(6f, 0f, 2f, 4f)
+            add(dismissButton).pad(4f).size(26f)
+            row()
+            add(progressBar).colspan(3).width(260f).height(12f).pad(0f, 12f, 8f, 12f)
+            pack()
+        }
+
+        /** Start a download: show the bar (it stays visible even after the update popup closes) */
+        fun startDownload(asset: GithubAPI.ReleaseAsset, installerFolder: FileHandle) {
+            apkFile = installerFolder.child(asset.name)
+            installButton.isVisible = false
+            setStatus("Downloading...".tr(), 0)
+            show()
+        }
+
+        /** Download progress callback (GL thread); stays quiet while dismissed */
+        fun updateProgress(state: DownloadAndExtractState, progress: Int?) {
+            if (!isVisible) return
+            setStatus(state.message(progress).tr(), progress ?: 0)
+        }
+
+        /** Download finished (GL thread): on success turn into the install entry, on failure show the failure state */
+        fun onDownloadFinished(success: Boolean) {
+            installButton.isVisible = success
+            setStatus(
+                if (success) "Installer ready".tr() else "Download failed".tr(),
+                if (success) 100 else 0
+            )
+            show()
+        }
+
+        private fun setStatus(text: String, percent: Int) {
+            statusLabel.setText(text)
+            progressBar.primaryProgress?.setSize(progressBar.width * percent / 100f, progressBar.height)
+        }
+
+        /** Manual dismiss: only hides the bar, the download continues */
+        fun dismiss() {
+            isVisible = false
+        }
+
+        private fun show() {
+            isVisible = true
+            toFront()
         }
     }
 
@@ -661,10 +771,12 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
     override fun recreate(): BaseScreen {
         stopBackgroundMapGeneration()
         updateCheckJob?.cancel()
+        installerDownloadJob?.cancel()
         return MainMenuScreen()
     }
 
     override fun dispose() {
+        isDisposed = true
         updateCheckJob?.cancel()
         installerDownloadJob?.cancel()
         super.dispose()

@@ -111,13 +111,20 @@ class AndroidGame(private val activity: Activity) : UncivGame() {
 
     /** Open the system installer for a downloaded APK - the game runs in the background meanwhile */
     override fun installDownloadedApk(apkFilePath: String) {
-        // API 26+ requires a per-app permission for installing unknown apps - guide the player there first
+        // API 26+ requires a per-app permission for installing unknown apps - guide the player there first.
+        // All startActivity calls are guarded: they run on the GL thread and can throw (e.g. when the
+        // activity is finishing after returning from the installer) - an uncaught exception here would
+        // crash the game right after the player tapped the install button.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.packageManager.canRequestPackageInstalls()) {
             val settingsIntent = Intent(
                 Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                 Uri.parse("package:${activity.packageName}")
             )
-            activity.startActivity(settingsIntent)
+            try {
+                activity.startActivity(settingsIntent)
+            } catch (_: Exception) {
+                // Activity not available / already finishing - nothing sensible to show here
+            }
             return
         }
         try {
