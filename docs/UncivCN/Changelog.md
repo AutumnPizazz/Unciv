@@ -8,6 +8,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+## 4.21.10.7 (build 1262)
+
 - Revert: unit experience is no longer a moddable variable - XP is engine-managed again; mods reading `Experience` now get 0 (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Revert: missionary strength loss is engine-managed again - the `ReligiousStrengthLost` variable and its destroy combination are removed (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Fix: no more crash when tapping buttons after an in-game update download - install prompt and browser links are now guarded
