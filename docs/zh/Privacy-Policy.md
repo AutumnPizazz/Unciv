@@ -1,6 +1,6 @@
 # 隐私政策
 
-本政策适用于 UncivCN 社区提供的服务：本文档站、社区下载服务器与社区联机服务器。这些服务由社区维护者以个人身份自建、自维护，**与 Unciv 上游项目及其开发者（yairm210 团队，https://github.com/yairm210/Unciv）无关，也不代表任何官方服务**。社区维护者是这些服务的数据控制者。
+本政策适用于 UncivCN 社区提供的服务：本文档站、社区下载服务器与社区联机服务器。这些服务由社区维护者以个人身份自建、自维护，**与 Unciv 上游项目及其开发者（yairm210 团队，<https://github.com/yairm210/Unciv>）无关，也不代表任何官方服务**。社区维护者是这些服务的数据控制者。
 
 问题咨询、数据导出与删除请求：[QQ 群](https://qm.qq.com/q/j92c3iUnZ0) 或 [GitHub Issues](https://github.com/AutumnPizazz/Unciv/issues)。
 
