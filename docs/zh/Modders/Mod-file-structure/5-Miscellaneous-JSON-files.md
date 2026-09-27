@@ -500,7 +500,28 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 | hiddenInVictoryScreen | Boolean | false | 此胜利的进度是否在胜利屏幕中隐藏 |
 | requiredSpaceshipParts | List of Strings | 空 | 必须添加到首都以实现相应里程碑的太空船部件 |
 | Milestones | List of Strings | 必需 | 必须完成以获胜的里程碑列表，[请参阅下文](#里程碑) |
+| uniques | List of Strings | 空 | 此胜利拥有的 [unique 能力](/zh/Modders/uniques)，[请参阅下文](#胜利-uniques) |
 | civilopediaText | List | 可选 | 请参阅 [civilopediaText 章节](/zh/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#civilopedia-文本) |
+
+### 胜利 uniques
+
+与任何其他规则集对象一样，胜利也可以携带 uniques。
+
+`Only available <...>` 与 `Unavailable <...>` 决定**谁**可以达成该胜利。它们针对文明进行判定，因此任何 [civFilter](/zh/Modders/Unique-parameters#civfilter) 或针对游戏状态的条件都有效。未通过判定的文明永远不会赢得该胜利，不会在胜利屏幕中作为自身目标之一被提供，不会被列为该胜利的竞争者，也不会朝它努力。其里程碑本身不受影响。
+
+```json
+[
+    {
+        "name": "Reach the goal",
+        "uniques": ["Only available <for [Human player] Civilizations>"],
+        "milestones": ["Build [Monument]"]
+    }
+]
+```
+
+`Will not be chosen for new games` 决定该胜利是否在新游戏选项中**被提供**，其行为与国家完全一致。此类胜利不会获得复选框，"所有胜利"默认项也永远不会启用它——自带游戏或[场景](/zh/Modders/Scenarios)的基础规则集可在其中自行启用。
+
+它是独立 unique 是有意为之：在游戏设置阶段，没有任何文明可供判定 `Only available` / `Unavailable`，因此除非模组另有说明，限定于某国家、玩家类型或游戏速度的胜利仍可被选择。基于同样的原因，`Will not be chosen for new games` 上的条件句永远不会成立——请不加条件地使用它。
 
 ### 里程碑
 
@@ -517,6 +538,7 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 | Win diplomatic vote | 在游戏中的任何时候赢得外交投票（联合国）。你以后可能会失去，但仍保留此里程碑 |
 | Become the world religion | 使你的宗教成为所有主要文明中大多数城市的主流宗教 |
 | Have highest score after max turns | 基本上是时间胜利。启用"最大回合"滑块并在达到该数量时计算分数 |
+| Have at least [amount] [countable] | 至少拥有给定 `countable` 的 [amount] 个。与下一项里程碑不同，它不依赖其他玩家，因此规则集可以要求若干具体事项——建筑、政策、已耕作地块——以任意顺序达成 |
 | Have more [countable] than each player's [countable] | 使你给定的 `countable` 多于每个其他文明的 `countable` 以实现此胜利。这对于模拟类似于美丽新世界中的文化胜利很有用。 |
 
 ## Civilopedia 文本

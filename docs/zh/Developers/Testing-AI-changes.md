@@ -17,7 +17,9 @@
 
 在 `desktop\src\ConsoleLauncher.kt` 文件中，你可以调整要运行的模拟次数、使用哪些国家等。
 
-建议使用没有 Unique 的通用文明。你可以看到代码向 `ruleset` 对象添加了一个通用 `Nation`，你可以用国家名常量作为控制开关，在代码各处控制不同的行为。
+建议使用没有 Unique 的通用文明。你可以看到代码向 `ruleset` 对象添加了一个通用 `Nation`。
+
+要对 AI 改动做 A/B 测试，把应当使用新行为的文明作为 `Simulation` 的 `civIdsInExperimentGroup` 参数传入，例如 `Simulation(newGame, 50, 8, civIdsInExperimentGroup = setOf("Nation1", "Nation2"))`，并用 `if (civInfo.civID in DebugUtils.CIV_IDS_IN_EXPERIMENT_GROUP)` 对改动的代码进行约束。你也可以用国家名常量作为控制开关，运行更复杂的实验（例如三种不同的 AI 行为）。
 
 你还可以调整游戏参数和地图参数。为了获得更一致的结果，关闭自然奇观和野蛮人会有帮助。
 
@@ -32,3 +34,5 @@
 验证你对哪个文明会赢、会怎么赢的预期，以及报告数值的任何变化，是个好习惯。有些变化不会反映在胜率上，所以更适合在地图编辑器里做场景或用游戏内控制台来测试 AI 行为。
 
 还会报告 p 值，根据胜率显示这个结果在二项检验中出现的可能性。如果这个值很小，说明这不太可能是随机出现的，你的改动对整体胜率产生了统计上显著的改变。运行 200-400 次模拟通常是一个不错的基准。
+
+当设置了 `civIdsInExperimentGroup` 时，报告会先给出实验组与对照组（所有其他文明）的合计胜率和 p 值。

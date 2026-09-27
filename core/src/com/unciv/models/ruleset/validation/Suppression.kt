@@ -36,6 +36,17 @@ object Suppression {
         " Note that this can be used in ModOptions, in the uniques a warning is about, or as modifier on the unique triggering a warning -" +
         " but you still need to be specific. Even in the modifier case you will need to specify a sufficiently selective portion of the warning text as parameter."
 
+
+    /** Delegated from [UniqueType.SuppressWarnings], Chinese doc */
+
+    const val uniqueDocDescriptionZh = "允许抑制特定的验证警告。" +
+
+        "错误、弃用警告，以及关于未定型或无法用于过滤的 unique 的警告应当被重视而非抑制，因此不会被接受。" +
+
+        "注意：它可以用在 ModOptions 中、产生警告的那些 uniques 中，或作为触发警告的 unique 的修饰符——" +
+
+        "但你仍然需要足够具体。即使在修饰符场景下，你也必须指定警告文本中足够有选择性的片段作为参数。"
+
     /** Delegated from [UniqueParameterType.ValidationWarning] */
     const val parameterDocDescription = "Suppresses one specific Ruleset validation warning. " +
         "This can specify the full text verbatim including correct upper/lower case, " +

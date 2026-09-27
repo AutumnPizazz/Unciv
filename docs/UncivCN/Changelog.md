@@ -8,7 +8,14 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.22.4.1 (build 1263)
 
-- Merged upstream 4.22.4 (262 commits): the view layer was reworked (tile/unit/city views and read-only views), save files are now read and written as a stream (lower memory peaks), plus the upstream 4.22.0-4.22.4 highlights - invisible units are no longer invisible to their own civilization, new "Known [civFilter] Civilizations" countable, victories can carry uniques, notable rendering-lag and screen-switching ANR improvements, and many spectator/UI crash fixes; CN features (map pins/unit notes, claim tile, simultaneous-turn records, mod variables, Civ6-style unit maintenance) were re-adapted to the new view layer
+- Merged upstream 4.22.4 (262 commits)
+- Invisible units are no longer invisible to their own civilization
+- New "Known Civilizations" countable
+- Victories can now carry uniques
+- Notable rendering-lag and screen-switching freeze improvements
+- Many spectator and UI crash fixes
+- CN-specific features are unaffected and keep working
+- Completed Chinese translations and Chinese modding docs for the 4.22 additions
 
 ## 4.21.10.7 (build 1262)
 

@@ -337,6 +337,8 @@ class UniqueDocsWriter : DocsWriter() {
                 "仅计算匹配过滤器的运输单位。用于 'when number of' 条件。"
             "Counts researched matching technologies for the relevant Civilization" -> "统计相关文明已研究的匹配科技"
             "Repeatable technologies, like Future Tech, are only counted once" -> "可重复科技（如未来科技）只计一次"
+            "The number of other civilizations the relevant Civilization has met" -> "相关文明已认识的其他文明数量"
+            "Counts only civilizations that are still alive, and never the civilization itself" -> "只计算仍然存活的文明，且从不包括该文明自身"
             "Number of the era the current player is in" -> "当前玩家所处时代的编号"
             "Zero-based index of the Era in Eras.json." -> "Eras.json 中时代的从零开始的索引。"
             "A game speed modifier for a specific Stat, as percentage" -> "特定产出的游戏速度修正，以百分比表示"

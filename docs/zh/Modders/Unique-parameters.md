@@ -475,9 +475,9 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 示例：`Only available <when number of [Researched [Agriculture] Technologies] is more than [0]>`
     - 统计相关文明已研究的匹配科技
     - 可重复科技（如未来科技）只计一次
--   `Known [civFilter] Civilizations` - The number of other civilizations the relevant Civilization has met
+-   `Known [civFilter] Civilizations` - 相关文明已认识的其他文明数量
     - 示例：`Only available <when number of [Known [City-States] Civilizations] is more than [0]>`
-    - Counts only civilizations that are still alive, and never the civilization itself
+    - 只计算仍然存活的文明，且从不包括该文明自身
 -   `Remaining [civFilter] Civilizations`
     - 示例：`Only available <when number of [Remaining [City-States] Civilizations] is more than [0]>`
 -   `Worked [tileFilter] Tiles in this city`

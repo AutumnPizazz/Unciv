@@ -250,6 +250,8 @@ enum class UniqueType(
     CostsResources("Costs [amount] [stockpiledResource]", UniqueTarget.Improvement, UniqueTarget.Building, UniqueTarget.Unit,
         docDescription = "These resources are removed *when work begins* on the construction. " +
                 "Do not confuse with \"costs [amount] [stockpiledResource]\" (lowercase 'c'), the Unit Action Modifier.",
+        docDescriptionZh = "这些资源会在建造*开始工作时*被移除。" +
+                "不要与 \"costs [amount] [stockpiledResource]\"（小写 'c'，即单位行为修饰）混淆。",
         flags = setOf(UniqueFlag.AcceptsSpeedModifier)),
 
     PercentResourceProduction("[relativeAmount]% [resourceFilter] resource production", UniqueTarget.Global),
@@ -410,6 +412,9 @@ enum class UniqueType(
         docDescription = "When choosing to construct this building, the player must select a tile where the improvement can be built." +
                 " Upon building completion, the tile will gain this improvement." +
                 " Limited to one per building.",
+        docDescriptionZh = "选择建造此建筑时，玩家必须选择一块可以建造该改良设施的地块。" +
+                "建筑完成后，该地块将获得此改良设施。" +
+                "每个建筑仅限一个。",
         flags = UniqueFlag.setOfNoConditionals
         ),
 
@@ -554,7 +559,8 @@ enum class UniqueType(
 
     // Carrying
     CarryAirUnits("Can carry [amount] [mapUnitFilter] units", UniqueTarget.Unit,
-        docDescription = "Using several of these uniques with complex overlapping filters is supported."),
+        docDescription = "Using several of these uniques with complex overlapping filters is supported.",
+        docDescriptionZh = "支持同时使用多条此 unique，并搭配复杂的重叠过滤器。"),
     CarryExtraAirUnits("Can carry [amount] extra [mapUnitFilter] units", UniqueTarget.Unit, UniqueTarget.Building,
         docDescription = "For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.", docDescriptionZh = "对建筑，支持用 `Air` 作为 `mapUnitFilter` 以增加城市空中单位容量。"),
     CannotBeCarriedBy("Cannot be carried by [mapUnitFilter] units", UniqueTarget.Unit),
@@ -723,7 +729,12 @@ enum class UniqueType(
         "Marks water tiles as Coast - all other water tiles count as Ocean. These distinctions are relevant e.g. for map generator or the ability to navigate here.\n" +
         "Note that terrain filters do not recognize this distinction, filtering for \"Coast\" or \"Ocean\" will only look for a terrain of that name.\n" +
         "Also note that for compatibility reasons, terrains named \"Coast\" are assuned to have this Unique even if it's missing. This may be removed in a future version.\n" +
-        "A tile marked this way marks adjacent land tiles as \"Coastal\", so they fulfill the terrain filter, and cities built there can build ships, Harbor, etc."),
+        "A tile marked this way marks adjacent land tiles as \"Coastal\", so they fulfill the terrain filter, and cities built there can build ships, Harbor, etc.",
+        docDescriptionZh =
+        "将水域地块标记为海岸——其他所有水域地块都算作海洋。这一区分对地图生成器、能否从此处航行等场景有意义。\n" +
+        "注意：地形过滤器不识别这一区分，按 \"Coast\" 或 \"Ocean\" 过滤时只会查找名称相符的地形。\n" +
+        "另请注意：出于兼容性考虑，名为 \"Coast\" 的地形即使缺少此 unique 也会被视为拥有它，这一行为可能在未来版本中移除。\n" +
+        "被这样标记的地块会把相邻的陆地地块标记为 \"Coastal\"（沿海），使它们满足相应地形过滤器，且建在此处的城市可以建造船只、港口等。"),
 
     ExcludedFromMapEditor("Excluded from map editor", UniqueTarget.Terrain, UniqueTarget.Improvement, UniqueTarget.Resource, UniqueTarget.Nation, flags = UniqueFlag.setOfHiddenToUsers),
 
@@ -1194,7 +1205,8 @@ enum class UniqueType(
     ShowsWhenUnbuilable("Shown while unbuilable", UniqueTarget.Building, UniqueTarget.Unit, flags = UniqueFlag.setOfHiddenToUsers),
     ModifierHiddenFromUsers("hidden from users", UniqueTarget.MetaModifier),
     WillNotBeChosenForNewGames("Will not be chosen for new games", UniqueTarget.Nation, UniqueTarget.Victory,
-        docDescription = "Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against."),
+        docDescription = "Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.",
+        docDescriptionZh = "无条件——它在游戏建立阶段即被求值，此时没有任何可用于求值条件句的对象。"),
 
     ForEveryCountable("for every [countable]", UniqueTarget.MetaModifier,
         docDescription = "Works for positive numbers only", docDescriptionZh = "仅适用于正数"),
@@ -1238,9 +1250,11 @@ enum class UniqueType(
         flags = UniqueFlag.setOfNoConditionals,
         docDescription = "By default, city-state settlers with no cities yet found on their current tile when valid " +
             "(predetermined map-gen / editor start). With this unique they use the same nearby-site search as major civs.",
+        docDescriptionZh = "默认情况下，尚无城市的城邦开拓者在当前地块有效时会就地建城" +
+            "（地图生成/编辑器预设的起始位置）。拥有此 unique 后，它们会像主要文明一样在附近自动选址。",
     ),
 
-    SuppressWarnings("Suppress warning [validationWarning]", *UniqueTarget.CanIncludeSuppression, flags = UniqueFlag.setOfHiddenNoConditionals, docDescription = Suppression.uniqueDocDescription),
+    SuppressWarnings("Suppress warning [validationWarning]", *UniqueTarget.CanIncludeSuppression, flags = UniqueFlag.setOfHiddenNoConditionals, docDescription = Suppression.uniqueDocDescription, docDescriptionZh = Suppression.uniqueDocDescriptionZh),
 
     // Declarative Mod compatibility (see [ModCompatibility]):
     // Note there is currently no display for these, but UniqueFlag.HiddenToUsers is not set.

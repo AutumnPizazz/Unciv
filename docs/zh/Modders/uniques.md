@@ -471,7 +471,7 @@ title: Unique 能力列表
 
 :::
 ::: details Suppress warning [validationWarning]
-Allows suppressing specific validation warnings. Errors, deprecation warnings, or warnings about untyped and non-filtering uniques should be heeded, not suppressed, and are therefore not accepted. Note that this can be used in ModOptions, in the uniques a warning is about, or as modifier on the unique triggering a warning - but you still need to be specific. Even in the modifier case you will need to specify a sufficiently selective portion of the warning text as parameter.
+允许抑制特定的验证警告。错误、弃用警告，以及关于未定型或无法用于过滤的 unique 的警告应当被重视而非抑制，因此不会被接受。注意：它可以用在 ModOptions 中、产生警告的那些 uniques 中，或作为触发警告的 unique 的修饰符——但你仍然需要足够具体。即使在修饰符场景下，你也必须指定警告文本中足够有选择性的片段作为参数。
 
 示例："Suppress warning [Tinman is supposed to automatically upgrade at tech Clockwork, and therefore Servos for its upgrade Mecha may not yet be researched! -or- *is supposed to automatically upgrade*]"
 
@@ -1706,7 +1706,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ::: details Will not be chosen for new games
-Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.
+无条件——它在游戏建立阶段即被求值，此时没有任何可用于求值条件句的对象。
 
 适用范围：Nation，Victory
 
@@ -2263,7 +2263,7 @@ Unconditional - it is evaluated while a game is being set up, where there is not
 
 :::
 ::: details Costs [amount] [stockpiledResource]
-These resources are removed *when work begins* on the construction. Do not confuse with "costs [amount] [stockpiledResource]" (lowercase 'c'), the Unit Action Modifier.
+这些资源会在建造*开始工作时*被移除。不要与 "costs [amount] [stockpiledResource]"（小写 'c'，即单位行为修饰）混淆。
 
 示例："Costs [3] [Mana]"
 
@@ -2439,7 +2439,7 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Creates a [improvementName] improvement on a specific tile
-When choosing to construct this building, the player must select a tile where the improvement can be built. Upon building completion, the tile will gain this improvement. Limited to one per building.
+选择建造此建筑时，玩家必须选择一块可以建造该改良设施的地块。建筑完成后，该地块将获得此改良设施。每个建筑仅限一个。
 
 示例："Creates a [Trading Post] improvement on a specific tile"
 
@@ -2605,7 +2605,7 @@ When choosing to construct this building, the player must select a tile where th
 
 :::
 ::: details Costs [amount] [stockpiledResource]
-These resources are removed *when work begins* on the construction. Do not confuse with "costs [amount] [stockpiledResource]" (lowercase 'c'), the Unit Action Modifier.
+这些资源会在建造*开始工作时*被移除。不要与 "costs [amount] [stockpiledResource]"（小写 'c'，即单位行为修饰）混淆。
 
 示例："Costs [3] [Mana]"
 
@@ -3069,7 +3069,7 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Can carry [amount] [mapUnitFilter] units
-Using several of these uniques with complex overlapping filters is supported.
+支持同时使用多条此 unique，并搭配复杂的重叠过滤器。
 
 示例："Can carry [3] [Wounded] units"
 
@@ -3740,13 +3740,13 @@ Using several of these uniques with complex overlapping filters is supported.
 
 :::
 ::: details Coastal Water
-Marks water tiles as Coast - all other water tiles count as Ocean. These distinctions are relevant e.g. for map generator or the ability to navigate here.
+将水域地块标记为海岸——其他所有水域地块都算作海洋。这一区分对地图生成器、能否从此处航行等场景有意义。
 
-Note that terrain filters do not recognize this distinction, filtering for "Coast" or "Ocean" will only look for a terrain of that name.
+注意：地形过滤器不识别这一区分，按 "Coast" 或 "Ocean" 过滤时只会查找名称相符的地形。
 
-Also note that for compatibility reasons, terrains named "Coast" are assuned to have this Unique even if it's missing. This may be removed in a future version.
+另请注意：出于兼容性考虑，名为 "Coast" 的地形即使缺少此 unique 也会被视为拥有它，这一行为可能在未来版本中移除。
 
-A tile marked this way marks adjacent land tiles as "Coastal", so they fulfill the terrain filter, and cities built there can build ships, Harbor, etc.
+被这样标记的地块会把相邻的陆地地块标记为 "Coastal"（沿海），使它们满足相应地形过滤器，且建在此处的城市可以建造船只、港口等。
 
 适用范围：Terrain
 
@@ -3778,7 +3778,7 @@ A tile marked this way marks adjacent land tiles as "Coastal", so they fulfill t
 
 :::
 ::: details Suppress warning [validationWarning]
-Allows suppressing specific validation warnings. Errors, deprecation warnings, or warnings about untyped and non-filtering uniques should be heeded, not suppressed, and are therefore not accepted. Note that this can be used in ModOptions, in the uniques a warning is about, or as modifier on the unique triggering a warning - but you still need to be specific. Even in the modifier case you will need to specify a sufficiently selective portion of the warning text as parameter.
+允许抑制特定的验证警告。错误、弃用警告，以及关于未定型或无法用于过滤的 unique 的警告应当被重视而非抑制，因此不会被接受。注意：它可以用在 ModOptions 中、产生警告的那些 uniques 中，或作为触发警告的 unique 的修饰符——但你仍然需要足够具体。即使在修饰符场景下，你也必须指定警告文本中足够有选择性的片段作为参数。
 
 示例："Suppress warning [Tinman is supposed to automatically upgrade at tech Clockwork, and therefore Servos for its upgrade Mecha may not yet be researched! -or- *is supposed to automatically upgrade*]"
 
@@ -3809,7 +3809,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ::: details Costs [amount] [stockpiledResource]
-These resources are removed *when work begins* on the construction. Do not confuse with "costs [amount] [stockpiledResource]" (lowercase 'c'), the Unit Action Modifier.
+这些资源会在建造*开始工作时*被移除。不要与 "costs [amount] [stockpiledResource]"（小写 'c'，即单位行为修饰）混淆。
 
 示例："Costs [3] [Mana]"
 
@@ -4263,7 +4263,7 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Suppress warning [validationWarning]
-Allows suppressing specific validation warnings. Errors, deprecation warnings, or warnings about untyped and non-filtering uniques should be heeded, not suppressed, and are therefore not accepted. Note that this can be used in ModOptions, in the uniques a warning is about, or as modifier on the unique triggering a warning - but you still need to be specific. Even in the modifier case you will need to specify a sufficiently selective portion of the warning text as parameter.
+允许抑制特定的验证警告。错误、弃用警告，以及关于未定型或无法用于过滤的 unique 的警告应当被重视而非抑制，因此不会被接受。注意：它可以用在 ModOptions 中、产生警告的那些 uniques 中，或作为触发警告的 unique 的修饰符——但你仍然需要足够具体。即使在修饰符场景下，你也必须指定警告文本中足够有选择性的片段作为参数。
 
 示例："Suppress warning [Tinman is supposed to automatically upgrade at tech Clockwork, and therefore Servos for its upgrade Mecha may not yet be researched! -or- *is supposed to automatically upgrade*]"
 
@@ -4395,7 +4395,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ::: details City-states search for first city location
-By default, city-state settlers with no cities yet found on their current tile when valid (predetermined map-gen / editor start). With this unique they use the same nearby-site search as major civs.
+默认情况下，尚无城市的城邦开拓者在当前地块有效时会就地建城（地图生成/编辑器预设的起始位置）。拥有此 unique 后，它们会像主要文明一样在附近自动选址。
 
 此词条不支持条件。
 
@@ -4403,7 +4403,7 @@ By default, city-state settlers with no cities yet found on their current tile w
 
 :::
 ::: details Suppress warning [validationWarning]
-Allows suppressing specific validation warnings. Errors, deprecation warnings, or warnings about untyped and non-filtering uniques should be heeded, not suppressed, and are therefore not accepted. Note that this can be used in ModOptions, in the uniques a warning is about, or as modifier on the unique triggering a warning - but you still need to be specific. Even in the modifier case you will need to specify a sufficiently selective portion of the warning text as parameter.
+允许抑制特定的验证警告。错误、弃用警告，以及关于未定型或无法用于过滤的 unique 的警告应当被重视而非抑制，因此不会被接受。注意：它可以用在 ModOptions 中、产生警告的那些 uniques 中，或作为触发警告的 unique 的修饰符——但你仍然需要足够具体。即使在修饰符场景下，你也必须指定警告文本中足够有选择性的片段作为参数。
 
 示例："Suppress warning [Tinman is supposed to automatically upgrade at tech Clockwork, and therefore Servos for its upgrade Mecha may not yet be researched! -or- *is supposed to automatically upgrade*]"
 
@@ -4518,7 +4518,7 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
 
 :::
-## Victory uniques（Victory词条）
+## Victory uniques（胜利词条）
 ::: note
 
 Uniques that determine whether a victory can be achieved, and by whom
@@ -4537,7 +4537,7 @@ Uniques that determine whether a victory can be achieved, and by whom
 
 :::
 ::: details Will not be chosen for new games
-Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.
+无条件——它在游戏建立阶段即被求值，此时没有任何可用于求值条件句的对象。
 
 适用范围：Nation，Victory
 
@@ -5685,7 +5685,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 
 :::
 ::: details &lt;Suppress warning [validationWarning]&gt;
-Allows suppressing specific validation warnings. Errors, deprecation warnings, or warnings about untyped and non-filtering uniques should be heeded, not suppressed, and are therefore not accepted. Note that this can be used in ModOptions, in the uniques a warning is about, or as modifier on the unique triggering a warning - but you still need to be specific. Even in the modifier case you will need to specify a sufficiently selective portion of the warning text as parameter.
+允许抑制特定的验证警告。错误、弃用警告，以及关于未定型或无法用于过滤的 unique 的警告应当被重视而非抑制，因此不会被接受。注意：它可以用在 ModOptions 中、产生警告的那些 uniques 中，或作为触发警告的 unique 的修饰符——但你仍然需要足够具体。即使在修饰符场景下，你也必须指定警告文本中足够有选择性的片段作为参数。
 
 示例："Suppress warning [Tinman is supposed to automatically upgrade at tech Clockwork, and therefore Servos for its upgrade Mecha may not yet be researched! -or- *is supposed to automatically upgrade*]"
 
