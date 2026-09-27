@@ -130,9 +130,9 @@ class UpdateCheckTests {
 
     @Test
     fun cnServerUrlFor_mapsReleaseDownloads() {
-        // GitHub release 安装包 URL → CN 官方下载服务器 /dl/<tag>/<file>
+        // GitHub release 安装包 URL → CN 社区下载服务器 /dl/<tag>/<file>
         Assert.assertEquals(
-            "http://sp.unciv.cn:30123/dl/4.21.10.1/UncivCN-4.21.10.1.Apk",
+            "https://unciv.civgo.top:30123/dl/4.21.10.1/UncivCN-4.21.10.1.Apk",
             GithubAPI.cnServerUrlFor(
                 "https://github.com/AutumnPizazz/Unciv/releases/download/4.21.10.1/UncivCN-4.21.10.1.Apk"
             )

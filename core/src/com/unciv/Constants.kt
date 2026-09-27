@@ -114,7 +114,7 @@ object Constants {
     const val simulationCiv2 = "SimulationCiv2"
 
     const val dropboxMultiplayerServer = "Dropbox"
-    const val uncivDefaultServer = "http://sp.unciv.cn:30123"
+    const val uncivDefaultServer = "https://unciv.civgo.top:30123"
 
     const val defaultTileset = "HexaRealm"
     /** Default for TileSetConfig.fallbackTileSet - Don't change unless you've also moved the crosshatch, borders, and arrows as well */
@@ -146,7 +146,7 @@ object Constants {
      *  - 检查更新：`GET <server>/api/downloads/latest.json`（server-ts 动态生成，格式兼容 GitHub latest release API）
      *  - 安装包下载：`<server>/dl/<版本tag>/<文件名>`
      *  详见 server-ts/README.md */
-    const val uncivDownloadServer = "http://sp.unciv.cn:30123"
+    const val uncivDownloadServer = "https://unciv.civgo.top:30123"
 
     /** Chinese-language setting names (file names without .properties) */
     val chineseLanguages = setOf("Simplified_Chinese", "Traditional_Chinese")

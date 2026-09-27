@@ -5,7 +5,7 @@
 | Feature | Upstream Unciv | UncivCN |
 |---|---|---|
 | Multiplayer | Dynamic turns (strict sequential) | Dynamic turns + **polling multiplayer** (time-slice rotation, wait capped at seconds) |
-| Multiplayer server | Official server | Default `sp.unciv.cn:30123` |
+| Multiplayer server | Official server | Default `unciv.civgo.top:30123` |
 | Multiplayer fairness | — | RNG re-roll on load disabled online |
 | Map types | Standard maps | + **three mirrored map modes** (mirrored resources) + **ring maps** (no radius parity restriction) |
 | Mod scripting | Pure JSON | + **Lua scripting** (Unique triggers / lifecycle hooks / ctx API) |

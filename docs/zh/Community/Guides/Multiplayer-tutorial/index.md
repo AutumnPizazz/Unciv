@@ -24,7 +24,7 @@ title: Unciv 联机教程
 
 ![与联机服务器建立联系 - 步骤2](../../../../Community/Guides/Multiplayer-tutorial/images/image2.png)
 
-输入服务器地址，地址为：<http://sp.unciv.cn:30123>
+输入服务器地址，地址为：<https://unciv.civgo.top:30123>
 
 ![与联机服务器建立联系 - 步骤3](../../../../Community/Guides/Multiplayer-tutorial/images/image3.png)
 

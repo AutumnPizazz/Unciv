@@ -20,7 +20,7 @@ Click "Multiplayer" on top,
 
 ![Connect to server - step 2](./images/image2.png)
 
-Enter the server address: <http://sp.unciv.cn:30123>
+Enter the server address: <https://unciv.civgo.top:30123>
 
 ![Connect to server - step 3](./images/image3.png)
 
