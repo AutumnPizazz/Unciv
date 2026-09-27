@@ -214,6 +214,7 @@ export default defineConfig({
               { text: 'Credits', link: '/Credits' },
               { text: 'Guiding Principles', link: '/Guiding-Principles' },
               { text: 'Privacy Policy', link: '/Privacy-Policy' },
+              { text: 'Terms of Service', link: '/Terms-of-Service' },
             ],
           },
           {
@@ -440,6 +441,7 @@ export default defineConfig({
               { text: '致谢', link: '/zh/Credits' },
               { text: '指导原则', link: '/zh/Guiding-Principles' },
               { text: '隐私政策', link: '/zh/Privacy-Policy' },
+              { text: '用户协议', link: '/zh/Terms-of-Service' },
             ],
           },
         ],

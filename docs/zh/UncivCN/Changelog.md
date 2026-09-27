@@ -10,6 +10,11 @@ title: UncivCN 更新日志
 上游（原版）版本记录见 [Unciv 官方更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)（GitHub）。
 :::
 
+## 未发布
+
+- 新增用户协议并重写隐私政策，说明社区服务由志愿者维护、并非官方服务
+- 社区联机服务器支持审核制注册，聊天功能可以单独关闭
+
 ## 4.22.4.1（build 1263）
 
 - 合并上游 4.22.4（262 个提交）

@@ -63,7 +63,7 @@ Full mechanics: [Polling multiplayer](./Polling-multiplayer).
 
 ## Default server (4.21.0.1)
 
-The default multiplayer server is `http://sp.unciv.cn:30123`.
+The default multiplayer server is `http://sp.unciv.cn:30123` (community-run, not an official server).
 
 ## Save version isolation (4.20.17.2)
 

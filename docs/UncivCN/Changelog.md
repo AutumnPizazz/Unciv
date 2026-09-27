@@ -6,6 +6,11 @@ Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same u
 Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/yairm210/Unciv/blob/master/changelog.md)
 :::
 
+## Unreleased
+
+- New terms of service and a rewritten privacy policy; the community services are volunteer-run and not official
+- Community multiplayer servers can now use approved registration, and chat can be turned off
+
 ## 4.22.4.1 (build 1263)
 
 - Merged upstream 4.22.4 (262 commits)
