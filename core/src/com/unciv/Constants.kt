@@ -141,7 +141,7 @@ object Constants {
     /** URL to the wiki, including trailing slash */
     const val wikiURL = "https://club.unciv.cn/Unciv/"
 
-    /** CN 官方下载服务器（与联机服务器同域）。
+    /** UncivCN 社区下载服务器（与联机服务器同域，由社区维护、并非官方服务）。
      *  游戏内更新检查与安装包下载固定走它（不依赖 github.com 可达性，也不受模组下载源设置影响）：
      *  - 检查更新：`GET <server>/api/downloads/latest.json`（server-ts 动态生成，格式兼容 GitHub latest release API）
      *  - 安装包下载：`<server>/dl/<版本tag>/<文件名>`
