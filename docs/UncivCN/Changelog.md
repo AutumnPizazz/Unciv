@@ -8,13 +8,13 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+## 4.22.4.1 (build 1263)
+
 - Multiplayer server moved to a new HTTPS address; update the client
 - New terms of service and a rewritten privacy policy; the community services are volunteer-run and not official
 - Community multiplayer servers can now use approved registration, and chat can be turned off
 - Multiplayer server: cold saves are archived to encrypted storage when space runs out, and restored when someone opens them
 - Update checks and installer downloads now go through the community mirror link, which is faster
-
-## 4.22.4.1 (build 1263)
 
 - Merged upstream 4.22.4 (262 commits)
 - Invisible units are no longer invisible to their own civilization
