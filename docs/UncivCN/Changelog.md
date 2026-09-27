@@ -16,6 +16,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Many spectator and UI crash fixes
 - CN-specific features are unaffected and keep working
 - Completed Chinese translations and Chinese modding docs for the 4.22 additions
+- Multiplayer: the server now accepts save files up to 32MB
 
 ## 4.21.10.7 (build 1262)
 
