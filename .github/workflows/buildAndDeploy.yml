@@ -390,41 +390,31 @@ jobs:
 
             ${{needs.get-release-body.outputs.release_body_zh}}
 
-  # 触发 CN 官方下载服务器从 GitHub（经 gh-proxy 镜像）同步安装包。
-  # 服务器走镜像拉取（大陆服务器直连 GitHub release 不通），比 Actions 跨国上传更快。
-  # 需要的 Secrets（仓库 Settings → Secrets and variables → Actions）：
-  #   CN_DL_SERVER : 下载服务器地址，如 http://sp.unciv.cn:30123
-  #   CN_DL_USER   : 服务器管理员账号（与 server-ts 的 ADMIN_USERNAME 一致）
-  #   CN_DL_PASS   : 服务器管理员密码（与 server-ts 的 ADMIN_PASSWORD 一致）
-  # 未配置 Secrets 或同步失败时，正式版本发布任务必须失败，避免国内更新源停留在旧版本。
-  sync-installers-to-cn-server:
+  # 校验 CN 社区下载服务器已切到本次版本（服务器只转发版本清单、/dl/ 直链 302 跳转，不再托管安装包）。
+  # 需要的 Secret（仓库 Settings → Secrets and variables → Actions）：
+  #   CN_DL_SERVER : 下载服务器地址，如 https://unciv.civgo.top:30123
+  # 未配置 Secret 或校验失败时，正式版本发布任务必须失败，避免国内更新源停留在旧版本。
+  verify-cn-download-server:
     needs: upload-github-release-and-post-to-discord
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger CN download server sync
+      - name: Verify CN download server
         env:
           DL_SERVER: ${{ secrets.CN_DL_SERVER }}
-          DL_USER: ${{ secrets.CN_DL_USER }}
-          DL_PASS: ${{ secrets.CN_DL_PASS }}
         run: |
-          if [ -z "$DL_SERVER" ] || [ -z "$DL_USER" ] || [ -z "$DL_PASS" ]; then
-            echo "错误：未配置 CN_DL_SERVER / CN_DL_USER / CN_DL_PASS，无法完成 CN 安装包同步"
+          if [ -z "$DL_SERVER" ]; then
+            echo "错误：未配置 CN_DL_SERVER，无法校验 CN 更新源"
             exit 1
           fi
-          echo "触发服务器同步 tag=${{ github.ref_name }}"
-          curl --fail --show-error --silent --user "$DL_USER:$DL_PASS" \
-            --request POST \
-            "$DL_SERVER/api/downloads/sync?tag=${{ github.ref_name }}"
-
-          echo "等待服务器完成同步并更新 latest.json..."
+          echo "等待服务器版本清单切换到 tag=${{ github.ref_name }}..."
           for attempt in {1..30}; do
             latest_tag=$(curl --fail --show-error --silent \
-              --user "$DL_USER:$DL_PASS" \
               "$DL_SERVER/api/downloads/latest.json" | jq -r '.tag_name // empty')
             if [ "$latest_tag" = "${{ github.ref_name }}" ]; then
               apk_url="$DL_SERVER/dl/${{ github.ref_name }}/UncivCN-${{ github.ref_name }}.Apk"
-              curl --fail --show-error --silent --head "$apk_url" >/dev/null
-              echo "CN 下载服务器已切换到 $latest_tag，APK 可下载"
+              echo "校验 APK 直链：$apk_url"
+              curl --fail --show-error --silent --location --head --output /dev/null "$apk_url"
+              echo "CN 下载服务器已切换到 $latest_tag，APK 直链可用"
               exit 0
             fi
             echo "第 $attempt 次检查：当前 latest.json 为 ${latest_tag:-<empty>}，10 秒后重试"

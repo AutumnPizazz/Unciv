@@ -5,7 +5,7 @@ These terms apply to the community services provided for UncivCN: the community 
 ## 1. What the services are
 
 - **Multiplayer servers**: uploading and downloading save files, simultaneous turns and optional in-game chat.
-- **Download server**: hosting UncivCN installers so players in mainland China can update.
+- **Download server**: serving the UncivCN version manifest and download links (the installers themselves are hosted on GitHub Releases).
 - **Documentation site**: project documentation and changelogs.
 
 All of it is free technical infrastructure. No payment, subscription or in-game item is sold here.

@@ -2,6 +2,8 @@ package com.unciv.logic.multiplayer.storage
 
 import com.badlogic.gdx.Net
 import com.badlogic.gdx.utils.Base64Coder
+import com.badlogic.gdx.utils.JsonReader
+import com.unciv.logic.UncivShowableException
 import com.unciv.utils.debug
 
 object UncivServerFileStorage : FileStorage {
@@ -16,7 +18,7 @@ object UncivServerFileStorage : FileStorage {
                 debug("Error from UncivServer during save: %s", result)
                 when (code) {
                     401 -> throw MultiplayerAuthException(Exception(result))
-                    else -> throw Exception("$code $result")
+                    else -> throw serverError(code, result)
                 }
             }
         }
@@ -30,7 +32,8 @@ object UncivServerFileStorage : FileStorage {
                 debug("Error from UncivServer during load: %s", result)
                 when (code) {
                     404 -> throw MultiplayerFileNotFoundException(Exception(result))
-                    else -> throw Exception(result)
+                    // 服务端可能给出更详细的说明（比如对局被冷归档、正在从网盘恢复），直接展示给玩家
+                    else -> throw serverError(code, result)
                 }
 
             }
@@ -60,7 +63,7 @@ object UncivServerFileStorage : FileStorage {
     override fun loadSimultaneousTurnOperations(gameId: String): String? {
         var data: String? = null
         SimpleHttp.sendGetRequest("$serverUrl/simultaneous-turn-operations/$gameId", timeout, authHeader) { success, result, code ->
-            if (success) data = result else if (code != 404) throw Exception("$code $result")
+            if (success) data = result else if (code != 404) throw serverError(code, result)
         }
         return data
     }
@@ -95,7 +98,7 @@ object UncivServerFileStorage : FileStorage {
             if (!success) {
                 when (code) {
                     404 -> throw MultiplayerFileNotFoundException(Exception(result))
-                    else -> throw Exception(result)
+                    else -> throw serverError(code, result)
                 }
             }
         }
@@ -154,6 +157,27 @@ object UncivServerFileStorage : FileStorage {
             }
         }
         return setSuccessful
+    }
+
+    /**
+     * 把服务端的错误响应转成可以直接展示给玩家的异常。
+     *
+     * 大多数接口的错误响应是 JSON（`{"type":"error","message":"…"}`），
+     * 但提示性响应（例如对局被冷归档、正在从网盘恢复）是纯文本，两种都要能读。
+     */
+    private fun serverError(code: Int?, result: String): UncivShowableException {
+        val detail = Exception("$code $result")
+        val json = try {
+            JsonReader().parse(result)
+        } catch (_: Exception) {
+            null
+        }
+        if (json == null || !json.isObject)
+            return UncivShowableException(result, detail)
+        val message = json.get("message")
+        if (message == null || !message.isString)
+            return UncivShowableException(result, detail)
+        return UncivShowableException(message.asString(), detail)
     }
 
     private fun fileUrl(fileName: String) = "$serverUrl/files/$fileName"
