@@ -1706,7 +1706,9 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 
 :::
 ::: details Will not be chosen for new games
-适用范围：Nation
+Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.
+
+适用范围：Nation，Victory
 
 :::
 ::: details Comment [comment]
@@ -1753,13 +1755,13 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Cannot be hurried
@@ -1798,13 +1800,13 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -1862,13 +1864,13 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -2204,13 +2206,13 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion
@@ -2301,13 +2303,13 @@ These resources are removed *when work begins* on the construction. Do not confu
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Excess Food converted to Production when under construction
@@ -2643,13 +2645,13 @@ These resources are removed *when work begins* on the construction. Do not confu
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Excess Food converted to Production when under construction
@@ -3067,6 +3069,8 @@ These resources are removed *when work begins* on the construction. Do not confu
 
 :::
 ::: details Can carry [amount] [mapUnitFilter] units
+Using several of these uniques with complex overlapping filters is supported.
+
 示例："Can carry [3] [Wounded] units"
 
 适用范围：Unit
@@ -3409,13 +3413,13 @@ These resources are removed *when work begins* on the construction. Do not confu
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Not shown on world screen
@@ -3823,13 +3827,13 @@ These resources are removed *when work begins* on the construction. Do not confu
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Must be next to [tileFilter]
@@ -4191,13 +4195,13 @@ These resources are removed *when work begins* on the construction. Do not confu
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Free [unit] found in the ruins
@@ -4464,26 +4468,26 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ## EventChoice uniques（事件选择词条）
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details Unavailable
 用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
 
-适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -4512,6 +4516,30 @@ Allows suppressing specific validation warnings. Errors, deprecation warnings, o
 示例："Comment [comment]"
 
 适用范围：Nation，Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，UnitType，Promotion，Terrain，Improvement，Resource，Ruins，Speed，Difficulty，EventChoice
+
+:::
+## Victory uniques（Victory词条）
+::: note
+
+Uniques that determine whether a victory can be achieved, and by whom
+:::
+
+::: details Only available
+用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
+
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
+
+:::
+::: details Unavailable
+用于与条件配合，如 "Unavailable &lt;after generating a Great Prophet&gt;"。
+
+适用范围：Tech，Policy，FounderBelief，FollowerBelief，Building，Unit，Promotion，Improvement，Ruins，Event，EventChoice，Victory
+
+:::
+::: details Will not be chosen for new games
+Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.
+
+适用范围：Nation，Victory
 
 :::
 ## Conditional uniques（有前提的词条）

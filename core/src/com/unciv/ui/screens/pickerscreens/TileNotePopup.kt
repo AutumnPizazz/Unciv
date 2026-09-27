@@ -49,7 +49,8 @@ internal fun Tile.getTileGroupIcon(size: Float = 80f, viewer: CivView? = null): 
         TileSetStrings(ruleset, UncivGame.Current.settings),
         size * 36f / 54f  // TileGroup normally spills out of its bounding box
     ).apply {
-        isForceVisible = true
+        // Rendered outside the live map: no exploration gate and no fog, while resources still
+        // follow the viewer's tech - hence TileView.forSingleTile(tile, viewer) above.
         isForMapEditorIcon = true
         update(viewer)
     }

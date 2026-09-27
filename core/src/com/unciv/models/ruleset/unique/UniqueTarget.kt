@@ -65,6 +65,7 @@ enum class UniqueTarget(
     ModOptions,
     Event(inheritsFrom = Triggerable),
     EventChoice(inheritsFrom = UnitTriggerable),
+    Victory("Uniques that determine whether a victory can be achieved, and by whom"),
 
     // Modifiers
     Conditional("Modifiers that can be added to other uniques to limit when they will be active",

@@ -15,7 +15,6 @@ import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.civilization.diplomacy.DiplomaticStatus
 import com.unciv.logic.event.EventBus
 import com.unciv.logic.map.HexCoord
-import com.unciv.logic.map.MapVisualization
 import com.unciv.json.json
 import com.unciv.logic.multiplayer.MultiplayerGameUpdated
 import com.unciv.logic.multiplayer.OnlineStatusUpdated
@@ -159,6 +158,9 @@ class WorldScreen(
     var failedUpload = false
         private set
 
+    /** Defers reopening an unfulfilled free-Great-Person choice until the player requests it. */
+    internal var deferFreeGreatPersonPicker = false
+
     /** Selected civilization, used in spectator and replay mode, equals viewingCiv in ordinary games */
     var selectedCiv = viewingCiv
         internal set
@@ -186,7 +188,6 @@ class WorldScreen(
     val mapHolder = WorldMapHolder(this, gameInfo.tileMap)
 
     internal var waitingForAutosave = false
-    private val mapVisualization = MapVisualization(gameInfo, viewingCiv)
 
     // Floating Widgets going counter-clockwise
     internal val topBar = WorldScreenTopBar(this)
@@ -358,20 +359,20 @@ class WorldScreen(
     }
 
     fun openEmpireOverview(category: EmpireOverviewCategories? = null, selection: String = "") {
-        game.pushScreen(EmpireOverviewScreen(selectedGameView.civView, category, selection))
+        game.pushScreen{ EmpireOverviewScreen(selectedGameView.civView, category, selection) }
     }
 
     fun openNewGameScreen() {
         val newGameSetupInfo = GameSetupInfo(gameInfo)
         newGameSetupInfo.mapParameters.reseed()
         val newGameScreen = NewGameScreen(newGameSetupInfo)
-        game.pushScreen(newGameScreen)
+        game.pushScreen{ newGameScreen }
     }
 
     fun openSaveGameScreen() {
         // See #10353 - we don't support locally saving an online multiplayer game
         if (gameInfo.gameParameters.isOnlineMultiplayer) return
-        game.pushScreen(SaveGameScreen(gameInfo))
+        game.pushScreen{ SaveGameScreen(gameInfo) }
     }
 
     private fun addKeyboardPresses() {
@@ -384,7 +385,7 @@ class WorldScreen(
         globalShortcuts.add(KeyboardBinding.EmpireOverviewUnits) { openEmpireOverview(EmpireOverviewCategories.Units) }
         globalShortcuts.add(KeyboardBinding.EmpireOverviewPolitics) { openEmpireOverview(EmpireOverviewCategories.Politics) }
         globalShortcuts.add(KeyboardBinding.EmpireOverviewNotifications) { openEmpireOverview(EmpireOverviewCategories.Notifications) }
-        globalShortcuts.add(KeyboardBinding.VictoryScreen) { game.pushScreen(VictoryScreen(this)) }
+        globalShortcuts.add(KeyboardBinding.VictoryScreen) { game.pushScreen{ VictoryScreen(this) } }
         globalShortcuts.add(KeyboardBinding.EmpireOverviewStats) { openEmpireOverview(EmpireOverviewCategories.Stats) }
         globalShortcuts.add(KeyboardBinding.EmpireOverviewResources) { openEmpireOverview(EmpireOverviewCategories.Resources) }
         globalShortcuts.add(KeyboardBinding.QuickSave) { QuickSave.save(gameInfo, this) }
@@ -392,13 +393,13 @@ class WorldScreen(
         globalShortcuts.add(KeyboardBinding.ViewCapitalCity) {
             val capital = gameInfo.getCurrentPlayerCivilization().getCapital()
             if (capital != null && !mapHolder.setCenterPosition(capital.location.toHexCoord()))
-                game.pushScreen(CityScreen(selectedGameView.getCityView(capital)))
+                game.pushScreen{ CityScreen(selectedGameView.getCityView(capital)) }
         }
         globalShortcuts.add(KeyboardBinding.Options) { // Game Options
             openOptionsPopup { nextTurnButton.update() }
         }
         globalShortcuts.add(KeyboardBinding.SaveGame) { openSaveGameScreen() }    //   Save
-        globalShortcuts.add(KeyboardBinding.LoadGame) { game.pushScreen(LoadGameScreen()) }    //   Load
+        globalShortcuts.add(KeyboardBinding.LoadGame) { game.pushScreen{ LoadGameScreen() } }    //   Load
         globalShortcuts.add(KeyboardBinding.QuitGame) { game.popScreen() }    //   WorldScreen is the last screen, so this quits
         globalShortcuts.add(KeyboardBinding.NewGame) { openNewGameScreen() }
         globalShortcuts.add(KeyboardBinding.MusicPlayer) {
@@ -477,7 +478,7 @@ class WorldScreen(
                     }
                 }.right()
                 loadingGamePopup.addButton("Main menu") {
-                    game.pushScreen(MainMenuScreen())
+                    game.pushScreen{ MainMenuScreen() }
                 }.left()
             }
         }
@@ -491,13 +492,13 @@ class WorldScreen(
         if (uiEnabled) {
             displayTutorialsOnUpdate()
 
-            bottomUnitTable.update()
-
             updateSelectedCiv()
+
+            bottomUnitTable.update()
 
             minimapWrapper.update(getGameViewConsideringForOfWar().civView.getCiv())
             bottomTileInfoTable.civView = getGameViewConsideringForOfWar().civView
-            bottomTileInfoTable.updateTileTable(mapHolder.selectedTile?.getTile())
+            bottomTileInfoTable.updateTileTable(mapHolder.selectedTile)
             bottomTileInfoTable.x = stage.width - bottomTileInfoTable.width
             bottomTileInfoTable.y = if (game.settings.showMinimap) minimapWrapper.height + 5f else 0f
 
@@ -508,14 +509,9 @@ class WorldScreen(
 
         mapHolder.resetArrows()
         if (UncivGame.Current.settings.showUnitMovements) {
-            val allUnits = gameInfo.civilizations.asSequence().flatMap { it.units.getCivUnits() }
-            val allAttacks = allUnits.map { unit -> unit.attacksSinceTurnStart.asSequence().map { attacked -> Triple(unit.civ, unit.getTile().position, attacked.toHexCoord()) } }.flatten() +
-                gameInfo.civilizations.asSequence().flatMap { civInfo -> civInfo.attacksSinceTurnStart.asSequence().map { Triple(civInfo, it.source, it.target) } }
             mapHolder.updateMovementOverlay(
-                allUnits.filter(mapVisualization::isUnitPastVisible).map { selectedGameView.getForeignMapUnitView(it) },
-                allUnits.filter(mapVisualization::isUnitFutureVisible).map { selectedGameView.getForeignMapUnitView(it).tryGetMapUnitView()!! },
-                allAttacks.filter { (attacker, source, target) -> mapVisualization.isAttackVisible(attacker, source, target) }
-                        .map { (_, source, target) -> source to target }
+                getGameViewConsideringForOfWar(),
+                selectedGameView.civView.getUnits().asSequence(),
             )
         }
 
@@ -548,11 +544,11 @@ class WorldScreen(
         if (!hasOpenPopups() && !autoPlay.isAutoPlaying() && isPlayersTurn) {
             when {
                 viewingCiv.shouldShowDiplomaticVotingResults() ->
-                    UncivGame.Current.pushScreen(DiplomaticVoteResultScreen(gameInfo.diplomaticVictoryVotesCast, viewingCiv))
+                    UncivGame.Current.pushScreen{ DiplomaticVoteResultScreen(gameInfo.diplomaticVictoryVotesCast, viewingCiv) }
                 !gameInfo.oneMoreTurnMode && (viewingCiv.isDefeated() || gameInfo.checkForVictory()) ->
-                    game.pushScreen(VictoryScreen(this))
-                viewingCiv.greatPeople.freeGreatPeople > 0 ->
-                    game.pushScreen(GreatPersonPickerScreen(this, viewingCiv))
+                    game.pushScreen{ VictoryScreen(this) }
+                hasPendingFreeGreatPerson() && !deferFreeGreatPersonPicker ->
+                    openGreatPersonPicker()
                 viewingCiv.popupAlerts.any() -> AlertPopup(this, viewingCiv.popupAlerts.first())
                 viewingCiv.tradeRequests.isNotEmpty() -> {
                     // In the meantime this became invalid, perhaps because we accepted previous trades
@@ -577,6 +573,14 @@ class WorldScreen(
         val posZoomFromRight = if (game.settings.showMinimap) minimapWrapper.width
         else bottomTileInfoTable.width
         zoomController.setPosition(stage.width - posZoomFromRight - 10f, 10f, Align.bottomRight)
+    }
+
+    @Readonly
+    internal fun hasPendingFreeGreatPerson() = viewingCiv.greatPeople.freeGreatPeople > 0
+
+    internal fun openGreatPersonPicker() {
+        deferFreeGreatPersonPicker = false
+        game.pushScreen { GreatPersonPickerScreen(this, viewingCiv) }
     }
 
     private fun getCurrentTutorialTask(): Event? {
@@ -1264,16 +1268,14 @@ private fun startNewScreenJob(gameInfo: GameInfo, autoPlay: AutoPlay, autosaveDi
         val newWorldScreen = try {
             UncivGame.Current.loadGame(gameInfo, autoPlay)
         } catch (notAPlayer: UncivShowableException) {
+            val (message) = LoadGameScreen.getLoadExceptionMessage(notAPlayer)
             withGLContext {
-                val (message) = LoadGameScreen.getLoadExceptionMessage(notAPlayer)
-                val mainMenu = UncivGame.Current.goToMainMenu()
-                ToastPopup(message, mainMenu)
+                UncivGame.Current.goToMainMenu { mainMenu -> ToastPopup(message, mainMenu) }
             }
             return@run
         } catch (_: OutOfMemoryError) {
             withGLContext {
-                val mainMenu = UncivGame.Current.goToMainMenu()
-                ToastPopup("Not enough memory on phone to load game!", mainMenu)
+                UncivGame.Current.goToMainMenu { mainMenu -> ToastPopup("Not enough memory on phone to load game!", mainMenu) }
             }
             return@run
         }

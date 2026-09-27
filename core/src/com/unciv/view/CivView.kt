@@ -4,8 +4,13 @@ import com.unciv.Constants
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.ReligionState
+import com.unciv.logic.civilization.managers.VictoryManager
 import com.unciv.logic.map.tile.ImprovementBuildingProblem
 import com.unciv.models.Counter
+import com.unciv.models.Religion
+import com.unciv.models.ruleset.BeliefType
+import com.unciv.models.ruleset.Victory
+import com.unciv.models.ruleset.nation.PersonalityValue
 import com.unciv.models.ruleset.tech.Technology
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.tile.TileResource
@@ -19,21 +24,18 @@ import yairm210.purity.annotations.Readonly
 class CivView(civ: Civilization,
               viewer: Civilization,
               spectatorMode: Boolean = false,
-              val gameView: GameView) : ForeignCivView(civ, viewer, spectatorMode) {
+              gameView: GameView) : ForeignCivView(civ, viewer, spectatorMode, gameView) {
 
     // Navigation
     @Readonly fun getCity(city: City): CityView = gameView.getCityView(city)
-    @Readonly fun cities(): List<CityView> = civ.cities.map { getCity(it) }
-    @Readonly fun getTradeView(otherCiv: ForeignCivView): TradeView = TradeView(civ, otherCiv.unwrap())
+    @Readonly override fun cities(): List<CityView> = civ.cities.map { getCity(it) }
+    @Readonly fun getTradeView(otherCiv: ForeignCivView): TradeView = TradeView(civ, otherCiv.unwrap(), gameView)
 
     // Data retrieval
-    @Readonly fun isResearched(techName: String): Boolean = civ.tech.isResearched(techName)
-
     @Readonly fun hasStatToBuy(stat: Stat, price: Int): Boolean = civ.hasStatToBuy(stat, price)
 
     @Readonly fun canSeeTile(tileView: TileView): Boolean = tileView.unwrap().isVisible(civ)
     @Readonly fun canSeeResource(resource: TileResource?): Boolean = civ.canSeeResource(resource)
-    @Readonly fun isOwnerOf(cityView: ForeignCityView): Boolean = civ === cityView.unwrap().civ
     @Readonly fun canBuildImprovementOn(improvement: TileImprovement, tileView: TileView): Boolean =
         tileView.unwrap().improvementFunctions.canBuildImprovement(improvement, civ.state)
     @Readonly fun getImprovementBuildingProblems(improvement: TileImprovement, tileView: TileView): Sequence<ImprovementBuildingProblem> =
@@ -51,13 +53,18 @@ class CivView(civ: Civilization,
     @Readonly fun isCivConstructionDisabled(name: String): Boolean = name in civ.disabledCityConstructions
 
     @Readonly fun isSpectator(): Boolean = civ.isSpectator()
+    /** `true` when this civ is a human player defeated in a singleplayer game - the map is fully revealed for them to watch the game play out. */
+    @Readonly fun isMapRevealed(): Boolean = !civ.gameInfo.gameParameters.isOnlineMultiplayer && civ.isCurrentPlayer() && civ.isDefeated()
     @Readonly fun hasExplored(tileView: TileView): Boolean = civ.hasExplored(tileView.unwrap())
-    @Readonly fun isDefeated(): Boolean = civ.isDefeated()
     @Readonly fun isCurrentPlayer(): Boolean = civ.isCurrentPlayer()
     @Readonly fun isHuman(): Boolean = civ.isHuman()
     @Readonly fun hasMetAnyMajorCiv(): Boolean = civ.getKnownCivs().any { it != civ && !it.isBarbarian }
+    @Readonly fun getKnownCivs(): List<ForeignCivView> = civ.getKnownCivs().map { gameView.getForeignCivView(it) }.toList()
+    @Readonly fun getPersonalityValue(value: PersonalityValue): Float = civ.getPersonality()[value]
+    @Readonly fun getHappiness(): Int = civ.getHappiness()
 
     // Tech
+    @Readonly fun isResearched(techName: String): Boolean = civ.tech.isResearched(techName)
     @Readonly fun currentTechnologyName(): String? = civ.tech.currentTechnologyName()
     @Readonly fun turnsToTech(techName: String): String = civ.tech.turnsToTech(techName)
     @Readonly fun canResearchTech(): Boolean = civ.tech.canResearchTech()
@@ -78,22 +85,29 @@ class CivView(civ: Civilization,
     @Readonly fun isFoundingReligion(): Boolean = civ.religionManager.religionState == ReligionState.FoundingReligion
     @Readonly fun isEnhancingReligion(): Boolean = civ.religionManager.religionState == ReligionState.EnhancingReligion
     @Readonly fun hasFreeBeliefs(): Boolean = civ.religionManager.hasFreeBeliefs()
+    @Readonly fun getYourReligion(): Religion? = civ.religionManager.religion
+    @Readonly fun getBeliefsToChooseAtFounding(): Counter<BeliefType> = civ.religionManager.getBeliefsToChooseAtFounding()
+    @Readonly fun getBeliefsToChooseAtEnhancing(): Counter<BeliefType> = civ.religionManager.getBeliefsToChooseAtEnhancing()
+    @Readonly fun freeBeliefsAsEnums(): Counter<BeliefType> = civ.religionManager.freeBeliefsAsEnums()
 
-    // Diplomatic victory
+    // Victory
+    /** The victories this civilization can achieve - see [VictoryManager.getAvailableVictories] */
+    @Readonly fun getAvailableVictories(): List<Victory> = civ.victoryManager.getAvailableVictories()
+    /** [getAvailableVictories] minus the ones the ruleset hides from the victory screen */
+    @Readonly fun getVictoriesShownInVictoryScreen(): List<Victory> = civ.victoryManager.getVictoriesShownInVictoryScreen()
     @Readonly fun mayVoteForDiplomaticVictory(): Boolean = civ.mayVoteForDiplomaticVictory()
 
     // Units
     @Readonly fun hasIdleUnits(): Boolean = civ.units.getIdleUnits().any()
     @Readonly fun idleUnitsCount(due: Boolean): Int = civ.units.getIdleUnits().count { it.due == due }
     @Readonly fun dueUnitsCount(): Int = civ.units.getDueUnits().count()
-    fun shouldGoToDueUnit(): Boolean = civ.units.shouldGoToDueUnit()
-    @Readonly fun unitCount(): Int = civ.units.getCivUnitsSize()
-    @Readonly fun cityCount(): Int = civ.cities.size
     @Readonly fun hasMovedAutomatedUnitsThisTurn(): Boolean = civ.hasMovedAutomatedUnits
     @Readonly fun hasUnitsReadyToAutomate(): Boolean = civ.units.getCivUnits().any {
         it.currentMovement > Constants.minimumMovementEpsilon
             && (it.isAutomated() || it.isExploring() || it.isMoving())
     }
+    /** [civ]'s own units, wrapped for the viewer's own use (e.g. movement-plan arrows). */
+    @Readonly fun getUnits(): List<MapUnitView> = civ.units.getCivUnits().map { gameView.getMapUnitView(it) }.toList()
 
     @Readonly fun getStatMapForNextTurn(): StatMap = civ.stats.getStatMapForNextTurn()
     @Readonly fun getHappinessBreakdown(): HashMap<String, Float> = civ.stats.getHappinessBreakdown()
@@ -102,13 +116,15 @@ class CivView(civ: Civilization,
     @Readonly fun calculateScoreBreakdown(): HashMap<String, Double> = civ.calculateScoreBreakdown()
 
     // Actions
-    fun tryDisableCivConstruction(name: String) {
+    fun tryDisableCivConstruction(name: String): Boolean {
         civ.cities.forEach { it.disabledConstructions.add(name) }
         civ.disabledCityConstructions.add(name)
+        return true
     }
-    fun tryEnableCivConstruction(name: String) {
+    fun tryEnableCivConstruction(name: String): Boolean {
         civ.cities.forEach { it.disabledConstructions.remove(name) }
         civ.disabledCityConstructions.remove(name)
+        return true
     }
     fun trySetGoldPercentConvertedToScience(value: Float): Boolean {
         civ.tech.goldPercentConvertedToScience = value

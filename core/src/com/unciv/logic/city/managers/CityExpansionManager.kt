@@ -1,6 +1,5 @@
 package com.unciv.logic.city.managers
 
-import com.unciv.Constants
 import com.unciv.logic.IsPartOfGameInfoSerialization
 import com.unciv.logic.automation.Automation
 import com.unciv.logic.city.City
@@ -51,9 +50,10 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
         if (city.civ.isCityState)
             cultureToNextTile *= 1.5f   // City states grow slower, perhaps 150% cost?
 
-        for (unique in city.getMatchingUniques(UniqueType.BorderGrowthPercentage))
+        city.forEachMatchingUnique(UniqueType.BorderGrowthPercentage) { unique ->
             if (city.matchesFilter(unique.params[1]))
                 cultureToNextTile *= unique.params[0].toPercent()
+        }
 
         return cultureToNextTile.roundToInt()
     }
@@ -95,7 +95,7 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
 
         cost *= city.civ.gameInfo.speed.goldCostModifier
 
-        for (unique in city.getMatchingUniques(UniqueType.TileCostPercentage)) {
+        city.forEachMatchingUnique(UniqueType.TileCostPercentage) { unique -> 
             if (city.matchesFilter(unique.params[1]))
                 cost *= unique.params[0].toPercent()
         }
@@ -129,10 +129,9 @@ class CityExpansionManager : IsPartOfGameInfoSerialization {
         // It becomes an invisible city and weird shit starts happening
         takeOwnership(city.getCenterTile())
 
-        for (tile in city.getCenterTile().getTilesInDistance(1)
-                .filter { it.getCity() == null && it.improvementCreatedByCreatesOneImprovement == null }) {
-            // can't take ownership of owned tiles (by other cities)
-            // and can't take ownership of tiles with CreatesOneImprovement improvements
+        // can't take ownership of owned tiles (by other cities)
+        // and can't take ownership of tiles with CreatesOneImprovement improvements
+        city.getCenterTile().forEachTileInDistance(1, { it.getCity() == null && it.improvementCreatedByCreatesOneImprovement == null }) { tile ->
             takeOwnership(tile)
         }
     }

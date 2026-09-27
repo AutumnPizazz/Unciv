@@ -132,7 +132,7 @@ class NaturalWonderGenerator(
                 for (tileToConvert in list) {
                     placeNaturalWonder(wonder, tileToConvert)
                     // Add all tiles within a certain distance to a blacklist so NW:s don't cluster
-                    blockedTiles.addAll(tileToConvert.getTilesInDistance(tileToConvert.tileMap.mapParameters.mapSize.height / 5))
+                    tileToConvert.forEachTileInDistance(tileToConvert.tileMap.mapParameters.mapSize.height / 5) { blockedTiles.add(it) }
                 }
 
                 // 对称模式:把整组奇观旋转到轨道各扇区(含邻格转化与黑名单)

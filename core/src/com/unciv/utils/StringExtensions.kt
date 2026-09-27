@@ -25,5 +25,6 @@ fun Float.toCleanNumber(): String =
     if (this % 1f == 0f) toInt().toString() else toString()
 
 /** Determines if we're running from a jar, given an instance of any Unciv-specific class.
+ *  This actually tests against the `manifest` in our `desktop:dist` gradle task - so it's `false` on Android.
  *  (Not a String extension, but as long as we don't have a 'generic' extension file...) */
 fun isRunFromJar(obj: Any): Boolean = obj::class.java.`package`.specificationVersion != null

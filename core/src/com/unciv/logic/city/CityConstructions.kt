@@ -31,7 +31,6 @@ import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.ruleset.unit.BaseUnit
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
-import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.toPercent
 import com.unciv.ui.components.fonts.Fonts
 import com.unciv.ui.screens.civilopediascreen.CivilopediaCategories
@@ -111,7 +110,7 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         toReturn.currentConstructionIsUserSet = currentConstructionIsUserSet
         toReturn.constructionQueue.addAll(constructionQueue)
         toReturn.productionOverflow = productionOverflow
-        toReturn.freeBuildingsProvidedFromThisCity.putAll(freeBuildingsProvidedFromThisCity)
+        toReturn.freeBuildingsProvidedFromThisCity.putAll(freeBuildingsProvidedFromThisCity.mapValues { it.value.toHashSet() })
         return toReturn
     }
 
@@ -156,44 +155,6 @@ class CityConstructions : IsPartOfGameInfoSerialization {
         }
 
         return maintenanceCost
-    }
-
-    @Readonly
-    fun getCityProductionTextForCityButton(): String {
-        val currentConstructionSnapshot = currentConstructionName() // See below
-        var result = currentConstructionSnapshot.tr(true)
-        if (currentConstructionSnapshot.isNotEmpty()) {
-            val construction = getConstruction(currentConstructionSnapshot) as? PerpetualConstruction
-            result += construction?.getProductionTooltip(city)
-                ?: getTurnsToConstructionString(currentConstructionSnapshot)
-        }
-        return result
-    }
-
-    /** @param constructionName needs to be a non-perpetual construction, else an empty string is returned */
-    @Readonly
-    internal fun getTurnsToConstructionString(constructionName: String, useStoredProduction: Boolean = true) =
-        getTurnsToConstructionString(getConstruction(constructionName), useStoredProduction)
-
-    /** @param construction needs to be a non-perpetual construction, else an empty string is returned */
-    @Readonly
-    internal fun getTurnsToConstructionString(construction: IConstruction, useStoredProduction: Boolean = true): String {
-        if (construction !is INonPerpetualConstruction) return ""   // shouldn't happen
-        val cost = construction.getProductionCost(city.civ, city)
-        val turnsToConstruction = turnsToConstruction(construction.name, useStoredProduction)
-        val currentProgress = if (useStoredProduction) getWorkDone(construction.name) else 0
-        val lines = ArrayList<String>()
-        val buildable = !construction.getMatchingUniques(UniqueType.Unbuildable)
-            .any { it.conditionalsApply(city.state) }
-        if (buildable)
-            lines += (if (currentProgress == 0) "" else "$currentProgress/") +
-                    "$cost${Fonts.production} $turnsToConstruction${Fonts.turn}"
-        val otherStats = Stat.entries.filter {
-            (it != Stat.Gold || !buildable) &&  // Don't show rush cost for consistency
-            construction.canBePurchasedWithStat(city, it)
-        }.joinToString(" / ") { "${construction.getStatBuyCost(city, it)}${it.character}" }
-        if (otherStats.isNotEmpty()) lines += otherStats
-        return lines.joinToString("\n", "\n")
     }
 
     @Readonly
@@ -820,13 +781,15 @@ class CityConstructions : IsPartOfGameInfoSerialization {
             }
         }
 
-        for (unique in city.getTriggeredUniques(UniqueType.TriggerUponConstructingBuilding, stateForConditionals,
-                { building.matchesFilter(it.params[0], stateForConditionals) }))
+        city.forEachTriggeredUnique(UniqueType.TriggerUponConstructingBuilding, stateForConditionals,
+                { building.matchesFilter(it.params[0], stateForConditionals) }) { unique ->
             UniqueTriggerActivation.triggerUnique(unique, city, triggerNotificationText = triggerNotificationText)
+        }
 
-        for (unique in city.getTriggeredUniques(UniqueType.TriggerUponConstructingBuildingCityFilter, stateForConditionals,
-                { building.matchesFilter(it.params[0], stateForConditionals) && city.matchesFilter(it.params[1]) }))
+        city.forEachTriggeredUnique(UniqueType.TriggerUponConstructingBuildingCityFilter, stateForConditionals,
+                { building.matchesFilter(it.params[0], stateForConditionals) && city.matchesFilter(it.params[1]) }) { unique ->
             UniqueTriggerActivation.triggerUnique(unique, city, triggerNotificationText = triggerNotificationText)
+        }
     }
 
     fun removeBuilding(buildingName: String) {

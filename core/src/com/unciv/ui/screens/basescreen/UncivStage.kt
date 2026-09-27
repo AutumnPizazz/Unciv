@@ -3,11 +3,14 @@ package com.unciv.ui.screens.basescreen
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.TextureArraySpriteBatch
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.viewport.Viewport
+import com.unciv.UncivGame
 import com.unciv.logic.event.Event
 import com.unciv.logic.event.EventBus
+import com.unciv.ui.components.input.VirtualMouseButtonKeys
 import com.unciv.ui.crashhandling.wrapCrashHandling
 import com.unciv.ui.crashhandling.wrapCrashHandlingUnit
 import com.unciv.ui.screens.basescreen.BaseScreen.Companion.enableSceneDebug
@@ -18,7 +21,17 @@ import com.unciv.utils.Log
 class UncivStage(viewport: Viewport) : Stage(viewport, getBatch()) {
 
     companion object {
-        fun getBatch(size: Int=1000): Batch = SpriteBatch(size)
+        /** Defaults to [TextureArraySpriteBatch] to minimize GL rebinds/texture swaps between draw calls,
+         *  falling back to vanilla [SpriteBatch] on devices that don't support texture arrays,
+         *  or when the user disabled it via [com.unciv.models.metadata.GameSettings.disableNewerRendering]. */
+        fun getBatch(size: Int = 1000): Batch {
+            if (UncivGame.Current.settings.disableNewerRendering) return SpriteBatch(size)
+            return try {
+                TextureArraySpriteBatch(size)
+            } catch (ignored: Exception) {
+                SpriteBatch(size)
+            }
+        }
     }
 
     /**
@@ -88,14 +101,17 @@ class UncivStage(viewport: Viewport) : Stage(viewport, getBatch()) {
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         mouseOverDebugImpl?.touchDown(this, screenX, screenY, pointer, button)
+        if (VirtualMouseButtonKeys.fromButton(button)?.keyDown() == true) return true
         return { super.touchDown(screenX, screenY, pointer, button) }.wrapCrashHandling()() ?: true
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int) =
             { super.touchDragged(screenX, screenY, pointer) }.wrapCrashHandling()() ?: true
 
-    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int) =
-            { super.touchUp(screenX, screenY, pointer, button) }.wrapCrashHandling()() ?: true
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        if (VirtualMouseButtonKeys.fromButton(button)?.keyUp() == true) return true
+        return { super.touchUp(screenX, screenY, pointer, button) }.wrapCrashHandling()() ?: true
+    }
 
     override fun mouseMoved(screenX: Int, screenY: Int) =
             { super.mouseMoved(screenX, screenY) }.wrapCrashHandling()() ?: true

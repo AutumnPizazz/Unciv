@@ -395,7 +395,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
                         runSimultaneousDiplomacyChange {
                             viewingCiv.addGold(-200)
                             improvableTile.stopWorkingOnImprovement()
-                            improvableTile.setImprovement(tileImprovement)
+                            improvableTile.setImprovement(tileImprovement, otherCiv)
                             otherCiv.cache.updateCivResources()
                         }
                         diplomacyScreen.rightSideTable.clear()

@@ -6,11 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.unciv.logic.city.City
 import com.unciv.logic.files.UnitNotesManager
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
-import com.unciv.models.Spy
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.addRoundCloseButton
 import com.unciv.ui.components.extensions.addSeparator
@@ -34,7 +32,9 @@ import com.unciv.ui.screens.worldscreen.unit.presenter.SpyPresenter
 import com.unciv.ui.screens.worldscreen.unit.presenter.SummaryPresenter
 import com.unciv.ui.screens.worldscreen.unit.presenter.UnitPresenter
 import com.unciv.view.ForeignCityView
+import com.unciv.view.ForeignMapUnitView
 import com.unciv.view.MapUnitView
+import com.unciv.view.SpyView
 import com.unciv.view.TileView
 import yairm210.purity.annotations.Readonly
 import java.awt.Label
@@ -81,7 +81,7 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
     val selectedCity: ForeignCityView?
         get() = (presenter as? CityPresenter)?.selectedCity
 
-    val selectedSpy: Spy?
+    val selectedSpy: SpyView?
         get() = (presenter as? SpyPresenter)?.selectedSpy
 
     val selectedUnits: List<MapUnitView> by unitPresenter::selectedUnits
@@ -155,13 +155,13 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         resetUnitTable()
     }
 
-    fun selectSpy(spy: Spy?) {
+    fun selectSpy(spyView: SpyView?) {
         presenter = spyPresenter
-        spyPresenter.selectSpy(spy)
+        spyPresenter.selectSpy(spyView)
         resetUnitTable()
     }
 
-    fun citySelected(city: City): Boolean {
+    fun citySelected(city: ForeignCityView): Boolean {
         presenter = cityPresenter
         return cityPresenter.selectCity(city).also {
             resetUnitTable()
@@ -172,9 +172,13 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
 
     fun update() {
         closeButton.isVisible = true
-        
+
         if (!presenter.shouldBeShown()) presenter = summaryPresenter
         presenter.update()
+
+        // With no units of our own (e.g. spectators, or a civ that lost all units), the summary
+        // (idle/skipping units) is meaningless - hide the whole table instead of showing an empty round artifact.
+        isVisible = presenter != summaryPresenter || worldScreen.selectedGameView.civView.getUnits().isNotEmpty()
 
         // more efficient to do this check once for both
         if (worldScreen.selectedGameView.civView.hasIdleUnits()) {
@@ -213,23 +217,21 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
 
     fun tileSelected(selectedTileView: TileView, forceSelectUnitView: MapUnitView? = null) {
         if (!selectedTileView.isExplored()) return // We don't know anything that exists here!
-        val selectedTile = selectedTileView.getTile()
 
-        val previouslySelectedUnit = selectedUnit?.getUnit()
+        val previouslySelectedUnit = selectedUnit
         val previousNumberOfSelectedUnits = selectedUnits.size
-        val curUnit = selectedUnit?.getUnit()
+        val curUnit = selectedUnit
 
         // Do not select a different unit or city center if we click on it to swap our current unit to it
-        if (selectedUnitIsSwapping && curUnit != null && curUnit.movement.canUnitSwapTo(selectedTile)) return
+        if (selectedUnitIsSwapping && curUnit != null && curUnit.canSwapTo(selectedTileView)) return
         // Do no select a different unit while in Air Sweep mode
         if (curUnit != null && curUnit.isPreparingAirSweep()) return
 
-        val selectedUnitsRaw = selectedUnits.map { it.getUnit() }
         val civView = worldScreen.selectedGameView.civView
 
         @Readonly
-        fun MapUnit.isEligible(): Boolean = (this.civ == civView.getCiv() || civView.isSpectator()) 
-                && this !in selectedUnitsRaw
+        fun ForeignMapUnitView.isEligible(): Boolean = (this.isOwnedByViewer() || civView.isSpectator())
+                && this !in selectedUnits
 
         // This is the Civ 5 Order of selection:
         // 1. City
@@ -245,13 +247,17 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
         // 4. Other civilian (Workers)
         // 5. None (Deselect)
 
-        val civUnit = selectedTile.civilianUnit
-        val milUnit = selectedTile.militaryUnit
+        val civUnit = selectedTileView.civilianUnit
+        val milUnit = selectedTileView.militaryUnit
+
+        // CN note mode works on the model layer, so resolve the selected tile back to its model Tile
+        val selectedTile = worldScreen.gameInfo.tileMap[selectedTileView.position()]
 
         // Note mode: clicking a unit opens note editor instead of selecting it
         if (worldScreen.game.settings.showUnitNotes) {
             val visibleUnits = listOfNotNull(milUnit, civUnit)
-                .filter { selectedTile.isVisible(worldScreen.selectedGameView.civView.getCiv()) }
+                .filter { selectedTile.isVisible(civView.getCiv()) }
+                .map { it.getUnit() }
             when (visibleUnits.size) {
                 0 -> {} // no visible unit, fall through to tile note check
                 1 -> { UnitNotePopup(worldScreen, visibleUnits[0], worldScreen.gameInfo) {}; return }
@@ -261,47 +267,45 @@ class UnitTable(val worldScreen: WorldScreen) : Table() {
 
         // Tile notes (map pins): clicking a tile opens tile note editor
         if (worldScreen.game.settings.showTileNotes) {
-            val tile = selectedTile
-            if (tile.isVisible(worldScreen.selectedGameView.civView.getCiv())) {
-                TileNotePopup(worldScreen, tile, worldScreen.gameInfo) {}
+            if (selectedTile.isVisible(civView.getCiv())) {
+                TileNotePopup(worldScreen, selectedTile, worldScreen.gameInfo) {}
                 return
             }
         }
 
-        val nextUnit: MapUnit?
+        val nextUnitView: ForeignMapUnitView?
         val priorityUnit = when {
             milUnit != null && milUnit.isEligible() -> milUnit
             civUnit != null && civUnit.isEligible() -> civUnit
             else -> null
         }
 
-        nextUnit = when {
+        nextUnitView = when {
             curUnit == null -> priorityUnit
             curUnit == civUnit && milUnit != null && milUnit.isEligible() -> null
             curUnit == milUnit && civUnit != null && civUnit.isEligible() -> civUnit
             else -> priorityUnit
         }
 
-
-        // Cache the city once - selectedTile is a live, shared Tile that can be mutated by
+        // Cache the city once - the underlying tile is live, shared state that can be mutated by
         // the next-turn thread (e.g. city razed) between the isCityCenter() check and its use
-        val selectedTileCity = selectedTile.getCity()
-        val isCitySelected = selectedTile.isCityCenter()
+        val selectedTileCity = selectedTileView.owningCity()
+        val isCitySelected = selectedTileView.isCityCenter()
             && selectedTileCity != null
-            && (selectedTile.getOwner() == worldScreen.selectedGameView.civView.getCiv() || worldScreen.selectedGameView.civView.isSpectator())
+            && (selectedTileCity.isOwnedByViewer() || civView.isSpectator())
             && !selectedUnitIsConnectingRoad
         when {
             forceSelectUnitView != null -> selectUnit(forceSelectUnitView)
             isCitySelected -> citySelected(selectedTileCity)
-            nextUnit != null -> selectUnit(worldScreen.selectedGameView.getForeignMapUnitView(nextUnit).tryGetMapUnitView()!!, Gdx.input.isShiftKeyPressed())
+            nextUnitView != null -> selectUnit(nextUnitView.tryGetMapUnitView()!!, Gdx.input.isShiftKeyPressed())
             // toggle selection if same unit is clicked again by player
-            selectedTile == previouslySelectedUnit?.currentTile -> {
+            selectedTileView == previouslySelectedUnit?.getTile() -> {
                 selectUnit()
                 shouldUpdate = true
             }
         }
 
-        if (selectedUnit?.getUnit() != previouslySelectedUnit || selectedUnits.size != previousNumberOfSelectedUnits)
+        if (selectedUnit != previouslySelectedUnit || selectedUnits.size != previousNumberOfSelectedUnits)
             shouldUpdate = true
     }
 

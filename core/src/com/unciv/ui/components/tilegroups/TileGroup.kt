@@ -10,7 +10,6 @@ import com.unciv.view.TileMapView
 import com.unciv.view.TileView
 import com.unciv.logic.map.tile.Tile
 import com.unciv.ui.components.tilegroups.layers.*
-import com.unciv.utils.DebugUtils
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -23,8 +22,6 @@ open class TileGroup(
     /** A var because if we're spectator, the viewing civ can change as we select different civs to view as */
     var tileView: TileView = tileView
         private set
-
-    val tile: Tile get() = tileView.getTile()
     /*
         Layers (reordered in TileGroupMap):
         1) Terrain
@@ -49,7 +46,9 @@ open class TileGroup(
     val hexagonImageOriginY = sqrt((hexagonImageWidth / 2f).pow(2) - (hexagonImageWidth / 4f).pow(2))
     val hexagonImagePosition = Pair(-hexagonImageOriginX / 3f, -hexagonImageOriginY / 4f)
 
-    var isForceVisible = DebugUtils.VISIBLE_MAP
+    /** Set for icons rendered outside the live map (map editor, civilopedia, tile-note/map-pin previews):
+     *  they have no map context, so they are drawn regardless of exploration, fog or yields.
+     *  Resource visibility still follows the [TileView]'s viewer. */
     var isForMapEditorIcon = false
 
     /** Cached tile note text for rendering by [TileGroupMap] */
@@ -89,7 +88,8 @@ open class TileGroup(
         layerTerrain.update(null)
     }
 
-    fun isViewable(viewingCiv: CivView) = isForceVisible
+    fun isViewable(viewingCiv: CivView) = isForMapEditorIcon
+            || tileView.isForceVisible()
             || viewingCiv.canSeeTile(tileView)
             || viewingCiv.isSpectator()
 
@@ -112,11 +112,13 @@ open class TileGroup(
     open fun update(viewingCiv: CivView? = null) {
         if (viewingCiv == null) {
             if (tileView.getCivView() != null)
-                tileView = TileMapView(tile.tileMap, null).getTile(tile)
+                throw Exception("Shouldn't be able to get from civ-view to null-view -" +
+                        " civ-view is for games, null-view is for map editor and single-tile visualization!")
         } else {
             val newTileMapView = viewingCiv.gameView.tileMapView
-            if (tileView.tileMapView !== newTileMapView)
-                tileView = newTileMapView.getTile(tile)
+            if (tileView.tileMapView !== newTileMapView) 
+                // We switched viewers - e.g. spectator changing who it's spectating as
+                tileView = viewingCiv.gameView.getTile(tileView)
         }
         layerMisc.removeHexOutline()
         layerMisc.hideTerrainOverlay()
@@ -124,8 +126,9 @@ open class TileGroup(
         layerOverlay.hideCrosshair()
         layerOverlay.hideGoodCityLocationIndicator()
 
-        // Do not update layers if tile is not explored by viewing player
-        if (viewingCiv != null && !(isForceVisible || viewingCiv.hasExplored(tileView))) {
+        // Do not update layers if tile is not explored by viewing player,
+        // except for icons rendered outside the map ([isForMapEditorIcon])
+        if (viewingCiv != null && !(isForMapEditorIcon || tileView.isForceVisible() || viewingCiv.hasExplored(tileView))) {
             if (tileView.getVisibleNeighbors().none()) {
                 // No explored neighbors - hide all layers
                 setAllLayersVisible(false)
@@ -150,7 +153,8 @@ open class TileGroup(
         tileNoteText = null
         if (!UncivGame.Current.settings.showTileNotes) return
         val gameInfo = UncivGame.Current.gameInfo ?: return
-        tileNoteText = UnitNotesManager.getTileNote(gameInfo, tile.position.x, tile.position.y)
+        val position = tileView.position()
+        tileNoteText = UnitNotesManager.getTileNote(gameInfo, position.x, position.y)
     }
 
     override fun draw(batch: Batch?, parentAlpha: Float) { super.draw(batch, parentAlpha) }

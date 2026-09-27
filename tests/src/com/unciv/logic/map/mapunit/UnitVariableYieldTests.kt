@@ -113,7 +113,7 @@ class UnitVariableYieldTests {
         fun checkErrors(uniqueText: String): Boolean {
             val unique = Unique(uniqueText)
             val errors = UniqueValidator(f.game.ruleset)
-                .checkUnique(unique, false, null, UniqueValidator.allParameterSeverities)
+                .checkUnique(unique, null, UniqueValidator.allParameterSeverities)
             return errors.isNotOK()
         }
 

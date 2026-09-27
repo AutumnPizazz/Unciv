@@ -128,9 +128,7 @@ enum class UniqueType(
     CarryOverFood("[amount]% Food is carried over after population increases [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief,
         docDescription = ADDITIVE_BONUS_EXPLANATION, docDescriptionZh = ADDITIVE_BONUS_EXPLANATION_ZH),
     FoodConsumptionByPopulation("[relativeAmount]% Food consumption by [populationFilter] [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-    @Deprecated("As of 4.19.10", ReplaceWith("[relativeAmount]% Food consumption by [Specialists] [cityFilter]"), DeprecationLevel.WARNING)
-    FoodConsumptionBySpecialists("[relativeAmount]% Food consumption by specialists [cityFilter]", UniqueTarget.Global, UniqueTarget.FollowerBelief),
-
+    
     /// Happiness
     UnhappinessFromCitiesPercentage("[relativeAmount]% unhappiness from the number of cities", UniqueTarget.Global),
     // Todo: capitalization of 'Unhappiness' -> 'unhappiness'
@@ -352,10 +350,12 @@ enum class UniqueType(
     OnlyAvailable("Only available", UniqueTarget.Unit, UniqueTarget.Building, UniqueTarget.Improvement,
         UniqueTarget.Policy, UniqueTarget.Tech, UniqueTarget.Promotion, UniqueTarget.Ruins,
         UniqueTarget.FollowerBelief, UniqueTarget.FounderBelief, UniqueTarget.Event, UniqueTarget.EventChoice,
+        UniqueTarget.Victory,
         docDescription = "Meant to be used together with conditionals, like \"Only available <after adopting [policy]> <while the empire is happy>\". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen", docDescriptionZh = "用于与条件配合，如 \"Only available <after adopting [policy]> <while the empire is happy>\"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen"),
     Unavailable("Unavailable", UniqueTarget.Unit, UniqueTarget.Building, UniqueTarget.Improvement,
         UniqueTarget.Policy, UniqueTarget.Tech, UniqueTarget.Promotion, UniqueTarget.Ruins,
         UniqueTarget.FollowerBelief, UniqueTarget.FounderBelief, UniqueTarget.Event, UniqueTarget.EventChoice,
+        UniqueTarget.Victory,
         docDescription = "Meant to be used together with conditionals, like \"Unavailable <after generating a Great Prophet>\".", docDescriptionZh = "用于与条件配合，如 \"Unavailable <after generating a Great Prophet>\"。"),
     CannotBuildBuildings("Cannot build [buildingFilter] buildings", UniqueTarget.Global),
     ConvertFoodToProductionWhenConstructed("Excess Food converted to Production when under construction", UniqueTarget.Building, UniqueTarget.Unit),
@@ -553,10 +553,12 @@ enum class UniqueType(
     CanSeeOverObstacles("Can see over obstacles", UniqueTarget.Unit),
 
     // Carrying
-    CarryAirUnits("Can carry [amount] [mapUnitFilter] units", UniqueTarget.Unit),
+    CarryAirUnits("Can carry [amount] [mapUnitFilter] units", UniqueTarget.Unit,
+        docDescription = "Using several of these uniques with complex overlapping filters is supported."),
     CarryExtraAirUnits("Can carry [amount] extra [mapUnitFilter] units", UniqueTarget.Unit, UniqueTarget.Building,
         docDescription = "For buildings, supports using `Air` for `mapUnitFilter` to increase city air unit capacity.", docDescriptionZh = "对建筑，支持用 `Air` 作为 `mapUnitFilter` 以增加城市空中单位容量。"),
     CannotBeCarriedBy("Cannot be carried by [mapUnitFilter] units", UniqueTarget.Unit),
+
     // Interception
     ChanceInterceptAirAttacks("[relativeAmount]% chance to intercept air attacks", UniqueTarget.Unit),
     DamageFromInterceptionReduced("Damage taken from interception reduced by [relativeAmount]%", UniqueTarget.Unit),
@@ -1191,7 +1193,8 @@ enum class UniqueType(
             "Note that when Civilopedia runs from main menu, conditionals will be ignored.", docDescriptionZh = "支持只需要 Game 作为上下文的条件。\n大多数条件至少需要一个 Civilization，因此**不**会生效。\n注意：从主菜单运行文明百科时，条件将被忽略。"),
     ShowsWhenUnbuilable("Shown while unbuilable", UniqueTarget.Building, UniqueTarget.Unit, flags = UniqueFlag.setOfHiddenToUsers),
     ModifierHiddenFromUsers("hidden from users", UniqueTarget.MetaModifier),
-    WillNotBeChosenForNewGames("Will not be chosen for new games", UniqueTarget.Nation),
+    WillNotBeChosenForNewGames("Will not be chosen for new games", UniqueTarget.Nation, UniqueTarget.Victory,
+        docDescription = "Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against."),
 
     ForEveryCountable("for every [countable]", UniqueTarget.MetaModifier,
         docDescription = "Works for positive numbers only", docDescriptionZh = "仅适用于正数"),

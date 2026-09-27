@@ -59,7 +59,7 @@ class VictoryScreen(
         },
         Illustration('I') {
             override fun getContent(parent: VictoryScreen) = VictoryScreenIllustrations(parent, parent.worldScreen)
-            override fun isHidden(playerCiv: Civilization) = !VictoryScreenIllustrations.enablePage(playerCiv.gameInfo)
+            override fun isHidden(playerCiv: Civilization) = !VictoryScreenIllustrations.enablePage(playerCiv)
         },
         Demographics('D', allowAsSecret = true) {
             override fun getContent(parent: VictoryScreen) = VictoryScreenDemographics(parent.worldScreen)
@@ -204,7 +204,7 @@ class VictoryScreen(
         rightSideButton.onClick {
             val newGameSetupInfo = GameSetupInfo(gameInfo)
             newGameSetupInfo.mapParameters.reseed()
-            game.pushScreen(NewGameScreen(newGameSetupInfo))
+            game.pushScreen{ NewGameScreen(newGameSetupInfo) }
         }
 
         closeButton.setText("One more turn...!".tr())

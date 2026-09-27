@@ -27,6 +27,7 @@ import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.ui.screens.civilopediascreen.FormattedLine.IconDisplay
 import com.unciv.ui.screens.civilopediascreen.MarkupRenderer
 import com.unciv.view.CityView
+import com.unciv.view.TileView
 import kotlin.math.roundToInt
 
 class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
@@ -42,9 +43,9 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         background = BaseScreen.skinStrings.getUiBackground("CityScreen/CityScreenTileTable/Background", tintColor = Color.WHITE)
     }
 
-    fun update(selectedTile: Tile?) {
+    fun update(tileView: TileView?) {
         innerTable.clear()
-        if (selectedTile == null) {
+        if (tileView == null) {
             isVisible = false
             return
         }
@@ -61,8 +62,8 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
             autoLockCell.touchable = Touchable.enabled
             autoLockCell.onActivation {
                 cityView.city.autoLockTiles = !cityView.city.autoLockTiles
-                update(selectedTile)
-                cityScreen.update()
+                update(tileView)
+                cityScreen.updateAsync()
             }
         }
         autoLockCell.background = BaseScreen.skinStrings.getUiBackground(
@@ -71,13 +72,13 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         )
         innerTable.add(autoLockCell).padBottom(5f).row()
 
-        val tileView = cityView.tileView(selectedTile)
+        // CN claim-tile feature works on the model tile (see CityView.getTile)
+        val selectedTile = cityView.getTile(tileView)
         val stats = tileView.getTileStats(cityView.viewingCiv(), cityView)
         innerTable.pad(5f)
 
         innerTable.add(MarkupRenderer.render(TileDescription.toMarkup(
             tileView,
-            cityView.viewingCiv(),
             hideUnits = cityScreen.isSpying,
             spyCity = if (cityScreen.isSpying) cityView else null
         ), iconDisplay = IconDisplay.None) {
@@ -122,8 +123,8 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
                 val unlockButton = "Unlock".toTextButton()
                 unlockButton.onClick {
                     cityView.tryUnlockTile(tileView)
-                    update(selectedTile)
-                    cityScreen.update()
+                    update(tileView)
+                    cityScreen.updateAsync()
                 }
                 if (!cityScreen.canChangeState) unlockButton.disable()
                 innerTable.add(unlockButton).padTop(5f).row()
@@ -131,8 +132,8 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
                 val lockButton = "Lock".toTextButton()
                 lockButton.onClick {
                     cityView.tryLockTile(tileView)
-                    update(selectedTile)
-                    cityScreen.update()
+                    update(tileView)
+                    cityScreen.updateAsync()
                 }
                 if (!cityScreen.canChangeState) lockButton.disable()
                 innerTable.add(lockButton).padTop(5f).row()
@@ -140,11 +141,11 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         }
 
         if (tileView.isCityCenter()) {
-            val otherCity = tileView.owningCity()
-            if (otherCity != null && otherCity != cityView && otherCity.isSameCivAs(cityView) && !cityScreen.isSpying)
-                innerTable.add("Move to city".toTextButton().onClick { cityScreen.game.replaceCurrentScreen(
-                    CityScreen(cityView.gameView.getCityView(otherCity.getCity()))
-                ) })
+            val otherCityView = tileView.owningCity()?.tryGetCityView()
+            if (otherCityView != null && otherCityView != cityView)
+                innerTable.add("Move to city".toTextButton().onClick {
+                    cityScreen.game.replaceCurrentScreen { CityScreen(otherCityView) }
+                })
         }
 
         innerTable.pack()
@@ -219,7 +220,7 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
                     break
             }
             SoundPlayer.play(Stat.Gold.purchaseSound)
-            cityScreen.game.replaceCurrentScreen(CityScreen(cityView)) // update doesn't redo the tiles
+            cityScreen.game.replaceCurrentScreen { CityScreen(cityView) } // update doesn't redo the tiles
         }
     }
 }

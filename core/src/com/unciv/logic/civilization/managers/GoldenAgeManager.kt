@@ -44,8 +44,9 @@ class GoldenAgeManager : IsPartOfGameInfoSerialization {
     @Readonly
     fun calculateGoldenAgeLength(unmodifiedNumberOfTurns: Int): Int {
         var turnsToGoldenAge = unmodifiedNumberOfTurns.toFloat()
-        for (unique in civInfo.getMatchingUniques(UniqueType.GoldenAgeLength))
+        civInfo.forEachMatchingUnique(UniqueType.GoldenAgeLength) { unique ->
             turnsToGoldenAge *= unique.params[0].toPercent()
+        }
         turnsToGoldenAge *= civInfo.gameInfo.speed.goldenAgeLengthModifier
         return turnsToGoldenAge.toInt()
     }
@@ -57,8 +58,9 @@ class GoldenAgeManager : IsPartOfGameInfoSerialization {
             NotificationCategory.General, "StatIcons/Happiness")
         civInfo.popupAlerts.add(PopupAlert(AlertType.GoldenAge, ""))
 
-        for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUponEnteringGoldenAge))
+        civInfo.forEachTriggeredUnique(UniqueType.TriggerUponEnteringGoldenAge, ignoreCities = false) { unique ->
             UniqueTriggerActivation.triggerUnique(unique, civInfo)
+        }
         //Golden Age can happen mid turn with Great Artist effects
         for (city in civInfo.cities)
             city.cityStats.update()
@@ -74,7 +76,7 @@ class GoldenAgeManager : IsPartOfGameInfoSerialization {
                 endGoldenAge()
         }
                 
-        else if (storedHappiness > happinessRequiredForNextGoldenAge()) {
+        else if (storedHappiness >= happinessRequiredForNextGoldenAge()) {
             storedHappiness -= happinessRequiredForNextGoldenAge()
             enterGoldenAge()
             numberOfGoldenAges++
@@ -86,8 +88,9 @@ class GoldenAgeManager : IsPartOfGameInfoSerialization {
      *  mirroring the natural end of a golden age in [endTurn]. */
     fun endGoldenAge() {
         turnsLeftForCurrentGoldenAge = 0
-        for (unique in civInfo.getTriggeredUniques(UniqueType.TriggerUpponEndingGoldenAge))
+        civInfo.forEachTriggeredUnique(UniqueType.TriggerUpponEndingGoldenAge, ignoreCities = false) { unique ->
             UniqueTriggerActivation.triggerUnique(unique, civInfo)
+        }
         for (city in civInfo.cities)
             city.cityStats.update()
     }

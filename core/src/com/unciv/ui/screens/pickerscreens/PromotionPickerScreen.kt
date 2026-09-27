@@ -91,7 +91,7 @@ class PromotionPickerScreen private constructor(
             val renameButton = "Choose name for [${unit.name}]".toTextButton()
             renameButton.onClick {
                 UnitRenamePopup(this, unit) {
-                    game.replaceCurrentScreen(recreate())
+                    game.replaceCurrentScreen{ recreate() }
                 }
             }
             topTable.add(renameButton).pad(5f).row()
@@ -126,7 +126,7 @@ class PromotionPickerScreen private constructor(
         }
 
         if (!closeOnPick || unit.promotions.canBePromoted())
-            game.replaceCurrentScreen(recreate(false))
+            game.replaceCurrentScreen{ recreate(false) }
         else
             game.popScreen()
     }

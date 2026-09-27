@@ -135,7 +135,7 @@ class VariableTests {
         val variable = game.createVariable(default = 0)
         val unique = Unique("when above [5] [${variable.name}]")
         val errors = com.unciv.models.ruleset.validation.UniqueValidator(game.ruleset)
-            .checkUnique(unique, false, null, com.unciv.models.ruleset.validation.UniqueValidator.extensionModParameterSeverities)
+            .checkUnique(unique, null, com.unciv.models.ruleset.validation.UniqueValidator.extensionModParameterSeverities)
         Assert.assertFalse("Variable name must pass parameter validation", errors.isNotOK())
     }
 
@@ -144,7 +144,7 @@ class VariableTests {
         val variable = game.createVariable(default = 0)
         val unique = Unique("Instantly provides [4] [${variable.name}]")
         val errors = com.unciv.models.ruleset.validation.UniqueValidator(game.ruleset)
-            .checkUnique(unique, false, null, com.unciv.models.ruleset.validation.UniqueValidator.extensionModParameterSeverities)
+            .checkUnique(unique, null, com.unciv.models.ruleset.validation.UniqueValidator.extensionModParameterSeverities)
         Assert.assertFalse("Variable name must pass parameter validation in Provides", errors.isNotOK())
     }
 }

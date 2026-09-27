@@ -1,3 +1,231 @@
+## 4.22.4
+
+Fixed error on cityscreen update when screen has already been replaced
+
+Fixed victory screen number-formatting bug
+
+Fix Java 9+ specific method use crashing NextTurn on Java 8 - By SomeTroglodyte: 
+
+Fix overview screen column visibility - By dangdinhbaohoang12
+
+Fix Units that are intended to lose promotions regaining them on turn start - By SeventhM
+
+## 4.22.3
+
+Massive rendering lag improvement!!
+
+ANRs reduction when switching screens
+
+By SomeTroglodyte:
+- Disallow spectators to rename units
+- Allow unit rename to "reset" to base unit name
+
+## 4.22.2
+
+Spectator deselect sets UI correctly
+.
+Fix defensive pact count motivation clamp - By Angais
+
+By SomeTroglodyte:
+- Fix layout for GPP table  
+- Crash fix for UI race conditions 
+
+fix: discover natural wonders when revealing the entire map - By mvanhorn
+
+Fix mod fonts missing from Font family selection - By ethanstoner
+
+AStar puts correct movement in PathsToTilesWithinTurn - By Ambeco
+
+## 4.22.1
+
+Fixed crash on "ID from clipboard" when clipboard not set
+
+Scrollable events show scrollbars
+
+Allow modders to specify modOptions.constants.maxRiverLength as 0 to avoid river generation entirely
+
+Tweaked auto map size - By O-spin
+
+Performance improvements - By Ambeco
+
+Add map generator settings clipboard actions - By LouisDeconinck
+
+## 4.22.0
+
+Invisible units no longer invisible to their own civ
+
+Remember last civilopedia position
+
+New game screen: Start fresh if the latest game start is erroring
+
+When selecting custom maps, don't overwrite the ruleset if the current mods are a superset of the map's required mods
+
+By unciv-loof:
+- Automation setting for specialist control in new cities 
+- Set default max coast extension to 3 instead of 2 
+
+By JN0V:
+- Add countable "Known [civFilter] Civilizations" 
+- Victories can carry uniques, and decide who may achieve them 
+- Add victory milestone "Have at least [amount] [countable]" 
+- Fix possible crash when scrolling to the selected construction queue entry 
+
+By LouisDeconinck:
+- Fix terrain changes from gifted improvements 
+- Fix health of units recruited from encampments 
+
+fix: prevent owned roads from being charged as neutral roads - By mvanhorn
+
+fix mod translation not enabled in restored new game screen - By finalpatch
+
+AStar correctly paths around allies - By Ambeco
+
+## 4.21.19
+
+Prevent mod archives from overwriting saves and settings - By Angais
+
+Improve desktop font rendering with mipmaps and preserve glyph contrast - By finalpatch (new contributor!)
+
+When changing rulesets, clamp number of city states available to match new ruleset
+
+Show stat icons in civilopedia when displaying stats
+
+Fix altas generation fuzziness errors
+
+Hide unit table "summary" for civs with no units (e.g. Spectator)
+
+Unify "extra ranged attack" logic - extra attacks no longer trigger regular attack effects (XP, on-kill uniques, on-damage uniques) separately from existing triggers
+
+Solved crash when city screen update happens parallel to screen change
+
+## 4.21.18
+
+Avoid ANRs from multiple sources
+
+Avoid game load crashes for unit/tile neighbor adjacency conditionals
+
+Adds auto map size - By O-spin
+
+By Angais: 
+- Apply warmonger penalties to alliance motivation 
+- Apply city filters to spy effectiveness 
+
+By varchasgopalaswamy (new contributor!):
+- Fix bug where unplacable great people will disappear 
+- Fix movement history perspective 
+
+By SomeTroglodyte:
+- Font fallback for missing glyphs 
+- Translation generation preserves existing data for mods, can backup 
+
+## 4.21.17
+
+Decrease initial startup time
+
+By Angais:
+- AI: Keep inquisitor conversion targets in owned cities 
+- Retain lost data when saving games 
+- Fixed trade evaluation error  
+
+By varchasgopalaswamy:
+- Fixed tile info update bug when changing perspective in spectator 
+- fixed city selection bug bug 
+
+## 4.21.16
+
+Fixed visual flash when entering a city
+
+Don't allow removing features for improvements, if it requires an unresearched tech
+
+Decrease time-to-first-pixels for better user experience
+
+AI doesn't accept trades to declare war against multiple civs
+
+Better multiplayer UUID handling - By dangdinhbaohoang12
+
+Correct numeric localization and stat icon suppression - By mvanhorn
+
+Increase luxury diversity - By O-spin
+
+## 4.21.15
+
+Avoid ANRs in multiple places
+
+Performance improvements
+
+Remove initial Android screen orientation restriction for "user landscape" - now takes whatever orientation is set for the device
+
+Air unit list visible on carriers
+
+Resolved map bounds restrictions on spectator-as-civ by removing restrictions entirely
+
+UI doesn't crash if construction list changed while we try and select a queue entry that no longer exists
+
+Better use of multiple slot types on carriers - By SomeTroglodyte
+
+## 4.21.14
+
+Fixed minimap problems when spectating-as-civ
+
+Avoid future ANRs from screen-switching
+
+reject ruleset objects that replace themselves - By mvanhorn
+
+Record client version of latest turn submitted by each civ in Multiplayer - By unciv-loof
+
+By SomeTroglodyte:
+- Fix "Connect road" with A-Star pathing enabled
+- Allow assigning "key" mappings to extra mouse buttons
+- More screens support the "F1" binding to Civilopedia
+- Prevent double terrain damage from healing
+- Fix equalizeColumns for empty lower tables
+
+## 4.21.13
+
+Massive Application Not Responding cleanup for Android
+
+Minor CPU performance improvements
+
+Spectator-as-civ sees "units moving to tiles" only for the civ's units
+
+AI sets production focus for wonders and spaceship parts - By ssamt
+
+AStar movement fix - By Ambeco
+
+## 4.21.12
+
+Reduce RAM when saving/loading to/from files
+
+Fix rare crashes when handling events while screens are being changed
+
+Fix crash on Options re-open with force-close, e.g. toggling "Enable out-of-game turn notifications" - By SomeTroglodyte 
+
+AI does not see unexplored tiles for tile value when assessing settler locations - By ssamt 
+
+Clarify distance-based unit cycle option - By mvanhorn
+
+Population in cities countable - By PLynx01
+
+Modding: Downgrade "same name for multiple entries" to "OK", lowest level of warning, since most cases are benign
+
+## 4.21.11
+
+Fixed repair functions for when there is only a pillaged road
+
+Avoid ANRs when opening civilopedia
+
+By SomeTroglodyte:
+- Fix Future Tech not counting for Contest Technologies quest 
+- Fix ImprovementPicker not offering Improvements needing a removal 
+
+Reduce autosave memory spikes - By mvanhorn
+
+AI: Better picking of next unit to construct - By WhoIsJohannes
+
+Crude mod author block list - By unciv-loof
+
+Fixed crash when activating 2 cityscreen arrow buttons at the same time
+
 ## 4.21.10
 
 By unciv-loof:

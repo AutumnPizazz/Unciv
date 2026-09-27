@@ -3,6 +3,7 @@ package com.unciv.json
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Json
+import com.badlogic.gdx.utils.JsonValue
 import com.badlogic.gdx.utils.JsonWriter
 import com.badlogic.gdx.utils.SerializationException
 import com.unciv.logic.map.HexCoord
@@ -26,6 +27,7 @@ fun json() = Json(JsonWriter.OutputType.json).apply {
     setSerializer(KeyCharAndCode::class.java, KeyCharAndCode.Serializer())
     setSerializer(HexCoord::class.java, HexCoord.Serializer())
     setSerializer(VariableScope::class.java, VariableScopeSerializer())
+    setSerializer(String::class.java, StringInterningSerializer())
 }
 
 /**
@@ -49,5 +51,16 @@ fun <T> Json.fromJsonFile(tClass: Class<T>, file: FileHandle): T {
         return fromJson(tClass, file)
     } catch (exception: Exception) {
         throw Exception("Could not parse json of file ${file.name()}", exception)
+    }
+}
+
+
+private class StringInterningSerializer : Json.Serializer<String> {
+    override fun write(json: Json, key: String, knownType: Class<*>?) = json.writeValue(key as Any?, String::class.java, null)
+
+    override fun read(json: Json, jsonData: JsonValue, type: Class<*>?) = when {
+        jsonData.isNull -> null
+        jsonData.type() == JsonValue.ValueType.`object` -> json.readValue("value", type, jsonData) as String
+        else -> jsonData.asString().intern()
     }
 }

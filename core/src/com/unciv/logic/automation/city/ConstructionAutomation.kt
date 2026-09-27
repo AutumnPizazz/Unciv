@@ -15,7 +15,6 @@ import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.Building
 import com.unciv.models.ruleset.IConstruction
 import com.unciv.models.ruleset.INonPerpetualConstruction
-import com.unciv.models.ruleset.MilestoneType
 import com.unciv.models.ruleset.PerpetualConstruction
 import com.unciv.models.ruleset.nation.PersonalityValue
 import com.unciv.models.ruleset.unique.GameContext
@@ -75,7 +74,6 @@ class ConstructionAutomation(val cityConstructions: CityConstructions) {
     private val allTechsAreResearched = civInfo.tech.allTechsAreResearched()
 
     private val isAtWar = civInfo.isAtWar()
-
     private val spaceshipParts = civInfo.gameInfo.spaceResources
 
 
@@ -322,7 +320,7 @@ class ConstructionAutomation(val cityConstructions: CityConstructions) {
         value += warModifier * building.cityHealth.toFloat() / city.getMaxHealth() * personality.inverseModifierFocus(PersonalityValue.Aggressive, .3f)
         value += warModifier * building.cityStrength.toFloat() / (city.getStrength() + 3) * personality.inverseModifierFocus(PersonalityValue.Aggressive, .3f) // The + 3 here is to reduce the priority of building walls immedietly
 
-        for (experienceUnique in building.getMatchingUniques(UniqueType.UnitStartingExperience, cityState)) {
+        building.forEachMatchingUnique(UniqueType.UnitStartingExperience, cityState) { experienceUnique ->
             var modifier = experienceUnique.params[1].toFloat() / 5
             modifier *= if (cityIsOverAverageProduction) 1f else 0.2f // You shouldn't be cranking out units anytime soon
             modifier *= personality.modifierFocus(PersonalityValue.Military, 0.3f)
@@ -383,14 +381,14 @@ class ConstructionAutomation(val cityConstructions: CityConstructions) {
     @Readonly
     private fun getBuildingStatsFromUniques(building: Building, buildingStats: Stats) : Stats {
         val stats = Stats()
-        for (unique in building.getMatchingUniques(UniqueType.StatPercentBonusCities, cityState)) {
-            val statType = Stat.safeValueOf(unique.params[1]) ?: continue
+        building.forEachMatchingUnique(UniqueType.StatPercentBonusCities, cityState) { unique ->
+            val statType = Stat.safeValueOf(unique.params[1]) ?: return@forEachMatchingUnique
             val relativeAmount = unique.params[0].toFloat() / 100f
             val amount = civInfo.stats.statsForNextTurn[statType] * relativeAmount
             stats[statType] += amount
         }
 
-        for (unique in building.getMatchingUniques(UniqueType.CarryOverFood, cityState)) {
+        building.forEachMatchingUnique(UniqueType.CarryOverFood, cityState) { unique ->
             if (city.matchesFilter(unique.params[1]) && unique.params[0].toInt() != 0) {
                 val foodGain = cityStats.currentCityStats.food + buildingStats.food
                 val relativeAmount = unique.params[0].toFloat() / 100f

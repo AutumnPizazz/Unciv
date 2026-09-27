@@ -13,6 +13,7 @@ import com.unciv.models.ruleset.unit.BaseUnit
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.darken
 import com.unciv.ui.components.extensions.disable
+import com.unciv.ui.components.extensions.getTurnsToConstructionString
 import com.unciv.ui.components.extensions.isEnabled
 import com.unciv.ui.components.extensions.toCheckBox
 import com.unciv.ui.components.extensions.toTextButton
@@ -88,7 +89,7 @@ class ConstructionInfoTable(val cityScreen: CityScreen) : Table() {
 
             val descriptionLabel = Label(description, BaseScreen.skin)  // already translated
             descriptionLabel.wrap = true
-            add(descriptionLabel).colspan(2).width(stage.width / if(cityScreen.isCrampedPortrait()) 3 else 4)
+            add(descriptionLabel).colspan(2).width(cityScreen.stage.width / if(cityScreen.isCrampedPortrait()) 3 else 4)
 
             if (cityConstructions.isBuilt(construction.name)) {
                 showSellButton(construction)
@@ -152,7 +153,7 @@ class ConstructionInfoTable(val cityScreen: CityScreen) : Table() {
             "Are you sure you want to sell this [${construction.name}]?",
             sellText,
             restoreDefault = {
-                cityScreen.update()
+                cityScreen.updateAsync()
             }
         ) {
             sellBuildingConfirmed(construction)
@@ -162,7 +163,7 @@ class ConstructionInfoTable(val cityScreen: CityScreen) : Table() {
     private fun sellBuildingConfirmed(construction: Building) {
         cityView.trySellBuilding(construction)
         cityScreen.clearSelection()
-        cityScreen.update()
+        cityScreen.updateAsync()
     }
 
 }

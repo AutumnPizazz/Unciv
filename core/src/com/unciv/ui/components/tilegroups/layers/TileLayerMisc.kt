@@ -1,7 +1,6 @@
 package com.unciv.ui.components.tilegroups.layers
 
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Touchable
@@ -13,10 +12,8 @@ import com.unciv.Constants
 import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.view.CivView
-import com.unciv.logic.map.HexMath
 import com.unciv.logic.files.UnitNotesManager
-import com.unciv.logic.map.tile.Tile
-import com.unciv.logic.map.toHexCoord
+import com.unciv.view.TileView
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.*
 import com.unciv.ui.components.extensions.*
@@ -39,9 +36,10 @@ import com.unciv.utils.DebugUtils
 import kotlin.math.atan2
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-private class MapArrow(val targetTile: Tile, val arrowType: MapArrowType, val strings: TileSetStrings) {
+private class MapArrow(val targetTile: TileView, val arrowType: MapArrowType, val strings: TileSetStrings) {
 
     private fun getArrowImage(imageName: String) = ImageGetter.getImage(
         strings.orFallback { getString(tileSetLocation, "Arrows/", imageName) })
@@ -124,7 +122,7 @@ class TileLayerYield(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, s
     ) {
         val effectiveVisible = show &&
                 !tileGroup.isForMapEditorIcon &&  // don't have a map to calc yields
-                !(viewingCiv == null && tileGroup.isForceVisible) // main menu background
+                viewingCiv != null // main menu background
 
         if (!effectiveVisible) {
             yields?.isVisible = false
@@ -175,8 +173,9 @@ class TileLayerResource(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         val tileView = tileGroup.tileView
         // This could change on any turn, since resources need certain techs to reveal them
         // Respect the viewing civ's resource visibility even when the tile group is force-visible
-        // (e.g. map pin previews must not show unrevealed resources like oil in the Ancient era)
-        val effectiveVisible = showResourceIcon && tileView.getViewableResource(viewingCiv) != null
+        // (e.g. map pin previews must not show unrevealed resources like oil in the Ancient era) -
+        // such previews now pass their viewer to TileView.forSingleTile, so isForceVisible() is false for them
+        val effectiveVisible = showResourceIcon && (tileView.isForceVisible() || tileView.getViewableResource(viewingCiv) != null)
 
         // If resource has changed (e.g. tech researched) - force new icon next time it's needed
         if (resourceName != tileView.resource || resourceAmount != tileView.resourceAmount) {
@@ -200,7 +199,7 @@ class TileLayerResource(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
 
 
         if (resourceIcon != null){
-            val isViewable = viewingCiv == null || isViewable(viewingCiv)
+            val isViewable = isViewable(viewingCiv)
             dimResource(!isViewable)
 
             val shouldResourceProvidedBeDisplayed =
@@ -314,7 +313,7 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
 
     /** Array list of all arrows to draw from this tile on the next update. */
     private val arrowsToDraw = ArrayList<MapArrow>()
-    private val arrows = HashMap<Tile, ArrayList<Actor>>()
+    private val arrows = HashMap<TileView, ArrayList<Actor>>()
 
     private var hexOutlineIcon: Actor? = null
 
@@ -339,15 +338,12 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
     private fun updateArrows() {
         clearArrows()
         val tileScale = 50f * 0.8f // See notes in updateRoadImages.
+        val ownTileView = tileGroup.tileView
+        val tileMapView = ownTileView.getTileMap()
 
         for (arrowToAdd in arrowsToDraw) {
             val targetTile = arrowToAdd.targetTile
-            var targetPos = Vector2(targetTile.position.toVector2())
-            if (tile.tileMap.mapParameters.worldWrap)
-                targetPos = HexMath.getUnwrappedNearestTo(targetPos.toHexCoord(),
-                    tile.position, tile.tileMap.maxLongitude)
-            val targetRelative = HexMath.hex2WorldCoords(targetPos.toHexCoord())
-                .sub(HexMath.hex2WorldCoords(tile.position))
+            val targetRelative = tileMapView.getRelativeWorldPosition(ownTileView, targetTile)
 
             val targetDistance = sqrt(targetRelative.x.pow(2) + targetRelative.y.pow(2))
             val targetAngle = atan2(targetRelative.y, targetRelative.x)
@@ -407,18 +403,31 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
             })
         }
 
-        val tilemap = tile.tileMap
+        if (DebugUtils.SHOW_SETTLER_SCORES) {
+            val score = DebugUtils.SETTLER_SCORES[tileGroup.tileView.position()]
+            if (score != null) {
+                val label = score.roundToInt().toString()
+                val tileW = tileGroup.width
+                val tileH = tileGroup.height
+                startingLocationIcons.add(label.toLabel(Color.GOLD, 14).apply {
+                    touchable = Touchable.disabled
+                    setOrigin(Align.center)
+                    x = tileX + (tileW - width) / 2 + 15f
+                    y = tileY + (tileH - height) / 2
+                    tileGroup.layerMisc.addOwnedActor(this)
+                })
+            }
+        }
 
-        if (tilemap.startingLocationsByNation.isEmpty())
-            return
+        val ownTileView = tileGroup.tileView
+        val ruleset = ownTileView.getRuleset()
 
         // Allow display of up to three nations starting locations on the same tile, rest only as count.
         // Sorted so major get precedence and to make the display deterministic, otherwise you could get
         // different stacking order of the same nations in the same editing session
-        val nations = tilemap.startingLocationsByNation.asSequence()
-            .filter { tile in it.value }
-            .filter { it.key in tilemap.ruleset!!.nations } // Ignore missing nations
-            .map { it.key to tilemap.ruleset!!.nations[it.key]!! }
+        val nations = ownTileView.getTileMap().getStartingLocationNationNames(ownTileView).asSequence()
+            .filter { it in ruleset.nations } // Ignore missing nations
+            .map { it to ruleset.nations[it]!! }
             .sortedWith(compareBy({ it.second.isCityState }, { it.first }))
             .toList()
         if (nations.isEmpty()) return
@@ -520,8 +529,8 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
     }
 
 
-    fun addArrow(targetTile: Tile, type: MapArrowType) {
-        if (targetTile.position != tile.position)
+    fun addArrow(targetTile: TileView, type: MapArrowType) {
+        if (targetTile.position() != tileGroup.tileView.position())
             arrowsToDraw.add(MapArrow(targetTile, type, strings))
     }
 
@@ -546,7 +555,8 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
         // Tapping a truncated bubble shows the full note (mobile has no hover)
         bubble.onClickSuppressive {
             val worldScreen = UncivGame.Current.screen as? WorldScreen ?: return@onClickSuppressive
-            val tile = tileGroup.tile
+            // CN note feature: upstream's view API no longer exposes the wrapped Tile, so look it up by position
+            val tile = worldScreen.gameInfo.tileMap[tileGroup.tileView.position()]
             NoteViewPopup(
                 screen = worldScreen,
                 note = noteText,
@@ -562,7 +572,7 @@ class TileLayerMisc(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup, si
     }
 
     override fun doUpdate(viewingCiv: CivView?) {
-        if (tileGroup !is WorldTileGroup || DebugUtils.SHOW_TILE_COORDS)
+        if (tileGroup !is WorldTileGroup || DebugUtils.SHOW_TILE_COORDS || DebugUtils.SHOW_SETTLER_SCORES)
             updateStartingLocationIcon(true)
         updateArrows()
         updateTileNote()

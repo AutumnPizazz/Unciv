@@ -99,6 +99,7 @@ class GameSettings {
 
     //// Performance
     var continuousRendering = false
+    var disableNewerRendering = false
 
     //// Experimental
     var unitMovementButtonAnimation = false
@@ -131,6 +132,7 @@ class GameSettings {
     var automatedUnitsCanUpgrade = false
     var automatedUnitsChoosePromotions = false
     var citiesAutoBombardAtEndOfTurn = false
+    var autoAssignSpecialistsInNewCities = true
 
     //// Autoplay
     var autoPlay = GameSettingsAutoPlay()

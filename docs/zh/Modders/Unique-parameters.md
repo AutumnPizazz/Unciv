@@ -463,6 +463,8 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 示例：`Only available <when number of [[Culture] Buildings] is more than [0]>`
 -   `[buildingFilter] Buildings by [civFilter] Civilizations`
     - 示例：`Only available <when number of [[Culture] Buildings by [City-States] Civilizations] is more than [0]>`
+-   `[populationFilter] in [cityFilter] Cities`
+    - 示例：`Only available <when number of [[Followers of this Religion] in [in all cities] Cities] is more than [0]>`
 -   `[cityFilter] Cities of [civFilter] Civilizations`
     - 示例：`Only available <when number of [[in all cities] Cities of [City-States] Civilizations] is more than [0]>`
 -   `Adopted [policyFilter] Policies`
@@ -473,6 +475,9 @@ cityFilters 允许我们选择受此 unique 影响的城市范围：
     - 示例：`Only available <when number of [Researched [Agriculture] Technologies] is more than [0]>`
     - 统计相关文明已研究的匹配科技
     - 可重复科技（如未来科技）只计一次
+-   `Known [civFilter] Civilizations` - The number of other civilizations the relevant Civilization has met
+    - 示例：`Only available <when number of [Known [City-States] Civilizations] is more than [0]>`
+    - Counts only civilizations that are still alive, and never the civilization itself
 -   `Remaining [civFilter] Civilizations`
     - 示例：`Only available <when number of [Remaining [City-States] Civilizations] is more than [0]>`
 -   `Worked [tileFilter] Tiles in this city`

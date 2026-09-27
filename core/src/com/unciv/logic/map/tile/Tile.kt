@@ -652,8 +652,9 @@ class Tile : IsPartOfGameInfoSerialization {
         if (naturalWonder != null) bonus += getNaturalWonder().defenceBonus
         val tileImprovement = getUnpillagedTileImprovement()
         if (tileImprovement != null && includeImprovementBonus) {
-            for (unique in tileImprovement.getMatchingUniques(UniqueType.DefensiveBonus, unit?.cache?.state ?: stateThisTile))
+            tileImprovement.forEachMatchingUnique(UniqueType.DefensiveBonus, unit?.cache?.state ?: stateThisTile) { unique ->
                 bonus += unique.params[0].toFloat() / 100
+            }
         }
         return bonus
     }
@@ -1065,9 +1066,13 @@ class Tile : IsPartOfGameInfoSerialization {
         val currentOwner = getOwner()
         if (newRoadStatus == RoadStatus.None && owningCity == null)
             getRoadOwner()?.neutralRoads?.remove(this.position)
-        else if (currentOwner != null && currentOwner != roadOwnerObject) {
-            roadOwner = currentOwner.civID
-            roadOwnerObject = currentOwner
+        else if (currentOwner != null) {
+            // Owned tiles must not fall through to the neutral-road branch just because
+            // the owner field is already correct (city founding sets ownership first).
+            if (currentOwner != roadOwnerObject) {
+                roadOwner = currentOwner.civID
+                roadOwnerObject = currentOwner
+            }
         } else if (creatingCivInfo != null) {
             roadOwner = creatingCivInfo.civID // neutral tile, use building unit
             roadOwnerObject = creatingCivInfo

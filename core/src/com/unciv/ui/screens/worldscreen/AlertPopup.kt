@@ -416,7 +416,7 @@ class AlertPopup(
     private fun addGameHasBeenWon() {
         val victoryData = gameInfo.victoryData!!
         addGoodSizedLabel("[${victoryData.winningCivObject.civName}] has won a [${victoryData.victoryType}] Victory!").row()
-        addButton("Victory status") { close(); worldScreen.game.pushScreen(VictoryScreen(worldScreen)) }.row()
+        addButton("Victory status") { close(); worldScreen.game.pushScreen{ VictoryScreen(worldScreen) } }.row()
         addCloseButton()
     }
 
@@ -691,6 +691,7 @@ class AlertPopup(
         val render = RenderEvent(event, worldScreen, unit) { close() }
         if (!render.isValid) return false
         add(render).pad(0f).row()
+        getScrollPane()?.fadeScrollBars = false
         return true
     }
 

@@ -36,8 +36,6 @@ Unciv logo（例如 `extraImages/Icons/Unciv icon v6.png`、`android/assets/Extr
 
 - `extraImages` 中的各种文件包含同一 logo 的不同渲染版本
 - `android/assets/ExtraImages/banner.png` 由 letstalkaboutdune 制作；包含 The Bucketeer / @GeneralWadaling（地块）以及 yairm210 和 u-ndefine（Unciv logo）的作品，以 CC BY-SA 3.0 发布
-- `extraImages/Feature graphic - Google Play.png` 由 letstalkaboutdune 制作；包含 yairm210 和 u-ndefine 的 Unciv logo。由于背景（`extraImages/Steam/library_hero.png`）的作者与许可未知，其许可为未知（UNKNOWN）
-- 在 `extraImages/Steam/` 中，`library_capsule.png`、`store_capsule_header.png`、`store_capsule_main.png`、`store_capsule_small.png`、`store_capsule_vertical.png` 包含 yairm210 和 u-ndefine 的 Unciv logo。由于背景的作者与许可未知，这些文件的完整许可与作者为未知（UNKNOWN）
 
 "Fantasy Hex" 地形集的基础地块图标由 CuddlyClover 在 <https://cuddlyclover.itch.io/fantasy-hex-tiles> 创建，并由多位贡献者做了一些补充，采用 CC BY 4.0 许可。
 

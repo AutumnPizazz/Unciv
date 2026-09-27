@@ -102,7 +102,7 @@ class PackrConfig(
     var bundleIdentifier: String? = null
 )
 
-for (platform in Platform.values()) {
+for (platform in Platform.entries) {
     val platformName = platform.toString()
 
     tasks.create("packr${platformName}") {
@@ -154,7 +154,7 @@ for (platform in Platform.values()) {
                     " --executable UncivCN" +
                     " --classpath $jarFile" +
                     " --mainclass $mainClassName" +
-                    " --vmargs Xmx4G " +
+                    " --vmargs Xmx4G Dunciv.packr=true" +
                     " --output $outputDir"
             command.runCommand(rootDir)
             Files.copy(File("$rootDir/extraImages/Icons/Unciv.ico"), File(outputDir, "Unciv.ico"))

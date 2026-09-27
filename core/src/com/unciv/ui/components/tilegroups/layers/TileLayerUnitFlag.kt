@@ -46,12 +46,12 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
 
         if (unit != null && isViewable) {
             val rawUnit = unit.getUnit()
-            newIcon = UnitIconGroup(rawUnit, 30f)
+            newIcon = UnitIconGroup(unit, 30f)
             setIconPosition(slot, newIcon)
             addOwnedActor(newIcon)
 
             // Display air unit table for carriers/transports
-            if (rawUnit.getTile().airUnits.any { rawUnit.isTransportTypeOf(it) } && !rawUnit.getTile().isCityCenter()) {
+            if (!rawUnit.getTile().isCityCenter() && rawUnit.getTile().airUnits.any { rawUnit.isTransportTypeOf(it) }) {
                 val table = getAirUnitTable(rawUnit)
                 newIcon.addActor(table)
                 table.toBack()
@@ -68,8 +68,9 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
                 newIcon.color.a = 0.5f * UncivGame.Current.settings.unitIconOpacity
 
             // Show note bubble below unit when toggle is enabled
-            if (UncivGame.Current.settings.showUnitNotes && tileGroup.tile.tileMap.hasGameInfo()) {
-                val gameInfo = tileGroup.tile.tileMap.gameInfo
+            // CN note feature: views no longer expose the model TileMap, so use the current game's GameInfo
+            val gameInfo = UncivGame.Current.gameInfo
+            if (UncivGame.Current.settings.showUnitNotes && gameInfo != null) {
                 val mapUnit = unit.getUnit()
                 val note = UnitNotesManager.getNote(gameInfo, mapUnit)
                 if (note != null) {
@@ -126,14 +127,14 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         return airUnitTable
     }
 
-    fun selectFlag(unit: MapUnit) {
-        getIcon(unit)?.selectUnit()
+    fun selectFlag(unitView: ForeignMapUnitView) {
+        getIcon(unitView)?.selectUnit()
     }
 
-    fun getIcon(unit: MapUnit) : UnitIconGroup? {
-        if (civilianUnitIcon?.unit == unit)
+    fun getIcon(unitView: ForeignMapUnitView) : UnitIconGroup? {
+        if (civilianUnitIcon?.unitView == unitView)
             return civilianUnitIcon
-        else if (militaryUnitIcon?.unit == unit)
+        else if (militaryUnitIcon?.unitView == unitView)
             return militaryUnitIcon
         return null
     }
@@ -144,7 +145,7 @@ class TileLayerUnitFlag(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
     }
 
     private fun fillSlots(viewingCiv: CivView?) {
-        val isViewable = viewingCiv == null || tileGroup.isForceVisible || isViewable(viewingCiv)
+        val isViewable = isViewable(viewingCiv)
 
         val isCivilianShown = isViewable
         val isMilitaryShown = isViewable

@@ -1699,7 +1699,9 @@ Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Un
 
 :::
 ::: details Will not be chosen for new games
-Applicable to: Nation
+Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.
+
+Applicable to: Nation, Victory
 
 :::
 ::: details Comment [comment]
@@ -1746,13 +1748,13 @@ Applicable to: Tech
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Cannot be hurried
@@ -1791,13 +1793,13 @@ Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Un
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -1855,13 +1857,13 @@ Applicable to: FounderBelief, FollowerBelief
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -2197,13 +2199,13 @@ Applicable to: Global, FollowerBelief
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion
@@ -2294,13 +2296,13 @@ Applicable to: Building, Unit
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Excess Food converted to Production when under construction
@@ -2636,13 +2638,13 @@ Applicable to: Building, Unit
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Excess Food converted to Production when under construction
@@ -3060,6 +3062,8 @@ Applicable to: Unit
 
 :::
 ::: details Can carry [amount] [mapUnitFilter] units
+Using several of these uniques with complex overlapping filters is supported.
+
 Example: "Can carry [3] [Wounded] units"
 
 Applicable to: Unit
@@ -3402,13 +3406,13 @@ Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Un
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Not shown on world screen
@@ -3816,13 +3820,13 @@ Applicable to: Building, Unit, Improvement
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Must be next to [tileFilter]
@@ -4184,13 +4188,13 @@ Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Un
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Free [unit] found in the ruins
@@ -4457,26 +4461,26 @@ Applicable to: ModOptions
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ## EventChoice uniques
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details Unavailable
 Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
 
-Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
 
 :::
 ::: details [relativeAmount]% weight to this choice for AI decisions
@@ -4505,6 +4509,30 @@ Allows displaying arbitrary text in a Unique listing. Only the text within the '
 Example: "Comment [comment]"
 
 Applicable to: Nation, Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, UnitType, Promotion, Terrain, Improvement, Resource, Ruins, Speed, Difficulty, EventChoice
+
+:::
+## Victory uniques
+::: note
+
+Uniques that determine whether a victory can be achieved, and by whom
+:::
+
+::: details Only available
+Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
+
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
+
+:::
+::: details Unavailable
+Meant to be used together with conditionals, like "Unavailable &lt;after generating a Great Prophet&gt;".
+
+Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Promotion, Improvement, Ruins, Event, EventChoice, Victory
+
+:::
+::: details Will not be chosen for new games
+Unconditional - it is evaluated while a game is being set up, where there is nothing to evaluate conditionals against.
+
+Applicable to: Nation, Victory
 
 :::
 ## Conditional uniques

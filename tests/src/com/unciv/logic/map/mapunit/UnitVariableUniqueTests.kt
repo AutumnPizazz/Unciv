@@ -174,7 +174,7 @@ class UnitVariableUniqueTests {
     private fun checkErrors(game: TestGame, uniqueText: String): Boolean {
         val unique = Unique(uniqueText)
         val errors = UniqueValidator(game.ruleset)
-            .checkUnique(unique, false, null, UniqueValidator.allParameterSeverities)
+            .checkUnique(unique, null, UniqueValidator.allParameterSeverities)
         return errors.isNotOK()
     }
 

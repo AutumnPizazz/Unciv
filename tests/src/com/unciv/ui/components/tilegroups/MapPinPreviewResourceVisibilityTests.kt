@@ -17,16 +17,22 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Regression test: map pin (tile note) previews - which render tiles as force-visible
- * TileGroups with the viewing civ passed in - must not reveal strategic resources whose
- * revealing tech has not been researched yet (e.g. no Oil in the Ancient era).
+ * Regression test: map pin (tile note) previews - which render tiles as icon TileGroups
+ * (`isForMapEditorIcon = true`) with the viewing civ passed in - must not reveal strategic
+ * resources whose revealing tech has not been researched yet (e.g. no Oil in the Ancient era).
  *
  * This mirrors the exact build chain of `TileNotePopup.getTileGroupIcon`:
- * `TileView.forSingleTile` + `isForceVisible = true` + `update(viewer)`.
+ * `TileView.forSingleTile(tile, viewer)` + `isForMapEditorIcon = true` + `update(viewer)`.
+ * Icon rendering ignores exploration and fog, but resource visibility still follows the
+ * TileView's viewer - which is what the regression is about: a viewer-bound preview must not
+ * reveal unrevealed resources.
  * The regression was in TileLayerTerrain, which threw away the viewing civ
  * (`getViewableResource(if (isForceVisible) null else viewingCiv)`), so the
  * pixel-terrain layer (on by default via `showPixelImprovements`) leaked resources
  * even though the resource icon layer had been fixed.
+ * Previews of unexplored tiles additionally rely on `TileMapView.getTile` tolerating neighbors
+ * that fall outside the wrapped single-tile map (terrain edges are computed from the TileView's
+ * visible neighbors).
  */
 @RunWith(GdxTestRunner::class)
 class MapPinPreviewResourceVisibilityTests {
@@ -99,7 +105,6 @@ class MapPinPreviewResourceVisibilityTests {
             TileView.forSingleTile(tile, viewer?.getCiv()),
             TileSetStrings(tile.ruleset, UncivGame.Current.settings)
         ).apply {
-            isForceVisible = true
             isForMapEditorIcon = true
             update(viewer)
         }
