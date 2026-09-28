@@ -1,0 +1,84 @@
+# TypeScript 服务器（server-ts 子模块）的类型检查、lint、测试与覆盖率。
+# 从 buildAndTest.yml 拆出：这份代码在 Kotlin 改动时完全不受影响，
+# 没必要每次分支推送都装一遍 pnpm 依赖、跑一遍测试。
+name: TypeScript server checks
+
+on:
+  push:
+    # 子模块指针变动在 diff 里就是一条名为 server-ts 的条目（不是 server-ts/xxx），
+    # 所以两个模式都要写：'server-ts' 匹配指针更新，'server-ts/**' 匹配子模块内的配置改动
+    paths:
+      - 'server-ts'
+      - 'server-ts/**'
+      - '.gitmodules'
+      - '.github/workflows/serverTs.yml'
+  # 安全说明：pull_request_target 在 base 分支上下文中运行，默认的 actions/checkout
+  # 检出的是 base 分支代码（而非 PR head 提交），因此不会执行来自不可信 fork 的代码。
+  # 本工作流未显式 checkout PR head（无 ref: github.event.pull_request.head.sha 之类），
+  # 故在此使用 pull_request_target 是安全的。
+  pull_request_target:
+    paths:
+      - 'server-ts'
+      - 'server-ts/**'
+      - '.gitmodules'
+      - '.github/workflows/serverTs.yml'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# 同一分支 / 同一 PR 的连续推送只保留最新一个 run（与 buildAndTest.yml 一致）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # TypeScript server (server-ts) 的类型检查、lint、测试与覆盖率
+  server-ts:
+    name: TypeScript server checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      # pnpm must be installed BEFORE actions/setup-node when using cache: pnpm —
+      # setup-node runs `pnpm store path`, and without pnpm on PATH it fails with
+      # "Dependencies lock file is not found ... package-lock.json,npm-shrinkwrap.json,yarn.lock".
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: server-ts/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: server-ts
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: server-ts
+        run: pnpm typecheck
+
+      - name: Lint
+        working-directory: server-ts
+        run: pnpm lint
+
+      - name: Run tests
+        working-directory: server-ts
+        run: pnpm test
+
+      - name: Run tests with coverage
+        working-directory: server-ts
+        run: pnpm test:coverage
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-ts-coverage
+          path: server-ts/coverage
+          retention-days: 7
