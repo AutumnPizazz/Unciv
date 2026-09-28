@@ -7,11 +7,18 @@ on:
   push:
     branches:
       - UncivCN
-    # 纯文档改动跳过静态检查（与 buildAndTest.yml 一致，由 docs.yml 兜底编译）
+    # 纯文档/纯 CI 改动跳过静态检查（与 buildAndTest.yml 一致，文档站由 docs.yml 兜底编译）
     paths-ignore:
       - 'docs/**'
       - 'docs-vitepress/**'
+      - '**/*.md'
+      - '.github/**'
       - 'changelog.md'
+
+# 同一分支的连续推送只保留最新一个 run（同 buildAndTest.yml）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   detekt:

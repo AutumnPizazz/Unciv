@@ -6,6 +6,15 @@ on:
     branches:
       - UncivCN
       - master
+    # 站点内容只由 docs/ 与 docs-vitepress/ 决定：docs/Modders 下的生成文档（uniques.md、
+    # lua-api.lua 等）已入库，改动生成器源码的人必须连带提交产物，故纯代码推送无需重建站点
+    # （Kotlin 编译 + VitePress 构建 + 部署，是平日最重的一条工作流）
+    paths:
+      - 'docs/**'
+      - 'docs-vitepress/**'
+    # 发版时重建一次，保证生成文档与发布代码同版本；路径过滤对 tag 推送不生效
+    tags:
+      - '*'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

@@ -4,11 +4,19 @@ on:
   push:
     branches:
       - UncivCN
+    # 纯文档/纯 CI 改动没有可分析的代码，跳过（原先连 docs 推送都会跑两套语言的全量分析）
+    paths-ignore:
+      - 'docs/**'
+      - 'docs-vitepress/**'
+      - '**/*.md'
+      - '.github/**'
   pull_request:
     branches:
       - UncivCN
   schedule:
     - cron: '30 1 * * 0'
+  # 需要时可在 Actions 页手动补跑一次
+  workflow_dispatch:
 
 permissions:
   security-events: write

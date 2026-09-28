@@ -4,11 +4,13 @@ name: Build and test
 on:
   # Triggers the workflow on any push or pull request
   push:
-    # 纯文档改动由 docs.yml 负责（其 generateDocs 步骤会编译 Kotlin），
-    # 跳过全量测试，减少平日非发版提交触发的工作流
+    # 纯文档/纯 CI 改动跳过全量测试：文档站由 docs.yml 负责（其 generateDocs 步骤会编译 Kotlin），
+    # 工作流 YAML 本身也不会被单测覆盖，两者都不值得跑一遍完整测试
     paths-ignore:
       - 'docs/**'
       - 'docs-vitepress/**'
+      - '**/*.md'
+      - '.github/**'
       - 'changelog.md'
   # 安全说明：pull_request_target 在 base 分支上下文中运行，默认的 actions/checkout
   # 检出的是 base 分支代码（而非 PR head 提交），因此不会执行来自不可信 fork 的代码。
@@ -19,10 +21,11 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-# 同一提交的重复 run 并行执行会互相抢占 runner CPU，
-# 导致性能冒烟测试（PerfSmokeTest）间歇失败；按提交去重，保留最新一个
+# 同一分支的连续推送只保留最新一个 run：新提交会取消上一提交仍在跑的测试（同一 commit 的
+# 重复 run 自然也去重），既避免重复 run 互相抢占 runner CPU 导致性能冒烟测试间歇失败，
+# 也省下已被取代的提交的整轮测试
 concurrency:
-  group: build-and-test-${{ github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
