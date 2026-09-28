@@ -17,7 +17,7 @@ Full tutorial: [Lua modding](/Modders/Lua-Modding).
 ## Mirrored and ring maps (since 4.20.7.3 / 4.20.7.4 / 4.21.0)
 
 - **Three mirrored map modes**: selectable when creating a game; resources are also mirrored symmetrically (4.20.7.4)
-- **Ring maps**: the map wraps around; the radius parity restriction for rotationally symmetric maps is lifted (4.20.17.2)
+- **Ring maps**: the map wraps around; rotationally symmetric maps still require a hexagonal shape and an odd radius (4.20.17.2)
 
 ## Unit pins / map pins (4.20.17.2)
 

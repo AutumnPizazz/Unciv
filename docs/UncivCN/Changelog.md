@@ -25,6 +25,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: a corrupted save no longer claims to come from a newer version
 - Fix: the "new version available" label no longer stacks up after repeated checks
 - Fix: mod versions like 1.2 and 1.2.0 now compare consistently, and malformed versions no longer satisfy dependencies
+- Fix: Lua scripts can no longer exhaust memory by building enormous strings
+- Docs: the ring-map note no longer claims rotational symmetry works with any radius
 - Self-hosted server switched from the Java UncivServer.jar to the TypeScript UncivSrv
 
 ## 4.22.4.2 (build 1264)
