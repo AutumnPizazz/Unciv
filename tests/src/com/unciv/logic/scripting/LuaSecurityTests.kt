@@ -159,6 +159,47 @@ class LuaSecurityTests {
         Assert.assertTrue("Later call to same mod should work after budget reset", fineResult)
     }
 
+    @Test
+    fun stringRepIsCappedToPreventMemoryExhaustion() {
+        // The instruction budget counts VM instructions, not memory, so a single
+        // `string.rep("a", 2 ^ 31)` used to allocate gigabytes and kill the game with an
+        // OutOfMemoryError - which the `catch (Exception)` handlers around script calls
+        // do not catch. The sandbox now caps the result length.
+        val mod = loadLuaScriptToMod("memoryMod", "rep.lua", """
+            function repHuge(ctx)
+                local s = string.rep("a", 100000000)
+                return s ~= nil
+            end
+
+            function repFine(ctx)
+                return string.rep("ab", 3) == "ababab"
+            end
+        """.trimIndent())
+        Assert.assertTrue("Script should load without error",
+            mod.luaErrors.none { it.severity == LuaScriptErrorSeverity.ERROR })
+
+        val civ = testGame.addCiv(isPlayer = true)
+
+        val (foundMod, hugeFunc) = LuaScriptManager.getFunction("memoryMod", "repHuge") ?: run {
+            Assert.fail("repHuge function not found"); return
+        }
+        var hugeResult = true
+        LuaScriptManager.callFunction(hugeFunc, LuaAPI.buildContext(civ, null, null, null, "", GameContext(civ), foundMod),
+            civ, "repHuge", onSuccess = { hugeResult = it }, modName = foundMod)
+        Assert.assertFalse("Oversized string.rep should fail instead of allocating", hugeResult)
+        val runtimeErrors = civ.gameInfo.ruleset.luaErrors
+        Assert.assertTrue(
+            "A 'too large' error should be reported, got: ${runtimeErrors.map { it.message }}",
+            runtimeErrors.any { it.severity == LuaScriptErrorSeverity.WARNING && it.message.contains("too large") }
+        )
+
+        val (foundMod2, fineFunc) = LuaScriptManager.getFunction("memoryMod", "repFine")!!
+        var fineResult = false
+        LuaScriptManager.callFunction(fineFunc, LuaAPI.buildContext(civ, null, null, null, "", GameContext(civ), foundMod2),
+            civ, "repFine", onSuccess = { fineResult = it }, modName = foundMod2)
+        Assert.assertTrue("Normal string.rep should still work", fineResult)
+    }
+
     //endregion
 
     //region Error reporting details

@@ -56,6 +56,15 @@ object LuaScriptManager {
     private val countableRegex = Regex("\\[[^]]+\\]")
 
     /**
+     * Maximum length of a string that `string.rep` is allowed to produce. The instruction budget
+     * counts VM instructions, not memory, so without this a single call like
+     * `string.rep("a", 2 ^ 31)` can allocate gigabytes and take the whole game down with an
+     * [OutOfMemoryError] (which the `catch (Exception)` handlers around script calls do not catch).
+     * Legitimate map and text generation stays far below 64 MB.
+     */
+    private const val MAX_LUA_STRING_REP_LENGTH = 64L * 1024 * 1024
+
+    /**
      * Maximum number of Lua bytecode instructions a single script load (top-level execution)
      * or a single function call may execute. Guards against accidental or malicious infinite
      * loops (e.g. `while true do end`) that would otherwise hang the game's main thread forever.
@@ -455,9 +464,32 @@ object LuaScriptManager {
             globals.set(dangerous, LuaValue.NIL)
         }
 
-        // Remove string.dump for sandbox safety (prevents bytecode exfiltration)
+        // Remove string.dump for sandbox safety (prevents bytecode exfiltration), and cap
+        // string.rep so a single call cannot exhaust memory (see MAX_LUA_STRING_REP_LENGTH).
         val stringLib = globals.get("string")
-        if (stringLib is org.luaj.vm2.LuaTable) stringLib.set("dump", LuaValue.NIL)
+        if (stringLib is org.luaj.vm2.LuaTable) {
+            stringLib.set("dump", LuaValue.NIL)
+            val originalRep = stringLib.get("rep")
+            if (!originalRep.isnil()) {
+                stringLib.set("rep", luaFunction { args ->
+                    val text = args.arg(1).checkjstring()
+                    val repetitions = args.arg(2).checkint()
+                    if (repetitions > 0 && text.length.toLong() * repetitions > MAX_LUA_STRING_REP_LENGTH)
+                        throw LuaError(
+                            "string.rep result too large - possible memory exhaustion " +
+                                "(max $MAX_LUA_STRING_REP_LENGTH characters)"
+                        )
+                    originalRep.invoke(args).arg1()
+                })
+            }
+        }
+
+        // Thread-safety note: nothing in this package synchronizes access to the per-mod Globals
+        // or to the mutable state above. Lua can be invoked both from the GL/render thread and from
+        // background threads (e.g. WorldScreen's "NextTurn" task pool), so concurrent calls into a
+        // single mod's Globals are possible. Adding a lock here would block the render thread on
+        // long-running background scripts, which was judged worse than the (unproven) risk of
+        // concurrent-state corruption; this is a known, accepted limitation.
 
         // Redirect print to game log
         globals.set("print", luaFunction { args ->
