@@ -1,4 +1,5 @@
 import com.unciv.build.BuildConfig.appVersion
+import com.unciv.build.BumpVersionTask
 import com.unciv.build.SyncGameVersionTask
 import java.util.Properties
 
@@ -46,6 +47,17 @@ val syncGameVersion by tasks.registering(SyncGameVersionTask::class) {
     group = "build"
     description = "Sync app version from BuildConfig.kt into UncivGame.kt (in-game version display)"
 }
+
+// 一键升版本：改真源 + 游戏内版本 + 中英 changelog，并重新生成 lua 文档，见 BumpVersionTask
+val bumpVersion by tasks.registering(BumpVersionTask::class) {
+    group = "build"
+    description = "Bump app version (BuildConfig.kt + UncivGame.kt + changelogs) and regenerate generated docs"
+    newVersion = providers.gradleProperty("newVersion").orNull
+    newCode = providers.gradleProperty("newCode").orNull
+    bump = providers.gradleProperty("bump").orNull
+}
+// 版本改写后重新生成 docs/Modders/lua-api.lua 等（须在 core 用新版本重编译之后）
+bumpVersion.configure { finalizedBy(":desktop:generateDocs") }
 
 // Kludge to get the correct string notation for a gdx native (':' _after_ version seems beyond toml)
 fun gdxNatives(platform: String) = "${libs.gdx.platform.get()}:natives-$platform"
@@ -193,6 +205,8 @@ project(":core") {
     // 编译前先同步游戏内版本号（UncivGame.kt），保证任何平台构建都拿到最新版本
     tasks.named("compileKotlin") {
         dependsOn(rootProject.tasks.named("syncGameVersion"))
+        // 让 bumpVersion 先改完 BuildConfig/UncivGame 再重编译，最终生成物才是新版本
+        mustRunAfter(rootProject.tasks.named("bumpVersion"))
     }
 
     dependencies {
