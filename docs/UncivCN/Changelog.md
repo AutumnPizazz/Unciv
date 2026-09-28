@@ -11,23 +11,18 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: Android in-game update no longer crashes when tapping Install
 - Fix: a leftover multiplayer turn-settlement lock no longer freezes the game permanently
 - Fix: mirrored maps no longer lose resources placed by region generation
-- Fix: reloaded Lua mods can no longer freeze the game, and functions no longer leak across mods
-- Fix: field-level mod merges now apply to techs, victory types and city-state types
+- Fix: reloaded Lua mods can no longer freeze the game, functions no longer leak across mods, and their errors are reported again
+- Fix: field-level mod merges now apply to techs, victory types and city-state types, invalid conditions fail loudly, and removed fields really reset
 - Fix: two players changing world state in the same simultaneous turn no longer abort the turn
 - Fix: map notes only open when the matching note option is on, and your own note text is no longer translated
-- Fix: invalid merge conditions now fail loudly instead of applying silently, and removed fields really reset
 - Fix: mods merged on top of others keep their own origin, and immutable fields can now be merged
 - Fix: Lua reports mountains correctly, no longer leaves ghost resource amounts, and handles extreme random ranges
-- Fix: Lua errors are reported again after a mod is reloaded
 - Fix: top-bar variable totals no longer promise unreachable values or hide behind unit variables
 - Fix: CSV exports no longer truncate turns and now escape line breaks
-- Fix: saved game setup names can no longer escape their folder
 - Fix: a corrupted save no longer claims to come from a newer version
 - Fix: the "new version available" label no longer stacks up after repeated checks
 - Fix: mod versions like 1.2 and 1.2.0 now compare consistently, and malformed versions no longer satisfy dependencies
 - Fix: Lua scripts can no longer exhaust memory by building enormous strings
-- Docs: the ring-map note no longer claims rotational symmetry works with any radius
-- Self-hosted server switched from the Java UncivServer.jar to the TypeScript UncivSrv
 
 ## 4.22.4.2 (build 1264)
 
