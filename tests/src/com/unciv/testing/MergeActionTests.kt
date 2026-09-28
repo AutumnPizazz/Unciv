@@ -9,7 +9,9 @@ import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.tech.TechColumn
 import com.unciv.models.ruleset.tech.Technology
+import com.unciv.logic.UncivShowableException
 import com.unciv.models.ruleset.unit.BaseUnit
+import com.unciv.models.ruleset.unit.Promotion
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -952,5 +954,126 @@ class MergeActionTests {
 
         // Non-default injected fields are still applied
         Assert.assertEquals("injected quote applied", "injected quote", pottery.quote)
+    }
+
+    @Test
+    fun `unknown merge condition fails loudly instead of injecting unconditionally`() {
+        val json = JsonReader().parse("""
+        [
+            {
+                "_mergeAction": {
+                    "if": { "not_a_real_condition": "typo" },
+                    "then": [ { "name": "Warrior", "strength": 15 } ]
+                }
+            }
+        ]
+        """.trimIndent())
+
+        try {
+            Ruleset().resolveConditionals(json, context)
+            Assert.fail("A misspelled condition key must not be treated as 'always true'")
+        } catch (e: UncivShowableException) {
+            Assert.assertTrue(
+                "Error should name the condition, was: ${e.message}",
+                e.message.contains("Unknown merge condition")
+            )
+        }
+    }
+
+    @Test
+    fun `empty merge condition still passes`() {
+        val json = JsonReader().parse("""
+        [
+            {
+                "_mergeAction": {
+                    "if": {},
+                    "then": [ { "name": "Warrior", "strength": 15 } ]
+                }
+            }
+        ]
+        """.trimIndent())
+
+        val result = Ruleset().resolveConditionals(json, context)
+        Assert.assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `REMOVE_FIELD with an explicit null resets the scalar to its declared default`() {
+        val base = Ruleset().apply {
+            name = "TestBase"
+            modOptions.isBaseRuleset = true
+            mods.add("TestBase")
+
+            buildings["Shrine"] = Building().apply {
+                name = "Shrine"
+                requiredTech = "Pottery"
+                faith = 2f
+            }
+        }
+
+        val mod = Ruleset().apply { name = "TestMod"; mods.add("TestMod") }
+        mod.rawJsonArrays["Buildings.json"] = JsonReader().parse("""
+        [
+            {
+                "name": "Shrine",
+                "_mergeAction": { "action": "REMOVE_FIELD" },
+                "requiredTech": null
+            }
+        ]
+        """.trimIndent())
+
+        base.add(mod)
+
+        Assert.assertNull("explicit null resets requiredTech", base.buildings["Shrine"]!!.requiredTech)
+        Assert.assertEquals("untouched field preserved", 2f, base.buildings["Shrine"]!!.faith, 0.001f)
+    }
+
+    @Test
+    fun `objects merged from a mod keep the mod as their originRuleset`() {
+        // Mirrors RulesetCache.getComplexRuleset: the target ruleset is created empty (name ""),
+        // so originRuleset must come from the mod being merged, not from the target's own name.
+        val target = Ruleset().apply {
+            modOptions.isBaseRuleset = true
+            mods.add("TestBase")
+        }
+
+        val mod = Ruleset().apply { name = "TestMod"; mods.add("TestMod") }
+        mod.rawJsonArrays["Buildings.json"] = JsonReader().parse("""
+        [
+            { "name": "Shrine", "cost": 30 }
+        ]
+        """.trimIndent())
+
+        target.add(mod)
+
+        Assert.assertEquals(
+            "originRuleset should be the defining mod",
+            "TestMod",
+            target.buildings["Shrine"]!!.originRuleset
+        )
+    }
+
+    @Test
+    fun `TRY_INJECT into an immutable collection field copies instead of throwing`() {
+        val target = linkedMapOf(
+            "Shock I" to Promotion().apply {
+                name = "Shock I"
+                prerequisites = listOf("Accuracy I")
+            }
+        )
+        val source = listOf(
+            Promotion().apply {
+                name = "Shock I"
+                _mergeAction = MergeAction().apply { action = "TRY_INJECT" }
+                prerequisites = listOf("Barrage I")
+            }
+        )
+
+        Ruleset().processObjects(target, source)
+
+        val prerequisites = target["Shock I"]!!.prerequisites
+        Assert.assertEquals("both prerequisites present", 2, prerequisites.size)
+        Assert.assertTrue("base prerequisite preserved", prerequisites.contains("Accuracy I"))
+        Assert.assertTrue("injected prerequisite applied", prerequisites.contains("Barrage I"))
     }
 }

@@ -11,6 +11,7 @@ import com.unciv.json.fromJsonFile
 import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.json.json
 import com.unciv.logic.BackwardCompatibility.updateDeprecations
+import com.unciv.logic.UncivShowableException
 import java.lang.reflect.Modifier
 import kotlin.collections.set
 import com.unciv.logic.GameInfo
@@ -263,8 +264,11 @@ class Ruleset {
             if (rawJson != null) {
                 val resolvedList = resolveConditionals(rawJson, mergeContext)
                 if (resolvedList.isNotEmpty()) {
-                    val deserialized = deserializeResolvedList<T>(resolvedList, arrayClass)
+                    // Origin is the ruleset that declared the objects, not the (possibly unnamed)
+                    // ruleset we are merging them into.
+                    val deserialized = deserializeResolvedList<T>(resolvedList, arrayClass, ruleset.name)
                     processObjects(targetMap, deserialized)
+                    applyRemoveFieldNulls(resolvedList) { targetMap[it] }
                 }
             } else {
                 targetMap.putAll(sourceMap)
@@ -370,10 +374,11 @@ class Ruleset {
             for (column in columns) {
                 for (tech in column.techs) {
                     tech.column = column
-                    tech.originRuleset = name
+                    tech.originRuleset = ruleset.name
                     processObjects(technologies, listOf(tech))
                 }
             }
+            applyRemoveFieldNulls(resolvedTechList) { technologies[it] }
             // Apply the column's fallback cost only after merging: doing it before would turn an
             // absent JSON cost into a non-default value and make TRY_INJECT overwrite the base
             // tech's own cost with the column default.
@@ -522,7 +527,13 @@ class Ruleset {
             return context.currentRuleset.objectFieldCompare(check)
         }
 
-        return true // Empty condition = always pass
+        // An empty condition means "no condition" and always passes. A condition that has keys we
+        // don't recognise is a typo in the mod: silently injecting unconditionally would be a
+        // silent failure, so fail loudly instead.
+        if (conditionNode.size == 0) return true // Empty condition = always pass
+        throw UncivShowableException(
+            "Unknown merge condition: ${conditionNode.toJson(JsonWriter.OutputType.json)}"
+        )
     }
 
     private fun evaluateGameVersion(versionSpec: String): Boolean {
@@ -725,16 +736,81 @@ class Ruleset {
         return json().fromJson(arrayClass, jsonText) as Array<T>
     }
 
-    /** Deserialize a resolved JsonValue list to typed objects. */
+    /** Deserialize a resolved JsonValue list to typed objects.
+     *  [originRulesetName] is the ruleset the objects were defined in (the mod being merged in),
+     *  which is not necessarily this ruleset's own [name]. */
     @Suppress("UNCHECKED_CAST")
     fun <T : IRulesetObject> deserializeResolvedList(
         resolvedList: List<JsonValue>,
-        arrayClass: Class<*>
+        arrayClass: Class<*>,
+        originRulesetName: String = name
     ): List<T> {
         val array: Array<T> = deserializeResolvedArray(resolvedList, arrayClass)
         for (item in array)
-            (item).originRuleset = name
+            item.originRuleset = originRulesetName
         return array.toList()
+    }
+
+    /** The value a freshly constructed instance of [clazz] has in [fieldName] — i.e. that field's
+     *  declared default. Falls back to a per-type default when the class can't be instantiated. */
+    private fun declaredDefaultOf(clazz: Class<*>, fieldName: String, fieldType: Class<*>): Any? {
+        return try {
+            val instance = clazz.getDeclaredConstructor().newInstance()
+            findField(clazz, fieldName)?.apply { isAccessible = true }?.get(instance)
+        } catch (_: Exception) {
+            when (fieldType) {
+                String::class.java -> ""
+                Boolean::class.javaPrimitiveType, java.lang.Boolean::class.java -> false
+                Float::class.javaPrimitiveType, java.lang.Float::class.java -> 0f
+                Double::class.javaPrimitiveType, java.lang.Double::class.java -> 0.0
+                Int::class.javaPrimitiveType, java.lang.Integer::class.java -> 0
+                else -> null
+            }
+        }
+    }
+
+    private fun findField(clazz: Class<*>, fieldName: String): java.lang.reflect.Field? {
+        var type: Class<*>? = clazz
+        while (type != null) {
+            type.declaredFields.firstOrNull { it.name == fieldName }?.let { return it }
+            type = type.superclass
+        }
+        return null
+    }
+
+    /** REMOVE_FIELD is documented to reset a field that is written as an explicit JSON `null`
+     *  (e.g. `"requiredResource": null`). Typed deserialization cannot tell an explicit null from
+     *  an absent key, so re-read the resolved raw JSON and reset exactly the fields that were
+     *  literally written as null. Handles nested shapes (Techs.json columns) recursively. */
+    private fun applyRemoveFieldNulls(nodes: Iterable<JsonValue>, lookup: (String) -> Any?) {
+        for (node in nodes) {
+            if (node.isObject) {
+                val action = node.get("_mergeAction")?.getString("action")
+                val name = node.get("name")?.asString()
+                if (action == "REMOVE_FIELD" && name != null) {
+                    val target = lookup(name)
+                    if (target != null) {
+                        for (child in node) {
+                            val fieldName = child.name ?: continue
+                            if (fieldName == "name" || fieldName == "_mergeAction") continue
+                            if (!child.isNull) continue
+                            val field = findField(target::class.java, fieldName) ?: continue
+                            field.isAccessible = true
+                            try {
+                                field.set(target, declaredDefaultOf(target::class.java, fieldName, field.type))
+                            } catch (_: Exception) { }
+                        }
+                    }
+                }
+            }
+            // Recurse into nested arrays/objects, but never into the merge metadata itself.
+            if (node.isArray || node.isObject) {
+                for (child in node) {
+                    if (child.name == "_mergeAction") continue
+                    if (child.isArray || child.isObject) applyRemoveFieldNulls(listOf(child), lookup)
+                }
+            }
+        }
     }
 
     /** Process a list of objects against the target map, dispatching based on each object's _mergeAction. */
@@ -785,6 +861,78 @@ class Ruleset {
         }
     }
 
+    /** A mutable collection with the same runtime shape as [source] when possible,
+     *  falling back to a plain ArrayList/LinkedHashSet for immutable implementations
+     *  such as the ones returned by `listOf()`/`emptyList()`. */
+    private fun mutableCopyOf(source: Collection<Any?>): MutableCollection<Any?> {
+        val fromConstructor = try {
+            @Suppress("UNCHECKED_CAST")
+            source.javaClass.getDeclaredConstructor().newInstance() as? MutableCollection<Any?>
+        } catch (_: Exception) {
+            null
+        }
+        if (fromConstructor != null) {
+            fromConstructor.addAll(source)
+            return fromConstructor
+        }
+        return if (source is Set<*>) LinkedHashSet(source) else ArrayList(source)
+    }
+
+    /** Append [elements] to the collection stored in [field] of [obj].
+     *  Mods may declare collection fields as immutable lists (`Promotion.prerequisites`,
+     *  `TileResource.improvedBy`), where in-place mutation throws; in that case a mutable
+     *  copy is written back through the field. */
+    private fun addToCollectionField(obj: Any, field: java.lang.reflect.Field, elements: Collection<Any?>) {
+        val current = field.get(obj) as? Collection<Any?> ?: return
+        val inPlace = current as? MutableCollection<Any?>
+        if (inPlace != null) {
+            try {
+                inPlace.addAll(elements)
+                return
+            } catch (_: UnsupportedOperationException) {
+            }
+        }
+        val copy = mutableCopyOf(current)
+        copy.addAll(elements)
+        try { field.set(obj, copy) } catch (_: Exception) { }
+    }
+
+    /** Remove matching elements from the collection stored in [field] of [obj].
+     *  Supports a trailing `*` as a prefix wildcard, and copies immutable collections back
+     *  as a mutable collection (see [addToCollectionField]). */
+    private fun removeFromCollectionField(obj: Any, field: java.lang.reflect.Field, patterns: Collection<*>) {
+        val target = field.get(obj) as? Collection<Any?> ?: return
+        fun matches(item: Any?): Boolean = patterns.any { pattern ->
+            if (pattern is String && pattern.endsWith("*"))
+                item is String && item.startsWith(pattern.removeSuffix("*"))
+            else pattern == item
+        }
+        if (target.none { matches(it) }) return
+
+        fun applyRemovals(collection: MutableCollection<Any?>) {
+            for (pattern in patterns) {
+                if (pattern is String && pattern.endsWith("*")) {
+                    val prefix = pattern.removeSuffix("*")
+                    collection.removeAll { it is String && it.startsWith(prefix) }
+                } else {
+                    collection.remove(pattern)
+                }
+            }
+        }
+
+        val inPlace = target as? MutableCollection<Any?>
+        if (inPlace != null) {
+            try {
+                applyRemovals(inPlace)
+                return
+            } catch (_: UnsupportedOperationException) {
+            }
+        }
+        val copy = mutableCopyOf(target)
+        applyRemovals(copy)
+        try { field.set(obj, copy) } catch (_: Exception) { }
+    }
+
     /** Append non-default fields from [source] into this object.
      *  Scalar fields are overwritten if source has a non-default value.
      *  Collection fields are appended (source elements added to target). */
@@ -806,12 +954,11 @@ class Ruleset {
 
                 if (sourceValue is Collection<*>) {
                     if (sourceValue.isEmpty()) continue
-                    @Suppress("UNCHECKED_CAST")
-                    val targetCollection = field.get(this) as? MutableCollection<Any?> ?: continue
+                    val targetCollection = field.get(this) as? Collection<Any?> ?: continue
                     // Deduplicate: don't add elements already present in the target
                     val newElements = sourceValue.filter { it !in targetCollection }
                     if (newElements.isEmpty()) continue
-                    targetCollection.addAll(newElements)
+                    addToCollectionField(this, field, newElements)
                 } else {
                     if (sourceValue.isDefaultForField()) continue
                     field.set(this, sourceValue)
@@ -842,20 +989,7 @@ class Ruleset {
 
                 if (sourceValue is Collection<*>) {
                     if (sourceValue.isEmpty()) continue
-                    val targetValue = field.get(this)
-                    @Suppress("UNCHECKED_CAST")
-                    (targetValue as? MutableCollection<Any?>)?.let { target ->
-                        for (item in sourceValue) {
-                            if (item is String && item.endsWith("*")) {
-                                val prefix = item.removeSuffix("*")
-                                target.removeAll {
-                                    it is String && it.startsWith(prefix)
-                                }
-                            } else {
-                                target.remove(item)
-                            }
-                        }
-                    }
+                    removeFromCollectionField(this, field, sourceValue)
                 } else {
                     // Reset scalar field to default
                     val defaultValue = when (field.type) {
