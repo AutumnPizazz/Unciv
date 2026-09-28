@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test check run dist server-dist docs docs-site detekt bump ts-install ts-typecheck ts-test ts-lint clean
+.PHONY: help build test check run dist docs docs-site detekt bump ts-install ts-typecheck ts-test ts-lint clean
 
 help: ## 显示本帮助
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
@@ -22,9 +22,6 @@ run: ## 运行桌面版（./gradlew desktop:run）
 
 dist: ## 打包桌面版 JAR（./gradlew desktop:dist）
 	./gradlew desktop:dist
-
-server-dist: ## 打包服务器 JAR（./gradlew server:dist）
-	./gradlew server:dist
 
 docs: ## 生成游戏文档（./gradlew desktop:generateDocs）
 	./gradlew desktop:generateDocs

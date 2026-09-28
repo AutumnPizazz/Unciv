@@ -43,7 +43,6 @@ com_crashlytics_export_strings.xml
 /android/bin/
 /core/bin/
 /desktop/bin/
-/server/bin/
 /html/bin/
 /ios/bin/
 /ios-moe/bin/
@@ -62,7 +61,6 @@ com_crashlytics_export_strings.xml
 /android/nbproject/private/
 /core/nbproject/private/
 /desktop/nbproject/private/
-/server/nbproject/private/
 /html/nbproject/private/
 /ios/nbproject/private/
 /ios-moe/nbproject/private/
@@ -71,7 +69,6 @@ com_crashlytics_export_strings.xml
 /android/build/
 /core/build/
 /desktop/build/
-/server/build/
 /html/build/
 /ios/build/
 /ios-moe/build/
@@ -81,7 +78,6 @@ com_crashlytics_export_strings.xml
 /android/nbbuild/
 /core/nbbuild/
 /desktop/nbbuild/
-/server/nbbuild/
 /html/nbbuild/
 /ios/nbbuild/
 /ios-moe/nbbuild/
@@ -90,7 +86,6 @@ com_crashlytics_export_strings.xml
 /android/dist/
 /core/dist/
 /desktop/dist/
-/server/dist/
 /html/dist/
 /ios/dist/
 /ios-moe/dist/
@@ -99,7 +94,6 @@ com_crashlytics_export_strings.xml
 /android/nbdist/
 /core/nbdist/
 /desktop/nbdist/
-/server/nbdist/
 /html/nbdist/
 /ios/nbdist/
 /ios-moe/nbdist/
@@ -137,8 +131,6 @@ android/release/android-release.aab
 tests/build/
 desktop/packr/
 desktop/packrCache/
-server/packr/
-server/packrCache/
 deploy/
 android/release/
 
@@ -172,8 +164,6 @@ music/
 SaveFiles/
 scenarios/
 
-# server artifacts
-server.auth
 MultiplayerFiles/
 
 /.kotlin/errors/*

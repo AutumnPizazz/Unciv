@@ -147,22 +147,6 @@ project(":desktop") {
     }
 }
 
-// For server-side
-project(":server") {
-    apply(plugin = "kotlin")
-    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
-
-    dependencies {
-        // For server-side
-        "api"(rootProject.libs.bundles.ktor.server)
-        "implementation"(rootProject.libs.logback)
-        "implementation"(rootProject.libs.clikt)
-
-        // clikt somehow needs this
-        "api"(rootProject.libs.bundles.jna)
-    }
-}
-
 private fun getSdkPath(): String? {
     // See #13566 - Android Studio has moved its primary method to store where to find its SDK
     val localProperties = project.file("local.properties")

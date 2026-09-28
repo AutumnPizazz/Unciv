@@ -12,8 +12,6 @@ textureArrayBatch = "v1.2"
 
 jna = "5.17.0"
 ktor = "3.2.3"
-logback = "1.5.21"
-clikt = "5.0.3"
 
 luaj = "3.0.1"
 
@@ -65,15 +63,7 @@ ktor-client-contentnegotiation = { group = "io.ktor", name = "ktor-client-conten
 
 ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
-ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
-ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor" }
-ktor-server-auth = { group = "io.ktor", name = "ktor-server-auth", version.ref = "ktor" }
-ktor-server-contentnegotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
-ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
-
-logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 luaj-jse = { group = "org.luaj", name = "luaj-jse", version.ref = "luaj" }
-clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
 
 jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 jna-platform = { group = "net.java.dev.jna", name = "jna-platform", version.ref = "jna" }
@@ -93,11 +83,6 @@ jna = ["jna", "jna-platform"]
 ktor-client = [
     "ktor-client-core", "ktor-client-cio",
     "ktor-client-websockets", "ktor-client-encoding", "ktor-client-contentnegotiation",
-    "ktor-serialization"
-]
-ktor-server = [
-    "ktor-server-core", "ktor-server-netty",
-    "ktor-server-websockets", "ktor-server-auth", "ktor-server-contentnegotiation",
     "ktor-serialization"
 ]
 

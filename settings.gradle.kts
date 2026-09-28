@@ -9,7 +9,7 @@ pluginManagement {
     }
 }
 
-include("desktop", "core", "tests", "server")
+include("desktop", "core", "tests")
 
 private fun getSdkPath(): String? {
     val localProperties = file("local.properties")
