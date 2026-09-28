@@ -7,6 +7,8 @@ import com.unciv.models.ruleset.MergeAction
 import com.unciv.models.ruleset.MergeContext
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
+import com.unciv.models.ruleset.tech.TechColumn
+import com.unciv.models.ruleset.tech.Technology
 import com.unciv.models.ruleset.unit.BaseUnit
 import org.junit.Assert
 import org.junit.Before
@@ -894,5 +896,61 @@ class MergeActionTests {
         // Other fields untouched
         Assert.assertEquals("cost preserved", 0, palace.cost)
         Assert.assertEquals("production preserved", 3f, palace.production)
+    }
+
+    @Test
+    fun `TRY_INJECT on a tech merges into the base tech instead of replacing it`() {
+        val column = TechColumn().apply {
+            columnNumber = 0
+            era = "Ancient era"
+            techCost = 20
+        }
+
+        val base = Ruleset().apply {
+            name = "TestBase"
+            modOptions.isBaseRuleset = true
+            mods.add("TestBase")
+
+            technologies["Pottery"] = Technology().apply {
+                name = "Pottery"
+                cost = 35
+                row = 3
+                uniques = arrayListOf("[+1 Food]")
+                this.column = column
+            }
+            column.techs.add(technologies["Pottery"]!!)
+            techColumns.add(column)
+        }
+
+        val mod = Ruleset().apply { name = "TestMod"; mods.add("TestMod") }
+        mod.rawJsonArrays["Techs.json"] = JsonReader().parse("""
+        [
+            {
+                "columnNumber": 0,
+                "era": "Ancient era",
+                "techCost": 99,
+                "techs": [
+                    {
+                        "name": "Pottery",
+                        "_mergeAction": { "action": "TRY_INJECT" },
+                        "quote": "injected quote"
+                    }
+                ]
+            }
+        ]
+        """.trimIndent())
+
+        base.add(mod)
+
+        val pottery = base.technologies["Pottery"]!!
+
+        // The base tech must survive: an absent JSON cost must NOT become the column default and
+        // then overwrite the base cost, and scalar/array fields must not be lost.
+        Assert.assertEquals("base cost preserved", 35, pottery.cost)
+        Assert.assertEquals("base row preserved", 3, pottery.row)
+        Assert.assertTrue("base unique preserved", pottery.uniques.contains("[+1 Food]"))
+
+        // Non-default injected fields are still applied
+        Assert.assertEquals("injected quote applied", "injected quote", pottery.quote)
     }
 }

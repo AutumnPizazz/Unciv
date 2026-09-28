@@ -338,6 +338,8 @@ class Ruleset {
             }
         }
 
+        // Quests and Specialists do not implement IRulesetObject (no `_mergeAction` field /
+        // UniqueTarget), so field-level merge cannot apply to them - keep the plain putAll.
         quests.putAll(ruleset.quests)
 
         // Remove associated Religions, including when they're favored by Nations
@@ -355,8 +357,34 @@ class Ruleset {
             }.toSet().forEach {
                 technologies.remove(it)
             }
-        technologies.putAll(ruleset.technologies)
-        techColumns.addAll(ruleset.techColumns)
+        // Techs.json is an array of TechColumns, each nesting its Techs, so it cannot go through
+        // mergeOrPutAll's flat String→IRulesetObject map. Route each nested tech here instead;
+        // without this a TRY_INJECT tech would replace the real tech with a partial object.
+        val techRawJson = ruleset.rawJsonArrays["Techs.json"]
+        if (techRawJson == null) {
+            technologies.putAll(ruleset.technologies)
+            techColumns.addAll(ruleset.techColumns)
+        } else {
+            val resolvedTechList = resolveConditionals(techRawJson, mergeContext)
+            val columns: Array<TechColumn> = deserializeResolvedArray(resolvedTechList, Array<TechColumn>::class.java)
+            for (column in columns) {
+                for (tech in column.techs) {
+                    tech.column = column
+                    tech.originRuleset = name
+                    processObjects(technologies, listOf(tech))
+                }
+            }
+            // Apply the column's fallback cost only after merging: doing it before would turn an
+            // absent JSON cost into a non-default value and make TRY_INJECT overwrite the base
+            // tech's own cost with the column default.
+            for (column in columns) {
+                for (tech in column.techs) {
+                    val stored = technologies[tech.name] ?: continue
+                    if (stored.cost == 0) stored.cost = column.techCost
+                }
+            }
+            techColumns.addAll(columns)
+        }
 
         mergeOrPutAll("Terrains.json", terrains, ruleset.terrains, Array<Terrain>::class.java)
         mergeOrPutAll("TileImprovements.json", tileImprovements, ruleset.tileImprovements, Array<TileImprovement>::class.java)
@@ -364,8 +392,8 @@ class Ruleset {
         mergeOrPutAll("Variables.json", variables, ruleset.variables, Array<Variable>::class.java)
         mergeOrPutAll("Tutorials.json", tutorials, ruleset.tutorials, Array<Tutorial>::class.java)
         mergeOrPutAll("UnitTypes.json", unitTypes, ruleset.unitTypes, Array<UnitType>::class.java)
-        victories.putAll(ruleset.victories)
-        cityStateTypes.putAll(ruleset.cityStateTypes)
+        mergeOrPutAll("VictoryTypes.json", victories, ruleset.victories, Array<Victory>::class.java)
+        mergeOrPutAll("CityStateTypes.json", cityStateTypes, ruleset.cityStateTypes, Array<CityStateType>::class.java)
 
         if (ruleset.modOptions.unitsToRemove.isNotEmpty()) {
             for (unit in units.values) unit.setRuleset(this)
@@ -659,7 +687,15 @@ class Ruleset {
 
     private fun getFieldValue(obj: Any, fieldName: String): Any? {
         return try {
-            val field = obj::class.java.declaredFields.firstOrNull { it.name == fieldName }
+            // Walk the class hierarchy: fields such as `uniques`, `name` and `civilopediaText`
+            // are declared on superclasses (RulesetStatsObject / NamedStats / RulesetObject),
+            // and declaredFields alone would make every condition on them silently false.
+            var type: Class<*>? = obj::class.java
+            var field: java.lang.reflect.Field? = null
+            while (type != null && field == null) {
+                field = type.declaredFields.firstOrNull { it.name == fieldName }
+                type = type.superclass
+            }
             field?.apply { isAccessible = true }?.get(obj)
         } catch (_: Exception) {
             null
@@ -678,14 +714,24 @@ class Ruleset {
         return jvStr == kotlinValue.toString()
     }
 
+    /** Deserialize a resolved JsonValue list to a typed array. Also used for nested shapes
+     *  (e.g. Techs.json, whose entries are TechColumns containing Techs). */
+    @Suppress("UNCHECKED_CAST")
+    fun <T> deserializeResolvedArray(
+        resolvedList: List<JsonValue>,
+        arrayClass: Class<*>
+    ): Array<T> {
+        val jsonText = "[" + resolvedList.joinToString(",") { it.toJson(JsonWriter.OutputType.json) } + "]"
+        return json().fromJson(arrayClass, jsonText) as Array<T>
+    }
+
     /** Deserialize a resolved JsonValue list to typed objects. */
     @Suppress("UNCHECKED_CAST")
     fun <T : IRulesetObject> deserializeResolvedList(
         resolvedList: List<JsonValue>,
         arrayClass: Class<*>
     ): List<T> {
-        val jsonText = "[" + resolvedList.joinToString(",") { it.toJson(JsonWriter.OutputType.json) } + "]"
-        val array = json().fromJson(arrayClass, jsonText) as Array<T>
+        val array: Array<T> = deserializeResolvedArray(resolvedList, arrayClass)
         for (item in array)
             (item).originRuleset = name
         return array.toList()
