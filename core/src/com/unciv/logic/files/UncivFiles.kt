@@ -271,7 +271,14 @@ class UncivFiles(
             FileConversions.readJson(gameFile, GameInfo::class.java)
         } catch (ex: Exception) {
             Log.error("Exception while deserializing GameInfo JSON", ex)
-            val onlyVersion = FileConversions.readJson(gameFile, GameInfoSerializationVersion::class.java)!!
+            // Only claim a version problem when the version header itself can be read - otherwise the
+            // file is simply corrupt and the "created with an incompatible version" message misleads.
+            val onlyVersion = try {
+                FileConversions.readJson(gameFile, GameInfoSerializationVersion::class.java)
+            } catch (versionEx: Exception) {
+                Log.error("Could not read save version header", versionEx)
+                null
+            } ?: throw UncivShowableException("The file data seems to be corrupted.")
             throw IncompatibleGameInfoVersionException(onlyVersion.version, ex)
         } ?: throw UncivShowableException("The file data seems to be corrupted.")
 
