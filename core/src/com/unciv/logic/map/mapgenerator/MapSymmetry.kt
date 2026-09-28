@@ -166,6 +166,26 @@ class MapSymmetry(private val tileMap: TileMap, val mode: String) {
     }
 
     /**
+     * 资源收口:区域化资源放置([com.unciv.logic.map.mapgenerator.mapregions.MapRegions.placeResourcesAndMinorCivs])
+     * 不感知对称,可能把资源放在非规范格上;随后 [stampInto] 会用规范格状态覆盖整个轨道,
+     * 使这些资源被静默丢弃。在最终收口前,把每个轨道内按旋转序(steps60 升序)第一个非空
+     * 资源提升到规范格,再由 [stampInto] 分发到全轨道——资源不再丢失,对称性仍由构造保证。
+     * [enforceSymmetry] 之前调用。
+     */
+    fun promoteResourcesToCanonical() {
+        if (!isActive) return
+        for (orbit in orbits) {
+            val canonical = orbit.canonical
+            if (canonical.tileResource != null) continue
+            val source = orbit.members.entries
+                .sortedBy { it.key }
+                .firstOrNull { it.value.tileResource != null }?.value ?: continue
+            canonical.tileResource = source.tileResource
+            canonical.resourceAmount = source.resourceAmount
+        }
+    }
+
+    /**
      * 同步河流边到整个轨道:每条边以规范端为权威源,旋转后写到轨道成员间的对应边。
      * 河流标志由边的"较低端"唯一持有(见 [Tile.isConnectedByRiver]),写入是确定性的;
      * 从规范端读取时,若持有者在非规范格,需要先完成一轮写入(调用两次即可幂等收敛)。

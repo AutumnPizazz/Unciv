@@ -271,6 +271,9 @@ class MapGenerator(val ruleset: Ruleset, private val coroutineScope: CoroutineSc
 
         // Phase 3: 全部生成步骤完成后的最终对称收口(完整映射,一次到位)
         if (map.mapParameters.symmetryMode != SymmetryMode.none) {
+            // 区域资源放置不感知对称,先把轨道内非规范格上的资源提升到规范格,
+            // 否则收口会用规范格覆盖它们而静默丢失资源。
+            symmetry.promoteResourcesToCanonical()
             enforceSymmetry(map)
             if (debugSymmetry) {
                 val errors = symmetry.verify()
