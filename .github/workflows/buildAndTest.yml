@@ -115,15 +115,18 @@ jobs:
         with:
           submodules: recursive
 
+      # pnpm must be installed BEFORE actions/setup-node when using cache: pnpm —
+      # setup-node runs `pnpm store path`, and without pnpm on PATH it fails with
+      # "Dependencies lock file is not found ... package-lock.json,npm-shrinkwrap.json,yarn.lock".
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: pnpm
           cache-dependency-path: server-ts/pnpm-lock.yaml
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Install dependencies
         working-directory: server-ts
