@@ -1,3 +1,8 @@
+---
+title: UncivCN Changelog
+outline: [2, 2]
+---
+
 # UncivCN Changelog
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
@@ -51,7 +56,6 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Community multiplayer servers can now use approved registration, and chat can be turned off
 - Multiplayer server: cold saves are archived to encrypted storage when space runs out, and restored when someone opens them
 - Update checks and installer downloads now go through the community mirror link, which is faster
-
 - Merged upstream 4.22.4 (262 commits)
 - Invisible units are no longer invisible to their own civilization
 - New "Known Civilizations" countable
@@ -72,11 +76,9 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 ## 4.21.10.6 (build 1261)
 
 - Release: synchronize generated Lua API documentation
-
 - Multiplayer: simultaneous-turn submissions accept omitted default fields
 - Multiplayer: fixed clients incorrectly falling back after successful operation uploads
 - Multiplayer: added HTTP polling fallback when operation signals are missed
-
 - Fix: in-game update checks now verify CN download server synchronization
 - Multiplayer: simultaneous turns now advance after all players submit
 - Multiplayer: simultaneous-turn submissions now use the dedicated atomic operation store

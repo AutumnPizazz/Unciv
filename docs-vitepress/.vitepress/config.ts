@@ -4,6 +4,8 @@ import { fileURLToPath, URL } from 'node:url'
 import taskLists from 'markdown-it-task-lists'
 import mathjax3 from 'markdown-it-mathjax3'
 import container from 'markdown-it-container'
+// @ts-ignore
+import { stripEmptySections } from '../scripts/strip-empty-sections.mjs'
 
 /**
  * UncivCN 文档站配置
@@ -53,6 +55,13 @@ export default defineConfig({
 
   markdown: {
     config: (md) => {
+      // 更新日志里的「未发布 / 受众分组」空标题是给贡献者写日志用的占位，
+      // 发布后 bumpVersion 会自动补回，因此不应渲染到文档站（否则页面顶部和
+      // 右侧目录里会出现两个点不开的空标题）。只在更新日志文件上生效。
+      const renderMarkdown = md.render.bind(md)
+      md.render = (src, env = {}) =>
+        renderMarkdown(/[\\/]Changelog\.md$/.test(env.path || env.relativePath || '') ? stripEmptySections(src) : src, env)
+
       md.use(taskLists)
       md.use(mathjax3)
       // 自定义 note 容器：mkdocs 的 `!!! note` 无标题提示块，VitePress 未内置 note 类型。
