@@ -77,13 +77,15 @@ open class BumpVersionTask : DefaultTask() {
             File(rootDir, "docs/UncivCN/Changelog.md"),
             targetVersion,
             "## $targetVersion (build $targetCode)",
-            "## Unreleased"
+            "## Unreleased",
+            listOf("### Player-facing", "### Mod author-facing")
         )
         insertChangelogVersionSection(
             File(rootDir, "docs/zh/UncivCN/Changelog.md"),
             targetVersion,
             "## $targetVersion（build $targetCode）",
-            "## 未发布"
+            "## 未发布",
+            listOf("### 玩家可感知", "### 模组作者可感知")
         )
         logger.lifecycle("Changelog：已为中英两版插入 $targetVersion（build $targetCode）小节")
 

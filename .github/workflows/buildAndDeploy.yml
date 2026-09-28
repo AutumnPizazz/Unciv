@@ -35,15 +35,27 @@ jobs:
           ## and docs/zh/UncivCN/Changelog.md
           TAG=${{ github.ref_name }}
 
-          ## English: CN changelog first, upstream changelog.md as fallback
-          en=$(grep -Pzo '\#{2}.'"$TAG"'[^\#]*\#{2}' docs/UncivCN/Changelog.md || \
-               grep -Pzo '\#{2}.'"$TAG"'[^\#]*\#{2}' changelog.md || true)
-          ## Chinese: CN zh changelog
-          zh=$(grep -Pzo '\#{2}.'"$TAG"'[^\#]*\#{2}' docs/zh/UncivCN/Changelog.md || true)
+          ## Print the body of the "## <tag>..." section: everything up to the next level-2
+          ## heading. Level-3 headings (the per-audience grouping) are kept.
+          ## The trailing digit check keeps tag 4.21.10.1 from matching 4.21.10.10.
+          extract_section() {
+            [ -f "$1" ] || return 0
+            awk -v tag="$2" '
+              /^## / {
+                if (inside) exit
+                if (index($0, "## " tag) == 1 && substr($0, 4 + length(tag), 1) !~ /[0-9]/) inside = 1
+                next
+              }
+              inside { print }
+            ' "$1" | sed '/[^[:space:]]/,$!d'
+          }
 
-          ## Drop the section header line and the trailing "##" matched by the pattern
-          en=$(echo "$en" | head -n -2 | tail -n +3)
-          zh=$(echo "$zh" | head -n -2 | tail -n +3)
+          ## English: CN changelog first, upstream changelog.md as fallback
+          en=$(extract_section docs/UncivCN/Changelog.md "$TAG")
+          [ -n "$en" ] || en=$(extract_section changelog.md "$TAG")
+          ## Chinese: CN zh changelog
+          zh=$(extract_section docs/zh/UncivCN/Changelog.md "$TAG")
+
           ## whatsnew needs a safe single-file version: no quotes or backticks
           whatsnew=$(echo "$en" | tr '"' "'" | tr '`' "'")
 
@@ -373,9 +385,19 @@ jobs:
           body: |
             ## ${{ github.ref_name }}
 
+            <details>
+            <summary>English</summary>
+
             ${{needs.get-release-body.outputs.release_body}}
 
+            </details>
+
+            <details>
+            <summary>简体中文</summary>
+
             ${{needs.get-release-body.outputs.release_body_zh}}
+
+            </details>
 
   # 校验 CN 社区下载服务器已切到本次版本（服务器只转发版本清单、/dl/ 直链 302 跳转，不再托管安装包）。
   # 需要的 Secret（仓库 Settings → Secrets and variables → Actions）：

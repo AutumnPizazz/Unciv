@@ -2,25 +2,32 @@
 
 Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
 
+Each release is grouped by audience: **Player-facing** for changes players notice in game, and **Mod author-facing** for behaviour that mods and Lua scripts rely on. Purely internal changes are not listed; older releases predate this split.
+
 ::: tip
 Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/yairm210/Unciv/blob/master/changelog.md)
 :::
 
 ## Unreleased
 
+### Player-facing
+
 - Fix: Android in-game update no longer crashes when tapping Install
 - Fix: a leftover multiplayer turn-settlement lock no longer freezes the game permanently
 - Fix: mirrored maps no longer lose resources placed by region generation
-- Fix: reloaded Lua mods can no longer freeze the game, functions no longer leak across mods, and their errors are reported again
-- Fix: field-level mod merges now apply to techs, victory types and city-state types, invalid conditions fail loudly, and removed fields really reset
 - Fix: two players changing world state in the same simultaneous turn no longer abort the turn
 - Fix: map notes only open when the matching note option is on, and your own note text is no longer translated
-- Fix: mods merged on top of others keep their own origin, and immutable fields can now be merged
-- Fix: Lua reports mountains correctly, no longer leaves ghost resource amounts, and handles extreme random ranges
 - Fix: top-bar variable totals no longer promise unreachable values or hide behind unit variables
 - Fix: CSV exports no longer truncate turns and now escape line breaks
 - Fix: a corrupted save no longer claims to come from a newer version
 - Fix: the "new version available" label no longer stacks up after repeated checks
+
+### Mod author-facing
+
+- Fix: reloaded Lua mods can no longer freeze the game, functions no longer leak across mods, and their errors are reported again
+- Fix: field-level mod merges now apply to techs, victory types and city-state types, invalid conditions fail loudly, and removed fields really reset
+- Fix: mods merged on top of others keep their own origin, and immutable fields can now be merged
+- Fix: Lua reports mountains correctly, no longer leaves ghost resource amounts, and handles extreme random ranges
 - Fix: mod versions like 1.2 and 1.2.0 now compare consistently, and malformed versions no longer satisfy dependencies
 - Fix: Lua scripts can no longer exhaust memory by building enormous strings
 

@@ -41,8 +41,17 @@ internal fun syncUncivGameVersion(rootDir: File, version: String, code: String):
  * 在 changelog 的「未发布」标题（[unreleasedHeading]，如 `## Unreleased` / `## 未发布`）
  * 之后插入新的版本小节 [heading]，使原本挂在「未发布」下的条目归入新版本。
  * 若该版本小节已存在则报错（避免重复插入）。
+ *
+ * [audienceHeadings] 非空时，还会为清空后的「未发布」小节补回这些受众分组标题，
+ * 让后续条目继续按受众归类（约定见两个 changelog 顶部的说明）。
  */
-internal fun insertChangelogVersionSection(file: File, version: String, heading: String, unreleasedHeading: String) {
+internal fun insertChangelogVersionSection(
+    file: File,
+    version: String,
+    heading: String,
+    unreleasedHeading: String,
+    audienceHeadings: List<String> = emptyList()
+) {
     val text = file.readText()
     if (text.contains("## $version ") || text.contains("## $version（")) {
         error("${file.path} 已存在 $version 小节，请检查是否重复升级")
@@ -53,5 +62,8 @@ internal fun insertChangelogVersionSection(file: File, version: String, heading:
     if (lineEnd < 0) error("${file.path} 的「$unreleasedHeading」位于文件末尾，无法插入")
     val before = text.substring(0, lineEnd)
     val after = text.substring(lineEnd + 1)
-    file.writeText("$before\n\n$heading\n$after")
+    val freshUnreleased =
+        if (audienceHeadings.isEmpty()) ""
+        else audienceHeadings.joinToString("\n\n") + "\n\n"
+    file.writeText("$before\n\n$freshUnreleased$heading\n$after")
 }
