@@ -8,6 +8,10 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+## 4.22.4.2 (build 1264)
+
+- New first-launch community services consent popup; adults only
+- Terms of service and privacy policy now include a minors section
 - Privacy policy clarified: visiting overseas/mirror sites is your own action
 - Terms of service clarified: community services are non-commercial infrastructure, not game publishing
 
