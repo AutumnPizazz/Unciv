@@ -16,7 +16,6 @@ import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.files.GameSetupSaver
 import com.unciv.logic.files.MapSaver
-import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.MapGeneratedMainType
 import com.unciv.logic.multiplayer.Multiplayer
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
@@ -196,7 +195,7 @@ class NewGameScreen(
             label = "Enter a name for the saved game setup".tr(),
             errorText = "Invalid setup name!".tr(),
             maxLength = 32,
-            validate = { UncivFiles.isValidFileName(it) },
+            validate = { GameSetupSaver.isValidSetupName(it) },
             actionOnOk = { name ->
                 try {
                     GameSetupSaver.save(GameSetupClipboard.encode(gameSetupInfo), name)

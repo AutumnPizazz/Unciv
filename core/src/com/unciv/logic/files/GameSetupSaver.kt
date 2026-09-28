@@ -17,7 +17,17 @@ object GameSetupSaver {
 
     private fun getFolder() = UncivGame.Current.files.getLocalFile(SETUP_FOLDER)
 
-    fun getFile(name: String) = getFolder().child("$name$SETUP_FILE_EXTENSION")
+    /** Setup slots are single files directly inside [SETUP_FOLDER].
+     *  Rejects path separators and `.`/`..` so a slot name can never escape the folder. */
+    fun isValidSetupName(name: String): Boolean =
+        UncivFiles.isValidFileName(name) &&
+            !name.contains('/') && !name.contains('\\') &&
+            name != "." && name != ".."
+
+    fun getFile(name: String): FileHandle {
+        require(isValidSetupName(name)) { "Invalid game setup name: $name" }
+        return getFolder().child("$name$SETUP_FILE_EXTENSION")
+    }
 
     /** Save [setupText] to the slot [name], overwriting an existing slot of the same name. */
     fun save(setupText: String, name: String) {
