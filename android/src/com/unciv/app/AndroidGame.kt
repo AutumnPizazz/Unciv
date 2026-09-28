@@ -164,10 +164,19 @@ class AndroidGame(private val activity: Activity) : UncivGame() {
                 put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
             }
             val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return false
-            resolver.openOutputStream(uri)?.use { out ->
-                apkFile.inputStream().use { input -> input.copyTo(out) }
-            } ?: return false
-            true
+            try {
+                val out = resolver.openOutputStream(uri)
+                if (out == null) {
+                    resolver.delete(uri, null, null)
+                    return false
+                }
+                out.use { output -> apkFile.inputStream().use { input -> input.copyTo(output) } }
+                true
+            } catch (ex: Exception) {
+                // Don't leave a zero-byte entry behind in the player's Downloads folder
+                resolver.delete(uri, null, null)
+                false
+            }
         } catch (_: Exception) {
             false
         }
