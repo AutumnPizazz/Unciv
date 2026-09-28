@@ -13,6 +13,7 @@ title: UncivCN 更新日志
 ## 未发布
 
 - 修复：安卓局内更新点击「安装」按钮崩溃
+- 自建服务器由 Java 版 UncivServer.jar 改用 TypeScript 版 UncivSrv
 
 ## 4.22.4.2（build 1264）
 

@@ -9,6 +9,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 ## Unreleased
 
 - Fix: Android in-game update no longer crashes when tapping Install
+- Self-hosted server switched from the Java UncivServer.jar to the TypeScript UncivSrv
 
 ## 4.22.4.2 (build 1264)
 
