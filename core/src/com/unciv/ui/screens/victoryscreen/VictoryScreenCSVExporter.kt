@@ -52,7 +52,7 @@ object VictoryScreenCSVExporter {
 
         // Build CSV header
         val header = mutableListOf("Turn", "Civ", "Defeated")
-        header.addAll(RankingType.entries.map { it.label })
+        header.addAll(RankingType.entries.map { it.label.tr() })
         rows.add(header)
 
         // Build data rows
@@ -75,9 +75,9 @@ object VictoryScreenCSVExporter {
         // Convert to CSV format
         return buildString {
             for (row in rows) {
-                // Escape values that contain commas or quotes
+                // Quote values containing a delimiter, a quote, or a line break (RFC 4180)
                 val escapedRow = row.map { value ->
-                    if (value.contains(",") || value.contains("\"")) {
+                    if (value.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
                         "\"${value.replace("\"", "\"\"")}\""
                     } else {
                         value

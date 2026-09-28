@@ -25,7 +25,9 @@ class ExportDataPopup(
 
     init {
         val majorCivs = gameInfo.civilizations.filter { it.isMajorCiv() }.sortedBy { it.civName }
-        val availableTurns = majorCivs.firstOrNull()?.statsHistory?.keys?.sorted() ?: emptyList()
+        // Union of every major civ's history: one civ may have joined late or been defeated early,
+        // and exporting must not silently drop turns the others do have.
+        val availableTurns = majorCivs.flatMap { it.statsHistory.keys }.distinct().sorted()
 
         addGoodSizedLabel("Export game statistics".tr())
 
