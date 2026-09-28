@@ -6,6 +6,7 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
@@ -94,6 +95,8 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
     private var updateCheckJob: Job? = null
     private var updateAvailable: GithubAPI.LatestRelease? = null
+    /** The single "New version available" label, so repeated update checks can't stack copies in [versionTable] */
+    private var updateAvailableLabel: Label? = null
     private var installerDownloadJob: Job? = null
     /** GL 回调守卫：屏幕销毁/重建后不再操作旧 stage 上的 UI，防止后台下载回调写入已释放资源 */
     private var isDisposed = false
@@ -420,13 +423,17 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         when (result) {
             is UpdateCheckResult.UpdateAvailable -> {
                 updateAvailable = result.latestRelease
-                // Keep the label short so it doesn't push the version number around
-                val updateLabel = "New version available".toLabel(
-                    fontColor = Color.GOLD, fontSize = 12, alignment = Align.center
-                )
-                versionTable.add(updateLabel).row()
-                versionTable.pack()
-                versionTable.setPosition(stage.width / 2, 10f, Align.bottom)
+                // A previous check may already have added the label - reuse it instead of stacking another
+                if (updateAvailableLabel == null) {
+                    // Keep the label short so it doesn't push the version number around
+                    val updateLabel = "New version available".toLabel(
+                        fontColor = Color.GOLD, fontSize = 12, alignment = Align.center
+                    )
+                    updateAvailableLabel = updateLabel
+                    versionTable.add(updateLabel).row()
+                    versionTable.pack()
+                    versionTable.setPosition(stage.width / 2, 10f, Align.bottom)
+                }
             }
 
             is UpdateCheckResult.UpToDate -> Unit
