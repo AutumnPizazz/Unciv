@@ -86,7 +86,7 @@ object SimultaneousTurnReplay {
             SimultaneousTurnGlobalState::class.java, result.globalAfter
         )
         val currentGlobal = SimultaneousTurnOperations.currentGlobalState(gameInfo)
-        if (currentGlobal != globalBefore && currentGlobal != globalAfter) return false
+        if (!globalStateCompatible(currentGlobal, globalBefore, globalAfter)) return false
 
         for (snapshot in result.civilizations) {
             val current = gameInfo.getCivilizationOrNull(snapshot.key) ?: return false
@@ -123,14 +123,45 @@ object SimultaneousTurnReplay {
                 else json().readFields(current, JsonReader().parse(snapshot.after))
             }
         }
-        gameInfo.diplomaticVictoryVotesCast.clear()
-        gameInfo.diplomaticVictoryVotesCast.putAll(globalAfter.diplomaticVictoryVotesCast)
-        gameInfo.unitNamesTaken.clear()
-        gameInfo.unitNamesTaken.addAll(globalAfter.unitNamesTaken)
-        gameInfo.variables.clear()
-        gameInfo.variables.putAll(globalAfter.variables)
-        gameInfo.setLastUnitIdForSimultaneousTurns(globalAfter.lastUnitId)
+        // Only write back the fields this operation actually changed. Writing all of them
+        // unconditionally would roll back fields that an earlier operation in the same settlement
+        // pass had already changed (they are unchanged from this operation's point of view).
+        if (globalBefore.diplomaticVictoryVotesCast != globalAfter.diplomaticVictoryVotesCast) {
+            gameInfo.diplomaticVictoryVotesCast.clear()
+            gameInfo.diplomaticVictoryVotesCast.putAll(globalAfter.diplomaticVictoryVotesCast)
+        }
+        if (globalBefore.unitNamesTaken != globalAfter.unitNamesTaken) {
+            gameInfo.unitNamesTaken.clear()
+            gameInfo.unitNamesTaken.addAll(globalAfter.unitNamesTaken)
+        }
+        if (globalBefore.variables != globalAfter.variables) {
+            gameInfo.variables.clear()
+            gameInfo.variables.putAll(globalAfter.variables)
+        }
+        if (globalBefore.lastUnitId != globalAfter.lastUnitId)
+            gameInfo.setLastUnitIdForSimultaneousTurns(globalAfter.lastUnitId)
         gameInfo.setTransients()
+        return true
+    }
+
+    /**
+     * A global-state operation may only be applied while the fields it actually changes still hold
+     * their before-value. Fields it does not touch may already have been changed by another
+     * player's operation replayed earlier in this settlement pass, so they must not invalidate this
+     * one -- the previous "current != before && current != after" check rejected the second of two
+     * same-turn global operations, and WorldScreen's `check(failedOperations.isEmpty())` then
+     * aborted the turn forever.
+     */
+    private fun globalStateCompatible(
+        current: SimultaneousTurnGlobalState,
+        before: SimultaneousTurnGlobalState,
+        after: SimultaneousTurnGlobalState
+    ): Boolean {
+        if (before.lastUnitId != after.lastUnitId && current.lastUnitId != before.lastUnitId) return false
+        if (before.diplomaticVictoryVotesCast != after.diplomaticVictoryVotesCast &&
+            current.diplomaticVictoryVotesCast != before.diplomaticVictoryVotesCast) return false
+        if (before.unitNamesTaken != after.unitNamesTaken && current.unitNamesTaken != before.unitNamesTaken) return false
+        if (before.variables != after.variables && current.variables != before.variables) return false
         return true
     }
 

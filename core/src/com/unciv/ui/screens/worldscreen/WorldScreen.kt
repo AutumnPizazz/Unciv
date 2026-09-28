@@ -111,8 +111,6 @@ class WorldScreen(
 
     @Transient
     private val simultaneousTurnOperations = ArrayList<SimultaneousTurnOperation>()
-    @Transient
-    private var nextSimultaneousOperationSequence = 0L
 
 
     /** Indicates it's the player's ([viewingCiv]) turn */
@@ -127,7 +125,7 @@ class WorldScreen(
         val operation = SimultaneousTurnOperation(
             turn = gameInfo.turns,
             playerId = playerId,
-            sequence = nextSimultaneousOperationSequence++,
+            sequence = gameInfo.nextSimultaneousOperationSequence++,
             type = type,
             payload = json().toJson(payload)
         )
@@ -935,7 +933,7 @@ class WorldScreen(
             val done = SimultaneousTurnOperation(
                 turn = gameInfo.turns,
                 playerId = playerId,
-                sequence = nextSimultaneousOperationSequence++,
+                sequence = gameInfo.nextSimultaneousOperationSequence++,
                 type = "done"
             )
             val uploadOperations = getSimultaneousTurnOperations() + done

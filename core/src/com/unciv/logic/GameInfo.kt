@@ -157,6 +157,12 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** Used by polling multiplayer: civIDs of players who have clicked "done" for the current game turn. */
     var playersFinishedThisTurn = HashSet<String>()
 
+    /** Monotonic counter used to number this player's simultaneous-turn operations within a turn.
+     *  Persisted in the game info (not the world screen) so that recreating the screen mid-turn --
+     *  e.g. on a window resize -- doesn't restart numbering at 0, which would make the server's
+     *  (turn, playerId, sequence) dedup silently discard the newly recorded operations. */
+    var nextSimultaneousOperationSequence = 0L
+
     /** Persistent key-value storage for Lua mods. Outer key = mod name, inner key = storage key. */
     var modLuaStorage = HashMap<String, HashMap<String, String>>()
 
@@ -580,6 +586,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
 
         turns++
         playersFinishedThisTurn.clear()
+        nextSimultaneousOperationSequence = 0L
 
         // Start all human players' turns
         for (civ in civilizations) {
