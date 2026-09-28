@@ -1,4 +1,4 @@
-﻿package com.unciv.ui.screens.mainmenuscreen
+package com.unciv.ui.screens.mainmenuscreen
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
@@ -54,6 +54,7 @@ import com.unciv.ui.components.tilegroups.TileGroupMap
 import com.unciv.ui.components.widgets.AutoScrollPane
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.images.padTopDescent
+import com.unciv.ui.popups.CommunityTermsPopup
 import com.unciv.ui.popups.ConfirmPopup
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
@@ -294,7 +295,14 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         installerProgressBar = InstallerDownloadProgress()
         installerProgressBar.setPosition(stage.width / 2, versionTable.height + 12f, Align.bottom)
         stage.addActor(installerProgressBar)
+        askCommunityTermsIfNeeded()
         askPlayerRegionIfNeeded()
+    }
+
+    /** 首次启动显示社区服务条款与年龄确认弹窗（见 [CommunityTermsPopup]）；已接受则跳过。 */
+    private fun askCommunityTermsIfNeeded() {
+        if (game.settings.hasAcceptedCommunityTerms) return
+        CommunityTermsPopup(stage).open()
     }
 
     /** 首次启动询问玩家所在地区（决定更新下载走的服务器）；已设置则直接检查更新。

@@ -21,6 +21,7 @@ Passwords are stored as `scrypt` hashes with a random salt per account: nobody, 
 - No real name, ID number, phone number or e-mail address. The services never require identity documents.
 - No payment data and no advertising identifiers: these services are free and non-commercial.
 - No data is sold or shared with third parties, and the documentation site does not run analytics or tracking.
+- No personal information is collected from minors: these services are intended for adults aged 18 or over, and we do not knowingly provide them to, or collect personal information from, minors.
 
 ## Your choices
 

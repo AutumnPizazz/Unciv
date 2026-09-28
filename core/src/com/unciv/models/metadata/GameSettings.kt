@@ -211,6 +211,10 @@ class GameSettings {
     // Used by launcher to recognize a first-run
     var isFreshlyCreated = false
 
+    /** 玩家是否已接受社区服务条款并确认成年（首次启动弹窗，见 [com.unciv.ui.popups.CommunityTermsPopup]）。
+     *  未接受前会在主菜单反复弹出，因此不要随意重置。 */
+    var hasAcceptedCommunityTerms = false
+
     // Controlled from ModManagementScreen
     var visualMods = HashSet<String>()
 
