@@ -12,6 +12,12 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+### Mod author-facing
+
+## 4.22.4.3 (build 1265)
+
+### Player-facing
+
 - Fix: Android in-game update no longer crashes when tapping Install
 - Fix: a leftover multiplayer turn-settlement lock no longer freezes the game permanently
 - Fix: mirrored maps no longer lose resources placed by region generation
