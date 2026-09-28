@@ -9,6 +9,12 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 ## Unreleased
 
 - Fix: Android in-game update no longer crashes when tapping Install
+- Fix: a leftover multiplayer turn-settlement lock no longer freezes the game permanently
+- Fix: mirrored maps no longer lose resources placed by region generation
+- Fix: reloaded Lua mods can no longer freeze the game, and functions no longer leak across mods
+- Fix: field-level mod merges now apply to techs, victory types and city-state types
+- Fix: two players changing world state in the same simultaneous turn no longer abort the turn
+- Fix: map notes only open when the matching note option is on, and your own note text is no longer translated
 - Self-hosted server switched from the Java UncivServer.jar to the TypeScript UncivSrv
 
 ## 4.22.4.2 (build 1264)
