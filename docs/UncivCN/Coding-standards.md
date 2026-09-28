@@ -10,8 +10,6 @@
 ./gradlew :tests:test                                # Run all tests
 ./gradlew :tests:test --tests "com.unciv.testing.BasicTests"   # Run a single test class
 ./gradlew desktop:dist                               # Build the JAR → desktop/build/libs/Unciv.jar
-./gradlew server:run                                 # Run the server
-./gradlew server:dist                                # → server/build/libs/UncivServer.jar
 java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
   --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt check (warnings)
 ```
@@ -29,7 +27,7 @@ For a from-scratch setup (environment, IDE configuration) see [Building-Locally]
 | `core/` | 99% of the game code: logic, models, UI, serialization, ruleset. Pure Kotlin, no platform dependencies |
 | `desktop/` | Desktop launcher and platform features (JNA notifications, Discord RPC) |
 | `android/` | Android launcher; `android/assets/` holds the shared assets for all platforms (images, JSON, translations) |
-| `server/` | Multiplayer server (Ktor + WebSocket), packaged separately |
+| `server-ts/` | Multiplayer server (TypeScript, Hono + better-sqlite3 + ws), submodule [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
 | `tests/` | JUnit 4 + Mockito unit tests |
 
 Key packages (`core/src/com/unciv/`):
@@ -167,7 +165,7 @@ Before releasing, check off:
 - [ ] Local verification: `./gradlew tests:test` **and** `cd docs-vitepress && npm run docs:build` (skipping the latter only surfaces docs failures in CI after the release)
 - [ ] Push both the branch **and the tag separately** (`git push origin <branch>` + `git push origin <tag>`); the Deploy workflow triggers on tags only — pushing the branch alone does not release
 
-After releasing, verify GitHub Release asset completeness: `UncivCN-<version>.Apk`, `.jar`, `Windows64.zip`, `Linux64.zip`, `UncivServer-<version>.jar`, `.msi`.
+After releasing, verify GitHub Release asset completeness: `UncivCN-<version>.Apk`, `.jar`, `Windows64.zip`, `Linux64.zip`, `UncivSrv-<version>.tar.gz`, `.msi`.
 
 Lessons learned:
 - **No bare angle brackets in markdown**: `<gameId>` is parsed by VitePress/Vue as an unclosed HTML tag (`Element is missing end tag`) and breaks the docs build — use `{gameId}` or `&lt;...&gt;`

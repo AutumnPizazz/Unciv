@@ -24,16 +24,28 @@ If you're proficient in server hosting, there's another how-to for you at the en
 
 ### How To
 
-Before starting, you must have a Java JDK installed. You'll also have to download the [latest UncivServer.jar](https://github.com/yairm210/Unciv/releases/latest/download/UncivServer.jar).
+Before starting, you must have [Node.js 20+](https://nodejs.org/) and [pnpm 10+](https://pnpm.io/) installed, or [Docker](https://www.docker.com/). The server is provided by the TypeScript [UncivSrv](https://github.com/blyrin/unciv-srv), available as the `server-ts/` submodule of this repository.
 
-From the directory where the `UncivServer.jar` file is located, create a folder named "MultiplayerFiles", open a terminal (in Windows, Shift+RightClick in the folder) and run the following command in the directory:
-`java -jar UncivServer.jar`
+From the repository root, open a terminal, enter the submodule and start it:
+
+```bash
+cd server-ts
+pnpm install
+pnpm build && pnpm start
+```
+
+If you use Docker instead:
+
+```bash
+cd server-ts
+docker compose up -d --build
+```
 
 Your server has now started!
 
-To check if everything works, you can start Unciv on the same computer, go to "Options > Multiplayer", then enter `http://localhost:8080` as the "Server address" and click "Check connection to server". You should now get a "Success!" result, which means it's working!
+To check if everything works, you can start Unciv on the same computer, go to "Options > Multiplayer", then enter `http://localhost:11451` as the "Server address" and click "Check connection to server". You should now get a "Success!" result, which means it's working!
 
-To connect with other devices outside your local network or to make your server accessible from the web, you'll need a real IP. If your ISP provides you with a real IP already, forward your server's port (default 8080) with your router, and your server would be exposed to the internet! In this case you can also use `http://<your-real-ip-adress>:<your-forwarded-port>`. For example, if you have the IP `203.0.113.1` and forwarded the port of your server to port `1234`, your server can be accessed from the internet from the url `http://203.0.113.1:1234`. Additionally, since the `HTTP` protocol defaults to port `80`, if you have forwarded your server to port `80`, you wouldn’t need to specify any port. For example, if you forward the server's port to port `80` of your real IP, your server would be exposed to `http://<your-real-ip>` or in this case `http://203.0.113.1`.
+To connect with other devices outside your local network or to make your server accessible from the web, you'll need a real IP. If your ISP provides you with a real IP already, forward your server's port (default 11451) with your router, and your server would be exposed to the internet! In this case you can also use `http://<your-real-ip-adress>:<your-forwarded-port>`. For example, if you have the IP `203.0.113.1` and forwarded the port of your server to port `1234`, your server can be accessed from the internet from the url `http://203.0.113.1:1234`. Additionally, since the `HTTP` protocol defaults to port `80`, if you have forwarded your server to port `80`, you wouldn’t need to specify any port. For example, if you forward the server's port to port `80` of your real IP, your server would be exposed to `http://<your-real-ip>` or in this case `http://203.0.113.1`.
 
 
 On the other device, enter the URL to your server (`http://<your IP address>:<your chosen port>`), click 'check connection' from the new device, and if you get the same "Success!" result - congratulations, you're connected to the same server and can start a multiplayer game!
@@ -41,20 +53,21 @@ On the other device, enter the URL to your server (`http://<your IP address>:<yo
 Please note:
 * Devices *not* connected to the same server will *not* be able to participate in multiplayer games together
 * In many places, your external IP address changes periodically. If that is the case, you either have to update the IP all the time or use something like a dynamic DNS service.
-* To start your server from some special ports like `80` or `443`, you would need admin privileges. If you want to use those ports, run PowerShell as admin. However, if you use port forwarding from a router, you really don't need to do this. You can start the server from port `8080` and forward it to `80`.
+* To start your server from some special ports like `80` or `443`, you would need admin privileges. If you want to use those ports, run PowerShell as admin. However, if you use port forwarding from a router, you really don't need to do this. You can start the server from port `11451` and forward it to `80`.
 
 ### How To for people with hosting experience
 
-* Have a Java JDK installed
-* Download the [latest UncivServer.jar](https://github.com/yairm210/Unciv/releases/latest/download/UncivServer.jar) (can also use that link to automatically update probably)
-* See options with `java -jar UncivServer.jar --help`
-    * The server will run on a specified port (`-p`, default `8080`), writing files in a folder (`-f`, default `./MultiplayerFiles/`), so it needs appropriate permissions.
-* Run it: `java -jar UncivServer.jar -p 8080 -f /some/folder/`
-    * It basically just does simple file storage over HTTP.
-    * Files are not cleaned automatically if a game ends or is deleted on the client-side
+* Have Node.js 20+ and pnpm 10+ installed (or use Docker)
+* Get the [UncivSrv](https://github.com/blyrin/unciv-srv) sources (the `server-ts/` submodule of this repository is a snapshot of it)
+* Configure it with a `.env` file — see `server-ts/example.env` for the available options
+    * Listen address/port, database path, registration mode (`open`/`approval`/`closed`), chat toggle, etc. are all set in `.env`.
+* Run it: `pnpm build && pnpm start` (use `pnpm dev` while developing)
+    * Storage is SQLite with automatic database migrations.
+    * Player passwords are stored as scrypt hashes rather than a plaintext file.
 
 ## Third-party (unofficial) software for hosting your own Unciv server
 
+* [https://github.com/blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) (TypeScript, the `server-ts/` submodule of this repository; most feature-complete)
 * [https://github.com/Mape6/Unciv_server](https://github.com/Mape6/Unciv_server) (Python)
 * [https://gitlab.com/azzurite/unciv-server](https://gitlab.com/azzurite/unciv-server) (NodeJS)
 * [https://github.com/oynqr/rust_unciv_server](https://github.com/oynqr/rust_unciv_server) (Rust)

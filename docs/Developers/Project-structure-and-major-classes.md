@@ -8,7 +8,7 @@ The [desktop](https://github.com/yairm210/Unciv/tree/master/desktop) and [androi
 
 The [tests](https://github.com/yairm210/Unciv/tree/master/tests) folder contains tests that can be run manually via gradle with `./gradlew tests:test`, and are run automatically by Travis for every push.
 
-The [server](https://github.com/yairm210/Unciv/tree/master/server) folder contains the sources for the UncivServer (a host enabling communication between multiplayer game instances), which is packaged into its own separate jar.
+The [server-ts](https://github.com/blyrin/unciv-srv) submodule (mounted at `server-ts/`) contains the TypeScript multiplayer server (UncivSrv) — a host enabling communication between multiplayer game instances, packaged as a Docker image.
 
 
 ## Translations

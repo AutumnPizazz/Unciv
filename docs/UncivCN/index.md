@@ -32,8 +32,9 @@ Details in [Features](./Features) and [Differences vs upstream](./Differences).
 ./gradlew desktop:run        # run desktop version
 ./gradlew :tests:test        # run all tests
 ./gradlew desktop:dist       # build JAR → desktop/build/libs/Unciv.jar
-./gradlew server:run         # run multiplayer server
 ```
+
+For the multiplayer server see [UncivSrv (TypeScript server)](../Developers/Building-Locally.md#uncivsrv-typescript-server).
 
 Android builds need `local.properties` (`sdk.dir`) or the `ANDROID_HOME` environment variable.
 

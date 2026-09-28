@@ -25,12 +25,6 @@ Unciv 项目的构建流程和部署指南。
 ./gradlew android:assembleRelease
 ```
 
-### Server 构建
-
-```bash
-./gradlew server:dist
-```
-
 ## 测试
 
 ```bash

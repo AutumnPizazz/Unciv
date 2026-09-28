@@ -82,11 +82,11 @@ Core logic spans the following source files:
 | `Multiplayer.kt` | null-safety fix for `GameInfoPreview.isUsersTurn()` |
 | `MultiplayerGamePreview.kt` | null-safety fix for `GameInfoPreview.getCurrentPlayerCiv()` |
 | `ChatWebSocket.kt` | client-side `GameUpdated` reception and refresh trigger |
-| `UncivServer.kt` | server-side WebSocket broadcast after upload |
+| `server-ts/` (chat handlers) | server-side WebSocket broadcast after upload |
 | `GameSettings.kt` | default password set to 123456 |
 
 ## Notes
 
 - All players in a polling game must configure the multiplayer password in game settings (default 123456), otherwise WebSocket authentication failures affect push delivery.
 - Adjust the interval to the number of players: 5–10s for 2 players; 15s+ recommended for 4 or more.
-- The server must run with the `-chat` option (on by default) to support WebSocket push.
+- The server must have chat enabled (`CHAT_ENABLED=true`, on by default) to support WebSocket push.

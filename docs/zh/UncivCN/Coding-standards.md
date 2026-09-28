@@ -14,8 +14,6 @@ title: 代码规范
 ./gradlew :tests:test                                # 运行全部测试
 ./gradlew :tests:test --tests "com.unciv.testing.BasicTests"   # 单个测试类
 ./gradlew desktop:dist                               # 构建 JAR → desktop/build/libs/Unciv.jar
-./gradlew server:run                                 # 运行服务器
-./gradlew server:dist                                # → server/build/libs/UncivServer.jar
 java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
   --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt 检查（警告）
 ```
@@ -33,7 +31,7 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 | `core/` | 99% 的游戏代码：逻辑、模型、UI、序列化、规则集。纯 Kotlin，不依赖平台 |
 | `desktop/` | 桌面启动器与平台功能（JNA 通知、Discord RPC） |
 | `android/` | Android 启动器；`android/assets/` 为各平台共享资源（图片、JSON、翻译） |
-| `server/` | 多人服务器（Ktor + WebSocket），独立打包 |
+| `server-ts/` | 多人服务器（TypeScript，Hono + better-sqlite3 + ws），子模块 [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
 | `tests/` | JUnit 4 + Mockito 单元测试 |
 
 关键包（`core/src/com/unciv/`）：
@@ -245,7 +243,7 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
       Deploy 工作流由 tag 触发，只推分支不会发版
 
 发版后核对 GitHub Release 资产完整性：`UncivCN-<版本>.Apk`、`.jar`、
-`Windows64.zip`、`Linux64.zip`、`UncivServer-<版本>.jar`、`.msi`。
+`Windows64.zip`、`Linux64.zip`、`UncivSrv-<版本>.tar.gz`、`.msi`。
 
 踩坑经验：
 - **md 文档禁止裸尖括号**：`<gameId>` 之类会被 VitePress/Vue 编译器当作未闭合 HTML

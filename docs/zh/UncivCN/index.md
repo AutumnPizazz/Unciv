@@ -37,8 +37,9 @@ title: UncivCN 分支介绍
 ./gradlew desktop:run        # 运行桌面版
 ./gradlew :tests:test        # 运行全部测试
 ./gradlew desktop:dist       # 构建 JAR → desktop/build/libs/Unciv.jar
-./gradlew server:run         # 运行多人服务器
 ```
+
+多人服务器见 [UncivSrv（TypeScript 服务器）](../Developers/Building-Locally.md#uncivsrvtypescript-服务器)。
 
 Android 构建需 `local.properties`（`sdk.dir`）或 `ANDROID_HOME` 环境变量。
 

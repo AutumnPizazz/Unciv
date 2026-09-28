@@ -170,17 +170,6 @@ For a more thorough cleanup, run `git gc --prune=now --aggressive` sporadically 
 making sure to clean up all your obsolete branches first, and that all remaining branches are in sync with the online branches they're backing
 or based on master if they're local only.
 
-### UncivServer
-
-The simple multiplayer host included in the sources can be set up to debug or run analogously to the main game:
--   In Android Studio, Run > Edit configurations.
-    -   Click "+" to add a new configuration
-    -   Choose "Application" and name the config, e.g. "UncivServer"
-    -   Set the module to `Unciv.server.main` (`Unciv.server` for Studio versions Bumblebee or below), main class to `com.unciv.app.server.UncivServer` and `<repo_folder>/android/assets/` as the Working directory, OK to close the window.
--   Select the UncivServer configuration and click the green arrow button to run! Or start a debug session as above.
-
-To build a jar file, refer to [Without Android Studio](#without-android-studio) and replace 'desktop' with 'server'. That is, run `./gradlew server:dist` and when it's done look for /server/build/libs/UncivServer.jar
-
 ### UncivSrv (TypeScript server)
 
 The feature-complete multiplayer server lives in the `server-ts/` submodule ([blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)) — WebSocket chat, web admin panel, SQLite storage with automatic migrations, login rate limiting, scheduled cleanup, and more. It requires Node.js 20+ and pnpm 10+:

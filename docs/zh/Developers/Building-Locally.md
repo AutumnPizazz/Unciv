@@ -155,17 +155,6 @@ Detekt 检查代码异味和其他 lint 问题。
 更彻底的做法是偶尔在 Studio 的终端（或 Unicv 项目文件夹内的任何 shell）运行 `git gc --prune=now --aggressive`，
 但要先确保清理掉所有过时的分支，且剩余分支与它们对应的远程分支同步（如果只有本地分支，则基于 master）。
 
-### UncivServer
-
-源码中自带的简易多人服务器主机可以像游戏本体一样调试或运行：
--   在 Android Studio 中，Run > Edit configurations。
-    -   点击 "+" 添加新配置
-    -   选择 "Application" 并命名为 "UncivServer"
-    -   模块设为 `Unciv.server.main`（Bumblebee 及以下版本的 Studio 为 `Unciv.server`），主类设为 `com.unciv.app.server.UncivServer`，工作目录设为 `<repo_folder>/android/assets/`，点 OK 关闭窗口。
--   选择 UncivServer 配置，点击绿色箭头运行！或者像上面那样开始调试会话。
-
-要构建 jar 文件，参见[不用 Android Studio](#不用-android-studio)，把 'desktop' 换成 'server'。即运行 `./gradlew server:dist`，完成后到 /server/build/libs/ 找 UncivServer.jar
-
 ### UncivSrv（TypeScript 服务器）
 
 功能完善的多人联机服务器位于 `server-ts/` 子模块（[blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)）——WebSocket 聊天、Web 管理后台、SQLite 存储与自动数据库迁移、登录限流、定时清理过期数据等。需要 Node.js 20+ 与 pnpm 10+：

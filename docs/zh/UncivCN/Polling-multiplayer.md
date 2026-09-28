@@ -82,11 +82,11 @@
 | `Multiplayer.kt` | `GameInfoPreview.isUsersTurn()` 空值安全修复 |
 | `MultiplayerGamePreview.kt` | `GameInfoPreview.getCurrentPlayerCiv()` 空值安全修复 |
 | `ChatWebSocket.kt` | 客户端 `GameUpdated` 消息接收与刷新触发 |
-| `UncivServer.kt` | 服务端文件上传后 WebSocket 广播 |
+| `server-ts/`（chat 处理器） | 服务端文件上传后 WebSocket 广播 |
 | `GameSettings.kt` | 默认密码设为 123456 |
 
 ## 注意事项
 
 - 参与轮询联机的所有玩家须在游戏设置中配置联机密码（默认 123456），否则 WebSocket 认证失败将影响推送功能。
 - 轮询间隔建议根据玩家人数调整：2 人局 5~10 秒，4 人及以上建议 15 秒以上。
-- 服务端须启用 `-chat` 选项（默认开启）以支持 WebSocket 推送。
+- 服务端须启用聊天（`CHAT_ENABLED=true`，默认开启）以支持 WebSocket 推送。
