@@ -22,7 +22,16 @@ class ModVersion private constructor(private val parts: IntArray) : Comparable<M
     override fun toString() = parts.joinToString(".")
 
     override fun equals(other: Any?) = other is ModVersion && compareTo(other) == 0
-    override fun hashCode() = parts.contentHashCode()
+
+    /** Must agree with [equals] / [compareTo], which treat missing trailing segments as zero:
+     *  `1.2` and `1.2.0` are equal, so they must also share a hash code. */
+    override fun hashCode(): Int {
+        var significantSize = parts.size
+        while (significantSize > 1 && parts[significantSize - 1] == 0) significantSize--
+        var result = 1
+        for (i in 0 until significantSize) result = 31 * result + parts[i]
+        return result
+    }
 
     companion object {
         private val regex = Regex("""^(\d+(?:\.\d+)*?)(?:-patch(\d+))?$""")

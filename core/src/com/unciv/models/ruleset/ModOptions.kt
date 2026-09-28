@@ -88,7 +88,11 @@ class ModOptions : IHasUniques {
             if (dep.recommendedVersion.isBlank()) return@filter false // any version
             val recommended = ModVersion.parse(dep.recommendedVersion)
                 ?: return@filter true // invalid declaration -> treat as unsatisfied
-            recommended != ModVersion.parseOrDefault(loadedVersion)
+            // A loaded mod that declares no version falls back to the default (documented behaviour);
+            // a mod that declares a *malformed* version must not silently satisfy a 0.0.1 requirement.
+            if (loadedVersion.isBlank()) return@filter recommended != ModVersion.DEFAULT
+            val loaded = ModVersion.parse(loadedVersion) ?: return@filter true
+            recommended != loaded
         }
     }
     //endregion
