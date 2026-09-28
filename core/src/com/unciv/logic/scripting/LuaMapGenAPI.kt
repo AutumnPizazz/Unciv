@@ -165,7 +165,13 @@ object LuaMapGenAPI {
         return luaFunction { args ->
             val min = args.arg(1).safeToInt()
             val max = args.arg(2).safeToInt()
-            LuaValue.valueOf(randomness.RNG.nextInt(min, max + 1))
+            if (max <= min) return@luaFunction LuaValue.valueOf(min)
+            // max + 1 overflows when max == Int.MAX_VALUE, so use a Long span. Normal ranges keep
+            // the same RNG stream (nextInt) so generated maps stay reproducible.
+            val span = max.toLong() - min.toLong() + 1L
+            val value = if (span <= Int.MAX_VALUE.toLong()) min + randomness.RNG.nextInt(span.toInt())
+                        else min + randomness.RNG.nextLong(span)
+            LuaValue.valueOf(value.toInt())
         }
     }
     // endregion
@@ -760,7 +766,7 @@ object LuaMapGenAPI {
         t.set("isWater", LuaValue.valueOf(tile.isWater))
         t.set("isCoast", LuaValue.valueOf(tile.baseTerrain == "Coast"))
         t.set("isHill", luaFunction { LuaValue.valueOf(tile.isHill()) })
-        t.set("isMountain", luaFunction { LuaValue.valueOf(tile.isImpassible()) })
+        t.set("isMountain", luaFunction { LuaValue.valueOf(tile.getBaseTerrain().isMountain) })
         t.set("isImpassable", luaFunction { LuaValue.valueOf(tile.isImpassible()) })
 
         // Terrain features
@@ -870,7 +876,9 @@ object LuaMapGenAPI {
             LuaValue.NIL
         })
         t.set("setResource", luaFunction { args ->
+            // An unknown resource name must not leave a leftover amount on a resource-less tile.
             val resource = ruleset.tileResources[args.arg(1).tojstring()]
+                ?: return@luaFunction LuaValue.NIL
             val amount = args.arg(2).safeToInt()
             tile.tileResource = resource
             tile.resourceAmount = amount

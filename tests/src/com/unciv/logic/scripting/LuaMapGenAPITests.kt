@@ -194,6 +194,25 @@ class LuaMapGenAPITests {
     }
 
     @Test
+    fun randomIntHandlesExtremeRangesWithoutOverflow() {
+        val ctx = buildContext()
+        val randomIntFunc = ctx.checktable().get("randomInt").checkfunction()
+
+        // max - min + 1 overflows Int; this used to throw instead of returning a value.
+        val fullRange = randomIntFunc.call(
+            LuaValue.valueOf(Int.MIN_VALUE), LuaValue.valueOf(Int.MAX_VALUE)).toint()
+        Assert.assertTrue("value must stay in range", fullRange >= Int.MIN_VALUE)
+        Assert.assertTrue("value must stay in range", fullRange <= Int.MAX_VALUE)
+
+        val wide = randomIntFunc.call(LuaValue.valueOf(0), LuaValue.valueOf(Int.MAX_VALUE)).toint()
+        Assert.assertTrue("randomInt(0, Int.MAX_VALUE) should be >= 0, got $wide", wide >= 0)
+
+        // Reverse ranges must be a no-op, not a crash.
+        val reversed = randomIntFunc.call(LuaValue.valueOf(10), LuaValue.valueOf(3)).toint()
+        Assert.assertEquals(10, reversed)
+    }
+
+    @Test
     fun rngIsDeterministicWithSameSeed() {
         val ctx1 = buildContext()
         val seq1 = (1..10).map { ctx1.checktable().get("randomInt").checkfunction()
@@ -288,7 +307,8 @@ class LuaMapGenAPITests {
         Assert.assertEquals(kotlinTile.isHill(), isHill)
 
         val isMountain = tile.get("isMountain").checkfunction().call().toboolean()
-        Assert.assertEquals(kotlinTile.isImpassible(), isMountain)
+        Assert.assertEquals("isMountain must mean the 'Occurs in chains' terrain, not impassability",
+            kotlinTile.getBaseTerrain().isMountain, isMountain)
 
         val isImpassable = tile.get("isImpassable").checkfunction().call().toboolean()
         Assert.assertEquals(kotlinTile.isImpassible(), isImpassable)
@@ -575,6 +595,23 @@ class LuaMapGenAPITests {
         val finalTile = getTile.call(LuaValue.valueOf(0), LuaValue.valueOf(0)).checktable()
         Assert.assertFalse(finalTile.get("hasResource").checkfunction().call().toboolean())
         Assert.assertEquals("", finalTile.get("resourceName").tojstring())
+    }
+
+    @Test
+    fun setResourceWithUnknownNameIsANoOp() {
+        val ctx = buildContext()
+        val getTile = ctx.checktable().get("map").checktable().get("getTile").checkfunction()
+
+        val tile = getTile.call(LuaValue.valueOf(0), LuaValue.valueOf(0)).checktable()
+        tile.get("setResource").checkfunction().call(
+            LuaValue.valueOf("NotARealResource"), LuaValue.valueOf(7)
+        )
+
+        val updatedTile = getTile.call(LuaValue.valueOf(0), LuaValue.valueOf(0)).checktable()
+        Assert.assertFalse("unknown resource must not register as present",
+            updatedTile.get("hasResource").checkfunction().call().toboolean())
+        Assert.assertEquals("no leftover amount on a resource-less tile", 0,
+            updatedTile.get("resourceAmount").toint())
     }
     // endregion
 

@@ -131,6 +131,11 @@ object LuaScriptManager {
         cachedKnownFunctions = null
         cachedKnownFunctionsRuleset = null
         shownLuaErrors.clear()
+        // A ruleset reload replaces ruleset.luaErrors, so the per-function dedup sets must be reset
+        // too - otherwise a function whose error was already reported once would stay silent for
+        // the rest of the process, hiding a real error in the reloaded mod.
+        reportedValueHookErrors.clear()
+        reportedTableHookErrors.clear()
     }
 
     fun clearMod(modName: String) {
@@ -139,6 +144,8 @@ object LuaScriptManager {
         cachedKnownFunctions = null
         cachedKnownFunctionsRuleset = null
         shownLuaErrors.clear()
+        reportedValueHookErrors.clear()
+        reportedTableHookErrors.clear()
     }
 
     fun isModLoaded(modName: String) = modGlobals.containsKey(modName)

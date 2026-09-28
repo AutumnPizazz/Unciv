@@ -182,7 +182,13 @@ object LuaAPI {
             val max = args.arg(2).safeToInt()
             if (max < min) return@luaFunction LuaValue.valueOf(min)
             val rng = gameContext.stateBasedRandom("LuaAPI.randomInt", (luaRandomCounter.incrementAndGet() and 0x7FFFFFFF).toInt())
-            LuaValue.valueOf(rng.nextInt(max - min + 1) + min)
+            // max - min + 1 overflows Int for extreme ranges (e.g. 0..Int.MAX_VALUE); compute the
+            // span as a Long. normal ranges still go through nextInt so the RNG stream - and thus
+            // multiplayer determinism - is unchanged.
+            val span = max.toLong() - min.toLong() + 1L
+            val value = if (span <= Int.MAX_VALUE.toLong()) min + rng.nextInt(span.toInt())
+                        else min + rng.nextLong(span)
+            LuaValue.valueOf(value.toInt())
         })
 
         if (modName.isNotEmpty()) {
@@ -1214,7 +1220,9 @@ object LuaAPI {
         t.registerApi("tile", "isWater", LuaValue.valueOf(tile.isWater))
         t.registerApi("tile", "isCoast", LuaValue.valueOf(tile.baseTerrain == "Coast"))
         t.registerApi("tile", "isHill", LuaValue.valueOf(tile.isHill()))
-        t.registerApi("tile", "isMountain", LuaValue.valueOf(tile.isImpassible()))
+        // A mountain is the terrain with the "Occurs in chains" unique, not simply any impassable
+        // terrain (ice, natural-wonder tiles, ... are impassable too).
+        t.registerApi("tile", "isMountain", LuaValue.valueOf(tile.getBaseTerrain().isMountain))
         t.registerApi("tile", "hasTerrainFeature", luaFunction { args ->
             LuaValue.valueOf(tile.terrainFeatures.contains(args.arg(1).tojstring()))
         })
@@ -1343,7 +1351,9 @@ object LuaAPI {
             LuaValue.NIL
         })
         t.registerApi("tile", "setResource", luaFunction { args ->
+            // An unknown resource name must not leave a leftover amount on a resource-less tile.
             val resource = civInfo.gameInfo.ruleset.tileResources[args.arg(1).tojstring()]
+                ?: return@luaFunction LuaValue.NIL
             val amount = args.arg(2).safeToInt()
             tile.tileResource = resource
             tile.resourceAmount = amount

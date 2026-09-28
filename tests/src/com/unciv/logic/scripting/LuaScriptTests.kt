@@ -848,6 +848,34 @@ class LuaScriptTests {
             alertCountAfterFirst, civ.popupAlerts.size)
     }
 
+    @Test
+    fun clearingAModResetsHookErrorDedupSoReloadedErrorsAreReportedAgain() {
+        val civ = testGame.addCiv(isPlayer = true)
+        val city = testGame.addCity(civ, testGame.getTile(HexCoord(0, 0)))
+        civ.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
+
+        val errorFunc = object : org.luaj.vm2.LuaFunction() {
+            override fun call(): org.luaj.vm2.LuaValue =
+                throw org.luaj.vm2.LuaError("Simulated hook error for dedup reset test")
+        }
+
+        val ctx = LuaAPI.buildContext(civ, city, null, null, "", GameContext(civ, city), modName)
+
+        LuaScriptManager.callFunctionForValue(errorFunc, ctx, civ, "hookDedupFunc", modName) { }
+        val errorsAfterFirst = testGame.gameInfo.ruleset.luaErrors.size
+
+        // Same function name again — hot-path dedup suppresses the duplicate report.
+        LuaScriptManager.callFunctionForValue(errorFunc, ctx, civ, "hookDedupFunc", modName) { }
+        Assert.assertEquals("identical hook error should be deduplicated",
+            errorsAfterFirst, testGame.gameInfo.ruleset.luaErrors.size)
+
+        // A ruleset reload replaces ruleset.luaErrors, so the dedup must not outlive it.
+        LuaScriptManager.clearMod(modName)
+        LuaScriptManager.callFunctionForValue(errorFunc, ctx, civ, "hookDedupFunc", modName) { }
+        Assert.assertTrue("after a mod reload the same error must be reportable again",
+            testGame.gameInfo.ruleset.luaErrors.size > errorsAfterFirst)
+    }
+
     // -- Phase 2.1e: city.getCenterTile() --
 
     @Test
