@@ -75,8 +75,12 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
             resourceActors += ResourceActors(resource, resourceLabel, resourceImage)
         }
 
+        // Only Civ/Global variables can render here (Unit variables are shown in the unit panel and
+        // Unit/City ones in the overview). Admitting Unit variables here would let entries that can
+        // never render consume the collapse threshold and hide real Civ/Global variables.
         val displayVariables = worldScreen.gameInfo.ruleset.variables.values.filter {
-            it.isDisplay && it.resolvedScope != VariableScope.City &&
+            it.isDisplay &&
+                (it.resolvedScope == VariableScope.Civ || it.resolvedScope == VariableScope.Global) &&
                 (it.uniqueTo == null || worldScreen.selectedCiv.matchesFilter(it.uniqueTo!!))
         }
         val modOptions = worldScreen.gameInfo.ruleset.modOptions
@@ -173,6 +177,11 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
         val cities = if (variable.resolvedScope == VariableScope.Global)
             civInfo.gameInfo.civilizations.asSequence().flatMap { it.cities.asSequence() }
         else civInfo.cities.asSequence()
-        return cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) }
+        val raw = cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) }
+        // Storage clamps at min/max (Variable.clampAdd), so the preview must not advertise growth
+        // past the ceiling - otherwise the top bar shows "100 (+5)" for a value stuck at 100.
+        val current = if (variable.resolvedScope == VariableScope.Global)
+            civInfo.gameInfo.getVariable(variable.name) else civInfo.getVariable(variable.name)
+        return variable.clampAdd(current, raw) - current
     }
 }

@@ -46,6 +46,12 @@ class VariablesOverviewTab(
         table.add(valueText.toLabel()).left().row()
     }
 
+    /** The per-turn delta actually applied, i.e. after clamping to the variable's min/max bounds. */
+    private fun clampedPerTurn(variable: Variable, current: Int, cities: List<City>): Int {
+        val raw = cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) }
+        return variable.clampAdd(current, raw) - current
+    }
+
     private fun addGlobalSection() {
         val variables = ruleset.variables.values.filter { it.isDisplay && it.resolvedScope == VariableScope.Global }
         if (variables.isEmpty()) return
@@ -55,9 +61,10 @@ class VariablesOverviewTab(
         val table = Table()
         table.defaults().pad(4f)
         for (variable in variables) {
-            val perTurn = viewer.gameInfo.civilizations.flatMap { it.cities }
-                .sumOf { it.cityStats.getSettledVariableYield(variable.name) }
-            addVariableRow(table, variable, variable.name, viewer.gameInfo.getVariable(variable.name), perTurn)
+            val current = viewer.gameInfo.getVariable(variable.name)
+            val perTurn = clampedPerTurn(variable, current,
+                viewer.gameInfo.civilizations.flatMap { it.cities })
+            addVariableRow(table, variable, variable.name, current, perTurn)
         }
         add(table).left().row()
     }
@@ -74,8 +81,9 @@ class VariablesOverviewTab(
             val table = Table()
             table.defaults().pad(4f)
             for (variable in variables) {
-                addVariableRow(table, variable, variable.name, civ.getVariable(variable.name),
-                    civ.cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) })
+                val current = civ.getVariable(variable.name)
+                addVariableRow(table, variable, variable.name, current,
+                    clampedPerTurn(variable, current, civ.cities))
             }
             val icon = ImageGetter.getNationIcon(civ.nation.name).apply { setSize(22f, 22f) }
             add(ExpanderTab(civ.civName, icon = icon, startsOutOpened = civ == viewer,
@@ -94,9 +102,11 @@ class VariablesOverviewTab(
             if (variables.isEmpty()) continue
             val table = Table()
             table.defaults().pad(4f)
-            for (variable in variables)
-                addVariableRow(table, variable, variable.name, city.getVariable(variable.name),
-                    city.cityStats.getSettledVariableYield(variable.name))
+            for (variable in variables) {
+                val current = city.getVariable(variable.name)
+                addVariableRow(table, variable, variable.name, current,
+                    clampedPerTurn(variable, current, listOf(city)))
+            }
             add(ExpanderTab("${city.civ.civName}: ${city.name}",
                 icon = ImageGetter.getVariableIcon(variables.first().name, 22f),
                 startsOutOpened = city.civ == viewer, defaultPad = 4f, headerPad = 5f,

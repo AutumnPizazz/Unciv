@@ -201,17 +201,29 @@ class ResourcesOverviewTab(
             variablesTable.row()
         }
 
+        // Storage clamps at the variable's min/max, so the previewed delta must be clamped too -
+        // otherwise the overview advertises growth past the ceiling.
         for (variable in displayVariables) {
             when (variable.resolvedScope) {
-                VariableScope.City -> for (city in civ.cities)
-                    addRow(city.name + ": " + variable.name, variable,
-                        city.getVariable(variable.name), city.cityStats.getSettledVariableYield(variable.name))
-                VariableScope.Civ -> addRow(variable.name, variable, civ.getVariable(variable.name),
-                    civ.cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) })
-                VariableScope.Global -> addRow(variable.name, variable, civ.gameInfo.getVariable(variable.name),
-                    civ.gameInfo.civilizations.flatMap { it.cities }.sumOf {
-                        it.cityStats.getSettledVariableYield(variable.name)
-                    })
+                VariableScope.City -> for (city in civ.cities) {
+                    val current = city.getVariable(variable.name)
+                    addRow(city.name + ": " + variable.name, variable, current,
+                        variable.clampAdd(current,
+                            city.cityStats.getSettledVariableYield(variable.name)) - current)
+                }
+                VariableScope.Civ -> {
+                    val current = civ.getVariable(variable.name)
+                    addRow(variable.name, variable, current,
+                        variable.clampAdd(current,
+                            civ.cities.sumOf { it.cityStats.getSettledVariableYield(variable.name) }) - current)
+                }
+                VariableScope.Global -> {
+                    val current = civ.gameInfo.getVariable(variable.name)
+                    addRow(variable.name, variable, current,
+                        variable.clampAdd(current,
+                            civ.gameInfo.civilizations.flatMap { it.cities }.sumOf {
+                                it.cityStats.getSettledVariableYield(variable.name) }) - current)
+                }
                 VariableScope.Unit -> {} // unit-scope variables are shown in the unit panel / unit overview
             }
         }
