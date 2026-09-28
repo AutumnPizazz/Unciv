@@ -449,7 +449,7 @@ GlobalUniques 定义全局应用的 uniques。例如，Vanilla 规则集在此�
 ]
 ```
 
-城市级变量存储在每座 `City` 中，文明级变量存储在每个 `Civilization` 中，全局级变量存储在 `GameInfo` 中，单位级变量存储在每张地图的每个 `MapUnit` 中。缺少记录时回退到 `default`；`min`/`max` 会在 `set`、`add`、触发器、每回合结算和 Lua 写入时生效。变量是整数逻辑计数器，不受游戏速度修正。
+城市级变量存储在每座 `City` 中，文明级变量存储在每个 `Civilization` 中，全局级变量存储在 `GameInfo` 中，单位级变量存储在每张地图的每个 `MapUnit` 中。缺少记录时回退到 `default`；`min`/`max` 会在 `set`、`add`、触发器、每回合结算和 Lua 写入时生效。存储值本身是整数逻辑计数器，永不随游戏速度缩放；但挂在带 `(modified by game speed)` 修正的 unique 下的文明级变量条件（如 `when above [5] [WarWeariness]`）仍会按速度缩放，城市级与全局级变量条件则不受影响。`[stats]` 来源的每回合结算按城逐座执行，因此一个全文明来源喂给文明级或全局级变量时，每回合贡献 `数值 × 城市数`。
 
 单位级变量在单位每回合结束时按单位自身 unique 结算（`[+2] [Mana] per turn`，百分比加成按加法叠加），`isDisplay` 为 true 时显示在单位面板与单位总览。特殊单位过滤器 `this unit` 只作用于上下文单位（如挂在单位自身的 unique）；在无单位上下文时（如建筑/政策上的触发）它无法定位目标，因此跨层给单位加值请使用显式过滤器（如 `on [Melee]`）。
 

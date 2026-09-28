@@ -457,7 +457,7 @@ Example:
 ]
 ```
 
-City variables are stored in each `City`, civ variables in each `Civilization`, global variables in `GameInfo`, and unit variables in each `MapUnit`. A missing record falls back to `default`; `min` and `max` are applied on every `set`, `add`, trigger, per-turn settlement and Lua write. Variables are integer counters and are not adjusted by game speed.
+City variables are stored in each `City`, civ variables in each `Civilization`, global variables in `GameInfo`, and unit variables in each `MapUnit`. A missing record falls back to `default`; `min` and `max` are applied on every `set`, `add`, trigger, per-turn settlement and Lua write. Stored values are integer counters and are never scaled by game speed - but a condition on a civ-scope variable (e.g. `when above [5] [WarWeariness]`) still honors the parent unique's `(modified by game speed)` modifier, while city- and global-scope variable conditions ignore it. Per-turn settlement from a `[stats]` entry runs once per city, so a civ-wide source feeding a civ- or global-scope variable contributes `amount × cityCount` per turn.
 
 Unit-scope variables are settled per unit turn end from the unit's own uniques (`[+2] [Mana] per turn`, percentage bonuses stack additively), and display in the unit panel and the unit overview when `isDisplay` is true. The special unit filter `this unit` targets the contextual unit only (e.g. a unique on the unit itself); without a unit context (a trigger on a building or policy) it resolves to no target, so use an explicit filter like `on [Melee]` to affect units from global sources.
 
