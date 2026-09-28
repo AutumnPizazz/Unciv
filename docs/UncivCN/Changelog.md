@@ -8,6 +8,9 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+- Privacy policy clarified: visiting overseas/mirror sites is your own action
+- Terms of service clarified: community services are non-commercial infrastructure, not game publishing
+
 ## 4.22.4.1 (build 1263)
 
 - Multiplayer server moved to a new HTTPS address; update the client

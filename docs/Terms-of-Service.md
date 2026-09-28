@@ -8,7 +8,7 @@ These terms apply to the community services provided for UncivCN: the community 
 - **Download server**: serving the UncivCN version manifest and download links (the installers themselves are hosted on GitHub Releases).
 - **Documentation site**: project documentation and changelogs.
 
-All of it is free technical infrastructure. No payment, subscription or in-game item is sold here.
+All of it is free, non-commercial technical infrastructure maintained by community volunteers as a personal effort. **We provide technical infrastructure only and do not publish or operate the game itself**: no payment, subscription or in-game item is sold here. The documentation site and installers are hosted on third-party platforms such as GitHub; when you visit them you are dealing with those platforms directly.
 
 ## 2. Accounts
 

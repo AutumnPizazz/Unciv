@@ -33,6 +33,7 @@ Passwords are stored as `scrypt` hashes with a random salt per account: nobody, 
 
 - The documentation site is hosted on GitHub Pages, so visiting it also involves GitHub's servers.
 - Mods and installers can be downloaded from the mirror you configure in the game; those services have their own policies.
+- When you visit GitHub Pages, GitHub Releases or a mirror to download an installer, you are reaching those third-party services directly on your own; the community server does not send your personal information abroad because of this.
 - Depending on availability, servers may be hosted outside mainland China; data is processed where the server runs.
 
 ## Security and limits
