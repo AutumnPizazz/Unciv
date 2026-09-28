@@ -43,6 +43,9 @@ function isLocaleSwitcherLink(pageRel, href) {
   return rel === 'zh/' + page
 }
 
+// HTML 实体表：供单遍解码使用（链式 replaceAll 会二次反转义，触发 CodeQL js/double-escaping）
+const HTML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" }
+
 const allFiles = [...walk(dist)]
 const files = new Set(allFiles)
 
@@ -52,10 +55,8 @@ for (const rel of allFiles) {
   if (!rel.endsWith('.html')) continue
   const text = fs.readFileSync(path.join(dist, rel), 'utf-8')
   for (const m of text.matchAll(/href="([^"]+)"/g)) {
-    // 最常见的 HTML 实体反转义（链接中出现 & 时 VitePress 会编码）
-    const href = m[1]
-      .replaceAll('&amp;', '&').replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#39;', "'")
+    // HTML 实体反转义（链接中出现 & 时 VitePress 会编码）；单遍解码，避免二次反转义
+    const href = m[1].replace(/&(amp|lt|gt|quot|#39);/g, (_, name) => HTML_ENTITIES[name])
     // 跳过资源文件（css/js/图片等）
     if (href.startsWith('/Unciv/assets/') || href.startsWith('/Unciv/vp-icons') ||
         /\.(css|js|woff2|png|ico|svg|jpg|webp|gif)$/.test(href)) continue
