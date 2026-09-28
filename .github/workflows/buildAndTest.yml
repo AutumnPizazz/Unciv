@@ -10,6 +10,10 @@ on:
       - 'docs/**'
       - 'docs-vitepress/**'
       - 'changelog.md'
+  # 安全说明：pull_request_target 在 base 分支上下文中运行，默认的 actions/checkout
+  # 检出的是 base 分支代码（而非 PR head 提交），因此不会执行来自不可信 fork 的代码。
+  # 本工作流未显式 checkout PR head（无 ref: github.event.pull_request.head.sha 之类），
+  # 故在此使用 pull_request_target 是安全的。
   pull_request_target:
 
 env:
@@ -101,3 +105,50 @@ jobs:
       - name: Fail workflow if checks failed
         if: steps.run_checks.outputs.check_exit_code != '0'
         run: exit 1
+
+  # TypeScript server (server-ts) 的类型检查、lint、测试与覆盖率
+  server-ts:
+    name: TypeScript server checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: server-ts/pnpm-lock.yaml
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        working-directory: server-ts
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        working-directory: server-ts
+        run: pnpm typecheck
+
+      - name: Lint
+        working-directory: server-ts
+        run: pnpm lint
+
+      - name: Run tests
+        working-directory: server-ts
+        run: pnpm test
+
+      - name: Run tests with coverage
+        working-directory: server-ts
+        run: pnpm test:coverage
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-ts-coverage
+          path: server-ts/coverage
+          retention-days: 7

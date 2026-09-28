@@ -16,7 +16,9 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
   --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt check (warnings)
 ```
 
-Tech stack: Kotlin 2.1.21 · Gradle 8.11.1 · LibGDX 1.14.0 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+Tech stack: Kotlin 2.4.10 · Gradle 9.4.1 · LibGDX 1.14.2 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+
+> `gradle/libs.versions.toml` is the single source of truth for versions; this line is just a quick summary and must be kept in sync.
 
 For a from-scratch setup (environment, IDE configuration) see [Building-Locally](../Developers/Building-Locally).
 

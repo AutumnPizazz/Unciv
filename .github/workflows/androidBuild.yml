@@ -12,6 +12,10 @@ on:
       - 'gradle-wrapper.properties'
       - 'android/build.gradle.kts'
       - '.github/workflows/androidBuild.yml'
+  # 安全说明：pull_request_target 在 base 分支上下文中运行，默认的 actions/checkout
+  # 检出的是 base 分支代码（而非 PR head 提交），因此不会执行来自不可信 fork 的代码。
+  # 本工作流未显式 checkout PR head（无 ref: github.event.pull_request.head.sha 之类），
+  # 故在此使用 pull_request_target 是安全的。
   pull_request_target:
     paths:
       - 'build.gradle.kts'

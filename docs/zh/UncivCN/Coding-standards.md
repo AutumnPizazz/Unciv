@@ -20,7 +20,9 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
   --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt 检查（警告）
 ```
 
-技术栈：Kotlin 2.1.21 · Gradle 8.11.1 · LibGDX 1.14.0 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+技术栈：Kotlin 2.4.10 · Gradle 9.4.1 · LibGDX 1.14.2 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+
+> 版本以 `gradle/libs.versions.toml` 为唯一真源，此处仅摘录速览，两者须保持同步。
 
 从零上手（环境准备、IDE 配置）见 [Building-Locally](../Developers/Building-Locally)。
 

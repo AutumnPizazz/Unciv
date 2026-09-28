@@ -7,9 +7,11 @@ indent_style = space
 indent_size = 4
 insert_final_newline = true
 ij_any_keep_indents_on_empty_lines = false
-trim_trailing_whitespace = false
+trim_trailing_whitespace = true
 
 [*.{kt,kts}]
+indent_style = space
+indent_size = 4
 ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
 ij_kotlin_space_after_comma = true
 ij_kotlin_space_after_extend_colon = true
@@ -75,7 +77,7 @@ trim_trailing_whitespace = true
 ij_properties_keep_blank_lines = false
 ij_properties_spaces_around_key_value_delimiter = false
 
-[{*.yaml, *.yml}]
+[{*.md, *.yml, *.yaml, *.json}]
 indent_size = 2
 
 [{*.markdown,*.md}]
@@ -96,3 +98,11 @@ ij_markdown_min_lines_around_header = 1
 ij_markdown_min_lines_between_paragraphs = 1
 ij_markdown_wrap_text_if_long = true
 ij_markdown_wrap_text_inside_blockquotes = false
+
+# 翻译文件的取值可能带尾随空格（AGENTS.md：仅非翻译文件需删除尾随空格，不能自动清理）
+[android/assets/jsons/translations/*.properties]
+trim_trailing_whitespace = false
+
+# 词条模板的尾随空格有意义，禁止自动删除
+[**/template.properties]
+trim_trailing_whitespace = false
