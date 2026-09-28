@@ -111,21 +111,30 @@ class AndroidGame(private val activity: Activity) : UncivGame() {
 
     /** Open the system installer for a downloaded APK - the game runs in the background meanwhile */
     override fun installDownloadedApk(apkFilePath: String) {
-        // API 26+ requires a per-app permission for installing unknown apps - guide the player there first.
-        // All startActivity calls are guarded: they run on the GL thread and can throw (e.g. when the
-        // activity is finishing after returning from the installer) - an uncaught exception here would
-        // crash the game right after the player tapped the install button.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.packageManager.canRequestPackageInstalls()) {
-            val settingsIntent = Intent(
-                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                Uri.parse("package:${activity.packageName}")
-            )
-            try {
-                activity.startActivity(settingsIntent)
+        // API 26+ requires the manifest permission REQUEST_INSTALL_PACKAGES plus the per-app
+        // "install unknown apps" toggle - guide the player to the latter when it is off.
+        // Everything here runs on the GL thread and every Android call is guarded: startActivity
+        // throws when no activity handles the intent / the activity is finishing, and
+        // canRequestPackageInstalls() throws SecurityException when the manifest permission is
+        // missing - an uncaught exception would crash the game right after the player tapped Install.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val canInstall = try {
+                activity.packageManager.canRequestPackageInstalls()
             } catch (_: Exception) {
-                // Activity not available / already finishing - nothing sensible to show here
+                false
             }
-            return
+            if (!canInstall) {
+                val settingsIntent = Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:${activity.packageName}")
+                )
+                try {
+                    activity.startActivity(settingsIntent)
+                } catch (_: Exception) {
+                    // Activity not available / already finishing - nothing sensible to show here
+                }
+                return
+            }
         }
         try {
             val apkFile = File(apkFilePath)
