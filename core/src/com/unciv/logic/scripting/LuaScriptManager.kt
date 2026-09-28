@@ -175,8 +175,11 @@ object LuaScriptManager {
 
         val budget = modInstructionBudgets[modName] ?: InstructionBudgetDebugLib().also {
             modInstructionBudgets[modName] = it
-            globals.debuglib = it
         }
+        // Must be re-attached on every load: a mod reload creates fresh globals, and without
+        // this the new globals would never call checkBudget(), so a `while true do end` in a
+        // reloaded mod would hang the main thread forever.
+        globals.debuglib = budget
 
         val loaded = ArrayList<String>()
 
@@ -221,14 +224,16 @@ object LuaScriptManager {
 
     fun getFunction(modName: String, functionName: String): Pair<String, LuaFunction>? {
         if (modName.isNotEmpty()) {
-            val globals = modGlobals[modName]
-            if (globals != null) {
-                val func = globals.get(functionName)
-                if (func != LuaValue.NIL && func is LuaFunction)
-                    return modName to func
-            }
+            // An explicit "mod:function" reference must resolve inside that mod only.
+            // Falling back to other mods here would silently run a same-named function
+            // from an unrelated mod, breaking mod isolation.
+            val func = modGlobals[modName]?.get(functionName)
+            if (func != null && func != LuaValue.NIL && func is LuaFunction)
+                return modName to func
+            Log.debug("Lua: function '$functionName' not found in mod '$modName'")
+            return null
         }
-        // Fallback: search all mod globals
+        // No mod qualifier: search all mod globals.
         for ((name, g) in modGlobals) {
             val func = g.get(functionName)
             if (func != LuaValue.NIL && func is LuaFunction)
@@ -400,6 +405,7 @@ object LuaScriptManager {
             if (genFunc == LuaValue.NIL || genFunc !is LuaFunction) continue
 
             try {
+                modInstructionBudgets[modName]?.reset(INSTRUCTION_BUDGET)
                 val result = infoFunc.call()
                 if (!result.istable()) continue
                 val table = result.checktable()
