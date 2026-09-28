@@ -1,10 +1,9 @@
 package com.unciv.ui.screens.pickerscreens
 
 import com.badlogic.gdx.scenes.scene2d.Group
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
-import com.unciv.models.translations.tr
-import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.input.onClick
 import com.unciv.ui.popups.Popup
@@ -27,7 +26,8 @@ fun NoteViewPopup(
     if (icon != null) {
         content.add(icon).padRight(10f).top()
     }
-    val noteLabel = note.toLabel().apply {
+    // Notes are user content - display them verbatim, never translate
+    val noteLabel = Label(note, BaseScreen.skin).apply {
         wrap = true
         setAlignment(Align.topLeft)
     }

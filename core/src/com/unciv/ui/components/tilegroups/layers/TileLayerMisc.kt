@@ -88,6 +88,9 @@ internal fun createNoteBubble(text: String, fontSize: Int, maxChars: Int = 8): G
         (bg.width - container.width) / 2,
         (bg.height - container.height) / 2
     )
+    // Group has no layout of its own, so it stays 0x0 unless sized explicitly. The callers
+    // position the bubble using its width/height, which would otherwise be 0 and misplace it.
+    group.setSize(bg.width, bg.height)
 
     return group
 }

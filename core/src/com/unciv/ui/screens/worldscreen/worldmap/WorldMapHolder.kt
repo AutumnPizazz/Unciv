@@ -187,9 +187,16 @@ class WorldMapHolder(
         val gameInfo = worldScreen.gameInfo ?: return false
         val tile = gameInfo.tileMap[tileView.position()]
         if (!tile.isVisible(worldScreen.selectedGameView.civView.getCiv())) return false
+        val settings = UncivGame.Current.settings
         val unit = tile.militaryUnit ?: tile.civilianUnit
-        if (unit != null) UnitNotePopup(worldScreen, unit, gameInfo) {}
-        else TileNotePopup(worldScreen, tile, gameInfo) {}
+        if (unit != null) {
+            // Note editing is opt-in per note kind - don't hijack clicks when the toggle is off
+            if (!settings.showUnitNotes) return false
+            UnitNotePopup(worldScreen, unit, gameInfo) {}
+        } else {
+            if (!settings.showTileNotes) return false
+            TileNotePopup(worldScreen, tile, gameInfo) {}
+        }
         return true
     }
 
