@@ -90,24 +90,11 @@ jobs:
       - name: Build the Desktop app
         run: ./gradlew desktop:dist
 
-      - name: Build the Java server
-        run: ./gradlew server:dist
-
       - name: Upload Desktop artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Desktop (built with Java ${{ matrix.java_version }})
           path: desktop/build/libs/*.jar
-          retention-days: 1
-        # Only run this step on ubuntu-latest, since Java is cross-platform anyways
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        continue-on-error: true
-
-      - name: Upload Java server artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Server (built with Java ${{ matrix.java_version }})
-          path: server/build/libs/*.jar
           retention-days: 1
         # Only run this step on ubuntu-latest, since Java is cross-platform anyways
         if: ${{ matrix.os == 'ubuntu-latest' }}

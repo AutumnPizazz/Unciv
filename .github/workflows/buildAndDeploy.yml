@@ -90,7 +90,7 @@ jobs:
       - name: Run unit tests
         run: ./gradlew --no-build-cache cleanTest test tests:test
 
-      - name: build UncivServer.jar
+      - name: Build desktop JAR
         continue-on-error: true
         run: |
           ./gradlew desktop:dist
@@ -111,11 +111,6 @@ jobs:
           name: UncivLinuxFiles
           path: |
             deploy/linuxFilesForJar.zip
-
-      - name: build UncivServer.jar
-        continue-on-error: true
-        run: |
-          ./gradlew server:dist
 
       - name: Checkout TS server submodule
         run: git submodule update --init server-ts
@@ -168,13 +163,6 @@ jobs:
           name: UncivLuaAPI
           path: deploy/unciv-lua-api-*.vsix
           if-no-files-found: error
-
-      - name: Upload Server
-        continue-on-error: true
-        uses: actions/upload-artifact@v4
-        with:
-          name: UncivServer
-          path: server/build/libs/UncivServer.jar
 
   android-build:
     continue-on-error: true
@@ -356,7 +344,6 @@ jobs:
           mv UncivCNDeploymentZips/UncivCN-Windows64.zip deploy/UncivCN-Windows64-${{ github.ref_name }}.zip
           mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy/UncivCN-Linux64-${{ github.ref_name }}.zip
           mv UncivCNAPK/UncivCN-${{ github.ref_name }}.Apk deploy
-          mv UncivServer/UncivServer.jar deploy/UncivServer-${{ github.ref_name }}.jar
           mv UncivSrv/UncivSrv-${{ github.ref_name }}.tar.gz deploy/
           mv UncivLuaAPI/unciv-lua-api-*.vsix deploy/
           [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy/UncivCN-${{ github.ref_name }}.msi || true
