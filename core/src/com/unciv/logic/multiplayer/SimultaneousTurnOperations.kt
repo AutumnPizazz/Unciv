@@ -117,6 +117,31 @@ object SimultaneousTurnOperations {
         UnitActionType.DisbandUnit
     )
 
+    /**
+     * Actions a simultaneous turn refuses outright.
+     *
+     * v1 cannot carry these: they change objects shared between players (religions, city-state
+     * diplomacy, the great-person and gifted-unit pools) or they need a confirmation the other clients
+     * never see, and recording them halfway through a component snapshot corrupted unrelated state
+     * instead of failing visibly. Refusing them up front is the only way to keep the promise that an
+     * action either happens everywhere or nowhere -
+     * see docs_plan/simultaneous-turns-v1-action-inventory.md, section 3.
+     */
+    private val unsupportedUnitActions = setOf(
+        UnitActionType.ConductTradeMission,
+        UnitActionType.AddInCapital,
+        UnitActionType.GiftUnit,
+        UnitActionType.FoundReligion,
+        UnitActionType.EnhanceReligion,
+        UnitActionType.SpreadReligion,
+        UnitActionType.RemoveHeresy,
+        UnitActionType.ConnectRoad,
+        UnitActionType.Pillage,
+        UnitActionType.Paradrop
+    )
+
+    fun isUnsupportedUnitAction(type: UnitActionType) = type in unsupportedUnitActions
+
     fun requiresGameStateSnapshot(type: UnitActionType) = type in snapshottedUnitActions
 
     fun captureGameStateChange(

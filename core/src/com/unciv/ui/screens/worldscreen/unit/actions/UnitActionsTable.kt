@@ -8,15 +8,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.UncivGame
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.multiplayer.SimultaneousTurnOperations
 import com.unciv.models.UnitAction
 import com.unciv.models.UnitActionType
 import com.unciv.models.UpgradeUnitAction
+import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.brighten
 import com.unciv.ui.components.extensions.disable
 import com.unciv.ui.components.input.keyShortcuts
 import com.unciv.ui.components.input.onActivation
 import com.unciv.ui.images.IconTextButton
 import com.unciv.ui.popups.AnimatedMenuPopup.Companion.addContextMenu
+import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.popups.UnitUpgradeMenu
 import com.unciv.ui.screens.worldscreen.WorldScreen
 import yairm210.purity.annotations.Readonly
@@ -194,6 +197,14 @@ class UnitActionsTable(val worldScreen: WorldScreen) : Table() {
     }
 
     private fun activateAction(unitAction: UnitAction, unit: MapUnit) {
+        // Simultaneous turns cannot replay these yet, and recording them halfway corrupted unrelated
+        // state instead of failing visibly - so refuse them here, where the player can see why.
+        if (worldScreen.gameInfo.isSimultaneousTurnsMode() &&
+            SimultaneousTurnOperations.isUnsupportedUnitAction(unitAction.type)
+        ) {
+            ToastPopup("Simultaneous turns (beta) does not support this action yet".tr(), worldScreen)
+            return
+        }
         worldScreen.runAndRecordSimultaneousGameStateChange(unitAction.type) {
             unitAction.action!!.invoke()
         }

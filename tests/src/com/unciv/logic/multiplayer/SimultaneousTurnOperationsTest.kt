@@ -271,6 +271,51 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun unsupportedActionsAreRefusedAndEverythingElseStaysPlayable() {
+        // Simultaneous turns v1 refuses a few actions instead of recording them halfway: they touch
+        // objects shared between players (religions, city-state diplomacy, the great-person and
+        // gifted-unit pools) or they need a confirmation the other clients never see. The UI refuses
+        // them visibly, so this list must stay in sync with that refusal.
+        val refused = listOf(
+            UnitActionType.ConductTradeMission, UnitActionType.AddInCapital, UnitActionType.GiftUnit,
+            UnitActionType.FoundReligion, UnitActionType.EnhanceReligion, UnitActionType.SpreadReligion,
+            UnitActionType.RemoveHeresy, UnitActionType.ConnectRoad, UnitActionType.Pillage,
+            UnitActionType.Paradrop
+        )
+        for (type in refused) {
+            assertTrue("$type must be refused in simultaneous turns",
+                SimultaneousTurnOperations.isUnsupportedUnitAction(type))
+        }
+
+        // Most of them would otherwise still be "recorded" through the generic snapshot whitelist,
+        // which is exactly the silent-corruption shape the refusal removes.
+        for (type in listOf(
+            UnitActionType.Pillage, UnitActionType.ConductTradeMission, UnitActionType.ConnectRoad,
+            UnitActionType.FoundReligion, UnitActionType.SpreadReligion, UnitActionType.EnhanceReligion,
+            UnitActionType.RemoveHeresy, UnitActionType.AddInCapital, UnitActionType.GiftUnit
+        )) {
+            assertTrue("$type should otherwise fall into the generic snapshot",
+                SimultaneousTurnOperations.requiresGameStateSnapshot(type))
+        }
+
+        // Everything else must stay playable - refusing more than necessary would cost the beta whole
+        // features for no gain.
+        val playable = listOf(
+            UnitActionType.FoundCity, UnitActionType.ConstructImprovement, UnitActionType.Repair,
+            UnitActionType.CreateImprovement, UnitActionType.Promote, UnitActionType.Upgrade,
+            UnitActionType.Transform, UnitActionType.DisbandUnit, UnitActionType.Automate,
+            UnitActionType.Explore, UnitActionType.HurryResearch, UnitActionType.HurryPolicy,
+            UnitActionType.HurryWonder, UnitActionType.HurryBuilding, UnitActionType.Fortify,
+            UnitActionType.Sleep, UnitActionType.Skip, UnitActionType.Guard, UnitActionType.SetUp,
+            UnitActionType.SwapUnits, UnitActionType.StopMovement, UnitActionType.StopAutomation
+        )
+        for (type in playable) {
+            assertFalse("$type must stay playable in simultaneous turns",
+                SimultaneousTurnOperations.isUnsupportedUnitAction(type))
+        }
+    }
+
+    @Test
     fun unchangedStateProducesNoSnapshot() {
         val testGame = TestGame()
         testGame.makeHexagonalMap(2)
