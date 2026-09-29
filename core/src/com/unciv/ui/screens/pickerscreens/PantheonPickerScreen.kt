@@ -2,7 +2,7 @@ package com.unciv.ui.screens.pickerscreens
 
 import com.unciv.GUI
 import com.unciv.logic.civilization.Civilization
-import com.unciv.models.UnitActionType
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.ruleset.Belief
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.models.ruleset.unique.GameContext
@@ -33,7 +33,7 @@ class PantheonPickerScreen(
         }
 
         setOKAction("Choose a pantheon") {
-            GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+            GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Pantheon) {
                 chooseBeliefs(listOf(selectedPantheon!!), useFreeBeliefs = usingFreeBeliefs())
             }
         }

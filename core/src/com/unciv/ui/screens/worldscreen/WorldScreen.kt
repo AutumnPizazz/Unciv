@@ -20,11 +20,13 @@ import com.unciv.logic.multiplayer.MultiplayerGameUpdated
 import com.unciv.logic.multiplayer.OnlineStatusUpdated
 import com.unciv.logic.multiplayer.RestartVoteStatus
 import com.unciv.logic.multiplayer.RestartVoteUpdated
+import com.unciv.logic.multiplayer.SimultaneousTurnGameStateResult
 import com.unciv.logic.multiplayer.SimultaneousTurnOperation
 import com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived
 import com.unciv.logic.multiplayer.SimultaneousTurnOperations
 import com.unciv.logic.multiplayer.SimultaneousTurnReplay
 import com.unciv.logic.multiplayer.SimultaneousTurnReservations
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
@@ -163,20 +165,43 @@ class WorldScreen(
             && SimultaneousTurnOperations.requiresGameStateSnapshot(type)
         ) gameInfo.clone() else null
 
+    /** A state change that is not a unit action is only recorded by this snapshot, so it always needs one. */
+    fun beginSimultaneousGameStateSnapshot(action: SimultaneousTurnStateAction): GameInfo? =
+        if (gameInfo.isSimultaneousTurnsMode()) gameInfo.clone() else null
+
     fun runAndRecordSimultaneousGameStateChange(type: UnitActionType, action: () -> Unit) {
         val before = beginSimultaneousGameStateSnapshot(type)
         action()
         recordSimultaneousGameStateChange(type, before)
     }
 
+    fun runAndRecordSimultaneousGameStateChange(action: SimultaneousTurnStateAction, block: () -> Unit) {
+        val before = beginSimultaneousGameStateSnapshot(action)
+        block()
+        recordSimultaneousGameStateChange(action, before)
+    }
+
     fun recordSimultaneousGameStateChange(type: UnitActionType, before: GameInfo?) {
         if (before == null || !gameInfo.isSimultaneousTurnsMode()) return
-        val result = SimultaneousTurnOperations.captureGameStateChange(type, before, gameInfo) ?: return
-        // Record one operation per component: the replay rejects a "game.state" operation as a whole
-        // when any of its civs/tiles/religions no longer matches, so a conflict on a single component
-        // would otherwise discard all the unrelated changes captured in the same diff.
+        recordStateChangeOperations(
+            type.name, SimultaneousTurnOperations.captureGameStateChange(type, before, gameInfo)
+        )
+    }
+
+    fun recordSimultaneousGameStateChange(action: SimultaneousTurnStateAction, before: GameInfo?) {
+        if (before == null || !gameInfo.isSimultaneousTurnsMode()) return
+        recordStateChangeOperations(
+            action.name, SimultaneousTurnOperations.captureGameStateChange(action, before, gameInfo)
+        )
+    }
+
+    private fun recordStateChangeOperations(actionName: String, result: SimultaneousTurnGameStateResult?) {
+        if (result == null) return
+        // Record one operation per component: the replay rejects a state operation as a whole when any
+        // of its civs/tiles/religions no longer matches, so a conflict on a single component would
+        // otherwise discard all the unrelated changes captured in the same diff.
         for (part in SimultaneousTurnOperations.splitGameStateResult(result))
-            recordSimultaneousTurnOperation("game.state", part)
+            recordSimultaneousTurnOperation(SimultaneousTurnOperations.stateOperationType(actionName), part)
     }
 
     /**

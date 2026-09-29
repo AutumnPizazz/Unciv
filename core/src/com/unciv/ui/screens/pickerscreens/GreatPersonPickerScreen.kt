@@ -2,8 +2,8 @@ package com.unciv.ui.screens.pickerscreens
 
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.UncivSound
-import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.unit.BaseUnit
 import com.unciv.models.translations.tr
 import com.unciv.ui.images.ImageGetter
@@ -75,7 +75,7 @@ class GreatPersonPickerScreen(val worldScreen: WorldScreen, val civInfo: Civiliz
         }
         // Record the placement itself; wrapping the button would only capture the picker opening.
         var placed = false
-        worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+        worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.GreatPerson) {
             placed = civInfo.greatPeople.chooseFreeGreatPerson(chosenUnit.name) != null
         }
         if (!placed) {

@@ -2,6 +2,7 @@ package com.unciv.view
 
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.trade.Trade
 import com.unciv.logic.trade.TradeLogic
 import com.unciv.logic.trade.TradeOffersList
@@ -60,7 +61,7 @@ class TradeView(private val civ: Civilization, private val otherCiv: Civilizatio
      *  simultaneous turns (or without a world screen) this is a plain call to [action]. */
     private fun runSimultaneousTradeChange(action: () -> Unit) {
         UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
-            com.unciv.models.UnitActionType.TriggerUnique, action
+            SimultaneousTurnStateAction.Trade, action
         ) ?: action()
     }
 }

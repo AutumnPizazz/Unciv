@@ -16,9 +16,9 @@ import com.unciv.logic.map.mapunit.movement.UnitMovement
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
 import com.unciv.logic.multiplayer.SimultaneousTurnReservations
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
-import com.unciv.models.UnitActionType
 import com.unciv.models.UncivSound
 import com.unciv.view.ForeignCityView
 import com.unciv.view.MapUnitCombatantView
@@ -332,7 +332,7 @@ class WorldMapHolder(
                     // CN: record the full state diff *before* the granular attack op below, so replay applies
                     // it to a clean state instead of rejecting it after the granular op mutated the units.
                     if (gameInfoBefore != null)
-                        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
+                        worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat, gameInfoBefore)
                     // CN: record the attack for simultaneous-turn replay
                     val target = (defenderCombatant as? MapUnitCombatantView)?.getUnitView()?.getUnit()
                     if (target != null) worldScreen.recordSimultaneousTurnOperation(
@@ -447,7 +447,7 @@ class WorldMapHolder(
                     // CN: record the full state diff *before* the granular move op below, so replay applies
                     // it to a clean state instead of rejecting it after the granular op mutated the unit.
                     if (gameInfoBefore != null)
-                        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
+                        worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Move, gameInfoBefore)
                     worldScreen.recordSimultaneousTurnOperation(
                         "unit.move",
                         SimultaneousTurnMoveResult(
@@ -551,7 +551,7 @@ class WorldMapHolder(
         if (selectedUnitView.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
         if (gameInfoBefore != null)
-            worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
+            worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Swap, gameInfoBefore)
         worldScreen.recordSimultaneousTurnOperation(
             "unit.swap",
             SimultaneousTurnSwapResult(

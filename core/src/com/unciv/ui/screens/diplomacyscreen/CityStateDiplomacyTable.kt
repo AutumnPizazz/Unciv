@@ -12,10 +12,10 @@ import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.civilization.diplomacy.*
 import com.unciv.logic.civilization.managers.quests.AssignedQuest
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.trade.TradeLogic
 import com.unciv.logic.trade.TradeOffer
 import com.unciv.logic.trade.TradeOfferType
-import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.Quest
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.unique.GameContext
@@ -37,7 +37,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
 
     private fun runSimultaneousDiplomacyChange(action: () -> Unit) {
         UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
-            UnitActionType.TriggerUnique, action
+            SimultaneousTurnStateAction.Diplomacy, action
         ) ?: action()
     }
 
@@ -269,7 +269,7 @@ class CityStateDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
                     TradeOffer(Constants.peaceTreaty, TradeOfferType.Treaty, speed = viewingCiv.gameInfo.speed)
                 )
                 com.unciv.UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
-                    com.unciv.models.UnitActionType.TriggerUnique
+                    SimultaneousTurnStateAction.Diplomacy
                 ) {
                     tradeLogic.acceptTrade()
                 } ?: tradeLogic.acceptTrade()

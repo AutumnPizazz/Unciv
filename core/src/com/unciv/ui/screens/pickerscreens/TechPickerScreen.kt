@@ -14,6 +14,7 @@ import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.TechManager
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.UncivSound
 import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.tech.Technology
@@ -420,7 +421,7 @@ class TechPickerScreen(
                 && selectedTech == previousSelectedTech) {
             val addTechnology = { civInfo.tech.addTechnology(tech.name) }
             UncivGame.Current.worldScreen
-                ?.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique, addTechnology)
+                ?.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Technology, addTechnology)
                 ?: addTechnology()
         }
 

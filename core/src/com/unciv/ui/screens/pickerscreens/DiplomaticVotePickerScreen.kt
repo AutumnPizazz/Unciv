@@ -4,7 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.unciv.GUI
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
-import com.unciv.models.UnitActionType
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.UncivSound
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.input.onClick
@@ -39,7 +39,7 @@ class DiplomaticVotePickerScreen(private val votingCiv: Civilization) : PickerSc
     }
 
     private fun voteAndClose() {
-        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.WorldCongressVote) {
             votingCiv.diplomaticVoteForCiv(chosenCiv)
         }
         UncivGame.Current.popScreen()

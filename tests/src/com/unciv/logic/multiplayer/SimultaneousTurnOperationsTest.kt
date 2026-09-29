@@ -875,6 +875,82 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun aStateChangeRecordsTheActionThatCausedIt() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+
+        civ.variables["modEffect"] = 37
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            SimultaneousTurnStateAction.Trade, before, testGame.gameInfo
+        )!!
+        assertEquals("Trade", result.action)
+
+        val operationType = SimultaneousTurnOperations.stateOperationType(result.action)
+        assertEquals("state.Trade", operationType)
+        assertTrue(SimultaneousTurnOperations.isStateOperationType(operationType))
+        assertTrue(
+            "the generic type older clients recorded must keep replaying",
+            SimultaneousTurnOperations.isStateOperationType("game.state")
+        )
+        assertFalse(SimultaneousTurnOperations.isStateOperationType("unit.move"))
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        assertTrue(SimultaneousTurnReplay.apply(authoritative, SimultaneousTurnOperation(
+            type = operationType,
+            payload = json().toJson(result)
+        )))
+        assertEquals(37, authoritative.getCivilization(civ.civName).variables["modEffect"])
+    }
+
+    @Test
+    fun failedActionsAreNamedInsteadOfTheirOperationType() {
+        // Every state change used to be reported as "game.state", which told the player nothing.
+        assertEquals("Trade", SimultaneousTurnOperations.describeOperationType("state.Trade"))
+        assertEquals("Automate", SimultaneousTurnOperations.describeOperationType("state.Automate"))
+        assertEquals("unit.move", SimultaneousTurnOperations.describeOperationType("unit.move"))
+        assertEquals("game.state", SimultaneousTurnOperations.describeOperationType("game.state"))
+        assertEquals("state.Unknown", SimultaneousTurnOperations.describeOperationType("state.Unknown"))
+
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val otherCiv = testGame.addCiv(testGame.ruleset.nations.values.last(), isPlayer = true)
+        civ.playerId = "player-a"
+        otherCiv.playerId = "player-b"
+        // Adding a civ can leave notifications of its own behind, so count the delta instead of the total.
+        val civNotificationsBefore = civ.notifications.size
+        val otherCivNotificationsBefore = otherCiv.notifications.size
+
+        val notified = SimultaneousTurnOperations.notifyPlayersOfFailedOperations(
+            testGame.gameInfo,
+            listOf(
+                SimultaneousTurnOperation(turn = 1, playerId = "player-a", sequence = 4, type = "state.Trade"),
+                SimultaneousTurnOperation(turn = 1, playerId = "player-a", sequence = 5, type = "state.Trade"),
+                SimultaneousTurnOperation(turn = 1, playerId = "player-b", sequence = 6, type = "unit.move")
+            )
+        )
+
+        assertEquals(listOf("player-a", "player-b"), notified)
+        // Two failed operations of the same kind are one problem, not two.
+        assertEquals("one notification per distinct action", civNotificationsBefore + 1, civ.notifications.size)
+        val text = civ.notifications.last().text
+        assertTrue("the notification must name the action: $text", text.contains("[Trade]"))
+        assertFalse("the operation type must not leak to the player: $text", text.contains("game.state"))
+        assertEquals(
+            "an operation that is not a state change keeps its name",
+            otherCivNotificationsBefore + 1, otherCiv.notifications.size
+        )
+        assertTrue(
+            "a unit operation keeps its name",
+            otherCiv.notifications.last().text.contains("[unit.move]")
+        )
+    }
+
+    @Test
     fun aComponentSnapshotCarriesOnlyTheFieldsThatChanged() {
         // A whole-object snapshot makes the operation proportional to the component, not to the
         // change: a goody hut used to ship ~4 KB of civilization JSON to describe 24 bytes of gold and
@@ -1112,10 +1188,18 @@ class SimultaneousTurnOperationsTest {
         val notified = SimultaneousTurnOperations.notifyPlayersOfFailedOperations(testGame.gameInfo, failed)
 
         assertEquals(listOf("playerA"), notified)
-        assertEquals("the human player gets exactly one notification", notificationsBefore + 1, humanCiv.notifications.size)
-        val text = humanCiv.notifications.last().text
-        assertTrue("the report must name the lost actions: $text", text.contains("unit.move") && text.contains("unit.attack"))
-        assertTrue("the report must keep the translatable placeholder: $text", text.contains("[unit.move, unit.attack]"))
+        // Every distinct lost action is reported on its own, so that the message can name it
+        // in the language of whichever client displays it.
+        assertEquals("one notification per distinct lost action", notificationsBefore + 2, humanCiv.notifications.size)
+        val texts = humanCiv.notifications.drop(notificationsBefore).map { it.text }
+        assertTrue(
+            "the report must name the lost actions: $texts",
+            texts.any { it.contains("[unit.move]") } && texts.any { it.contains("[unit.attack]") }
+        )
+        assertTrue(
+            "the report must not describe the operations in bulk: $texts",
+            texts.all { it.contains("could not apply one of your actions") }
+        )
         assertEquals("AI civs have no use for these notifications", aiNotificationsBefore, aiCiv.notifications.size)
     }
 }

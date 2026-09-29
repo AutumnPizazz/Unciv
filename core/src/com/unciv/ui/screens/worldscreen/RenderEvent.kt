@@ -3,6 +3,7 @@ package com.unciv.ui.screens.worldscreen
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.ruleset.Event
 import com.unciv.models.ruleset.EventChoice
 import com.unciv.models.ruleset.unique.GameContext
@@ -59,7 +60,7 @@ class RenderEvent(
         val button = choice.text.toTextButton()
         button.onActivation {
             onChoice(choice)
-            worldScreen.runAndRecordSimultaneousGameStateChange(com.unciv.models.UnitActionType.TriggerUnique) {
+            worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Event) {
                 choice.triggerChoice(gameInfo.currentPlayerCiv, unit)
             }
         }

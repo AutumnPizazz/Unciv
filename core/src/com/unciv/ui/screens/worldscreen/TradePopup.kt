@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.civilization.NotificationIcon
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.trade.TradeLogic
 import com.unciv.logic.trade.TradeOffer
 import com.unciv.logic.trade.TradeOfferType
@@ -87,7 +88,7 @@ class TradePopup(worldScreen: WorldScreen) : Popup(worldScreen) {
         addButton("Sounds good!", 'y') {
             val tradeLogic = TradeLogic(viewingCiv, requestingCiv)
             tradeLogic.currentTrade.set(trade)
-            worldScreen.runAndRecordSimultaneousGameStateChange(com.unciv.models.UnitActionType.TriggerUnique) {
+            worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Trade) {
                 tradeLogic.acceptTrade()
             }
             close()
@@ -125,7 +126,7 @@ class TradePopup(worldScreen: WorldScreen) : Popup(worldScreen) {
      *  simultaneous turns (or without a world screen) this is a plain call to [action]. */
     private fun runSimultaneousTradeChange(action: () -> Unit) {
         UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
-            com.unciv.models.UnitActionType.TriggerUnique, action
+            SimultaneousTurnStateAction.Trade, action
         ) ?: action()
     }
 

@@ -12,9 +12,9 @@ import com.unciv.UncivGame
 import com.unciv.logic.city.City
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.diplomacy.DiplomacyFlags
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.Spy
 import com.unciv.models.SpyAction
-import com.unciv.models.UnitActionType
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.SmallButtonStyle
 import com.unciv.ui.components.extensions.addCapitalIndicator
@@ -335,7 +335,7 @@ class EspionageOverviewScreen(val civInfo: Civilization, val worldScreen: WorldS
 
         private fun move() {
             // Moving a spy mutates civ state; record it so simultaneous-turn replay reproduces it
-            worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+            worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Espionage) {
                 selectedSpy!!.moveTo(location)
             }
             resetSelection()
@@ -384,14 +384,14 @@ class EspionageOverviewScreen(val civInfo: Civilization, val worldScreen: WorldS
                         "chance of success?",
                     "Stage Coup"
                 ) {
-                    worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                    worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Espionage) {
                         spy.setAction(SpyAction.Coup, 1)
                     }
                     fist.color = Color.DARK_GRAY
                     update()
                 }.open()
             } else {
-                worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Espionage) {
                     spy.setAction(SpyAction.CounterIntelligence, 10)
                 }
                 fist.color = Color.WHITE

@@ -9,8 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.UncivSound
-import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
@@ -352,7 +352,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         // below. Replay applies operations in recorded order, and the snapshot is only accepted when every
         // component still matches one side of it; recording the granular op first would mutate the units
         // so the snapshot matches neither side and gets rejected, silently dropping XP/kill/capture effects.
-        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
+        worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat, gameInfoBefore)
         // Views don't expose unit identity, so resolve the model units
         val attackerUnit = (attacker as? MapUnitCombatantView)?.getUnitView()?.getUnit()
         val defenderUnit = (defender as? MapUnitCombatantView)?.getUnitView()?.getUnit()
@@ -407,7 +407,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
             attackButton.label.color = Color.GRAY
         } else {
             attackButton.onClick(attacker.getAttackSound()) {
-                worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat) {
                     attackerView.tryNuke(targetTileView)
                 }
 
@@ -481,7 +481,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         }
         else {
             attackButton.onClick(attacker.getAttackSound()) {
-                worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat) {
                     attackerView.tryAirSweep(targetTileView)
                 }
                 worldScreen.mapHolder.removeUnitActionOverlay() // the overlay was one of attacking

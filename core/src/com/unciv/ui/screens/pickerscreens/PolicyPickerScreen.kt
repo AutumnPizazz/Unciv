@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
 import com.unciv.GUI
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.TutorialTrigger
 import com.unciv.models.UnitActionType
 import com.unciv.models.UncivSound
@@ -647,7 +648,7 @@ class PolicyPickerScreen(
                     this,
                     "Are you sure you want to adopt [${branch.name}]?",
                     "Adopt", true, action = {
-                        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Policy) {
                             viewingCiv.policies.adopt(branch, false)
                         }
                         game.replaceCurrentScreen{ recreate() }

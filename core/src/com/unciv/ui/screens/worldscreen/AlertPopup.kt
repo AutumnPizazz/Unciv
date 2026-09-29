@@ -18,7 +18,7 @@ import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.civilization.diplomacy.*
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
-import com.unciv.models.UnitActionType
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.tr
@@ -84,7 +84,7 @@ class AlertPopup(
 
     // This redirects all addCloseButton uses with only text and no action to accept the space key
     private fun runSimultaneousPopupChange(action: () -> Unit) {
-        worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique, action)
+        worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Alert, action)
     }
 
     private fun addCloseButton(text: String = Constants.close) =

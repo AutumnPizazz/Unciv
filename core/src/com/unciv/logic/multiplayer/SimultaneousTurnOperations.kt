@@ -107,6 +107,9 @@ class SimultaneousTurnOperationUploadException :
     Exception("The server did not keep the actions of this turn")
 
 object SimultaneousTurnOperations {
+    private const val stateOperationPrefix = "state."
+    private const val legacyStateOperationType = "game.state"
+
     private val snapshottedUnitActions = setOf(
         UnitActionType.FoundCity,
         UnitActionType.ConstructImprovement,
@@ -165,6 +168,31 @@ object SimultaneousTurnOperations {
     fun requiresGameStateSnapshot(type: UnitActionType) = type in snapshottedUnitActions
 
     /**
+     * Operation type of a recorded state change: `state.` plus the action that caused it, so an
+     * operation says what it was instead of hiding every state change behind one generic type.
+     */
+    fun stateOperationType(actionName: String) = stateOperationPrefix + actionName
+
+    /**
+     * True for a recorded state change: the explicit [stateOperationType] types as well as the plain
+     * `game.state` that operations recorded before the action was part of the type still use.
+     */
+    fun isStateOperationType(type: String) =
+        type == legacyStateOperationType || type.startsWith(stateOperationPrefix)
+
+    /**
+     * Player-facing name of an operation, used when telling a player which of their actions did not
+     * apply. Every state change used to be reported as `game.state`, which told them nothing.
+     */
+    fun describeOperationType(type: String): String {
+        if (!type.startsWith(stateOperationPrefix)) return type
+        val actionName = type.removePrefix(stateOperationPrefix)
+        return SimultaneousTurnStateAction.values().firstOrNull { it.name == actionName }?.value
+            ?: UnitActionType.values().firstOrNull { it.name == actionName }?.value
+            ?: type
+    }
+
+    /**
      * True when a simultaneous turn has waited longer than [timeoutMinutes] for a player whose last
      * recorded activity was [lastActivityMillis]. Settlement uses this to continue without a player
      * who quit instead of freezing the game for everyone else. A [timeoutMinutes] of 0 waits forever.
@@ -194,7 +222,7 @@ object SimultaneousTurnOperations {
             val civName = gameInfo.civilizations
                 .firstOrNull { it.playerId == operation.playerId }?.civName
                 ?: operation.playerId.ifEmpty { "?" }
-            "$civName - ${operation.type}"
+            "$civName - ${describeOperationType(operation.type)}"
         }
     }
 
@@ -215,11 +243,13 @@ object SimultaneousTurnOperations {
             if (playerId.isEmpty()) continue
             val civ = gameInfo.civilizations.firstOrNull { it.playerId == playerId } ?: continue
             if (civ.playerType == PlayerType.AI) continue
-            val actionList = operations.map { it.type }.distinct().joinToString(", ")
-            civ.addNotification(
-                "A simultaneous turn could not apply some of your actions: [$actionList]",
-                NotificationCategory.General
-            )
+            // One notification per action: the action name is a placeholder term, so every client
+            // translates it into its own language when the notification is shown.
+            for (action in operations.map { describeOperationType(it.type) }.distinct())
+                civ.addNotification(
+                    "A simultaneous turn could not apply one of your actions: [$action]",
+                    NotificationCategory.General
+                )
             notified.add(playerId)
         }
         return notified
@@ -227,6 +257,18 @@ object SimultaneousTurnOperations {
 
     fun captureGameStateChange(
         action: UnitActionType,
+        before: GameInfo,
+        after: GameInfo
+    ): SimultaneousTurnGameStateResult? = captureGameStateChange(action.name, before, after)
+
+    fun captureGameStateChange(
+        action: SimultaneousTurnStateAction,
+        before: GameInfo,
+        after: GameInfo
+    ): SimultaneousTurnGameStateResult? = captureGameStateChange(action.name, before, after)
+
+    private fun captureGameStateChange(
+        action: String,
         before: GameInfo,
         after: GameInfo
     ): SimultaneousTurnGameStateResult? {
@@ -268,7 +310,7 @@ object SimultaneousTurnOperations {
         val afterGlobal = captureGlobalState(after)
         if (beforeGlobal == afterGlobal && civilizations.isEmpty() && tiles.isEmpty() && religions.isEmpty()) return null
         return SimultaneousTurnGameStateResult(
-            action.name,
+            action,
             json().toJson(beforeGlobal),
             json().toJson(afterGlobal),
             civilizations,

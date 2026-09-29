@@ -9,9 +9,9 @@ import com.unciv.logic.civilization.AlertType
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.civilization.diplomacy.*
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.trade.TradeOffer
 import com.unciv.logic.trade.TradeOfferType
-import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.tr
@@ -29,7 +29,7 @@ class MajorCivDiplomacyTable(private val diplomacyScreen: DiplomacyScreen) {
 
     private fun runSimultaneousDiplomacyChange(action: () -> Unit) {
         UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
-            UnitActionType.TriggerUnique, action
+            SimultaneousTurnStateAction.Diplomacy, action
         ) ?: action()
     }
 

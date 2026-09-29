@@ -37,7 +37,9 @@ object SimultaneousTurnReplay {
                 SimultaneousTurnGameStateResult::class.java, operation.payload
             ))
             "done" -> true
-            else -> false
+            else -> if (SimultaneousTurnOperations.isStateOperationType(operation.type)) applyGameState(
+                gameInfo, json().fromJson(SimultaneousTurnGameStateResult::class.java, operation.payload)
+            ) else false
         }
     } catch (e: Exception) {
         // Swallowing this silently once hid every unit operation being dropped at settlement

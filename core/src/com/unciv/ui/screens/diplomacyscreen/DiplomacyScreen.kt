@@ -14,6 +14,7 @@ import com.unciv.logic.civilization.diplomacy.DiplomacyFlags
 import com.unciv.logic.civilization.diplomacy.DiplomacyManager
 import com.unciv.logic.civilization.diplomacy.DiplomaticStatus
 import com.unciv.logic.civilization.diplomacy.RelationshipLevel
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.trade.Trade
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.MusicMood
@@ -326,7 +327,7 @@ class DiplomacyScreen(
         declareWarButton.onClick {
             ConfirmPopup(this, getDeclareWarButtonText(otherCiv), "Declare war") {
                 UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
-                    com.unciv.models.UnitActionType.TriggerUnique
+                    SimultaneousTurnStateAction.Diplomacy
                 ) {
                     diplomacyManager.declareWar()
                 } ?: diplomacyManager.declareWar()
