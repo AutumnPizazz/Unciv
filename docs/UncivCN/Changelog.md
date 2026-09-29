@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Added: in a simultaneous turn, tiles another player already claimed are marked on the map, so a target that would refuse your order is visible before you give it
 - Fix: when a simultaneous turn's actions cannot be uploaded, the player is now told and can retry, instead of losing them silently
 - Fix: when a simultaneous turn cannot apply an action, the player who issued it is now told, instead of only the player who settled the turn
 - Fix: an escorted swap in a simultaneous turn is now settled from its recorded result instead of being re-derived, so it can no longer turn into a different move

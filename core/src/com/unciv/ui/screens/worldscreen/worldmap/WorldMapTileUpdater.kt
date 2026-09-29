@@ -14,6 +14,9 @@ import com.unciv.view.SpyView
 
 object WorldMapTileUpdater {
 
+    /** Mark of a tile another player claimed for this turn - deliberately unlike the selection and range overlays. */
+    private val claimedTileColor = Color(0.7f, 0.4f, 0.95f, 1f)
+
     private val WorldMapHolder.tileMapView get() = worldScreen.selectedGameView.tileMapView
 
      fun WorldMapHolder.updateTiles(civView: CivView) {
@@ -47,6 +50,15 @@ object WorldMapTileUpdater {
 
         // Same as below - randomly, tileGroups doesn't seem to contain the selected tile, and this doesn't seem reproducible
         tileGroups[selectedTile]?.layerOverlay?.showHighlight(Color.WHITE)
+
+        // Tiles another player already claimed for this turn. Their claim is refused on the spot, so
+        // it has to be visible beforehand - otherwise the refusal reads as a bug. A claim under fog
+        // is skipped: the player cannot see the tile anyway, and marking it would leak the move.
+        for (position in worldScreen.simultaneousTurnReservedTiles) {
+            val tileView = tileMapView.getTile(position) ?: continue
+            if (!civView.canSeeTile(tileView)) continue
+            tileGroups[tileView]?.layerOverlay?.showHighlight(claimedTileColor, 0.45f)
+        }
 
         zoom(scaleX) // zoom to current scale, to set the size of the city buttons after "next turn"
     }

@@ -24,6 +24,7 @@ import com.unciv.logic.multiplayer.SimultaneousTurnOperation
 import com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived
 import com.unciv.logic.multiplayer.SimultaneousTurnOperations
 import com.unciv.logic.multiplayer.SimultaneousTurnReplay
+import com.unciv.logic.multiplayer.SimultaneousTurnReservations
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
@@ -292,6 +293,22 @@ class WorldScreen(
     private var simultaneousTurnFailureReportedForTurn = -1
     @Transient
     private var simultaneousTurnFailureReported: String? = null
+    /** Watches the targets other players claimed for this turn, so the claims can be shown on the map. */
+    private var simultaneousTurnReservationWatcherJob: Job? = null
+    /** Tiles other players claimed this turn, and the turn they were read for. */
+    @Transient
+    private var simultaneousTurnReservedTilesOnMap: Set<HexCoord> = emptySet()
+    @Transient
+    private var simultaneousTurnReservedTilesTurn = -1
+
+    /**
+     * Tiles another player claimed for the turn being played, for the map marks that make a claim
+     * visible before an order is refused. Empty on servers that cannot arbitrate reservations, and
+     * stale claims are dropped as soon as the turn advances - the authority only keeps the
+     * reservations of the turn they were made in.
+     */
+    val simultaneousTurnReservedTiles: Set<HexCoord>
+        get() = if (simultaneousTurnReservedTilesTurn == gameInfo.turns) simultaneousTurnReservedTilesOnMap else emptySet()
 
     /** Countdown timer for polling multiplayer mode. */
     private var pollingTimerJob: Job? = null
@@ -415,6 +432,7 @@ class WorldScreen(
                 startPollingTimer()
             if (gameInfo.isSimultaneousTurnsMode()) {
                 startSimultaneousTurnWatcher()
+                startSimultaneousTurnReservationWatcher()
                 restoreSimultaneousTurnOperations()
             }
 
@@ -433,6 +451,8 @@ class WorldScreen(
         stopPollingTimer()
         simultaneousTurnWatcherJob?.cancel()
         simultaneousTurnWatcherJob = null
+        simultaneousTurnReservationWatcherJob?.cancel()
+        simultaneousTurnReservationWatcherJob = null
         events.stopReceiving()
         statusButtons.dispose()
         super.dispose()
@@ -1336,6 +1356,45 @@ class WorldScreen(
                     }
                 } catch (_: Exception) {
                     // The next poll retries transient network failures.
+                }
+            }
+        }
+    }
+
+    /**
+     * Periodically reads the targets other players claimed for this turn, so the map can mark them.
+     * A claim the player cannot see looks like a bug when an order on that target is refused, so the
+     * marks come from the authority instead of being discovered at settlement. Claims change rarely,
+     * so a slow poll is enough, and it runs during this player's turn as well - that is exactly when
+     * the marks are needed.
+     */
+    private fun startSimultaneousTurnReservationWatcher() {
+        simultaneousTurnReservationWatcherJob?.cancel()
+        simultaneousTurnReservationWatcherJob = Concurrency.run("SimultaneousTurnReservationWatcher") {
+            while (isActive) {
+                delay(3000)
+                if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnReservationsUnsupported) continue
+                val playerId = viewingCiv.playerId
+                if (playerId.isEmpty()) continue
+                val turn = gameInfo.turns
+                val reservations = try {
+                    game.onlineMultiplayer.multiplayerServer
+                        .listSimultaneousTurnReservations(gameInfo.gameId, turn)
+                } catch (ex: Exception) {
+                    debug("Could not read simultaneous-turn reservations (game %s, turn %d): %s", gameInfo.gameId, turn, ex)
+                    continue
+                } ?: run {
+                    // 404: this server predates reservations, so stop asking for the rest of the session
+                    simultaneousTurnReservationsUnsupported = true
+                    continue
+                }
+                val claimedTiles = SimultaneousTurnReservations.tilePositionsReservedByOthers(reservations, playerId)
+                launchOnGLThread {
+                    if (claimedTiles == simultaneousTurnReservedTilesOnMap && turn == simultaneousTurnReservedTilesTurn)
+                        return@launchOnGLThread
+                    simultaneousTurnReservedTilesOnMap = claimedTiles
+                    simultaneousTurnReservedTilesTurn = turn
+                    shouldUpdate = true
                 }
             }
         }

@@ -1,5 +1,7 @@
 package com.unciv.logic.multiplayer
 
+import com.unciv.logic.map.HexCoord
+
 /** A target of a simultaneous-turn action that [owner] reserved for one turn. */
 data class SimultaneousTurnReservation(
     val key: String = "",
@@ -16,6 +18,35 @@ data class SimultaneousTurnReservation(
  * settlement pass, so a player who quits cannot block a target beyond the turn they quit in.
  */
 object SimultaneousTurnReservations {
-    fun forUnit(unitId: Int) = "unit:$unitId"
-    fun forTile(x: Int, y: Int) = "tile:$x,$y"
+    private const val tilePrefix = "tile:"
+    private const val unitPrefix = "unit:"
+
+    fun forUnit(unitId: Int) = "$unitPrefix$unitId"
+    fun forTile(x: Int, y: Int) = "$tilePrefix$x,$y"
+
+    /**
+     * The tile a reservation is about, or null for keys that do not name one. Only tile keys are
+     * mapped: a reserved unit is already visible on the tile it stands on.
+     */
+    fun tilePositionOf(key: String): HexCoord? {
+        if (!key.startsWith(tilePrefix)) return null
+        val coordinates = key.removePrefix(tilePrefix).split(',')
+        if (coordinates.size != 2) return null
+        val x = coordinates[0].toIntOrNull() ?: return null
+        val y = coordinates[1].toIntOrNull() ?: return null
+        return HexCoord(x, y)
+    }
+
+    /**
+     * Tiles claimed for this turn by players other than [playerId], for the map marks that make a
+     * claim visible. A claim the player cannot see reads as a bug when their order is refused.
+     */
+    fun tilePositionsReservedByOthers(
+        reservations: List<SimultaneousTurnReservation>,
+        playerId: String
+    ): Set<HexCoord> = reservations
+        .asSequence()
+        .filter { it.owner != playerId }
+        .mapNotNull { tilePositionOf(it.key) }
+        .toSet()
 }
