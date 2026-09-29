@@ -20,6 +20,7 @@ import com.unciv.logic.multiplayer.MultiplayerGameUpdated
 import com.unciv.logic.multiplayer.OnlineStatusUpdated
 import com.unciv.logic.multiplayer.RestartVoteStatus
 import com.unciv.logic.multiplayer.RestartVoteUpdated
+import com.unciv.logic.multiplayer.SimultaneousTurnFailedOperation
 import com.unciv.logic.multiplayer.SimultaneousTurnGameStateResult
 import com.unciv.logic.multiplayer.SimultaneousTurnOperation
 import com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived
@@ -41,10 +42,12 @@ import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.centerX
 import com.unciv.ui.components.extensions.darken
+import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.components.input.KeyShortcutDispatcherVeto
 import com.unciv.ui.components.input.KeyboardBinding
 import com.unciv.ui.components.input.KeyboardPanningListener
 import com.unciv.ui.components.input.onClick
+import com.unciv.ui.components.widgets.ExpanderTab
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.popups.AuthPopup
 import com.unciv.ui.popups.Popup
@@ -1165,9 +1168,7 @@ class WorldScreen(
                     }
                     val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
                     val failedOperations = SimultaneousTurnReplay.replayOrExplain(turnStart, turnOperations)
-                    val failedOperationsReport = SimultaneousTurnOperations
-                        .describeFailedSimultaneousTurnOperations(turnStart, failedOperations)
-                    if (failedOperationsReport != null) {
+                    if (failedOperations.isNotEmpty()) {
                         // An un-replayable operation must not lock the game forever, but it must not
                         // vanish either. This used to be a debug line only: the turn advanced as if the
                         // operation had been applied and the player it belonged to was never told.
@@ -1206,8 +1207,7 @@ class WorldScreen(
                         launchOnGLThread {
                             startNewScreenJob(
                                 turnStart, autoPlay,
-                                settlementReport = failedOperationsReport
-                                    ?.let { "Some actions could not be applied".tr() + "\n\n" + it }
+                                settlementFailures = failedOperations
                             )
                         }
                 } finally {
@@ -1690,7 +1690,7 @@ private fun startNewScreenJob(
     gameInfo: GameInfo,
     autoPlay: AutoPlay,
     autosaveDisabled: Boolean = false,
-    settlementReport: String? = null
+    settlementFailures: List<SimultaneousTurnFailedOperation> = emptyList()
 ) {
     Concurrency.run {
         val newWorldScreen = try {
@@ -1715,11 +1715,23 @@ private fun startNewScreenJob(
         }
 
         // Shown on the *new* screen: a popup opened on the screen being replaced would go away with it.
-        if (settlementReport != null) {
+        // Lists the actions settlement refused instead of dropping them silently, and says how many
+        // there were before the list is expanded. See docs_plan/simultaneous-turns-v1-action-inventory.md §7.5.
+        if (settlementFailures.isNotEmpty()) {
             withGLContext {
+                val report = SimultaneousTurnOperations
+                    .describeFailedSimultaneousTurnOperations(gameInfo, settlementFailures)
+                    ?: return@withGLContext
+                val expander = ExpanderTab(
+                    "Some actions could not be applied".tr() + " (${settlementFailures.size})",
+                    startsOutOpened = true
+                )
+                val reportLabel = report.toLabel()
+                reportLabel.wrap = true
+                expander.innerTable.add(reportLabel).width(newWorldScreen.stage.width / 2)
                 Popup(newWorldScreen)
                     .apply {
-                        addGoodSizedLabel(settlementReport)
+                        add(expander).row()
                         addCloseButton()
                     }
                     .open()
