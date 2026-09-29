@@ -5,6 +5,7 @@ import com.unciv.json.json
 import com.unciv.logic.GameInfo
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.Religion
+import com.unciv.utils.Log
 
 /** Applies recorded results to the turn-start game without re-running random combat. */
 object SimultaneousTurnReplay {
@@ -36,7 +37,10 @@ object SimultaneousTurnReplay {
             "done" -> true
             else -> false
         }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        // Swallowing this silently once hid every unit operation being dropped at settlement
+        // (a missing no-arg constructor made deserialization throw), so always leave a trace.
+        Log.debug("Simultaneous-turn operation %s / %s failed to replay: %s", operation.type, operation.sequence, e)
         false
     }
 
