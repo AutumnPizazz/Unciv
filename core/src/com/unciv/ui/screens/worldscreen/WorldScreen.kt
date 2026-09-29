@@ -1101,7 +1101,25 @@ class WorldScreen(
                             failedOperations.joinToString { "${it.playerId}/${it.sequence}:${it.type}" }
                         )
                     }
+                    if (!stillOwnsSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)) {
+                        // Another client took the settlement over while this save was downloaded.
+                        // Advancing it here would settle the same turn twice; leave it to the new owner.
+                        debug(
+                            "Simultaneous turn settlement aborted: the lock for game %s turn %d is no longer ours",
+                            gameInfo.gameId, submittedTurn
+                        )
+                        return@runOnNonDaemonThreadPool
+                    }
                     turnStart.nextTurnPolling(progressBar)
+                    if (!stillOwnsSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)) {
+                        // nextTurnPolling can take a while. Uploading a turn that the new owner already
+                        // settled would overwrite its result with a differently replayed one.
+                        debug(
+                            "Simultaneous turn upload aborted: the lock for game %s turn %d is no longer ours",
+                            gameInfo.gameId, submittedTurn
+                        )
+                        return@runOnNonDaemonThreadPool
+                    }
                     game.onlineMultiplayer.updateGame(turnStart)
                     if (game.gameInfo == gameInfo)
                         launchOnGLThread {
@@ -1132,19 +1150,38 @@ class WorldScreen(
     }
 
     /**
-     * Keeps the settlement lock alive while a long turn is being rebuilt and advanced. Renewal is
-     * best-effort: if a renewal fails, the settlement still owns the lock until the server's
-     * staleness window passes, and a later release simply becomes a no-op.
+     * True while this client still owns the settlement lock for [turn]. Renewal is the only server
+     * call that tells "still mine" apart from "taken over", so it is also the ownership check used
+     * right before a settlement advances the game.
+     *
+     * The server hands a stale lock to the next client, so a settlement that lost its lock must stop
+     * instead of uploading a turn that the new owner is already settling: two clients advancing the
+     * same turn from the same turn-start save would replay the same operations differently and
+     * overwrite each other.
+     */
+    private suspend fun stillOwnsSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
+        return try {
+            game.onlineMultiplayer.multiplayerServer
+                .renewSimultaneousTurnSettlementLock(gameId, turn, owner)
+        } catch (ex: Exception) {
+            debug("Could not verify the settlement lock (game %s, turn %d): %s", gameId, turn, ex)
+            false
+        }
+    }
+
+    /**
+     * Keeps the settlement lock alive while a long turn is being rebuilt and advanced, so that
+     * another client does not take the settlement over midway. A renewal that fails means the lock is
+     * gone (or unreachable) and ends the loop - [stillOwnsSimultaneousTurnSettlementLock] is what
+     * actually stops the settlement before it advances the game.
      */
     private fun startSimultaneousTurnLockRenewal(gameId: String, turn: Int, owner: String): Job {
         return Concurrency.run("SimultaneousTurnLockRenewal") {
             while (isActive) {
                 delay(30_000)
-                try {
-                    game.onlineMultiplayer.multiplayerServer
-                        .renewSimultaneousTurnSettlementLock(gameId, turn, owner)
-                } catch (_: Exception) {
-                    // Best effort - a failed renewal must not abort the settlement in progress.
+                if (!stillOwnsSimultaneousTurnSettlementLock(gameId, turn, owner)) {
+                    debug("The settlement lock for game %s turn %d is no longer ours", gameId, turn)
+                    return@run
                 }
             }
         }
