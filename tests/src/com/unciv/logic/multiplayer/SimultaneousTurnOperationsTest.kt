@@ -463,4 +463,69 @@ class SimultaneousTurnOperationsTest {
         assertTrue("snapshot first must replay cleanly: $failed", failed.isEmpty())
         assertEquals(1, fixed.getCivilization(civ.civName).units.getUnitById(unit.id)!!.currentTile.position.y)
     }
+
+    @Test
+    fun settlementCombinesRecordedReconciledAndOtherPlayerOperations() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civA = testGame.addCiv(testGame.ruleset.nations.values.elementAt(0), isPlayer = true)
+        val civB = testGame.addCiv(testGame.ruleset.nations.values.elementAt(1), isPlayer = true)
+        val unitA = testGame.addUnit("Warrior", civA, testGame.getTile(0, 0))
+        val unitB = testGame.addUnit("Warrior", civB, testGame.getTile(0, 1))
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+        val turn = testGame.gameInfo.turns
+
+        // Player A performs a recorded whole-state change (automated movement)...
+        val beforeA = testGame.gameInfo.clone()
+        beforeA.setTransients()
+        unitA.currentMovement = 0f
+        val recordedMove = SimultaneousTurnOperation(
+            turn = turn, playerId = civA.civName, sequence = 1, type = "game.state",
+            payload = json().toJson(
+                SimultaneousTurnOperations.captureGameStateChange(
+                    UnitActionType.Automate, beforeA, testGame.gameInfo
+                )!!
+            )
+        )
+
+        // ...then changes something else through a path that forgot to record an operation.
+        civA.variables["sneaky"] = 7
+        val reconciled = SimultaneousTurnOperations.diffUnrecordedState(
+            turnStart, testGame.gameInfo, listOf(recordedMove)
+        )
+        assertNotNull("reconciliation must catch the unrecorded change", reconciled)
+        val catchAll = SimultaneousTurnOperation(
+            turn = turn, playerId = civA.civName, sequence = 2, type = "game.state",
+            payload = json().toJson(reconciled!!)
+        )
+
+        // Player B moves one of its own units normally.
+        val fromB = unitB.currentTile.position
+        unitB.movement.moveToTile(testGame.getTile(1, 1))
+        val opB = SimultaneousTurnOperation(
+            turn = turn, playerId = civB.civName, sequence = 1, type = "unit.move",
+            payload = json().toJson(
+                SimultaneousTurnMoveResult(
+                    unitB.id, civB.civName, fromB.x, fromB.y, 1, 1, unitB.health, unitB.currentMovement
+                )
+            )
+        )
+
+        val operations = SimultaneousTurnOperations.merge(emptyList(), listOf(recordedMove, catchAll, opB))
+        val settlement = turnStart.clone()
+        settlement.setTransients()
+        val failed = SimultaneousTurnReplay.replay(settlement, operations)
+        assertTrue("all operations must replay: $failed", failed.isEmpty())
+
+        val settledA = settlement.getCivilization(civA.civName)
+        assertEquals("recorded change", 0f, settledA.units.getUnitById(unitA.id)!!.currentMovement, 0.0001f)
+        assertEquals("reconciled change must survive settlement", 7, settledA.variables["sneaky"])
+        assertEquals("no duplicate for player A", 1, settledA.units.getCivUnits().count { it.id == unitA.id })
+
+        val settledB = settlement.getCivilization(civB.civName).units.getUnitById(unitB.id)!!
+        assertEquals(1, settledB.currentTile.position.x)
+        assertEquals(1, settledB.currentTile.position.y)
+    }
 }
