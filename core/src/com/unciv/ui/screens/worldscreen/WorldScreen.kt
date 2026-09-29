@@ -383,8 +383,10 @@ class WorldScreen(
             ChatWebSocket.start()  // ensure push notifications for game updates
             if (gameInfo.isPollingMode() && isPlayersTurn)
                 startPollingTimer()
-            if (gameInfo.isSimultaneousTurnsMode())
+            if (gameInfo.isSimultaneousTurnsMode()) {
                 startSimultaneousTurnWatcher()
+                restoreSimultaneousTurnOperations()
+            }
 
             playerOnlineTimes[viewingCiv.civName] = System.currentTimeMillis()
         }
@@ -1141,6 +1143,47 @@ class WorldScreen(
                 } catch (_: Exception) {
                     // The next poll retries transient network failures.
                 }
+            }
+        }
+    }
+
+    /**
+     * The save a client loads mid-turn is the turn-start state, because the server archive is only
+     * rewritten when a turn settles. Replay the operations this player already uploaded so they see
+     * the actions they took before reloading instead of having to redo them. When the player had
+     * already submitted, resume as submitted so the settlement can still be driven from this client.
+     */
+    private fun restoreSimultaneousTurnOperations() {
+        if (!gameInfo.isSimultaneousTurnsMode()) return
+        val playerId = viewingCiv.playerId
+        if (playerId.isEmpty()) return
+        val turn = gameInfo.turns
+        Concurrency.run("RestoreSimultaneousTurn") {
+            val operations = try {
+                game.onlineMultiplayer.multiplayerServer
+                    .downloadSimultaneousTurnOperations(gameInfo.gameId)
+            } catch (_: Exception) {
+                return@run
+            }
+            val mine = operations.filter { it.turn == turn && it.playerId == playerId }
+            if (mine.isEmpty()) return@run
+            launchOnGLThread {
+                if (!gameInfo.isSimultaneousTurnsMode() || gameInfo.turns != turn) return@launchOnGLThread
+                val replayable = mine.filter { it.type != "done" }
+                val merged = SimultaneousTurnOperations.merge(simultaneousTurnOperations, replayable)
+                simultaneousTurnOperations.clear()
+                simultaneousTurnOperations.addAll(merged)
+                SimultaneousTurnReplay.replay(gameInfo, replayable)
+                gameInfo.nextSimultaneousOperationSequence = maxOf(
+                    gameInfo.nextSimultaneousOperationSequence,
+                    (mine.maxOfOrNull { it.sequence } ?: 0L) + 1
+                )
+                gameInfo.setTransients()
+                if (mine.any { it.type == "done" }) {
+                    simultaneousTurnDoneUploadedForTurn = turn
+                    isPlayersTurn = false
+                }
+                shouldUpdate = true
             }
         }
     }
