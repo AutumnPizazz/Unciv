@@ -5,6 +5,7 @@ import com.unciv.logic.GameInfo
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.models.UnitActionType
+import com.unciv.utils.Log
 
 /** A client-produced operation for a simultaneous multiplayer turn. */
 data class SimultaneousTurnOperation(
@@ -48,7 +49,8 @@ data class SimultaneousTurnUnitActionResult(
     val due: Boolean = false,
     val health: Int = 0,
     val movement: Float = 0f,
-    val escorting: Boolean = false
+    val escorting: Boolean = false,
+    val automated: Boolean = false
 )
 
 data class SimultaneousTurnSwapResult(
@@ -247,13 +249,28 @@ object SimultaneousTurnOperations {
     ) {
         if (operations.isEmpty()) return
         if (server.appendSimultaneousTurnOperations(gameId, encode(operations))) return
-        val old = try {
-            download(server, gameId)
+        // The server has no atomic append, so fall back to a whole-file read-modify-write. That is not
+        // atomic: another client uploading at the same time can overwrite us. After each attempt,
+        // verify our operations survived and merge again if they did not.
+        val keys = operations.map { Triple(it.turn, it.playerId, it.sequence) }.toSet()
+        repeat(3) {
+            val old = loadLegacyOperations(server, gameId)
+            server.fileStorage().saveFileData(fileName(gameId), encode(merge(old, operations)))
+            val saved = loadLegacyOperations(server, gameId)
+            if (saved.map { Triple(it.turn, it.playerId, it.sequence) }.containsAll(keys)) return
+            Log.debug(
+                "Simultaneous-turn legacy upload raced with another client (game %s), retrying",
+                gameId
+            )
+        }
+    }
+
+    private suspend fun loadLegacyOperations(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> =
+        try {
+            decode(server.fileStorage().loadFileData(fileName(gameId)))
         } catch (_: MultiplayerFileNotFoundException) {
             emptyList()
         }
-        server.fileStorage().saveFileData(fileName(gameId), encode(merge(old, operations)))
-    }
 
     suspend fun download(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> {
         val atomicData = server.loadSimultaneousTurnOperations(gameId)

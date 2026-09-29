@@ -29,6 +29,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: a conflict between two players in one simultaneous turn no longer discards their other changes
 - Fix: resuming a simultaneous turn after a reload no longer drops actions taken afterwards
 - Fix: reloading mid-turn in a simultaneous game restores the actions you already took
+- Fix: an improvement destroyed in a simultaneous turn no longer comes back after settlement
+- Fix: stopping a unit's automation sticks in simultaneous turns
 
 ### Mod author-facing
 

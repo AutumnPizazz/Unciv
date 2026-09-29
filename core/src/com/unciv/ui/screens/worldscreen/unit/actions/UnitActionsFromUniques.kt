@@ -237,7 +237,8 @@ object UnitActionsFromUniques {
                 due = unit.due,
                 health = unit.health,
                 movement = unit.currentMovement,
-                escorting = unit.isEscorting()
+                escorting = unit.isEscorting(),
+                automated = unit.automated
             )
         )
     }

@@ -329,10 +329,11 @@ class SimultaneousTurnOperationsTest {
 
         val action = json().fromJson(
             SimultaneousTurnUnitActionResult::class.java,
-            json().toJson(SimultaneousTurnUnitActionResult(1, "civ", "Fortify", true, 100, 1f, true))
+            json().toJson(SimultaneousTurnUnitActionResult(1, "civ", "Fortify", true, 100, 1f, true, true))
         )
         assertEquals("Fortify", action.action)
         assertTrue(action.escorting)
+        assertTrue(action.automated)
 
         assertEquals(1.5f, json().fromJson(
             SimultaneousTurnSwapResult::class.java,
@@ -527,5 +528,71 @@ class SimultaneousTurnOperationsTest {
         val settledB = settlement.getCivilization(civB.civName).units.getUnitById(unitB.id)!!
         assertEquals(1, settledB.currentTile.position.x)
         assertEquals(1, settledB.currentTile.position.y)
+    }
+
+    @Test
+    fun replayClearsNullableTileFieldsThatBecameNull() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val tile = testGame.getTile(0, 0)
+        val improvementName = testGame.ruleset.tileImprovements.keys.first()
+        tile.improvement = improvementName
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        // A snapshot captured while the improvement was destroyed...
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        tile.improvement = null
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+        assertTrue(
+            "the destroyed improvement must show up as a tile diff",
+            result.tiles.any { it.key == "0,0" }
+        )
+
+        // ...is applied to a peer whose tile still carries the improvement. libgdx omits null fields,
+        // so readFields would leave the stale "Farm" behind unless the field is cleared first.
+        val settlement = turnStart.clone()
+        settlement.setTransients()
+        assertEquals(improvementName, settlement.tileMap[0, 0].improvement)
+        val operation = SimultaneousTurnOperation(
+            type = "game.state", payload = json().toJson(result)
+        )
+        assertTrue(SimultaneousTurnReplay.apply(settlement, operation))
+        assertNull(
+            "a destroyed improvement must not survive readFields into the live tile",
+            settlement.tileMap[0, 0].improvement
+        )
+    }
+
+    @Test
+    fun stoppingAutomationIsRestoredByReplay() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(0, 0))
+        unit.automated = true
+        testGame.gameInfo.setTransients()
+
+        val operation = SimultaneousTurnOperation(
+            type = "unit.action",
+            payload = json().toJson(
+                SimultaneousTurnUnitActionResult(
+                    unitId = unit.id, owner = civ.civName,
+                    action = unit.action, due = unit.due, health = unit.health,
+                    movement = unit.currentMovement, escorting = unit.isEscorting(),
+                    automated = false
+                )
+            )
+        )
+        assertTrue(SimultaneousTurnReplay.apply(testGame.gameInfo, operation))
+        assertFalse(
+            "a stop-automation action must be replayed, otherwise the unit keeps automating",
+            unit.automated
+        )
     }
 }

@@ -76,6 +76,7 @@ object SimultaneousTurnReplay {
         val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
         if (unit.isDestroyed) return false
         unit.action = result.action
+        unit.automated = result.automated
         unit.due = result.due
         unit.health = result.health
         unit.currentMovement = result.movement
@@ -119,10 +120,15 @@ object SimultaneousTurnReplay {
             val tile = gameInfo.tileMap[x, y]
             // readFields only assigns fields present in the JSON, and Gdx does not serialize null
             // fields. A unit that left this tile would therefore stay behind as a stale duplicate
-            // (and setTransients below would register it again). Clear the unit slots first.
+            // (and setTransients below would register it again), and e.g. a destroyed improvement
+            // would resurrect. Clear every nullable serialized field first.
             tile.militaryUnit = null
             tile.civilianUnit = null
             tile.airUnits = ArrayList()
+            tile.naturalWonder = null
+            tile.improvement = null
+            tile.improvementCreatedByCreatesOneImprovement = null
+            tile.tileResource = null
             json().readFields(tile, JsonReader().parse(snapshot.after))
         }
         for (snapshot in result.religions) {

@@ -168,7 +168,11 @@ class WorldScreen(
     fun recordSimultaneousGameStateChange(type: UnitActionType, before: GameInfo?) {
         if (before == null || !gameInfo.isSimultaneousTurnsMode()) return
         val result = SimultaneousTurnOperations.captureGameStateChange(type, before, gameInfo) ?: return
-        recordSimultaneousTurnOperation("game.state", result)
+        // Record one operation per component: the replay rejects a "game.state" operation as a whole
+        // when any of its civs/tiles/religions no longer matches, so a conflict on a single component
+        // would otherwise discard all the unrelated changes captured in the same diff.
+        for (part in SimultaneousTurnOperations.splitGameStateResult(result))
+            recordSimultaneousTurnOperation("game.state", part)
     }
 
     /**
