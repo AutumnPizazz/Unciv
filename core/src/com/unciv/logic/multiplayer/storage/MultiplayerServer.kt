@@ -189,21 +189,6 @@ class MultiplayerServer(
         fileStorage().releaseSimultaneousTurnSettlementLock(gameId, turn, owner)
     }
 
-    /** Returns the targets another player claimed first, or null if the server cannot arbitrate them. */
-    suspend fun reserveSimultaneousTurnKeys(
-        gameId: String,
-        turn: Int,
-        owner: String,
-        keys: List<String>
-    ): List<com.unciv.logic.multiplayer.SimultaneousTurnReservation>? =
-        fileStorage().reserveSimultaneousTurnKeys(gameId, turn, owner, keys)
-
-    suspend fun listSimultaneousTurnReservations(
-        gameId: String,
-        turn: Int
-    ): List<com.unciv.logic.multiplayer.SimultaneousTurnReservation>? =
-        fileStorage().listSimultaneousTurnReservations(gameId, turn)
-
     suspend fun tryDownloadGame(gameId: String): GameInfo {
         val zippedGameInfo = fileStorage().loadFileData(gameId)
         val gameInfo = UncivFiles.gameInfoFromString(zippedGameInfo)

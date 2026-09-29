@@ -15,7 +15,7 @@ import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.mapunit.movement.UnitMovement
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
-import com.unciv.logic.multiplayer.SimultaneousTurnReservations
+import com.unciv.logic.multiplayer.SimultaneousTurnClaims
 import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
@@ -302,27 +302,26 @@ class WorldMapHolder(
                 // players cannot attack the same defender in one turn (each would record its own
                 // snapshot of that defender, and settlement would have to drop one of them) and so
                 // that a defender whose owner already moved it away cannot be attacked at its old tile.
-                val reservationKeys = mutableListOf(
-                    SimultaneousTurnReservations.forUnit(unitView.id),
-                    SimultaneousTurnReservations.forTile(
+                val claimKeys = mutableListOf(
+                    SimultaneousTurnClaims.forUnit(unitView.id),
+                    SimultaneousTurnClaims.forTile(
                         attackableTile.getTileToAttack().position().x,
                         attackableTile.getTileToAttack().position().y
                     )
                 )
                 (attackableTile.getCombatant() as? MapUnitCombatantView)?.getUnitView()?.getUnit()?.let {
-                    reservationKeys += SimultaneousTurnReservations.forUnit(it.id)
+                    claimKeys += SimultaneousTurnClaims.forUnit(it.id)
                 }
-                worldScreen.runWithSimultaneousTurnTargetsReserved(reservationKeys) {
-                    // CN: the claim is a blocking request, so in a simultaneous game this body can run a
-                    // frame later - re-check that the unit can still attack (a double click would queue
-                    // two attacks, and Battle.movePreparingAttack does not check attacks remaining).
-                    if (!unitView.canAttack()) return@runWithSimultaneousTurnTargetsReserved
+                worldScreen.runIfSimultaneousTurnTargetsAreFree(claimKeys) {
+                    // CN: an order can still be queued twice before the map redraws, and
+                    // Battle.movePreparingAttack does not check attacks remaining.
+                    if (!unitView.canAttack()) return@runIfSimultaneousTurnTargetsAreFree
                     val attackerCombatant = unitView.asCombatant()
                     // CN: full-state snapshot so attacks on non-unit targets (cities, improvements) also replay
                     val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
                         worldScreen.gameInfo.clone()
                     else null
-                    if (!unitView.tryMovePreparingAttack(attackableTile)) return@runWithSimultaneousTurnTargetsReserved
+                    if (!unitView.tryMovePreparingAttack(attackableTile)) return@runIfSimultaneousTurnTargetsAreFree
                     if (!SoundPlayer.play(UncivSound(attackerCombatant.getCombatantName())))
                         SoundPlayer.play(attackerCombatant.getAttackSound())
                     val (damageToDefender, damageToAttacker) = unitView.attackOrNuke(attackableTile)
@@ -400,14 +399,15 @@ class WorldMapHolder(
             }
 
 
-            // Claim the move target before touching the unit: the other player's client cannot see this
-            // move until settlement, so without this both would give an order for the same destination
-            // and the loser's operation would be dropped by replay after the fact.
+            // Refuse the move before touching the unit when another player already gave an order for
+            // this destination: theirs is already relayed, so this client can see the claim. A player
+            // who has not uploaded yet is invisible here, and settlement still drops one of two orders
+            // that do reach the server - this only spares the player an order that looked like it worked.
             val targetPosition = tileToMoveToView.position()
-            val blockedBy = worldScreen.reserveSimultaneousTurnActionTargets(
+            val blockedBy = worldScreen.simultaneousTurnTargetsClaimedBy(
                 listOf(
-                    SimultaneousTurnReservations.forUnit(selectedUnitView.getUnit().id),
-                    SimultaneousTurnReservations.forTile(targetPosition.x, targetPosition.y)
+                    SimultaneousTurnClaims.forUnit(selectedUnitView.getUnit().id),
+                    SimultaneousTurnClaims.forTile(targetPosition.x, targetPosition.y)
                 )
             )
             if (blockedBy != null) {

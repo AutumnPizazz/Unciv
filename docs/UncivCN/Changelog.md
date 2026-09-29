@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: the "target already claimed" warning in a simultaneous turn no longer depends on the server, which now only relays messages - the clients work out the claims from the actions themselves, so the warning and the map marks appear on every server
 - Fix: when a simultaneous turn cannot apply one of your actions, the notification now also says why it was refused (the unit is gone, the world had already changed, or the operation could not be read)
 - Added: when another player has already claimed a target this turn, the move button on that tile is grayed out and names the claimant, so the order is refused before you give it
 - Added: in a simultaneous turn, tiles another player already claimed are marked on the map, so a target that would refuse your order is visible before you give it

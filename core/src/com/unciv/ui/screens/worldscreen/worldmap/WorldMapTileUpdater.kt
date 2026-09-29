@@ -54,7 +54,7 @@ object WorldMapTileUpdater {
         // Tiles another player already claimed for this turn. Their claim is refused on the spot, so
         // it has to be visible beforehand - otherwise the refusal reads as a bug. A claim under fog
         // is skipped: the player cannot see the tile anyway, and marking it would leak the move.
-        for (position in worldScreen.simultaneousTurnReservedTiles) {
+        for (position in worldScreen.simultaneousTurnClaimedTiles) {
             val tileView = tileMapView.getTile(position) ?: continue
             if (!civView.canSeeTile(tileView)) continue
             tileGroups[tileView]?.layerOverlay?.showHighlight(claimedTileColor, 0.45f)

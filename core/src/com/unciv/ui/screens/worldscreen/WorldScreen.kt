@@ -25,7 +25,7 @@ import com.unciv.logic.multiplayer.SimultaneousTurnOperation
 import com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived
 import com.unciv.logic.multiplayer.SimultaneousTurnOperations
 import com.unciv.logic.multiplayer.SimultaneousTurnReplay
-import com.unciv.logic.multiplayer.SimultaneousTurnReservations
+import com.unciv.logic.multiplayer.SimultaneousTurnClaims
 import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
@@ -308,8 +308,6 @@ class WorldScreen(
     private var simultaneousTurnTimeoutReportedForTurn = -1
     /** Watches the sidecar operation list so a missed WebSocket signal cannot strand a player. */
     private var simultaneousTurnWatcherJob: Job? = null
-    /** Set once the server answers 404 for reservations, so older servers are not asked on every action. */
-    private var simultaneousTurnReservationsUnsupported = false
     /**
      * Turn and reason of the last submission/settlement failure shown to the player. The pass retries
      * every few seconds, so the same failure must not produce a new ToastPopup each time.
@@ -318,31 +316,37 @@ class WorldScreen(
     private var simultaneousTurnFailureReportedForTurn = -1
     @Transient
     private var simultaneousTurnFailureReported: String? = null
-    /** Watches the targets other players claimed for this turn, so the claims can be shown on the map. */
-    private var simultaneousTurnReservationWatcherJob: Job? = null
-    /** Tiles other players claimed this turn with the claimant of each, and the turn they were read for. */
+    /** Watches the operations relayed for this turn, so the targets other players claimed can be shown. */
+    private var simultaneousTurnClaimWatcherJob: Job? = null
+    /** Targets other players' operations of the current turn touch, with the player who ordered each. */
     @Transient
-    private var simultaneousTurnReservedTileOwners: Map<HexCoord, String> = emptyMap()
+    private var simultaneousTurnClaimsByOthers: Map<String, String> = emptyMap()
     @Transient
-    private var simultaneousTurnReservedTilesTurn = -1
+    private var simultaneousTurnClaimsTurn = -1
 
     /**
-     * Tiles another player claimed for the turn being played, for the map marks that make a claim
-     * visible before an order is refused. Empty on servers that cannot arbitrate reservations, and
-     * stale claims are dropped as soon as the turn advances - the authority only keeps the
-     * reservations of the turn they were made in.
+     * Tiles another player already gave an order for in the turn being played, for the map marks that
+     * make a claim visible before an order is refused. Derived from the operations relayed for the
+     * turn, so no server has to arbitrate anything; stale claims are dropped as soon as the turn
+     * advances.
      */
-    val simultaneousTurnReservedTiles: Set<HexCoord>
-        get() = if (simultaneousTurnReservedTilesTurn == gameInfo.turns) simultaneousTurnReservedTileOwners.keys else emptySet()
+    val simultaneousTurnClaimedTiles: Set<HexCoord>
+        get() = if (simultaneousTurnClaimsTurn == gameInfo.turns)
+            simultaneousTurnClaimsByOthers.keys.mapNotNull { SimultaneousTurnClaims.tilePositionOf(it) }.toSet()
+        else emptySet()
 
     /**
-     * The civilization that claimed [position] for the turn being played, or null when nobody did.
-     * Lets the UI refuse an order where the player can see it, instead of leaving them to discover
-     * the collision at settlement.
+     * The civilization whose order already touches [position] in the turn being played, or null when
+     * nobody's does. Lets the UI refuse an order where the player can see it, instead of leaving them
+     * to discover the collision at settlement.
      */
-    fun simultaneousTurnClaimantOf(position: HexCoord): String? {
-        if (simultaneousTurnReservedTilesTurn != gameInfo.turns) return null
-        val owner = simultaneousTurnReservedTileOwners[position] ?: return null
+    fun simultaneousTurnClaimantOf(position: HexCoord): String? =
+        simultaneousTurnClaimantOfKeys(listOf(SimultaneousTurnClaims.forTile(position.x, position.y)))
+
+    /** The civilization whose order already touches one of [keys], or null when all of them are free. */
+    private fun simultaneousTurnClaimantOfKeys(keys: List<String>): String? {
+        if (simultaneousTurnClaimsTurn != gameInfo.turns) return null
+        val owner = keys.firstNotNullOfOrNull { simultaneousTurnClaimsByOthers[it] } ?: return null
         return gameInfo.civilizations.firstOrNull { it.playerId == owner }?.civName ?: owner
     }
 
@@ -468,7 +472,7 @@ class WorldScreen(
                 startPollingTimer()
             if (gameInfo.isSimultaneousTurnsMode()) {
                 startSimultaneousTurnWatcher()
-                startSimultaneousTurnReservationWatcher()
+                startSimultaneousTurnClaimWatcher()
                 restoreSimultaneousTurnOperations()
             }
 
@@ -487,8 +491,8 @@ class WorldScreen(
         stopPollingTimer()
         simultaneousTurnWatcherJob?.cancel()
         simultaneousTurnWatcherJob = null
-        simultaneousTurnReservationWatcherJob?.cancel()
-        simultaneousTurnReservationWatcherJob = null
+        simultaneousTurnClaimWatcherJob?.cancel()
+        simultaneousTurnClaimWatcherJob = null
         events.stopReceiving()
         statusButtons.dispose()
         super.dispose()
@@ -1267,58 +1271,32 @@ class WorldScreen(
     }
 
     /**
-     * Claims the targets a simultaneous-turn action is about to touch, so that two players cannot act
-     * on the same unit or tile in the same turn. Both players only see their own orders until the turn
-     * is settled, so the second player would otherwise learn about the collision when replay drops
-     * their operation - after the unit already looked like it had received the order.
+     * Returns a message naming the player whose order already touches one of [keys] this turn, or
+     * null when the action may proceed.
      *
-     * Returns null when the action may proceed - this player got every target, or the server cannot
-     * arbitrate reservations - and a message naming the player who got there first otherwise.
+     * The claim is read on this client from the operations relayed for the turn: the server only
+     * stores and forwards them, and settlement replays the same list, so both players agree on who
+     * loses a contested target without anyone arbitrating it. A player who has not uploaded yet is
+     * invisible here, which is why this is only a courtesy - settlement still resolves the conflict.
      */
-    suspend fun reserveSimultaneousTurnActionTargets(keys: List<String>): String? {
-        if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnReservationsUnsupported) return null
-        val playerId = viewingCiv.playerId
-        if (playerId.isEmpty()) return null
-        val conflicts = try {
-            game.onlineMultiplayer.multiplayerServer
-                .reserveSimultaneousTurnKeys(gameInfo.gameId, gameInfo.turns, playerId, keys)
-        } catch (ex: Exception) {
-            // Never block an action because the reservation request failed: replay still rejects real
-            // conflicts, while refusing every action on a network hiccup would make the game unplayable.
-            debug("Could not reserve simultaneous-turn targets (game %s, turn %d): %s", gameInfo.gameId, gameInfo.turns, ex)
-            return null
-        } ?: run {
-            // 404: this server predates reservations, so keep the old behaviour for the rest of the session
-            simultaneousTurnReservationsUnsupported = true
-            return null
-        }
-        if (conflicts.isEmpty()) return null
-        val claimed = conflicts.first()
-        val claimant = gameInfo.civilizations.firstOrNull { it.playerId == claimed.owner }?.civName ?: claimed.owner
-        debug("Simultaneous-turn target %s is already claimed by %s", claimed.key, claimed.owner)
+    fun simultaneousTurnTargetsClaimedBy(keys: List<String>): String? {
+        if (!gameInfo.isSimultaneousTurnsMode()) return null
+        val claimant = simultaneousTurnClaimantOfKeys(keys) ?: return null
+        debug("Simultaneous-turn targets %s are already claimed by %s", keys, claimant)
         return "That target is already claimed by [$claimant] this turn".tr()
     }
 
     /**
-     * Runs [action] once this player claimed the [keys] it is about to touch, and shows a toast
-     * instead when another player got there first this turn.
+     * Runs [action] unless another player's order already touches one of the [keys] it is about to
+     * touch, in which case the player is told who got there first instead.
      *
-     * Callers are GL-thread click handlers and the reservation is a blocking HTTP request, so in a
-     * simultaneous game the claim happens on a background thread and [action] runs a frame or two
-     * later on the GL thread. Ordinary games keep the old synchronous behaviour.
+     * The claim is local state, so unlike the network round trip this replaces, [action] may run
+     * inline; only the toast is posted, because callers may be background coroutines.
      */
-    fun runWithSimultaneousTurnTargetsReserved(keys: List<String>, action: () -> Unit) {
-        if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnReservationsUnsupported) {
-            action()
-            return
-        }
-        Concurrency.run("SimultaneousTurnReservation") {
-            val blockedBy = reserveSimultaneousTurnActionTargets(keys)
-            launchOnGLThread {
-                if (blockedBy == null) action()
-                else ToastPopup(blockedBy, this@WorldScreen, 3000)
-            }
-        }
+    fun runIfSimultaneousTurnTargetsAreFree(keys: List<String>, action: () -> Unit) {
+        val claimedBy = simultaneousTurnTargetsClaimedBy(keys)
+        if (claimedBy == null) action()
+        else Gdx.app.postRunnable { ToastPopup(claimedBy, this@WorldScreen, 3000) }
     }
 
     /**
@@ -1400,38 +1378,35 @@ class WorldScreen(
     }
 
     /**
-     * Periodically reads the targets other players claimed for this turn, so the map can mark them.
-     * A claim the player cannot see looks like a bug when an order on that target is refused, so the
-     * marks come from the authority instead of being discovered at settlement. Claims change rarely,
-     * so a slow poll is enough, and it runs during this player's turn as well - that is exactly when
-     * the marks are needed.
+     * Periodically derives, from the operations relayed for this turn, which targets other players
+     * already gave an order for, so the map can mark them. A claim the player cannot see looks like a
+     * bug when an order on that target is refused, so the marks come from what the players themselves
+     * uploaded - not from a server verdict, because the server only stores and forwards operations.
+     * Claims change rarely, so a slow poll is enough, and it runs during this player's turn as well -
+     * that is exactly when the marks are needed.
      */
-    private fun startSimultaneousTurnReservationWatcher() {
-        simultaneousTurnReservationWatcherJob?.cancel()
-        simultaneousTurnReservationWatcherJob = Concurrency.run("SimultaneousTurnReservationWatcher") {
+    private fun startSimultaneousTurnClaimWatcher() {
+        simultaneousTurnClaimWatcherJob?.cancel()
+        simultaneousTurnClaimWatcherJob = Concurrency.run("SimultaneousTurnClaimWatcher") {
             while (isActive) {
                 delay(3000)
-                if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnReservationsUnsupported) continue
+                if (!gameInfo.isSimultaneousTurnsMode()) continue
                 val playerId = viewingCiv.playerId
                 if (playerId.isEmpty()) continue
                 val turn = gameInfo.turns
-                val reservations = try {
-                    game.onlineMultiplayer.multiplayerServer
-                        .listSimultaneousTurnReservations(gameInfo.gameId, turn)
+                val claims = try {
+                    val operations = game.onlineMultiplayer.multiplayerServer
+                        .downloadSimultaneousTurnOperations(gameInfo.gameId)
+                    SimultaneousTurnClaims.claimsByOthers(operations, turn, playerId)
                 } catch (ex: Exception) {
-                    debug("Could not read simultaneous-turn reservations (game %s, turn %d): %s", gameInfo.gameId, turn, ex)
-                    continue
-                } ?: run {
-                    // 404: this server predates reservations, so stop asking for the rest of the session
-                    simultaneousTurnReservationsUnsupported = true
+                    debug("Could not read simultaneous-turn operations (game %s, turn %d): %s", gameInfo.gameId, turn, ex)
                     continue
                 }
-                val claimedTiles = SimultaneousTurnReservations.tilesReservedByOthers(reservations, playerId)
                 launchOnGLThread {
-                    if (claimedTiles == simultaneousTurnReservedTileOwners && turn == simultaneousTurnReservedTilesTurn)
+                    if (claims == simultaneousTurnClaimsByOthers && turn == simultaneousTurnClaimsTurn)
                         return@launchOnGLThread
-                    simultaneousTurnReservedTileOwners = claimedTiles
-                    simultaneousTurnReservedTilesTurn = turn
+                    simultaneousTurnClaimsByOthers = claims
+                    simultaneousTurnClaimsTurn = turn
                     shouldUpdate = true
                 }
             }
