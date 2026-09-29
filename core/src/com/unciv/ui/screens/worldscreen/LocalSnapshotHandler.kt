@@ -24,6 +24,9 @@ class LocalSnapshotHandler(private val worldScreen: WorldScreen) {
     /** Whether this mode is active: online multiplayer game with the forbidReload option set. */
     fun isActive() = worldScreen.gameInfo.gameParameters.isOnlineMultiplayer
         && worldScreen.gameInfo.gameParameters.forbidReload
+        // Simultaneous turns resume from the server's operation log instead, so a local snapshot
+        // would only be a second, competing source of truth.
+        && !worldScreen.gameInfo.gameParameters.simultaneousTurns
 
     /** Whether we should snapshot right now: active, it's our own turn, and we are not a spectator. */
     private fun isPlayersTurn() = worldScreen.gameInfo.isUsersTurn()

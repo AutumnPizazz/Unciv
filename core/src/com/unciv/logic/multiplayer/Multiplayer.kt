@@ -251,6 +251,11 @@ class Multiplayer {
      */
     suspend fun skipCurrentPlayerTurn(game: MultiplayerGamePreview, playerCivName: String, responsibleCivNameOrPlayerId: String): String? {
         val preview = game.preview ?: return game.error!!.message
+        // Skipping downloads the whole save and advances it server-side, which would discard every
+        // operation recorded for this turn. In simultaneous mode `currentPlayer` is only the first
+        // living human, so this would target an arbitrary player anyway - the per-turn timeout is the
+        // supported escape hatch instead.
+        if (preview.gameParameters.simultaneousTurns) return "Simultaneous turns (beta) do not support skipping a turn"
         // download to work with the latest game state
         val gameInfo: GameInfo
         try {

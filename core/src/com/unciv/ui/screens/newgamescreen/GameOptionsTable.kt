@@ -121,25 +121,31 @@ class GameOptionsTable(
         val selectBoxTable = Table()
         checkboxTable.addIsOnlineMultiplayerCheckbox()
         if (gameParameters.isOnlineMultiplayer){
+            // Simultaneous turns replace or contradict several options below: the skip-turn and
+            // force-resign buttons rewrite the whole save (discarding the turn's operations), polling
+            // mode is sequential-only by definition (see GameInfo.isPollingMode), and the reload guard
+            // resumes from a local snapshot instead of the operation log. Keep them visible but
+            // disabled, so the host can see that they no longer apply.
+            val simultaneous = GameParameters.SIMULTANEOUS_TURNS_ENABLED && gameParameters.simultaneousTurns
             checkboxTable.addAnyoneCanSpectateCheckbox()
             checkboxTable.addRequireSameVersionCheckbox()
-            checkboxTable.addForbidReloadCheckbox()
+            checkboxTable.addForbidReloadCheckbox(disabled = simultaneous)
             // Hidden while the feature is experimental and unverified online (see the flag's docs).
             if (GameParameters.SIMULTANEOUS_TURNS_ENABLED) {
                 checkboxTable.addSimultaneousTurnsCheckbox()
             } else {
                 gameParameters.simultaneousTurns = false
             }
-            if (gameParameters.simultaneousTurns) {
+            if (simultaneous) {
                 selectBoxTable.addDurationSelectBox(
                     "Simultaneous turn timeout:",
                     GameParameters::simultaneousTurnTimeoutMinutes, 0, 0, 5
                 )
             }
-            selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0)
-            selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
-            selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)
-            selectBoxTable.addPollingIntervalSelectBox()
+            selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0, disabled = simultaneous)
+            selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0, disabled = simultaneous)
+            selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0, disabled = simultaneous)
+            selectBoxTable.addPollingIntervalSelectBox(disabled = simultaneous)
             selectBoxTable.addRestartVoteTurnField()
             selectBoxTable.addDurationSelectBox("Restart vote timeout:", GameParameters::restartVoteTimeoutMinutes, 1, 0, 0)
         }
@@ -191,10 +197,11 @@ class GameOptionsTable(
         text: String,
         initialState: Boolean,
         lockable: Boolean = true,
+        disabled: Boolean = false,
         onChange: (newValue: Boolean) -> Unit
     ): CheckBox {
         val checkbox = text.toCheckBox(initialState) { onChange(it) }
-        checkbox.isDisabled = lockable && locked
+        checkbox.isDisabled = disabled || (lockable && locked)
         checkbox.align(Align.left)
         add(checkbox).colspan(2).row()
         return checkbox
@@ -222,7 +229,10 @@ class GameOptionsTable(
 
     private fun Table.addSimultaneousTurnsCheckbox() =
         addCheckbox("Simultaneous turns (beta)", gameParameters.simultaneousTurns, lockable = true)
-        { gameParameters.simultaneousTurns = it }
+        {
+            gameParameters.simultaneousTurns = it
+            update()  // Re-render, so the options this one disables follow immediately
+        }
 
     private fun Table.addIsOnlineMultiplayerCheckbox() =
             addCheckbox("Online Multiplayer", gameParameters.isOnlineMultiplayer, lockable = false)
@@ -245,8 +255,8 @@ class GameOptionsTable(
             addCheckbox("Require same game version to join", gameParameters.requireSameVersion)
             { gameParameters.requireSameVersion = it }
 
-    private fun Table.addForbidReloadCheckbox() =
-            addCheckbox("Forbid reloading", gameParameters.forbidReload)
+    private fun Table.addForbidReloadCheckbox(disabled: Boolean = false) =
+            addCheckbox("Forbid reloading", gameParameters.forbidReload, disabled = disabled)
             { gameParameters.forbidReload = it }
 
     private fun Table.addEnableEspionageCheckbox() =
@@ -512,17 +522,23 @@ class GameOptionsTable(
         param: KMutableProperty1<GameParameters, Int>,
         defaultDayValue: Int,
         defaultHourValue: Int,
-        defaultMinuteValue: Int
+        defaultMinuteValue: Int,
+        disabled: Boolean = false
     ) {
         add(title.toLabel(hideIcons = true)).right()
 
         val selector = DurationSelector(gameParameters, param, defaultDayValue, defaultHourValue, defaultMinuteValue)
+        if (disabled) {
+            selector.dayBox.isDisabled = true
+            selector.hourBox.isDisabled = true
+            selector.minuteBox.isDisabled = true
+        }
 
         add(selector.dayBox)
         add(selector.hourBox)
         add(selector.minuteBox).row()
     }
-    private fun Table.addPollingIntervalSelectBox() {
+    private fun Table.addPollingIntervalSelectBox(disabled: Boolean = false) {
         add("Polling interval:".toLabel(hideIcons = true)).right()
         val currentValue = pollingIntervalOptions.entries.firstOrNull { it.value == gameParameters.pollingIntervalSeconds }
             ?: pollingIntervalOptions.entries.first()
@@ -531,7 +547,7 @@ class GameOptionsTable(
         selectBox.onChange {
             gameParameters.pollingIntervalSeconds = pollingIntervalOptions[selectBox.selected.value] ?: 0
         }
-        selectBox.isDisabled = locked
+        selectBox.isDisabled = locked || disabled
         add(selectBox).fillX().row()
     }
     private fun Table.addRestartVoteTurnField() {
