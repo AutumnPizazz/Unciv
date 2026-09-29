@@ -298,37 +298,59 @@ class WorldMapHolder(
                     .firstOrNull { it.getTileToAttack() == tileView }
             if (unitView.canAttack() && attackableTile != null) {
                 /** ****** Right-click Attack ****** */
-                val attackerCombatant = unitView.asCombatant()
-                // CN: full-state snapshot so attacks on non-unit targets (cities, improvements) also replay
-                val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
-                    worldScreen.gameInfo.clone()
-                else null
-                if (!unitView.tryMovePreparingAttack(attackableTile)) return
-                if (!SoundPlayer.play(UncivSound(attackerCombatant.getCombatantName())))
-                    SoundPlayer.play(attackerCombatant.getAttackSound())
-                val (damageToDefender, damageToAttacker) = unitView.attackOrNuke(attackableTile)
-                val defenderCombatant = attackableTile.getCombatant()
-                if (defenderCombatant != null)
-                    worldScreen.battleAnimationDeferred(attackerCombatant, damageToAttacker, defenderCombatant, damageToDefender)
-                // CN: record the full state diff *before* the granular attack op below, so replay applies
-                // it to a clean state instead of rejecting it after the granular op mutated the units.
-                if (gameInfoBefore != null)
-                    worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
-                // CN: record the attack for simultaneous-turn replay
-                val target = (defenderCombatant as? MapUnitCombatantView)?.getUnitView()?.getUnit()
-                if (target != null) worldScreen.recordSimultaneousTurnOperation(
-                    "unit.attack",
-                    SimultaneousTurnAttackResult(
-                        attackerId = unitView.id,
-                        targetId = target.id,
-                        targetOwner = target.owner,
-                        attackerHp = unitView.health,
-                        targetHp = target.health,
-                        targetX = target.currentTile.position.x,
-                        targetY = target.currentTile.position.y
+                // CN: claim every target this attack touches before changing anything, so that two
+                // players cannot attack the same defender in one turn (each would record its own
+                // snapshot of that defender, and settlement would have to drop one of them) and so
+                // that a defender whose owner already moved it away cannot be attacked at its old tile.
+                val reservationKeys = mutableListOf(
+                    SimultaneousTurnReservations.forUnit(unitView.id),
+                    SimultaneousTurnReservations.forTile(
+                        attackableTile.getTileToAttack().position().x,
+                        attackableTile.getTileToAttack().position().y
                     )
                 )
-                localShouldUpdate = true
+                (attackableTile.getCombatant() as? MapUnitCombatantView)?.getUnitView()?.getUnit()?.let {
+                    reservationKeys += SimultaneousTurnReservations.forUnit(it.id)
+                }
+                worldScreen.runWithSimultaneousTurnTargetsReserved(reservationKeys) {
+                    // CN: the claim is a blocking request, so in a simultaneous game this body can run a
+                    // frame later - re-check that the unit can still attack (a double click would queue
+                    // two attacks, and Battle.movePreparingAttack does not check attacks remaining).
+                    if (!unitView.canAttack()) return@runWithSimultaneousTurnTargetsReserved
+                    val attackerCombatant = unitView.asCombatant()
+                    // CN: full-state snapshot so attacks on non-unit targets (cities, improvements) also replay
+                    val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
+                        worldScreen.gameInfo.clone()
+                    else null
+                    if (!unitView.tryMovePreparingAttack(attackableTile)) return@runWithSimultaneousTurnTargetsReserved
+                    if (!SoundPlayer.play(UncivSound(attackerCombatant.getCombatantName())))
+                        SoundPlayer.play(attackerCombatant.getAttackSound())
+                    val (damageToDefender, damageToAttacker) = unitView.attackOrNuke(attackableTile)
+                    val defenderCombatant = attackableTile.getCombatant()
+                    if (defenderCombatant != null)
+                        worldScreen.battleAnimationDeferred(attackerCombatant, damageToAttacker, defenderCombatant, damageToDefender)
+                    // CN: record the full state diff *before* the granular attack op below, so replay applies
+                    // it to a clean state instead of rejecting it after the granular op mutated the units.
+                    if (gameInfoBefore != null)
+                        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
+                    // CN: record the attack for simultaneous-turn replay
+                    val target = (defenderCombatant as? MapUnitCombatantView)?.getUnitView()?.getUnit()
+                    if (target != null) worldScreen.recordSimultaneousTurnOperation(
+                        "unit.attack",
+                        SimultaneousTurnAttackResult(
+                            attackerId = unitView.id,
+                            targetId = target.id,
+                            targetOwner = target.owner,
+                            attackerHp = unitView.health,
+                            targetHp = target.health,
+                            targetX = target.currentTile.position.x,
+                            targetY = target.currentTile.position.y
+                        )
+                    )
+                    localShouldUpdate = true
+                    // CN: a deferred body runs after this screen's handler already wrote shouldUpdate below
+                    worldScreen.shouldUpdate = true
+                }
             } else if (unitView.canReach(tileView)) {
                 /** ****** Right-click Move ****** */
                 moveUnitToTargetTile(listOf(unitView), tileView)

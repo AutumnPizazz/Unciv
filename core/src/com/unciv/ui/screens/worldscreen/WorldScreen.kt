@@ -1205,6 +1205,28 @@ class WorldScreen(
     }
 
     /**
+     * Runs [action] once this player claimed the [keys] it is about to touch, and shows a toast
+     * instead when another player got there first this turn.
+     *
+     * Callers are GL-thread click handlers and the reservation is a blocking HTTP request, so in a
+     * simultaneous game the claim happens on a background thread and [action] runs a frame or two
+     * later on the GL thread. Ordinary games keep the old synchronous behaviour.
+     */
+    fun runWithSimultaneousTurnTargetsReserved(keys: List<String>, action: () -> Unit) {
+        if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnReservationsUnsupported) {
+            action()
+            return
+        }
+        Concurrency.run("SimultaneousTurnReservation") {
+            val blockedBy = reserveSimultaneousTurnActionTargets(keys)
+            launchOnGLThread {
+                if (blockedBy == null) action()
+                else ToastPopup(blockedBy, this@WorldScreen, 3000)
+            }
+        }
+    }
+
+    /**
      * Keeps the settlement lock alive while a long turn is being rebuilt and advanced, so that
      * another client does not take the settlement over midway. A renewal that fails means the lock is
      * gone (or unreachable) and ends the loop - [stillOwnsSimultaneousTurnSettlementLock] is what
