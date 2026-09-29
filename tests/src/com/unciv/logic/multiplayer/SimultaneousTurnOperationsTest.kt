@@ -870,8 +870,9 @@ class SimultaneousTurnOperationsTest {
         assertNotNull(report)
         assertTrue(report!!.contains(civ.civName))
         assertTrue("the other player's civ must be named too", report.contains(otherCiv.civName))
-        assertTrue(report.contains("unit.attack"))
-        assertTrue(report.contains("unit.move"))
+        assertTrue("the report must name the action, not its type: $report", report.contains("Attack"))
+        assertTrue("the report must name the action, not its type: $report", report.contains("Move unit"))
+        assertFalse("the report must not leak the internal type: $report", report.contains("unit.attack"))
         assertTrue(
             "the report must say why each action was lost: $report",
             report.contains(SimultaneousTurnFailureReason.WorldChanged.sentence) &&
@@ -913,12 +914,38 @@ class SimultaneousTurnOperationsTest {
 
     @Test
     fun failedActionsAreNamedInsteadOfTheirOperationType() {
-        // Every state change used to be reported as "game.state", which told the player nothing.
+        // Every state change used to be reported as "game.state", and unit operations as their
+        // internal types, which told the player losing the action nothing.
         assertEquals("Trade", SimultaneousTurnOperations.describeOperationType("state.Trade"))
         assertEquals("Automate", SimultaneousTurnOperations.describeOperationType("state.Automate"))
-        assertEquals("unit.move", SimultaneousTurnOperations.describeOperationType("unit.move"))
+        assertEquals("Move unit", SimultaneousTurnOperations.describeOperationType("unit.move"))
+        assertEquals("Attack", SimultaneousTurnOperations.describeOperationType("unit.attack"))
+        assertEquals("Swap units", SimultaneousTurnOperations.describeOperationType("unit.swap"))
+        assertEquals("Action", SimultaneousTurnOperations.describeOperationType("unit.action"))
         assertEquals("game.state", SimultaneousTurnOperations.describeOperationType("game.state"))
         assertEquals("state.Unknown", SimultaneousTurnOperations.describeOperationType("state.Unknown"))
+
+        // A unit action operation can say which action the unit was given.
+        assertEquals(
+            "Guard",
+            SimultaneousTurnOperations.describeOperation(
+                SimultaneousTurnOperation(
+                    type = "unit.action",
+                    payload = json().toJson(SimultaneousTurnUnitActionResult(unitId = 7, owner = "player-a", action = "Guard"))
+                )
+            )
+        )
+        // Without a readable action it still gets a name instead of the internal type.
+        assertEquals(
+            "Action",
+            SimultaneousTurnOperations.describeOperation(
+                SimultaneousTurnOperation(type = "unit.action", payload = "not json")
+            )
+        )
+        assertEquals(
+            "Move unit",
+            SimultaneousTurnOperations.describeOperation(SimultaneousTurnOperation(type = "unit.move"))
+        )
 
         val testGame = TestGame()
         testGame.makeHexagonalMap(3)
@@ -950,12 +977,16 @@ class SimultaneousTurnOperationsTest {
             text.contains("[${SimultaneousTurnFailureReason.WorldChanged.sentence}]")
         )
         assertEquals(
-            "an operation that is not a state change keeps its name",
+            "an operation that is not a state change also gets one notification",
             otherCivNotificationsBefore + 1, otherCiv.notifications.size
         )
         assertTrue(
-            "a unit operation keeps its name",
-            otherCiv.notifications.last().text.contains("[unit.move]")
+            "a unit operation is named instead of leaking its internal type",
+            otherCiv.notifications.last().text.contains("[Move unit]")
+        )
+        assertFalse(
+            "the unit operation type must not leak to the player",
+            otherCiv.notifications.last().text.contains("unit.move")
         )
         assertTrue(
             "a unit operation names its own reason",
@@ -1206,8 +1237,12 @@ class SimultaneousTurnOperationsTest {
         assertEquals("one notification per distinct lost action", notificationsBefore + 2, humanCiv.notifications.size)
         val texts = humanCiv.notifications.drop(notificationsBefore).map { it.text }
         assertTrue(
-            "the report must name the lost actions: $texts",
-            texts.any { it.contains("[unit.move]") } && texts.any { it.contains("[unit.attack]") }
+            "the report must name the lost actions, not their types: $texts",
+            texts.any { it.contains("[Move unit]") } && texts.any { it.contains("[Attack]") }
+        )
+        assertFalse(
+            "the report must not leak the internal operation types: $texts",
+            texts.any { it.contains("unit.move") || it.contains("unit.attack") }
         )
         assertTrue(
             "the report must say why each action was lost: $texts",

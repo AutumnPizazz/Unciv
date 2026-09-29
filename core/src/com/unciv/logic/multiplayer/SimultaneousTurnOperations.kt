@@ -111,6 +111,19 @@ object SimultaneousTurnOperations {
     private const val stateOperationPrefix = "state."
     private const val legacyStateOperationType = "game.state"
 
+    /**
+     * Player-facing names of the recorded unit operations. Their types (`unit.move` and friends) are
+     * a protocol detail and used to reach the settlement log; showing them in a notification told
+     * the player whose action was lost nothing. The names are translation keys, not translated here,
+     * because notifications are stored untranslated and translated when they are shown.
+     */
+    private val unitOperationNames = mapOf(
+        "unit.move" to "Move unit",
+        "unit.attack" to "Attack",
+        "unit.swap" to "Swap units",
+        "unit.action" to "Action"
+    )
+
     private val snapshottedUnitActions = setOf(
         UnitActionType.FoundCity,
         UnitActionType.ConstructImprovement,
@@ -183,14 +196,37 @@ object SimultaneousTurnOperations {
 
     /**
      * Player-facing name of an operation, used when telling a player which of their actions did not
-     * apply. Every state change used to be reported as `game.state`, which told them nothing.
+     * apply. Every state change used to be reported as `game.state`, and the recorded unit
+     * operations as their internal types, which told them nothing.
      */
     fun describeOperationType(type: String): String {
+        unitOperationNames[type]?.let { return it }
         if (!type.startsWith(stateOperationPrefix)) return type
         val actionName = type.removePrefix(stateOperationPrefix)
         return SimultaneousTurnStateAction.values().firstOrNull { it.name == actionName }?.value
             ?: UnitActionType.values().firstOrNull { it.name == actionName }?.value
             ?: type
+    }
+
+    /**
+     * Player-facing name of a recorded operation. Unlike [describeOperationType] this can look
+     * inside the payload: a `unit.action` operation says which action the unit was given (Guard,
+     * Automate, …), and it is only that recorded string that tells the player what they lost.
+     */
+    fun describeOperation(operation: SimultaneousTurnOperation): String {
+        if (operation.type == "unit.action")
+            describeUnitActionName(operation.payload)?.let { return it }
+        return describeOperationType(operation.type)
+    }
+
+    private fun describeUnitActionName(payload: String): String? {
+        if (payload.isEmpty()) return null
+        val action = try {
+            json().fromJson(SimultaneousTurnUnitActionResult::class.java, payload)?.action
+        } catch (_: Exception) {
+            null
+        }
+        return action?.takeIf { it.isNotEmpty() }
     }
 
     /**
@@ -226,7 +262,7 @@ object SimultaneousTurnOperations {
             val civName = gameInfo.civilizations
                 .firstOrNull { it.playerId == operation.playerId }?.civName
                 ?: operation.playerId.ifEmpty { "?" }
-            "$civName - ${describeOperationType(operation.type)} (${failure.reason.sentence.tr()})"
+            "$civName - ${describeOperation(operation)} (${failure.reason.sentence.tr()})"
         }
     }
 
@@ -250,7 +286,7 @@ object SimultaneousTurnOperations {
             // One notification per action and reason: both are placeholder terms, so every client
             // translates them into its own language when the notification is shown.
             val problems = failures
-                .map { describeOperationType(it.operation.type) to it.reason.sentence }
+                .map { describeOperation(it.operation) to it.reason.sentence }
                 .distinct()
             for ((action, reason) in problems)
                 civ.addNotification(
