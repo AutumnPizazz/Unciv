@@ -1129,6 +1129,8 @@ class WorldScreen(
                         )
                         return@runOnNonDaemonThreadPool
                     }
+                    // Tell the players whose actions were skipped, not just the one settling the turn.
+                    SimultaneousTurnOperations.notifyPlayersOfFailedOperations(turnStart, failedOperations)
                     game.onlineMultiplayer.updateGame(turnStart)
                     if (game.gameInfo == gameInfo)
                         launchOnGLThread {

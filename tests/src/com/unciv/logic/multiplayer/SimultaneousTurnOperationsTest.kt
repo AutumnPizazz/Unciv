@@ -1089,4 +1089,33 @@ class SimultaneousTurnOperationsTest {
         assertEquals("unit $unitId x", position.x, unit!!.currentTile.position.x)
         assertEquals("unit $unitId y", position.y, unit.currentTile.position.y)
     }
+
+    @Test
+    fun ignoredOperationsAreReportedToThePlayerWhoLostThem() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val humanCiv = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        humanCiv.playerId = "playerA"
+        val aiCiv = testGame.addCiv(testGame.ruleset.nations.values.elementAt(1))
+        aiCiv.playerId = "playerB"
+        val notificationsBefore = humanCiv.notifications.size
+        val aiNotificationsBefore = aiCiv.notifications.size
+
+        val failed = listOf(
+            SimultaneousTurnOperation(turn = 3, playerId = "playerA", sequence = 1, type = "unit.move"),
+            SimultaneousTurnOperation(turn = 3, playerId = "playerA", sequence = 2, type = "unit.attack"),
+            // An AI civ, and a playerId that no longer exists, must not break the report.
+            SimultaneousTurnOperation(turn = 3, playerId = "playerB", sequence = 3, type = "unit.move"),
+            SimultaneousTurnOperation(turn = 3, playerId = "playerC", sequence = 4, type = "unit.move")
+        )
+
+        val notified = SimultaneousTurnOperations.notifyPlayersOfFailedOperations(testGame.gameInfo, failed)
+
+        assertEquals(listOf("playerA"), notified)
+        assertEquals("the human player gets exactly one notification", notificationsBefore + 1, humanCiv.notifications.size)
+        val text = humanCiv.notifications.last().text
+        assertTrue("the report must name the lost actions: $text", text.contains("unit.move") && text.contains("unit.attack"))
+        assertTrue("the report must keep the translatable placeholder: $text", text.contains("[unit.move, unit.attack]"))
+        assertEquals("AI civs have no use for these notifications", aiNotificationsBefore, aiCiv.notifications.size)
+    }
 }

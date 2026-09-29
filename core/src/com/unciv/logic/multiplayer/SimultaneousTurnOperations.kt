@@ -4,6 +4,8 @@ import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonWriter
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
+import com.unciv.logic.civilization.NotificationCategory
+import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.models.UnitActionType
@@ -184,6 +186,33 @@ object SimultaneousTurnOperations {
                 ?: operation.playerId.ifEmpty { "?" }
             "$civName - ${operation.type}"
         }
+    }
+
+    /**
+     * Tells every player whose operations settlement could not apply. Rejected operations used to
+     * reach the settling player only (as a settlement report popup), so the player who actually
+     * lost an action was never told. Notification texts are stored untranslated and translated on
+     * the fly, so each client reads the message in its own language.
+     * @return the playerIds that were notified, for logging and tests.
+     */
+    fun notifyPlayersOfFailedOperations(
+        gameInfo: GameInfo,
+        failedOperations: List<SimultaneousTurnOperation>
+    ): List<String> {
+        if (failedOperations.isEmpty()) return emptyList()
+        val notified = ArrayList<String>()
+        for ((playerId, operations) in failedOperations.groupBy { it.playerId }) {
+            if (playerId.isEmpty()) continue
+            val civ = gameInfo.civilizations.firstOrNull { it.playerId == playerId } ?: continue
+            if (civ.playerType == PlayerType.AI) continue
+            val actionList = operations.map { it.type }.distinct().joinToString(", ")
+            civ.addNotification(
+                "A simultaneous turn could not apply some of your actions: [$actionList]",
+                NotificationCategory.General
+            )
+            notified.add(playerId)
+        }
+        return notified
     }
 
     fun captureGameStateChange(
