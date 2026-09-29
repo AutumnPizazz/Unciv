@@ -23,6 +23,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: unit moves and attacks are no longer dropped at simultaneous-turn settlement
 - Change: the simultaneous-turns option is available again, now labeled beta
 - Fix: simultaneous turns now also replay city attacks and catch any state change that was not recorded
+- Fix: a long simultaneous-turn settlement keeps its settlement lock alive instead of being taken over midway
 
 ### Mod author-facing
 

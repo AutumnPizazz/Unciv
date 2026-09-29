@@ -1032,6 +1032,9 @@ class WorldScreen(
                     return@runOnNonDaemonThreadPool
                 }
 
+                // Keep the lock alive: rebuilding and advancing a large turn can exceed the server's
+                // staleness window, and another client must not take settlement over midway.
+                val lockRenewalJob = startSimultaneousTurnLockRenewal(gameInfo.gameId, submittedTurn, playerId)
                 try {
                     val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
                     if (turnStart.turns != submittedTurn) {
@@ -1059,6 +1062,7 @@ class WorldScreen(
                     if (game.gameInfo == gameInfo)
                         launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
                 } finally {
+                    lockRenewalJob.cancel()
                     game.onlineMultiplayer.multiplayerServer.releaseSimultaneousTurnSettlementLock(
                         gameInfo.gameId, submittedTurn, playerId
                     )
@@ -1072,6 +1076,25 @@ class WorldScreen(
                     if (retryLocally) isPlayersTurn = true
                     shouldUpdate = true
                     nextTurnButton.update()
+                }
+            }
+        }
+    }
+
+    /**
+     * Keeps the settlement lock alive while a long turn is being rebuilt and advanced. Renewal is
+     * best-effort: if a renewal fails, the settlement still owns the lock until the server's
+     * staleness window passes, and a later release simply becomes a no-op.
+     */
+    private fun startSimultaneousTurnLockRenewal(gameId: String, turn: Int, owner: String): Job {
+        return Concurrency.run("SimultaneousTurnLockRenewal") {
+            while (isActive) {
+                delay(30_000)
+                try {
+                    game.onlineMultiplayer.multiplayerServer
+                        .renewSimultaneousTurnSettlementLock(gameId, turn, owner)
+                } catch (_: Exception) {
+                    // Best effort - a failed renewal must not abort the settlement in progress.
                 }
             }
         }

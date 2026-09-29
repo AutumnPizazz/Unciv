@@ -182,6 +182,9 @@ class MultiplayerServer(
     suspend fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
         fileStorage().acquireSimultaneousTurnSettlementLock(gameId, turn, owner)
 
+    suspend fun renewSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
+        fileStorage().renewSimultaneousTurnSettlementLock(gameId, turn, owner)
+
     suspend fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {
         fileStorage().releaseSimultaneousTurnSettlementLock(gameId, turn, owner)
     }

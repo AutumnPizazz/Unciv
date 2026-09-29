@@ -59,6 +59,8 @@ interface FileStorage {
     fun loadSimultaneousTurnOperations(gameId: String): String? = null
     /** Atomically claims settlement for one simultaneous-turn game turn. */
     fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean = false
+    /** Extends an existing settlement claim owned by [owner]. Returns false if unsupported or not held. */
+    fun renewSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean = false
     /** Releases a settlement claim owned by [owner]. */
     fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {}
 

@@ -82,6 +82,20 @@ object UncivServerFileStorage : FileStorage {
         return acquired
     }
 
+    override fun renewSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
+        var renewed = false
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-lock/$gameId/renew",
+            content = "$turn:$owner",
+            timeout = timeout,
+            header = authHeader
+        ) { success, _, code ->
+            renewed = success && code == 204
+        }
+        return renewed
+    }
+
     override fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {
         SimpleHttp.sendRequest(
             Net.HttpMethods.DELETE,
