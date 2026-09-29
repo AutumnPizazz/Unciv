@@ -176,7 +176,10 @@ class WorldScreen(
             "Simultaneous turn reconciliation captured unrecorded state changes (game %s, turn %d)",
             gameInfo.gameId, gameInfo.turns
         )
-        recordSimultaneousTurnOperation("game.state", result)
+        // Record one operation per component: a conflict on a single tile must not discard the
+        // unrelated changes that were captured in the same diff.
+        for (part in SimultaneousTurnOperations.splitGameStateResult(result))
+            recordSimultaneousTurnOperation("game.state", part)
     }
 
     /** Returns a stable snapshot for a future settlement worker. */

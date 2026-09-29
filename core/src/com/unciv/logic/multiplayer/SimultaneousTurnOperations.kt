@@ -70,18 +70,18 @@ data class SimultaneousTurnComponentSnapshot(
 
 data class SimultaneousTurnGlobalState(
     val lastUnitId: Int = 0,
-    val diplomaticVictoryVotesCast: Map<String, String?> = emptyMap(),
-    val unitNamesTaken: List<String> = emptyList(),
-    val variables: Map<String, Int> = emptyMap()
+    val diplomaticVictoryVotesCast: Map<String, String?> = HashMap(),
+    val unitNamesTaken: List<String> = ArrayList(),
+    val variables: Map<String, Int> = HashMap()
 )
 
 data class SimultaneousTurnGameStateResult(
     val action: String = "",
     val globalBefore: String = "",
     val globalAfter: String = "",
-    val civilizations: List<SimultaneousTurnComponentSnapshot> = emptyList(),
-    val tiles: List<SimultaneousTurnComponentSnapshot> = emptyList(),
-    val religions: List<SimultaneousTurnComponentSnapshot> = emptyList()
+    val civilizations: List<SimultaneousTurnComponentSnapshot> = ArrayList(),
+    val tiles: List<SimultaneousTurnComponentSnapshot> = ArrayList(),
+    val religions: List<SimultaneousTurnComponentSnapshot> = ArrayList()
 )
 
 object SimultaneousTurnOperations {
@@ -181,6 +181,37 @@ object SimultaneousTurnOperations {
         SimultaneousTurnReplay.replay(expected, operations)
         expected.setTransients()
         return captureGameStateChange(UnitActionType.TriggerUnique, expected, current)
+    }
+
+    /**
+     * Splits a broad state diff into one operation per changed component. [applyGameState] rejects
+     * an operation as a whole when any component no longer matches its recorded "before"/"after"
+     * (e.g. two players editing the same tile in one simultaneous turn), so bundling many components
+     * into a single operation - as the reconciliation catch-all would - would also discard the
+     * unrelated, compatible changes. Independent operations keep the conflict local.
+     */
+    fun splitGameStateResult(result: SimultaneousTurnGameStateResult): List<SimultaneousTurnGameStateResult> {
+        val parts = ArrayList<SimultaneousTurnGameStateResult>()
+        // Always use ArrayList: listOf() / emptyList() return java.util.Collections singletons, and
+        // libgdx Json writes their concrete class into the payload but cannot instantiate it again.
+        val noGlobal = result.globalAfter
+        if (result.globalBefore != result.globalAfter)
+            parts.add(SimultaneousTurnGameStateResult(
+                result.action, result.globalBefore, result.globalAfter, ArrayList(), ArrayList(), ArrayList()
+            ))
+        for (civilization in result.civilizations)
+            parts.add(SimultaneousTurnGameStateResult(
+                result.action, noGlobal, noGlobal, civilizations = arrayListOf(civilization)
+            ))
+        for (tile in result.tiles)
+            parts.add(SimultaneousTurnGameStateResult(
+                result.action, noGlobal, noGlobal, tiles = arrayListOf(tile)
+            ))
+        for (religion in result.religions)
+            parts.add(SimultaneousTurnGameStateResult(
+                result.action, noGlobal, noGlobal, religions = arrayListOf(religion)
+            ))
+        return parts
     }
 
     fun currentGlobalState(gameInfo: GameInfo) = SimultaneousTurnGlobalState(

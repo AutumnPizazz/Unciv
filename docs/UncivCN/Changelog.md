@@ -26,6 +26,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: a long simultaneous-turn settlement keeps its settlement lock alive instead of being taken over midway
 - Fix: an action that both moves a unit and changes other state is now replayed completely in simultaneous turns
 - Fix: a unit that leaves a tile is no longer left behind there during simultaneous-turn replay
+- Fix: a conflict between two players in one simultaneous turn no longer discards their other changes
 
 ### Mod author-facing
 

@@ -90,6 +90,62 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun splitGameStateResultKeepsUnrelatedChangesWhenOneComponentConflicts() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        testGame.gameInfo.setTransients()
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        val global = json().toJson(SimultaneousTurnOperations.currentGlobalState(before))
+
+        civ.variables["modEffect"] = 37
+        testGame.getTile(2, 2).improvement = "Farm"
+        val result = SimultaneousTurnGameStateResult(
+            action = "TriggerUnique",
+            globalBefore = global,
+            globalAfter = global,
+            civilizations = listOf(SimultaneousTurnComponentSnapshot(
+                civ.civName,
+                json().toJson(before.getCivilization(civ.civName)),
+                json().toJson(testGame.gameInfo.getCivilization(civ.civName))
+            )),
+            tiles = listOf(
+                SimultaneousTurnComponentSnapshot(
+                    "1,1",
+                    json().toJson(before.tileMap[1, 1]),
+                    json().toJson(testGame.gameInfo.tileMap[1, 1])
+                ),
+                SimultaneousTurnComponentSnapshot(
+                    "2,2",
+                    json().toJson(before.tileMap[2, 2]),
+                    json().toJson(testGame.gameInfo.tileMap[2, 2])
+                )
+            )
+        )
+
+        val parts = SimultaneousTurnOperations.splitGameStateResult(result)
+        assertEquals(3, parts.size)
+        assertTrue(parts.all {
+            it.civilizations.size + it.tiles.size + it.religions.size == 1
+        })
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        // Another player changed the same tile in an incompatible way while ours was in flight.
+        authoritative.tileMap[1, 1].improvement = "Road"
+
+        val applied = parts.map { SimultaneousTurnReplay.apply(authoritative, SimultaneousTurnOperation(
+            type = "game.state",
+            payload = json().toJson(it)
+        )) }
+
+        assertFalse(applied[parts.indexOfFirst { it.tiles.any { tile -> tile.key == "1,1" } }])
+        assertEquals(37, authoritative.getCivilization(civ.civName).variables["modEffect"])
+        assertEquals("Farm", authoritative.tileMap[2, 2].improvement)
+    }
+
+    @Test
     fun replayAppliesLaterOperationsAfterAnUnreplayableOne() {
         val testGame = TestGame()
         testGame.makeHexagonalMap(2)
