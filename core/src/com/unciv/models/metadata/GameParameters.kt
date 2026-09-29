@@ -65,6 +65,8 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
 
     /** If true, this online game uses the simultaneous-turn operation protocol. */
     var simultaneousTurns = false
+    /** Minutes a simultaneous turn waits for a human player before settling without them. 0 = wait forever. */
+    var simultaneousTurnTimeoutMinutes = 5
     /** Polling interval in seconds for simultaneous-style multiplayer. 0 = disabled (classic sequential turns). */
     var pollingIntervalSeconds = 0
 
@@ -128,6 +130,7 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
         parameters.minutesRecoveredPerTurn = minutesRecoveredPerTurn
         parameters.pollingIntervalSeconds = pollingIntervalSeconds
         parameters.simultaneousTurns = simultaneousTurns
+        parameters.simultaneousTurnTimeoutMinutes = simultaneousTurnTimeoutMinutes
         parameters.requireSameVersion = requireSameVersion
         parameters.forbidReload = forbidReload
         parameters.hostVersion = hostVersion

@@ -130,6 +130,12 @@ class GameOptionsTable(
             } else {
                 gameParameters.simultaneousTurns = false
             }
+            if (gameParameters.simultaneousTurns) {
+                selectBoxTable.addDurationSelectBox(
+                    "Simultaneous turn timeout:",
+                    GameParameters::simultaneousTurnTimeoutMinutes, 0, 0, 5
+                )
+            }
             selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0)
             selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
             selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)

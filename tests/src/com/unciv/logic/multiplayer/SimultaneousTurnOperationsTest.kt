@@ -2,6 +2,7 @@ package com.unciv.logic.multiplayer
 
 import com.unciv.json.json
 import com.unciv.models.UnitActionType
+import com.unciv.models.metadata.GameParameters
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import org.junit.Assert.assertEquals
@@ -747,5 +748,70 @@ class SimultaneousTurnOperationsTest {
             "a stop-automation action must be replayed, otherwise the unit keeps automating",
             unit.automated
         )
+    }
+
+    @Test
+    fun aTurnTimeoutIsDisabledByZero() {
+        assertFalse(
+            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+                lastActivityMillis = 0L,
+                waitStartedAtMillis = 0L,
+                nowMillis = Long.MAX_VALUE,
+                timeoutMinutes = 0
+            )
+        )
+    }
+
+    @Test
+    fun aTurnTimesOutOnlyAfterTheConfiguredWait() {
+        val waitStarted = 1_000_000L
+        assertFalse(
+            "just under the timeout the client must keep waiting",
+            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+                lastActivityMillis = 0L,
+                waitStartedAtMillis = waitStarted,
+                nowMillis = waitStarted + 5 * 60_000L - 1,
+                timeoutMinutes = 5
+            )
+        )
+        assertTrue(
+            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+                lastActivityMillis = 0L,
+                waitStartedAtMillis = waitStarted,
+                nowMillis = waitStarted + 5 * 60_000L,
+                timeoutMinutes = 5
+            )
+        )
+    }
+
+    @Test
+    fun recentActivityPostponesTheTurnTimeout() {
+        val waitStarted = 1_000_000L
+        val now = waitStarted + 10 * 60_000L
+        assertTrue(
+            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+                lastActivityMillis = 0L,
+                waitStartedAtMillis = waitStarted,
+                nowMillis = now,
+                timeoutMinutes = 5
+            )
+        )
+        assertFalse(
+            "a player who acted a minute ago must not be skipped",
+            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+                lastActivityMillis = now - 60_000L,
+                waitStartedAtMillis = waitStarted,
+                nowMillis = now,
+                timeoutMinutes = 5
+            )
+        )
+    }
+
+    @Test
+    fun theTurnTimeoutIsCopiedWithTheGameParameters() {
+        val parameters = GameParameters()
+        assertEquals(5, parameters.simultaneousTurnTimeoutMinutes)
+        parameters.simultaneousTurnTimeoutMinutes = 17
+        assertEquals(17, parameters.clone().simultaneousTurnTimeoutMinutes)
     }
 }

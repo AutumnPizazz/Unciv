@@ -35,6 +35,7 @@ import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.ruleset.Event
 import com.unciv.models.ruleset.tile.ResourceType
 import com.unciv.models.ruleset.unique.UniqueType
+import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.centerX
 import com.unciv.ui.components.extensions.darken
 import com.unciv.ui.components.input.KeyShortcutDispatcherVeto
@@ -264,6 +265,14 @@ class WorldScreen(
     /** Turn whose "done" marker the server already accepted, so retries don't re-upload it forever. */
     @Transient
     private var simultaneousTurnDoneUploadedForTurn = -1
+    /** Turn this client started waiting for the other players on, and when it started. */
+    @Transient
+    private var simultaneousTurnWaitStartedForTurn = -1
+    @Transient
+    private var simultaneousTurnWaitStartedAt = 0L
+    /** Turn whose "we continued without someone" message was already shown, so it is not repeated. */
+    @Transient
+    private var simultaneousTurnTimeoutReportedForTurn = -1
     /** Watches the sidecar operation list so a missed WebSocket signal cannot strand a player. */
     private var simultaneousTurnWatcherJob: Job? = null
 
@@ -1027,18 +1036,31 @@ class WorldScreen(
                 } catch (_: MultiplayerFileNotFoundException) {
                     emptyList()
                 }
-                val humanPlayerIds = gameInfo.civilizations
+                val expectedPlayerIds = gameInfo.civilizations
                     .filter { it.isHuman() && it.isAlive() }
                     .map { it.playerId }
                     .toSet()
-                val finishedPlayerIds = allOperations
+                val submittedPlayerIds = allOperations
                     .filter { it.turn == submittedTurn && it.type == "done" }
                     .map { it.playerId }
                     .toSet()
-                if (humanPlayerIds.any { it !in finishedPlayerIds }) {
+                if (simultaneousTurnPendingPlayerIds(allOperations).isNotEmpty()) {
                     progressBar.increment()
                     launchOnGLThread { nextTurnButton.update() }
                     return@runOnNonDaemonThreadPool
+                }
+                val skippedPlayerIds = expectedPlayerIds - submittedPlayerIds
+                if (skippedPlayerIds.isNotEmpty() && simultaneousTurnTimeoutReportedForTurn != submittedTurn) {
+                    simultaneousTurnTimeoutReportedForTurn = submittedTurn
+                    val skippedNames = gameInfo.civilizations
+                        .filter { it.playerId in skippedPlayerIds }
+                        .joinToString(", ") { it.civName }
+                    launchOnGLThread {
+                        ToastPopup(
+                            "Timed out waiting for [$skippedNames] - their turn was skipped".tr(),
+                            this@WorldScreen, 4000
+                        )
+                    }
                 }
 
                 val lockAcquired = game.onlineMultiplayer.multiplayerServer
@@ -1120,6 +1142,43 @@ class WorldScreen(
         }
     }
 
+    /**
+     * Human players this client is still legitimately waiting for. A player who submitted "done" is
+     * never included, and a player silent for `simultaneousTurnTimeoutMinutes` is dropped so a client
+     * that quit can no longer freeze the turn for everyone else.
+     */
+    private fun simultaneousTurnPendingPlayerIds(
+        allOperations: List<SimultaneousTurnOperation>
+    ): Set<String> {
+        val humanPlayerIds = gameInfo.civilizations
+            .filter { it.isHuman() && it.isAlive() }
+            .map { it.playerId }
+            .toSet()
+        val finishedPlayerIds = allOperations
+            .filter { it.turn == gameInfo.turns && it.type == "done" }
+            .map { it.playerId }
+            .toSet()
+        val pendingPlayerIds = humanPlayerIds - finishedPlayerIds
+        val timeoutMinutes = gameInfo.gameParameters.simultaneousTurnTimeoutMinutes
+        if (pendingPlayerIds.isEmpty() || timeoutMinutes <= 0) return pendingPlayerIds
+        if (simultaneousTurnWaitStartedForTurn != gameInfo.turns) {
+            simultaneousTurnWaitStartedForTurn = gameInfo.turns
+            simultaneousTurnWaitStartedAt = System.currentTimeMillis()
+        }
+        val now = System.currentTimeMillis()
+        return pendingPlayerIds.filterNot { playerId ->
+            val lastActivity = allOperations
+                .filter { it.turn == gameInfo.turns && it.playerId == playerId }
+                .maxOfOrNull { it.createdAtMillis } ?: 0L
+            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+                lastActivityMillis = lastActivity,
+                waitStartedAtMillis = simultaneousTurnWaitStartedAt,
+                nowMillis = now,
+                timeoutMinutes = timeoutMinutes
+            )
+        }.toSet()
+    }
+
     /** Periodically checks completion markers as a fallback for unavailable WebSocket signals. */
     private fun startSimultaneousTurnWatcher() {
         simultaneousTurnWatcherJob?.cancel()
@@ -1130,15 +1189,7 @@ class WorldScreen(
                 try {
                     val operations = game.onlineMultiplayer.multiplayerServer
                         .downloadSimultaneousTurnOperations(gameInfo.gameId)
-                    val humanPlayerIds = gameInfo.civilizations
-                        .filter { it.isHuman() && it.isAlive() }
-                        .map { it.playerId }
-                        .toSet()
-                    val finishedPlayerIds = operations
-                        .filter { it.turn == gameInfo.turns && it.type == "done" }
-                        .map { it.playerId }
-                        .toSet()
-                    if (humanPlayerIds.all { it in finishedPlayerIds }) {
+                    if (simultaneousTurnPendingPlayerIds(operations).isEmpty()) {
                         launchOnGLThread {
                             if (gameInfo.isSimultaneousTurnsMode() && !isPlayersTurn && !isNextTurnUpdateRunning())
                                 finishSimultaneousTurn()

@@ -144,6 +144,21 @@ object SimultaneousTurnOperations {
 
     fun requiresGameStateSnapshot(type: UnitActionType) = type in snapshottedUnitActions
 
+    /**
+     * True when a simultaneous turn has waited longer than [timeoutMinutes] for a player whose last
+     * recorded activity was [lastActivityMillis]. Settlement uses this to continue without a player
+     * who quit instead of freezing the game for everyone else. A [timeoutMinutes] of 0 waits forever.
+     */
+    fun hasSimultaneousTurnTimedOut(
+        lastActivityMillis: Long,
+        waitStartedAtMillis: Long,
+        nowMillis: Long,
+        timeoutMinutes: Int
+    ): Boolean {
+        if (timeoutMinutes <= 0) return false
+        return nowMillis - maxOf(lastActivityMillis, waitStartedAtMillis) >= timeoutMinutes * 60_000L
+    }
+
     fun captureGameStateChange(
         action: UnitActionType,
         before: GameInfo,
