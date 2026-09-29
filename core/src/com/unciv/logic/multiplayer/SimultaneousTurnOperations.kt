@@ -303,8 +303,9 @@ object SimultaneousTurnOperations {
      * The settlement host rebuilds a simultaneous turn by replaying the recorded operations on the
      * turn-start save. A state change made through a code path that failed to record an operation
      * would be silently lost. This replays [operations] on a clone of [turnStart] and diffs the
-     * result against [current], so the caller can record any difference as a final catch-all
-     * operation whose "before" matches the state the other operations will have produced.
+     * result against [current]. A non-null result therefore means some code path changed state
+     * without recording an operation: the caller reports it (see [describeGameStateResult]) instead
+     * of patching the difference silently, because a silent patch hides the missing recording call.
      */
     fun diffUnrecordedState(
         turnStart: GameInfo,
@@ -330,6 +331,54 @@ object SimultaneousTurnOperations {
         for (civilization in clone.civilizations) civilization.units.clearUnits()
         clone.setTransients()
         return clone
+    }
+
+    /**
+     * A developer-facing summary of an unrecorded state diff. Naming the components - and the fields
+     * inside them - is what makes the report actionable: its whole point is to find the code path that
+     * changed state without recording an operation.
+     */
+    fun describeGameStateResult(result: SimultaneousTurnGameStateResult): String {
+        val parts = ArrayList<String>()
+        describeComponents("civilizations", result.civilizations, parts)
+        describeComponents("tiles", result.tiles, parts)
+        describeComponents("religions", result.religions, parts)
+        if (result.globalBefore != result.globalAfter) {
+            val fields = changedFieldNames(result.globalBefore, result.globalAfter)
+            parts.add(if (fields.isEmpty()) "global" else "global (${fields.joinToString(", ")})")
+        }
+        // captureGameStateChange returns null for an all-equal diff, so a reported result normally has
+        // at least one part; stay readable even if one ever arrives empty.
+        return if (parts.isEmpty()) "unspecified state" else parts.joinToString("; ")
+    }
+
+    private fun describeComponents(
+        name: String,
+        components: List<SimultaneousTurnComponentSnapshot>,
+        into: MutableList<String>
+    ) {
+        if (components.isEmpty()) return
+        into.add("$name: " + components.joinToString(", ") { component ->
+            // Older operations carry no changedFields, so fall back to diffing their full snapshots.
+            val fields = component.changedFields.ifEmpty {
+                changedFieldNames(component.before, component.after)
+            }
+            if (fields.isEmpty()) component.key else "${component.key} (${fields.joinToString(", ")})"
+        })
+    }
+
+    /** The top-level field names whose JSON differs between two serialized component snapshots. */
+    private fun changedFieldNames(beforeJson: String?, afterJson: String?): List<String> {
+        if (beforeJson.isNullOrEmpty() || afterJson.isNullOrEmpty()) return emptyList()
+        val beforeValue = try { JsonReader().parse(beforeJson) } catch (_: Exception) { return emptyList() }
+        val afterValue = try { JsonReader().parse(afterJson) } catch (_: Exception) { return emptyList() }
+        val names = LinkedHashSet<String>()
+        for (field in beforeValue) names.add(field.name)
+        for (field in afterValue) names.add(field.name)
+        return names.filter { name ->
+            beforeValue.get(name)?.toJson(JsonWriter.OutputType.json) !=
+                afterValue.get(name)?.toJson(JsonWriter.OutputType.json)
+        }
     }
 
     /**

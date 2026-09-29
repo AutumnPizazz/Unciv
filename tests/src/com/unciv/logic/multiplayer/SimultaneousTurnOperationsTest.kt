@@ -527,6 +527,29 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun unrecordedStateChangesAreDescribedForTheReport() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        // A change made through a code path that forgot to record an operation
+        civ.variables["unrecorded"] = 5
+
+        val result = SimultaneousTurnOperations.diffUnrecordedState(
+            turnStart, testGame.gameInfo, emptyList()
+        )
+        assertNotNull("the unrecorded change must be detected so it can be reported", result)
+        val description = SimultaneousTurnOperations.describeGameStateResult(result!!)
+        // Naming the component and the field is what makes the report actionable: it has to lead to the
+        // code path that changed the state without recording an operation.
+        assertTrue("the report must name the changed civilization: $description", description.contains(civ.civName))
+        assertTrue("the report must name the changed field: $description", description.contains("variables"))
+    }
+
+    @Test
     fun reconciliationProducesNoOperationWhenEveryChangeWasRecorded() {
         val testGame = TestGame()
         testGame.makeHexagonalMap(2)

@@ -80,11 +80,13 @@ import com.unciv.ui.screens.worldscreen.unit.actions.UnitActionsTable
 import com.unciv.ui.screens.worldscreen.worldmap.WorldMapHolder
 import com.unciv.ui.screens.worldscreen.worldmap.WorldMapTileUpdater.updateTiles
 import com.unciv.utils.Concurrency
+import com.unciv.utils.Log
 import com.unciv.utils.debug
 import com.unciv.utils.launchOnGLThread
 import com.unciv.utils.launchOnThreadPool
 import com.unciv.utils.withGLContext
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -177,25 +179,30 @@ class WorldScreen(
     }
 
     /**
-     * Safety net for simultaneous turns: the settlement host rebuilds the turn by replaying recorded
-     * operations on the turn-start save, so any state change made by a code path that did not record
-     * an operation would be lost. Diff the state our recorded operations reproduce against our actual
-     * state and append the difference as a final catch-all operation. Must run before the upload.
+     * Sentinel for simultaneous turns: the settlement host rebuilds the turn by replaying recorded
+     * operations on the turn-start save, so a state change made by a code path that did not record an
+     * operation would be lost. Diff the state our recorded operations reproduce against our actual
+     * state. A remaining difference means a missing recording call - a bug - so report it instead of
+     * patching it with a catch-all operation, which is what used to happen and made both the desync and
+     * the code path that caused it invisible. Must run before the upload.
      */
-    private fun reconcileSimultaneousTurnOperations() {
+    private fun CoroutineScope.checkForUnrecordedSimultaneousTurnChanges() {
         val turnStart = simultaneousTurnStartSnapshot ?: return
         if (!gameInfo.isSimultaneousTurnsMode() || turnStart.turns != gameInfo.turns) return
         val result = SimultaneousTurnOperations.diffUnrecordedState(
             turnStart, gameInfo, getSimultaneousTurnOperations()
         ) ?: return
-        debug(
-            "Simultaneous turn reconciliation captured unrecorded state changes (game %s, turn %d)",
-            gameInfo.gameId, gameInfo.turns
+        Log.error(
+            "Simultaneous turn %d of game %s changed state without recording an operation: %s",
+            gameInfo.turns, gameInfo.gameId,
+            SimultaneousTurnOperations.describeGameStateResult(result)
         )
-        // Record one operation per component: a conflict on a single tile must not discard the
-        // unrelated changes that were captured in the same diff.
-        for (part in SimultaneousTurnOperations.splitGameStateResult(result))
-            recordSimultaneousTurnOperation("game.state", part)
+        launchOnGLThread {
+            ToastPopup(
+                "Some changes you made this turn could not be recorded and may be lost. Please report this.".tr(),
+                this@WorldScreen, 5000
+            )
+        }
     }
 
     /** Returns a stable snapshot for a future settlement worker. */
@@ -1016,9 +1023,9 @@ class WorldScreen(
             var submitted = simultaneousTurnDoneUploadedForTurn == submittedTurn
             try {
                 if (!submitted) {
-                    // Capture any local state change that was made without recording an operation,
-                    // so settlement cannot silently drop it.
-                    reconcileSimultaneousTurnOperations()
+                    // Loudly report any local state change that was made without recording an
+                    // operation: settlement cannot replay it, and it must not pass unnoticed.
+                    checkForUnrecordedSimultaneousTurnChanges()
                     val done = SimultaneousTurnOperation(
                         turn = submittedTurn,
                         playerId = playerId,

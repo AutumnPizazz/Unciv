@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: a simultaneous turn now tells you when it could not record part of your turn, instead of silently working around it
 - Fix: a simultaneous turn now also refuses an attack on a target another player already claimed this turn
 - Fix: a simultaneous turn now refuses an order whose target another player already claimed this turn, instead of silently dropping it at settlement
 - Fix: two clients can no longer settle the same simultaneous turn and advance it twice
