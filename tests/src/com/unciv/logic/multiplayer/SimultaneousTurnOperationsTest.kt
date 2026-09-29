@@ -6,6 +6,7 @@ import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -116,5 +117,72 @@ class SimultaneousTurnOperationsTest {
 
         assertEquals(listOf(invalidOperation), failed)
         assertEquals(37, authoritative.getCivilization(civ.civName).variables["modEffect"])
+    }
+
+    @Test
+    fun snapshotWhitelistCoversAutomatedAndDeferredActions() {
+        val snapshotted = listOf(
+            UnitActionType.Automate, UnitActionType.Explore, UnitActionType.Upgrade,
+            UnitActionType.Transform, UnitActionType.ConnectRoad, UnitActionType.DisbandUnit,
+            UnitActionType.FoundCity, UnitActionType.TriggerUnique
+        )
+        for (type in snapshotted) {
+            assertTrue("$type must be snapshotted", SimultaneousTurnOperations.requiresGameStateSnapshot(type))
+        }
+        // Flag-only actions are already recorded as lightweight unit.action operations
+        val lightweight = listOf(
+            UnitActionType.Guard, UnitActionType.Sleep, UnitActionType.Fortify,
+            UnitActionType.SetUp, UnitActionType.Paradrop, UnitActionType.Skip,
+            UnitActionType.StopAutomation, UnitActionType.StopExploration, UnitActionType.StopMovement
+        )
+        for (type in lightweight) {
+            assertFalse("$type should stay a unit.action op", SimultaneousTurnOperations.requiresGameStateSnapshot(type))
+        }
+    }
+
+    @Test
+    fun unchangedStateProducesNoSnapshot() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        testGame.gameInfo.setTransients()
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+
+        assertNull(
+            SimultaneousTurnOperations.captureGameStateChange(
+                UnitActionType.Automate, before, testGame.gameInfo
+            )
+        )
+    }
+
+    @Test
+    fun automatedMoveSnapshotCarriesUnitMovement() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(0, 0))
+        testGame.gameInfo.setTransients()
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+
+        // Simulate what UnitAutomation does to an automated unit without touching the map
+        unit.currentMovement = 0f
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.Automate, before, testGame.gameInfo
+        )!!
+        val operation = SimultaneousTurnOperation(type = "game.state", payload = json().toJson(result))
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        assertTrue(SimultaneousTurnReplay.apply(authoritative, operation))
+
+        val replayedTile = authoritative.tileMap[0, 0]
+        val tileUnit = replayedTile.militaryUnit ?: replayedTile.civilianUnit
+        assertEquals("tile unit movement", 0f, tileUnit!!.currentMovement, 0.0001f)
+        val civUnits = authoritative.getCivilization(civ.civName).units.getCivUnits()
+            .filter { it.id == unit.id }.toList()
+        assertEquals("civ unit list must not keep a stale duplicate", 1, civUnits.size)
+        assertEquals("civ unit movement", 0f, civUnits.single().currentMovement, 0.0001f)
     }
 }

@@ -14,6 +14,7 @@ import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.diplomacy.DiplomacyFlags
 import com.unciv.models.Spy
 import com.unciv.models.SpyAction
+import com.unciv.models.UnitActionType
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.SmallButtonStyle
 import com.unciv.ui.components.extensions.addCapitalIndicator
@@ -333,7 +334,10 @@ class EspionageOverviewScreen(val civInfo: Civilization, val worldScreen: WorldS
         }
 
         private fun move() {
-            selectedSpy!!.moveTo(location)
+            // Moving a spy mutates civ state; record it so simultaneous-turn replay reproduces it
+            worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                selectedSpy!!.moveTo(location)
+            }
             resetSelection()
             update()
         }
@@ -380,12 +384,16 @@ class EspionageOverviewScreen(val civInfo: Civilization, val worldScreen: WorldS
                         "chance of success?",
                     "Stage Coup"
                 ) {
-                    spy.setAction(SpyAction.Coup, 1)
+                    worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                        spy.setAction(SpyAction.Coup, 1)
+                    }
                     fist.color = Color.DARK_GRAY
                     update()
                 }.open()
             } else {
-                spy.setAction(SpyAction.CounterIntelligence, 10)
+                worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                    spy.setAction(SpyAction.CounterIntelligence, 10)
+                }
                 fist.color = Color.WHITE
                 update()
             }

@@ -155,23 +155,29 @@ class CityView(city: City,
     }
     fun tryUnlockTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false
-        return city.unlockTile(getTile(tileView))
+        var result = false
+        runSimultaneousCityChange { result = city.unlockTile(getTile(tileView)) }
+        return result
     }
     fun tryBuyTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false
         if (!city.expansion.canBuyTile(getTile(tileView))) return false
-        city.expansion.buyTile(getTile(tileView))
+        runSimultaneousCityChange { city.expansion.buyTile(getTile(tileView)) }
         return true
     }
     fun tryWorkTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false
-        return city.workTile(getTile(tileView))
+        var result = false
+        runSimultaneousCityChange { result = city.workTile(getTile(tileView)) }
+        return result
     }
     fun tryStopWorkingTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false
-        return city.stopWorkingTile(getTile(tileView))
+        var result = false
+        runSimultaneousCityChange { result = city.stopWorkingTile(getTile(tileView)) }
+        return result
     }
-    private fun runSimultaneousConstructionChange(action: () -> Unit) {
+    private fun runSimultaneousCityChange(action: () -> Unit) {
         UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
             com.unciv.models.UnitActionType.ConstructImprovement, action
         ) ?: action()
@@ -179,24 +185,24 @@ class CityView(city: City,
 
     fun tryAddToQueue(name: String): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange { city.cityConstructions.addToQueue(name) }
+        runSimultaneousCityChange { city.cityConstructions.addToQueue(name) }
         return true
     }
     fun tryRemoveFromQueue(index: Int, automatic: Boolean): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange { city.cityConstructions.removeFromQueue(index, automatic) }
+        runSimultaneousCityChange { city.cityConstructions.removeFromQueue(index, automatic) }
         return true
     }
     fun tryRaisePriority(index: Int): Int? {
         if (!canChangeState()) return null
         var result: Int? = null
-        runSimultaneousConstructionChange { result = city.cityConstructions.raisePriority(index) }
+        runSimultaneousCityChange { result = city.cityConstructions.raisePriority(index) }
         return result
     }
     fun tryLowerPriority(index: Int): Int? {
         if (!canChangeState()) return null
         var result: Int? = null
-        runSimultaneousConstructionChange { result = city.cityConstructions.lowerPriority(index) }
+        runSimultaneousCityChange { result = city.cityConstructions.lowerPriority(index) }
         return result
     }
     // TODO Citystats being stateful breaks the "stateless" ideal of View API, think about this :/
@@ -212,111 +218,126 @@ class CityView(city: City,
     }
     fun tryRenameCity(name: String): Boolean {
         if (!canChangeState()) return false
-        city.name = name
+        runSimultaneousCityChange { city.name = name }
         return true
     }
     fun tryAnnexCity(): Boolean {
         if (!canChangeState()) return false
-        city.annexCity()
+        runSimultaneousCityChange { city.annexCity() }
         return true
     }
     fun trySetRazing(raze: Boolean): Boolean {
         if (!canChangeState()) return false
-        city.isBeingRazed = raze
+        runSimultaneousCityChange { city.isBeingRazed = raze }
         return true
     }
     fun tryAddToQueueWithTile(construction: IConstruction, tileView: TileView): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange {
+        runSimultaneousCityChange {
             city.cityConstructions.addToQueue(construction, tile = tileView.unwrap())
         }
         return true
     }
     fun trySetUnitShouldUseSavedPromotion(baseUnit: String, value: Boolean): Boolean {
         if (!canChangeState()) return false
-        city.unitShouldUseSavedPromotion[baseUnit] = value
+        runSimultaneousCityChange { city.unitShouldUseSavedPromotion[baseUnit] = value }
         return true
     }
     fun trySellBuilding(construction: Building): Boolean {
         if (!canChangeState()) return false
-        city.sellBuilding(construction)
+        runSimultaneousCityChange { city.sellBuilding(construction) }
         return true
     }
     fun tryMoveEntryToTop(index: Int): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange { city.cityConstructions.moveEntryToTop(index) }
+        runSimultaneousCityChange { city.cityConstructions.moveEntryToTop(index) }
         return true
     }
     fun tryMoveEntryToEnd(index: Int): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange { city.cityConstructions.moveEntryToEnd(index) }
+        runSimultaneousCityChange { city.cityConstructions.moveEntryToEnd(index) }
         return true
     }
     fun tryAddToQueueConstruction(construction: IConstruction, addToTop: Boolean = false): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange { city.cityConstructions.addToQueue(construction, addToTop = addToTop) }
+        runSimultaneousCityChange { city.cityConstructions.addToQueue(construction, addToTop = addToTop) }
         return true
     }
     fun tryRemoveAllByName(name: String): Boolean {
         if (!canChangeState()) return false
-        runSimultaneousConstructionChange { city.cityConstructions.removeAllByName(name) }
+        runSimultaneousCityChange { city.cityConstructions.removeAllByName(name) }
         return true
     }
     fun tryDisableConstruction(name: String): Boolean {
         if (!canChangeState()) return false
-        city.disabledConstructions.add(name)
+        runSimultaneousCityChange { city.disabledConstructions.add(name) }
         return true
     }
     fun tryEnableConstruction(name: String): Boolean {
         if (!canChangeState()) return false
-        city.disabledConstructions.remove(name)
+        runSimultaneousCityChange { city.disabledConstructions.remove(name) }
         return true
     }
     fun tryReassignPopulation(resetLocked: Boolean = false): Boolean {
         if (!canChangeState()) return false
-        city.reassignPopulation(resetLocked)
+        runSimultaneousCityChange { city.reassignPopulation(resetLocked) }
         return true
     }
     fun tryToggleAvoidGrowth(): Boolean {
         if (!canChangeState()) return false
-        city.avoidGrowth = !city.avoidGrowth
-        city.reassignPopulation()
+        runSimultaneousCityChange {
+            city.avoidGrowth = !city.avoidGrowth
+            city.reassignPopulation()
+        }
         return true
     }
     fun tryEnableManualSpecialists(): Boolean {
         if (!canChangeState()) return false
-        city.manualSpecialists = true
+        runSimultaneousCityChange { city.manualSpecialists = true }
         return true
     }
     fun tryDisableManualSpecialists(): Boolean {
         if (!canChangeState()) return false
-        city.manualSpecialists = false
-        city.reassignPopulation()
+        runSimultaneousCityChange {
+            city.manualSpecialists = false
+            city.reassignPopulation()
+        }
         return true
     }
     fun tryAssignSpecialist(specialistName: String): Boolean {
         if (!canChangeState()) return false
-        city.population.specialistAllocations.add(specialistName, 1)
-        city.manualSpecialists = true
-        city.cityStats.update()
+        runSimultaneousCityChange {
+            city.population.specialistAllocations.add(specialistName, 1)
+            city.manualSpecialists = true
+            city.cityStats.update()
+        }
         return true
     }
     fun tryUnassignSpecialist(specialistName: String): Boolean {
         if (!canChangeState()) return false
-        city.population.specialistAllocations.add(specialistName, -1)
-        city.manualSpecialists = true
-        city.cityStats.update()
+        runSimultaneousCityChange {
+            city.population.specialistAllocations.add(specialistName, -1)
+            city.manualSpecialists = true
+            city.cityStats.update()
+        }
         return true
     }
     fun trySetCityFocus(focus: CityFocus): Boolean {
         if (!canChangeState()) return false
-        city.setCityFocus(focus)
-        city.reassignPopulation()
+        runSimultaneousCityChange {
+            city.setCityFocus(focus)
+            city.reassignPopulation()
+        }
         return true
     }
 
     /** Meant to be called only after all prerequisite checks (e.g. [canBombard]/[getBombardableTiles]) have been done. */
-    fun tryBombard(attackableTileView: AttackableTileView): Battle.DamageDealt =
-        Battle.attackOrNuke(CityCombatant(city), attackableTileView.unwrap())
+    fun tryBombard(attackableTileView: AttackableTileView): Battle.DamageDealt {
+        lateinit var result: Battle.DamageDealt
+        runSimultaneousCityChange {
+            result = Battle.attackOrNuke(CityCombatant(city), attackableTileView.unwrap())
+        }
+        return result
+    }
 
 }

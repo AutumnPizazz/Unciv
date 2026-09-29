@@ -3,6 +3,7 @@ package com.unciv.ui.screens.worldscreen.status
 import com.badlogic.gdx.graphics.Color
 import com.unciv.Constants
 import com.unciv.models.Counter
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.BeliefType
 import com.unciv.ui.components.extensions.disable
 import com.unciv.ui.components.extensions.enable
@@ -199,8 +200,15 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
             worldScreen.selectedGameView.civView.tryMarkMovedAutomatedUnits()
             worldScreen.nextTurnButton.disable()
             Concurrency.run("Move automated units") {
+                // Automated movement happens outside the unit-action recording helpers, so capture a
+                // full state diff around it - otherwise the settlement pass would replay the turn
+                // without any of these moves. The clone is taken here (before any mutation) so the
+                // diff cannot include the work this block is about to do.
+                val before = worldScreen.beginSimultaneousGameStateSnapshot(UnitActionType.Automate)
                 worldScreen.selectedGameView.civView.tryAutomateAllUnits()
                 launchOnGLThread {
+                    // Recording on the GL thread keeps the operation list single-threaded.
+                    worldScreen.recordSimultaneousGameStateChange(UnitActionType.Automate, before)
                     worldScreen.shouldUpdate = true
                     worldScreen.isPlayersTurn = true //Re-enable state changes
                     worldScreen.nextTurnButton.enable()

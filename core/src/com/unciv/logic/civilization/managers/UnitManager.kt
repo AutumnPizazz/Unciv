@@ -194,6 +194,18 @@ class UnitManager(val civInfo: Civilization) {
 
     @Readonly fun getIdleUnits() = getCivUnits().filter { it.isIdle() }
 
+    /** Empties this civilization's unit list without any side effects.
+     *
+     *  Needed when rebuilding transients from the serialized `Tile.*Unit` fields after those unit
+     *  references were replaced (e.g. by [com.unciv.logic.multiplayer.SimultaneousTurnReplay]):
+     *  [addUnit] appends, so the previously listed - now stale - instances must be discarded first.
+     *  [com.unciv.logic.map.tile.Tile.setUnitTransients] then repopulates the list from the map.
+     */
+    fun clearUnits() {
+        unitList = emptyList()
+        nextPotentiallyDueAt = 0
+    }
+
     @Readonly fun getDueUnits(): Sequence<MapUnit> = getCivUnitsStartingAtNextDue().filter { it.due && it.isIdle() }
 
     @Readonly fun getUnitById(id: Int) = getCivUnits().firstOrNull { it.id == id }

@@ -139,7 +139,10 @@ class ConnectRoadOverlayButtonData(val unitView: MapUnitView, val tileView: Tile
         selectedUnit.automatedRoadConnectionPath = null
         selectedUnit.action = UnitActionType.ConnectRoad.value
         selectedUnit.automated = true
-        UnitAutomation.automateUnitMoves(selectedUnit)
+        // Moving now would be lost at settlement unless it is recorded as a state diff.
+        worldMapHolder.worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.Automate) {
+            UnitAutomation.automateUnitMoves(selectedUnit)
+        }
 
         SoundPlayer.play(UncivSound("wagon"))
 

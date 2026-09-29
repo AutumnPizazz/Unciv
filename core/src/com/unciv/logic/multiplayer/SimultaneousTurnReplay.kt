@@ -140,6 +140,11 @@ object SimultaneousTurnReplay {
         }
         if (globalBefore.lastUnitId != globalAfter.lastUnitId)
             gameInfo.setLastUnitIdForSimultaneousTurns(globalAfter.lastUnitId)
+        // A tile snapshot replaces the MapUnit instances stored in Tile.*Unit, while each civ's unit
+        // list still references the pre-replay objects. setTransients() rebuilds those lists from the
+        // map, but UnitManager.addUnit() appends - so discard the stale lists first, otherwise every
+        // replayed unit change leaves a duplicate behind and later lookups hit the wrong instance.
+        for (civ in gameInfo.civilizations) civ.units.clearUnits()
         gameInfo.setTransients()
         return true
     }

@@ -100,7 +100,16 @@ object SimultaneousTurnOperations {
         UnitActionType.EnhanceReligion,
         UnitActionType.AddInCapital,
         UnitActionType.Promote,
-        UnitActionType.GiftUnit
+        UnitActionType.GiftUnit,
+        // These actions either run deep inside other code (automation), finish asynchronously behind
+        // a confirmation popup (disband), or are performed outside the unit-action recording helpers;
+        // a full state diff is the reliable way to replay their real state changes.
+        UnitActionType.Automate,
+        UnitActionType.Explore,
+        UnitActionType.Upgrade,
+        UnitActionType.Transform,
+        UnitActionType.ConnectRoad,
+        UnitActionType.DisbandUnit
     )
 
     fun requiresGameStateSnapshot(type: UnitActionType) = type in snapshottedUnitActions

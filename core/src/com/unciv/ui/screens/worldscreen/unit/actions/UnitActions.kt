@@ -250,8 +250,12 @@ object UnitActions {
                         "Disband this unit for [${unit.baseUnit.getDisbandGold(unit.civ)}] gold?".tr()
                     else "Do you really want to disband this unit?".tr()
                     ConfirmPopup(worldScreen, disbandText, "Disband unit") {
-                        unit.disband()
-                        unit.civ.updateStatsForNextTurn() // less upkeep!
+                        // The confirmation runs after the enclosing unit-action recording has already
+                        // finished, so record the actual disband here to avoid losing it at settlement.
+                        worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.DisbandUnit) {
+                            unit.disband()
+                            unit.civ.updateStatsForNextTurn() // less upkeep!
+                        }
                         GUI.setUpdateWorldOnNextRender()
                         if (GUI.getSettings().autoUnitCycle)
                             worldScreen.switchToNextUnit()

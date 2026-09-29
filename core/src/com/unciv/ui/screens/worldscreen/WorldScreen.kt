@@ -133,10 +133,17 @@ class WorldScreen(
         ChatWebSocket.sendOperationSignal(gameInfo.gameId, operation.turn, playerId, operation.sequence)
     }
 
-    fun runAndRecordSimultaneousGameStateChange(type: UnitActionType, action: () -> Unit) {
-        val before = if (gameInfo.isSimultaneousTurnsMode()
+    /** Clones the game state before an operation that will be recorded as a full state diff.
+     *  Split out from [runAndRecordSimultaneousGameStateChange] so callers that must run the
+     *  operation on a background thread can still clone on the thread they choose.
+     *  Returns null when the operation does not need a snapshot (or this is not a simultaneous game). */
+    fun beginSimultaneousGameStateSnapshot(type: UnitActionType): GameInfo? =
+        if (gameInfo.isSimultaneousTurnsMode()
             && SimultaneousTurnOperations.requiresGameStateSnapshot(type)
         ) gameInfo.clone() else null
+
+    fun runAndRecordSimultaneousGameStateChange(type: UnitActionType, action: () -> Unit) {
+        val before = beginSimultaneousGameStateSnapshot(type)
         action()
         recordSimultaneousGameStateChange(type, before)
     }
