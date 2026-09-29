@@ -12,6 +12,7 @@ import com.unciv.GUI
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.ImprovementBuildingProblem
 import com.unciv.logic.map.tile.Tile
+import com.unciv.models.UnitActionType
 import com.unciv.models.ruleset.tile.TileImprovement
 import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.models.ruleset.unique.UniqueType
@@ -60,15 +61,21 @@ class ImprovementPickerScreen(
 
     fun accept(improvement: TileImprovement?, secondImprovement: TileImprovement? = null) {
         if (improvement == null || tileMarkedForCreatesOneImprovement) return
-        if (improvement.name == Constants.cancelImprovementOrder) {
-            tile.stopWorkingOnImprovement()
-            // no onAccept() - Worker can stay selected
-        } else {
-            if (improvement.name != tile.improvementInProgress) {
-                tile.startWorkingOnImprovement(improvement, currentPlayerCiv, unit)
-                if (secondImprovement != null)
-                    tile.queueImprovement(secondImprovement, currentPlayerCiv, unit)
+        // Record the change where it actually happens: the action wrapper only covers opening
+        // this picker, so without this the improvement order would never reach the settlement pass.
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.ConstructImprovement) {
+            if (improvement.name == Constants.cancelImprovementOrder) {
+                tile.stopWorkingOnImprovement()
+                // no onAccept() - Worker can stay selected
+            } else {
+                if (improvement.name != tile.improvementInProgress) {
+                    tile.startWorkingOnImprovement(improvement, currentPlayerCiv, unit)
+                    if (secondImprovement != null)
+                        tile.queueImprovement(secondImprovement, currentPlayerCiv, unit)
+                }
             }
+        }
+        if (improvement.name != Constants.cancelImprovementOrder) {
             unit.action = null // this is to "wake up" the worker if it's sleeping
             onAccept()
         }

@@ -86,4 +86,35 @@ class SimultaneousTurnOperationsTest {
         assertFalse(applied)
         assertEquals(1, authoritative.getCivilization(civ.civName).variables["modEffect"])
     }
+
+    @Test
+    fun replayAppliesLaterOperationsAfterAnUnreplayableOne() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        civ.variables["modEffect"] = 37
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+        val validOperation = SimultaneousTurnOperation(type = "game.state", payload = json().toJson(result))
+        // References a unit that does not exist: settlement must skip it, not abort the pass.
+        val invalidOperation = SimultaneousTurnOperation(
+            type = "unit.move",
+            payload = json().toJson(
+                SimultaneousTurnMoveResult(
+                    unitId = 999999, owner = civ.civName,
+                    fromX = 0, fromY = 0, toX = 1, toY = 1, hp = 100, movement = 1f
+                )
+            )
+        )
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        val failed = SimultaneousTurnReplay.replay(authoritative, listOf(invalidOperation, validOperation))
+
+        assertEquals(listOf(invalidOperation), failed)
+        assertEquals(37, authoritative.getCivilization(civ.civName).variables["modEffect"])
+    }
 }

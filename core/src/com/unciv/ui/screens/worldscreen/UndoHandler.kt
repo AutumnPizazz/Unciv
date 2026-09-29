@@ -11,7 +11,10 @@ import yairm210.purity.annotations.Readonly
 class UndoHandler(private val worldScreen: WorldScreen) {
     private var preActionGameInfo = worldScreen.gameInfo
 
-    @Readonly fun canUndo() = preActionGameInfo != worldScreen.gameInfo && worldScreen.canChangeState
+    // Undo restores a local clone, which cannot roll back operations already broadcast in
+    // simultaneous-turn games; disable it there to avoid an unrecoverable desync.
+    @Readonly fun canUndo() = preActionGameInfo != worldScreen.gameInfo && worldScreen.canChangeState &&
+        !worldScreen.gameInfo.isSimultaneousTurnsMode()
 
     fun recordCheckpoint() {
         preActionGameInfo = worldScreen.gameInfo.clone()

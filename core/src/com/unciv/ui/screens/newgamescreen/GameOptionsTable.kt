@@ -124,7 +124,12 @@ class GameOptionsTable(
             checkboxTable.addAnyoneCanSpectateCheckbox()
             checkboxTable.addRequireSameVersionCheckbox()
             checkboxTable.addForbidReloadCheckbox()
-            checkboxTable.addSimultaneousTurnsCheckbox()
+            // Hidden while the feature is experimental and unverified online (see the flag's docs).
+            if (GameParameters.SIMULTANEOUS_TURNS_ENABLED) {
+                checkboxTable.addSimultaneousTurnsCheckbox()
+            } else {
+                gameParameters.simultaneousTurns = false
+            }
             selectBoxTable.addDurationSelectBox("Time until skip turn:", GameParameters::minutesUntilSkipTurn, 1, 0, 0)
             selectBoxTable.addDurationSelectBox("Total time to play:", GameParameters::minutesUntilForceResign, 3, 0, 0)
             selectBoxTable.addDurationSelectBox("Time recovered per turn:", GameParameters::minutesRecoveredPerTurn, 3, 0, 0)

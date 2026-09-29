@@ -17,6 +17,10 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: remaining players no longer stall forever after the first player advances a simultaneous turn
+- Fix: more unit and city actions are replicated in simultaneous turns, and Undo is disabled to prevent desync
+- Change: the experimental simultaneous-turns option is hidden until it is verified
+
 ### Mod author-facing
 
 ## 4.22.4.3 (build 1265)

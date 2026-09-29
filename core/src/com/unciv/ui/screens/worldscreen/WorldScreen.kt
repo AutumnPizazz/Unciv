@@ -211,6 +211,9 @@ class WorldScreen(
     private var nextTurnUpdateJob: Job? = null
     @Transient
     private var simultaneousTurnSettlementRetryPending = false
+    /** Turn whose "done" marker the server already accepted, so retries don't re-upload it forever. */
+    @Transient
+    private var simultaneousTurnDoneUploadedForTurn = -1
     /** Watches the sidecar operation list so a missed WebSocket signal cannot strand a player. */
     private var simultaneousTurnWatcherJob: Job? = null
 
@@ -292,8 +295,24 @@ class WorldScreen(
         if (gameInfo.gameParameters.isOnlineMultiplayer) {
             val gameId = gameInfo.gameId
             events.receive(MultiplayerGameUpdated::class, { it.preview.gameId == gameId }) {
-                if (gameInfo.isSimultaneousTurnsMode()) return@receive
-                if (isNextTurnUpdateRunning() || game.onlineMultiplayer.hasLatestGameState(gameInfo, it.preview)) {
+                if (isNextTurnUpdateRunning()
+                    || game.onlineMultiplayer.hasLatestGameState(gameInfo, it.preview)
+                ) return@receive
+                if (gameInfo.isSimultaneousTurnsMode()) {
+                    // Mid-turn previews only differ in transient fields; reloading on those would
+                    // discard the operations the local player already recorded. Only adopt the
+                    // server state once it has actually advanced to a later turn.
+                    if (it.preview.turns <= gameInfo.turns) return@receive
+                    Concurrency.run("Load latest simultaneous-turn state") {
+                        if (isNextTurnUpdateRunning() || game.gameInfo != gameInfo) return@run
+                        val latestGame = try {
+                            game.onlineMultiplayer.multiplayerServer.downloadGame(gameId)
+                        } catch (_: Exception) {
+                            return@run
+                        }
+                        if (latestGame.turns <= gameInfo.turns) return@run
+                        launchOnGLThread { startNewScreenJob(latestGame, autoPlay) }
+                    }
                     return@receive
                 }
                 Concurrency.run("Load latest multiplayer state") {
@@ -930,18 +949,23 @@ class WorldScreen(
 
         nextTurnUpdateJob = Concurrency.runOnNonDaemonThreadPool("SimultaneousPass") {
             val playerId = viewingCiv.playerId
-            val done = SimultaneousTurnOperation(
-                turn = gameInfo.turns,
-                playerId = playerId,
-                sequence = gameInfo.nextSimultaneousOperationSequence++,
-                type = "done"
-            )
-            val uploadOperations = getSimultaneousTurnOperations() + done
+            val submittedTurn = gameInfo.turns
+            var submitted = simultaneousTurnDoneUploadedForTurn == submittedTurn
             try {
-                game.onlineMultiplayer.multiplayerServer.uploadSimultaneousTurnOperations(
-                    gameInfo.gameId, uploadOperations
-                )
-                ChatWebSocket.sendOperationSignal(gameInfo.gameId, done.turn, playerId, done.sequence)
+                if (!submitted) {
+                    val done = SimultaneousTurnOperation(
+                        turn = submittedTurn,
+                        playerId = playerId,
+                        sequence = gameInfo.nextSimultaneousOperationSequence++,
+                        type = "done"
+                    )
+                    game.onlineMultiplayer.multiplayerServer.uploadSimultaneousTurnOperations(
+                        gameInfo.gameId, getSimultaneousTurnOperations() + done
+                    )
+                    simultaneousTurnDoneUploadedForTurn = submittedTurn
+                    submitted = true
+                    ChatWebSocket.sendOperationSignal(gameInfo.gameId, done.turn, playerId, done.sequence)
+                }
 
                 val allOperations = try {
                     game.onlineMultiplayer.multiplayerServer.downloadSimultaneousTurnOperations(gameInfo.gameId)
@@ -953,7 +977,7 @@ class WorldScreen(
                     .map { it.playerId }
                     .toSet()
                 val finishedPlayerIds = allOperations
-                    .filter { it.turn == gameInfo.turns && it.type == "done" }
+                    .filter { it.turn == submittedTurn && it.type == "done" }
                     .map { it.playerId }
                     .toSet()
                 if (humanPlayerIds.any { it !in finishedPlayerIds }) {
@@ -963,22 +987,37 @@ class WorldScreen(
                 }
 
                 val lockAcquired = game.onlineMultiplayer.multiplayerServer
-                    .acquireSimultaneousTurnSettlementLock(gameInfo.gameId, gameInfo.turns, playerId)
+                    .acquireSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)
                 if (!lockAcquired) {
-                    launchOnGLThread {
-                        isPlayersTurn = true
-                        shouldUpdate = true
-                        nextTurnButton.update()
-                    }
+                    // Another client is settling this turn. Keep waiting and let the watcher/signal
+                    // retry: re-enabling isPlayersTurn here stranded every non-settler on the previous
+                    // turn, because the only full-game reload path is guarded by
+                    // isNextTurnUpdateRunning/isPlayersTurn.
+                    launchOnGLThread { nextTurnButton.update() }
                     return@runOnNonDaemonThreadPool
                 }
 
                 try {
                     val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
+                    if (turnStart.turns != submittedTurn) {
+                        // Someone else settled while the lock was being acquired. Never run
+                        // nextTurnPolling on an already-advanced save - that would skip a whole turn.
+                        if (turnStart.turns > submittedTurn && game.gameInfo == gameInfo)
+                            launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
+                        return@runOnNonDaemonThreadPool
+                    }
                     val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
                     val failedOperations = SimultaneousTurnReplay.replay(turnStart, turnOperations)
-                    check(failedOperations.isEmpty()) {
-                        "Failed to replay ${failedOperations.size} simultaneous-turn operations"
+                    if (failedOperations.isNotEmpty()) {
+                        // An un-replayable operation must not lock the game forever. Advance the turn
+                        // and leave an audit trail instead of throwing: the old `check` threw, the
+                        // catch reset isPlayersTurn, and every settlement attempt then repeated forever.
+                        debug(
+                            "Simultaneous turn settlement skipped %d un-replayable operations " +
+                                "(game %s, turn %d): %s",
+                            failedOperations.size, gameInfo.gameId, turnStart.turns,
+                            failedOperations.joinToString { "${it.playerId}/${it.sequence}:${it.type}" }
+                        )
                     }
                     turnStart.nextTurnPolling(progressBar)
                     game.onlineMultiplayer.updateGame(turnStart)
@@ -986,13 +1025,18 @@ class WorldScreen(
                         launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
                 } finally {
                     game.onlineMultiplayer.multiplayerServer.releaseSimultaneousTurnSettlementLock(
-                        gameInfo.gameId, gameInfo.turns, playerId
+                        gameInfo.gameId, submittedTurn, playerId
                     )
                 }
-            } catch (_: Exception) {
+            } catch (ex: Exception) {
+                // If the "done" marker never reached the server the player must be able to press
+                // Done again; otherwise stay in the waiting state so the watcher can retry.
+                val retryLocally = !submitted
+                debug("Simultaneous turn pass failed (game %s, turn %d): %s", gameInfo.gameId, submittedTurn, ex)
                 launchOnGLThread {
-                    isPlayersTurn = true
+                    if (retryLocally) isPlayersTurn = true
                     shouldUpdate = true
+                    nextTurnButton.update()
                 }
             }
         }

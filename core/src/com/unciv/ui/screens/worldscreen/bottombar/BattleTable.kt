@@ -403,7 +403,9 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
             attackButton.label.color = Color.GRAY
         } else {
             attackButton.onClick(attacker.getAttackSound()) {
-                attackerView.tryNuke(targetTileView)
+                worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                    attackerView.tryNuke(targetTileView)
+                }
 
                 val nukeCircle = ImageGetter.getCircle()
                 nukeCircle.setSize(10f)
@@ -475,7 +477,9 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         }
         else {
             attackButton.onClick(attacker.getAttackSound()) {
-                attackerView.tryAirSweep(targetTileView)
+                worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                    attackerView.tryAirSweep(targetTileView)
+                }
                 worldScreen.mapHolder.removeUnitActionOverlay() // the overlay was one of attacking
                 worldScreen.shouldUpdate = true
             }

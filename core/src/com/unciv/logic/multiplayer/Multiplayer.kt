@@ -116,7 +116,10 @@ class Multiplayer {
 
                 val currentGame = getCurrentGame()
                 val preview = currentGame?.preview
-                if (currentGame != null && (usesCustomServer() || preview == null || (!preview.isUsersTurn() && preview.gameParameters.simultaneousTurns != true))) {
+                // Simultaneous games must keep refreshing so clients notice the turn advance and
+                // adopt the settled snapshot; WorldScreen discards previews that don't advance the turn.
+                if (currentGame != null && (usesCustomServer() || preview == null
+                        || preview.gameParameters.simultaneousTurns == true || !preview.isUsersTurn())) {
                     throttle(lastCurGameRefresh, multiplayerSettings.currentGameRefreshDelay, {}, {}) { currentGame.requestUpdate() }
                 }
 

@@ -647,7 +647,9 @@ class PolicyPickerScreen(
                     this,
                     "Are you sure you want to adopt [${branch.name}]?",
                     "Adopt", true, action = {
-                        viewingCiv.policies.adopt(branch, false)
+                        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique) {
+                            viewingCiv.policies.adopt(branch, false)
+                        }
                         game.replaceCurrentScreen{ recreate() }
                     }
                 ).open(force = true)
