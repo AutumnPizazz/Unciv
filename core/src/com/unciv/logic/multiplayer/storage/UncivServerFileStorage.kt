@@ -4,6 +4,7 @@ import com.badlogic.gdx.Net
 import com.badlogic.gdx.utils.Base64Coder
 import com.badlogic.gdx.utils.JsonReader
 import com.unciv.logic.UncivShowableException
+import com.unciv.logic.multiplayer.SimultaneousTurnReservation
 import com.unciv.utils.debug
 
 object UncivServerFileStorage : FileStorage {
@@ -106,6 +107,48 @@ object UncivServerFileStorage : FileStorage {
         ) { _, _, _ -> }
     }
 
+    override fun reserveSimultaneousTurnKeys(
+        gameId: String,
+        turn: Int,
+        owner: String,
+        keys: List<String>
+    ): List<SimultaneousTurnReservation>? {
+        var conflicts: List<SimultaneousTurnReservation>? = null
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-reservations/$gameId",
+            // One key per line: keys contain ':' themselves, so the first line is the turn
+            content = (listOf(turn.toString()) + keys).joinToString("\n"),
+            timeout = timeout,
+            header = authHeader
+        ) { success, result, code ->
+            when (code) {
+                // 409 is a valid answer carrying the conflicting targets, not a transport error
+                200, 409 -> conflicts = parseReservations(result, "conflicts")
+                // A server from before reservations existed must not make the game unplayable
+                404 -> {}
+                else -> if (!success) throw serverError(code, result)
+            }
+        }
+        return conflicts
+    }
+
+    override fun listSimultaneousTurnReservations(gameId: String, turn: Int): List<SimultaneousTurnReservation>? {
+        var reservations: List<SimultaneousTurnReservation>? = null
+        SimpleHttp.sendGetRequest(
+            "$serverUrl/simultaneous-turn-reservations/$gameId?turn=$turn",
+            timeout = timeout,
+            header = authHeader
+        ) { success, result, code ->
+            when {
+                success && code == 200 -> reservations = parseReservations(result, "reservations")
+                code == 404 -> {}
+                else -> throw serverError(code, result)
+            }
+        }
+        return reservations
+    }
+
     override fun deleteFile(fileName: String) {
         SimpleHttp.sendRequest(Net.HttpMethods.DELETE, fileUrl(fileName), content="", timeout=timeout, header=authHeader) {
                 success, result, code ->
@@ -179,6 +222,12 @@ object UncivServerFileStorage : FileStorage {
      * 大多数接口的错误响应是 JSON（`{"type":"error","message":"…"}`），
      * 但提示性响应（例如对局被冷归档、正在从网盘恢复）是纯文本，两种都要能读。
      */
+    private fun parseReservations(result: String, field: String): List<SimultaneousTurnReservation> {
+        if (result.isBlank()) return emptyList()
+        val entries = JsonReader().parse(result).get(field) ?: return emptyList()
+        return entries.map { SimultaneousTurnReservation(it.getString("key", ""), it.getString("owner", "")) }
+    }
+
     private fun serverError(code: Int?, result: String): UncivShowableException {
         val detail = Exception("$code $result")
         val json = try {

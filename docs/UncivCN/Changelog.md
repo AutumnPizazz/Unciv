@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: a simultaneous turn now refuses an order whose target another player already claimed this turn, instead of silently dropping it at settlement
 - Fix: two clients can no longer settle the same simultaneous turn and advance it twice
 - Fix: a simultaneous turn now uploads only the values that changed, not whole civilizations
 - Change: enabling simultaneous turns now disables the game options that conflict with them

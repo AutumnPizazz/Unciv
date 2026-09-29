@@ -15,6 +15,7 @@ import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.mapunit.movement.UnitMovement
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
+import com.unciv.logic.multiplayer.SimultaneousTurnReservations
 import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.UnitActionType
@@ -40,6 +41,7 @@ import com.unciv.ui.components.tilegroups.WorldTileGroup
 import com.unciv.ui.components.tilegroups.citybutton.CityButton
 import com.unciv.ui.components.widgets.UnitIconGroup
 import com.unciv.ui.components.widgets.ZoomableScrollPane
+import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.screens.basescreen.UncivStage
 import com.unciv.ui.screens.pickerscreens.TileNotePopup
 import com.unciv.ui.screens.pickerscreens.UnitNotePopup
@@ -375,6 +377,21 @@ class WorldMapHolder(
                 return@run // can't move here
             }
 
+
+            // Claim the move target before touching the unit: the other player's client cannot see this
+            // move until settlement, so without this both would give an order for the same destination
+            // and the loser's operation would be dropped by replay after the fact.
+            val targetPosition = tileToMoveToView.position()
+            val blockedBy = worldScreen.reserveSimultaneousTurnActionTargets(
+                listOf(
+                    SimultaneousTurnReservations.forUnit(selectedUnitView.getUnit().id),
+                    SimultaneousTurnReservations.forTile(targetPosition.x, targetPosition.y)
+                )
+            )
+            if (blockedBy != null) {
+                launchOnGLThread { ToastPopup(blockedBy, worldScreen, 3000) }
+                return@run // the target is claimed, so the unit must not be given this order
+            }
 
             worldScreen.recordUndoCheckpoint()
 

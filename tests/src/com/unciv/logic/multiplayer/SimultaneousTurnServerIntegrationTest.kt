@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
@@ -24,7 +25,8 @@ import java.util.concurrent.Executors
  * End-to-end check of the simultaneous-turn HTTP contract.
  *
  * A local server implements the same routes as UncivServer / server-ts (`/files/{name}`,
- * `/simultaneous-turn-operations/{gameId}`, `/simultaneous-turn-lock/{gameId}[/renew]`), so this
+ * `/simultaneous-turn-operations/{gameId}`, `/simultaneous-turn-lock/{gameId}[/renew]`,
+ * `/simultaneous-turn-reservations/{gameId}`), so this
  * exercises the Kotlin client's wire format - method, path, body, expected status code - which unit
  * tests against the in-memory model cannot catch.
  */
@@ -36,9 +38,12 @@ class SimultaneousTurnServerIntegrationTest {
     private val storedFiles = ConcurrentHashMap<String, String>()
     private val storedOperations = ConcurrentHashMap<String, MutableList<SimultaneousTurnOperation>>()
     private val locks = ConcurrentHashMap<String, String>()
+    /** "gameId|turn|key" -> the player that claimed it first. */
+    private val reservations = ConcurrentHashMap<String, String>()
     private val gameId = "simultaneous-e2e"
     private var atomicOpsSupported = true
     private var atomicAppendRejected = false
+    private var reservationsSupported = true
 
     companion object {
         /** Same headless adjustment the other multiplayer integration test needs. */
@@ -60,6 +65,7 @@ class SimultaneousTurnServerIntegrationTest {
         httpServer.createContext("/files/") { handleFileRequest(it) }
         httpServer.createContext("/simultaneous-turn-operations/") { handleOperationsRequest(it) }
         httpServer.createContext("/simultaneous-turn-lock/") { handleLockRequest(it) }
+        httpServer.createContext("/simultaneous-turn-reservations/") { handleReservationsRequest(it) }
         httpServer.executor = Executors.newCachedThreadPool()
         httpServer.start()
         server = MultiplayerServer(
@@ -154,6 +160,59 @@ class SimultaneousTurnServerIntegrationTest {
         }
     }
 
+    /** The real server derives the owner from authentication, so each player needs its own credentials. */
+    private fun playerServer(playerId: String) = MultiplayerServer(
+        "http://127.0.0.1:${httpServer.address.port}",
+        mapOf("Authorization" to playerId)
+    )
+
+    @Test
+    fun reservationIsGrantedToTheFirstPlayerAndReportedToTheOthers() {
+        val playerA = playerServer("playerA")
+        val playerB = playerServer("playerB")
+        runBlocking {
+            assertEquals(
+                emptyList<SimultaneousTurnReservation>(),
+                playerA.reserveSimultaneousTurnKeys(gameId, 1, "playerA", listOf("unit:1", "tile:3,-2"))
+            )
+            assertEquals(
+                "asking twice for the same target must be free",
+                emptyList<SimultaneousTurnReservation>(),
+                playerA.reserveSimultaneousTurnKeys(gameId, 1, "playerA", listOf("unit:1"))
+            )
+
+            val conflicts = playerB.reserveSimultaneousTurnKeys(gameId, 1, "playerB", listOf("tile:3,-2", "tile:5,5"))!!
+            assertEquals("only the target already taken is refused", listOf("tile:3,-2"), conflicts.map { it.key })
+            assertEquals("the loser learns who got there first", listOf("playerA"), conflicts.map { it.owner })
+
+            assertEquals(
+                "granted targets are stored for both players, the refused one keeps its first owner",
+                listOf(
+                    "tile:3,-2" to "playerA",
+                    "tile:5,5" to "playerB",
+                    "unit:1" to "playerA"
+                ),
+                playerB.listSimultaneousTurnReservations(gameId, 1)!!.map { it.key to it.owner }.sortedBy { it.first }
+            )
+            assertEquals(
+                "reservations do not leak into the next turn",
+                emptyList<SimultaneousTurnReservation>(),
+                playerB.reserveSimultaneousTurnKeys(gameId, 2, "playerB", listOf("tile:3,-2"))
+            )
+        }
+    }
+
+    @Test
+    fun aServerWithoutReservationSupportLetsTheActionProceed() {
+        reservationsSupported = false
+        val playerA = playerServer("playerA")
+        runBlocking {
+            // null means "this server cannot arbitrate", which the client must treat as "do not block"
+            assertNull(playerA.reserveSimultaneousTurnKeys(gameId, 1, "playerA", listOf("unit:1")))
+            assertNull(playerA.listSimultaneousTurnReservations(gameId, 1))
+        }
+    }
+
     private fun handleFileRequest(exchange: HttpExchange) {
         try {
             val name = exchange.requestURI.path.removePrefix("/files/")
@@ -224,6 +283,59 @@ class SimultaneousTurnServerIntegrationTest {
         } finally {
             exchange.close()
         }
+    }
+
+    private fun handleReservationsRequest(exchange: HttpExchange) {
+        try {
+            if (!reservationsSupported) {
+                exchange.sendResponseHeaders(404, -1)
+                return
+            }
+            val id = exchange.requestURI.path.removePrefix("/simultaneous-turn-reservations/")
+            when (exchange.requestMethod) {
+                "POST" -> {
+                    val lines = exchange.requestBody.readBytes().toString(Charsets.UTF_8).split("\n")
+                    val turn = lines.firstOrNull()?.trim()?.toIntOrNull()
+                    if (turn == null) {
+                        exchange.sendResponseHeaders(400, -1)
+                        return
+                    }
+                    val owner = exchange.requestHeaders.getFirst("Authorization") ?: ""
+                    val conflicts = mutableListOf<Pair<String, String>>()
+                    for (key in lines.drop(1).filter { it.isNotBlank() }) {
+                        val previous = reservations.putIfAbsent("$id|$turn|$key", owner)
+                        if (previous != null && previous != owner) conflicts += key to previous
+                    }
+                    val body = "{\"granted\":${conflicts.isEmpty()}," +
+                        "\"conflicts\":[${reservationEntries(conflicts)}]}"
+                    respond(exchange, if (conflicts.isEmpty()) 200 else 409, body)
+                }
+                "GET" -> {
+                    val turn = exchange.requestURI.query?.removePrefix("turn=")?.trim()?.toIntOrNull()
+                    if (turn == null) {
+                        exchange.sendResponseHeaders(400, -1)
+                        return
+                    }
+                    val entries = reservations.entries
+                        .filter { it.key.startsWith("$id|$turn|") }
+                        .map { it.key.removePrefix("$id|$turn|") to it.value }
+                    respond(exchange, 200, "{\"reservations\":[${reservationEntries(entries)}]}")
+                }
+                else -> exchange.sendResponseHeaders(405, -1)
+            }
+        } finally {
+            exchange.close()
+        }
+    }
+
+    private fun reservationEntries(entries: List<Pair<String, String>>) =
+        entries.joinToString(",") { "{\"key\":\"${it.first}\",\"owner\":\"${it.second}\"}" }
+
+    private fun respond(exchange: HttpExchange, status: Int, body: String) {
+        val bytes = body.toByteArray(Charsets.UTF_8)
+        exchange.responseHeaders.add("Content-Type", "application/json")
+        exchange.sendResponseHeaders(status, bytes.size.toLong())
+        exchange.responseBody.write(bytes)
     }
 
     private fun handleLockRequest(exchange: HttpExchange) {

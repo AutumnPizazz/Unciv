@@ -275,6 +275,8 @@ class WorldScreen(
     private var simultaneousTurnTimeoutReportedForTurn = -1
     /** Watches the sidecar operation list so a missed WebSocket signal cannot strand a player. */
     private var simultaneousTurnWatcherJob: Job? = null
+    /** Set once the server answers 404 for reservations, so older servers are not asked on every action. */
+    private var simultaneousTurnReservationsUnsupported = false
 
     /** Countdown timer for polling multiplayer mode. */
     private var pollingTimerJob: Job? = null
@@ -1167,6 +1169,39 @@ class WorldScreen(
             debug("Could not verify the settlement lock (game %s, turn %d): %s", gameId, turn, ex)
             false
         }
+    }
+
+    /**
+     * Claims the targets a simultaneous-turn action is about to touch, so that two players cannot act
+     * on the same unit or tile in the same turn. Both players only see their own orders until the turn
+     * is settled, so the second player would otherwise learn about the collision when replay drops
+     * their operation - after the unit already looked like it had received the order.
+     *
+     * Returns null when the action may proceed - this player got every target, or the server cannot
+     * arbitrate reservations - and a message naming the player who got there first otherwise.
+     */
+    suspend fun reserveSimultaneousTurnActionTargets(keys: List<String>): String? {
+        if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnReservationsUnsupported) return null
+        val playerId = viewingCiv.playerId
+        if (playerId.isEmpty()) return null
+        val conflicts = try {
+            game.onlineMultiplayer.multiplayerServer
+                .reserveSimultaneousTurnKeys(gameInfo.gameId, gameInfo.turns, playerId, keys)
+        } catch (ex: Exception) {
+            // Never block an action because the reservation request failed: replay still rejects real
+            // conflicts, while refusing every action on a network hiccup would make the game unplayable.
+            debug("Could not reserve simultaneous-turn targets (game %s, turn %d): %s", gameInfo.gameId, gameInfo.turns, ex)
+            return null
+        } ?: run {
+            // 404: this server predates reservations, so keep the old behaviour for the rest of the session
+            simultaneousTurnReservationsUnsupported = true
+            return null
+        }
+        if (conflicts.isEmpty()) return null
+        val claimed = conflicts.first()
+        val claimant = gameInfo.civilizations.firstOrNull { it.playerId == claimed.owner }?.civName ?: claimed.owner
+        debug("Simultaneous-turn target %s is already claimed by %s", claimed.key, claimed.owner)
+        return "That target is already claimed by [$claimant] this turn".tr()
     }
 
     /**
