@@ -49,12 +49,16 @@ object SimultaneousTurnReplay {
 
     private fun applyMove(gameInfo: GameInfo, result: SimultaneousTurnMoveResult): Boolean {
         val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
-        if (unit.isDestroyed || unit.currentTile.position.x != result.fromX || unit.currentTile.position.y != result.fromY)
-            return false
-        val destination = gameInfo.tileMap[result.toX, result.toY]
-        unit.movement.moveToTile(destination)
-        if (unit.isDestroyed || unit.currentTile.position.x != result.toX || unit.currentTile.position.y != result.toY)
-            return false
+        if (unit.isDestroyed) return false
+        // WorldMapHolder records a whole-component snapshot *and* this result for the same click, so
+        // by the time this runs the snapshot may already have placed the unit on its destination.
+        // All that is left to apply then is the unit's remaining hp and movement - rejecting the op
+        // because the unit had "left" its recorded origin silently dropped every such move.
+        val currentPosition = unit.currentTile.position
+        if (currentPosition.x != result.toX || currentPosition.y != result.toY) {
+            if (currentPosition.x != result.fromX || currentPosition.y != result.fromY) return false
+            unit.movement.applyRecordedMoveToTile(gameInfo.tileMap[result.toX, result.toY])
+        }
         unit.health = result.hp
         unit.currentMovement = result.movement
         return true
@@ -62,12 +66,20 @@ object SimultaneousTurnReplay {
 
     private fun applySwap(gameInfo: GameInfo, result: SimultaneousTurnSwapResult): Boolean {
         val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
-        if (unit.isDestroyed || unit.currentTile.position.x != result.fromX || unit.currentTile.position.y != result.fromY)
-            return false
-        val destination = gameInfo.tileMap[result.toX, result.toY]
-        unit.movement.swapMoveToTile(destination, keepEscorting = true)
-        if (unit.isDestroyed || unit.currentTile.position.x != result.toX || unit.currentTile.position.y != result.toY)
-            return false
+        if (unit.isDestroyed) return false
+        val currentPosition = unit.currentTile.position
+        if (currentPosition.x != result.toX || currentPosition.y != result.toY) {
+            if (currentPosition.x != result.fromX || currentPosition.y != result.fromY) return false
+            val destination = gameInfo.tileMap[result.toX, result.toY]
+            if (unit.isEscorting()) {
+                // An escort pair swaps as a pair; that path still re-runs the movement rules.
+                unit.movement.swapMoveToTile(destination, keepEscorting = true)
+            } else {
+                val otherUnit = (if (unit.isCivilian()) destination.civilianUnit else destination.militaryUnit)
+                    ?: return false
+                unit.movement.applyRecordedSwapTo(otherUnit)
+            }
+        }
         unit.health = result.health
         unit.currentMovement = result.movement
         return true

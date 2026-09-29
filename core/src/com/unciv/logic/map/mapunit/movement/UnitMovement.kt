@@ -473,16 +473,68 @@ class UnitMovement(val unit: MapUnit) {
      * Deliberately not [MapUnit.canTransport]: that rejects a unit once the carrier is at capacity,
      * which is true of every payload already aboard a full carrier. These are not new passengers.
      */
-    fun teleportTransportedUnitsTo(origin: Tile, destination: Tile) {
+    fun teleportTransportedUnitsTo(origin: Tile, destination: Tile, triggerUniques: Boolean = true) {
         val payloadUnits = origin.getUnits()
             .filter { it.isTransported && it.owner == unit.owner && unit.isTransportTypeOf(it) }
             .toList()
         for (payload in payloadUnits) {
             payload.removeFromTile()
-            payload.putInTile(destination)
+            payload.putInTile(destination, triggerUniques)
             payload.isTransported = true // restore the flag to not leave the payload in the city
             payload.mostRecentMoveType = UnitMovementMemoryType.UnitTeleported
         }
+    }
+
+    /**
+     * Places the unit on [destination] as the recorded result of a move, without running movement
+     * logic or on-enter effects.
+     *
+     * Simultaneous turn replay uses this instead of [moveToTile]: it has to apply what the acting
+     * player already computed, and re-running the movement could pick a different path now that
+     * other players' units are on the map - and would roll random outcomes (ancient ruins) again.
+     */
+    fun applyRecordedMoveToTile(destination: Tile) {
+        val origin = unit.getTile()
+        unit.removeFromTile()
+        if (unit.baseUnit.isAirUnit()) unit.isTransported = false // it has left the carrier by own means
+        unit.putInTile(destination, triggerUniques = false)
+        unit.mostRecentMoveType = UnitMovementMemoryType.UnitTeleported
+        teleportTransportedUnitsTo(origin, destination, triggerUniques = false)
+        clearPathfindingCache()
+    }
+
+    /**
+     * Applies a recorded swap: this unit and [otherUnit] trade tiles, each keeping its own cargo.
+     * Like [applyRecordedMoveToTile] this neither checks nor re-runs movement rules.
+     */
+    fun applyRecordedSwapTo(otherUnit: MapUnit) {
+        val ourOldPosition = unit.getTile()
+        val theirOldPosition = otherUnit.getTile()
+        val ourPayload = ourOldPosition.getUnits().filter { it.isTransported && unit.isTransportTypeOf(it) }.toList()
+        val theirPayload = theirOldPosition.getUnits().filter { it.isTransported && otherUnit.isTransportTypeOf(it) }.toList()
+
+        // Both tiles have to be released before either unit is placed - putInTile() would otherwise
+        // find the unit that is still standing there, which is the other half of this very swap.
+        unit.removeFromTile()
+        for (payload in ourPayload) payload.removeFromTile()
+        otherUnit.removeFromTile()
+        for (payload in theirPayload) payload.removeFromTile()
+
+        unit.putInTile(theirOldPosition, triggerUniques = false)
+        for (payload in ourPayload) {
+            payload.putInTile(theirOldPosition, triggerUniques = false)
+            payload.isTransported = true // restore the flag to not leave the payload in the city
+        }
+        otherUnit.putInTile(ourOldPosition, triggerUniques = false)
+        for (payload in theirPayload) {
+            payload.putInTile(ourOldPosition, triggerUniques = false)
+            payload.isTransported = true
+        }
+
+        otherUnit.mostRecentMoveType = UnitMovementMemoryType.UnitMoved
+        unit.mostRecentMoveType = UnitMovementMemoryType.UnitMoved
+        clearPathfindingCache()
+        unit.getOtherEscortUnit()?.movement?.clearPathfindingCache()
     }
 
     fun moveToTile(destination: Tile, considerZoneOfControl: Boolean = true): Unit = timeThis<Unit>("moveToTile") {

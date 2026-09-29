@@ -1051,12 +1051,23 @@ class MapUnit : IsPartOfGameInfoSerialization {
         }
     }
 
-    fun moveThroughTile(tile: Tile) {
+    /**
+     * Moves the unit onto [tile].
+     *
+     * With [triggerUniques] `false` only the movement itself happens. Simultaneous turn replay
+     * applies results that the acting player already computed, and re-running these would roll the
+     * ancient ruins again, clear an already-cleared encampment and capture civilians a second time.
+     */
+    fun moveThroughTile(tile: Tile, triggerUniques: Boolean = true) {
         // addPromotion requires currentTile to be valid because it accesses ruleset through it.
         // getAncientRuinBonus, if it places a new unit, does too
         currentTile = tile
         // The state also needs to be valid for uniques to see the cached version
         cache.state = GameContext(this)
+        if (!triggerUniques) {
+            updateVisibleTiles(true, currentTile.position)
+            return
+        }
         // The improvement may get removed if it has ruins effects or is a barbarian camp, and will still be needed if removed
         val improvement = tile.tileImprovement
 
@@ -1093,7 +1104,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
         updateVisibleTiles(true, currentTile.position)
     }
 
-    fun putInTile(tile: Tile) {
+    fun putInTile(tile: Tile, triggerUniques: Boolean = true) {
         when {
             !movement.canMoveTo(tile) -> {
                 val currentTile = if (hasTile()) currentTile else null
@@ -1112,7 +1123,7 @@ class MapUnit : IsPartOfGameInfoSerialization {
                 isTransported = currentUntransportedUnits > tile.getCity()!!.getMaxAirUnits()
             }
         }
-        moveThroughTile(tile)
+        moveThroughTile(tile, triggerUniques)
         cache.updateUniques()
     }
 

@@ -19,6 +19,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 - Change: the keyboard-bindings tutorial now links to the UncivCN repository
 - Fix: actions are no longer silently dropped when a simultaneous-turn upload is too large
+- Fix: simultaneous-turn settlement no longer re-rolls random on-enter events, and a recorded move is no longer dropped when a state snapshot already applied it
 
 ### Mod author-facing
 

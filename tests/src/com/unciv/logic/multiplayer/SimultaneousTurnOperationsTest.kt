@@ -35,6 +35,60 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun aMoveIsAppliedExactlyOnceEvenThoughItsSnapshotHoldsItToo() {
+        // WorldMapHolder records a whole-component snapshot (cloned before the move) and a
+        // unit.move result for the same click, in that order. Both describe the same movement, so
+        // replaying them must not lose the move - applying the snapshot first used to leave the
+        // unit.move op rejected, because the unit was no longer on its recorded origin.
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(0, 0))
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        val gameInfoBefore = testGame.gameInfo.clone()
+        val originX = testGame.getTile(0, 0).position.x
+        val originY = testGame.getTile(0, 0).position.y
+        val destination = testGame.getTile(1, 0)
+        val destinationX = destination.position.x
+        val destinationY = destination.position.y
+        unit.movement.moveToTile(destination)
+
+        val operations = listOf(
+            SimultaneousTurnOperation(
+                type = "game.state",
+                payload = json().toJson(
+                    SimultaneousTurnOperations.captureGameStateChange(
+                        UnitActionType.TriggerUnique, gameInfoBefore, testGame.gameInfo
+                    )!!
+                )
+            ),
+            SimultaneousTurnOperation(
+                type = "unit.move",
+                payload = json().toJson(
+                    SimultaneousTurnMoveResult(
+                        unitId = unit.id, owner = civ.civName,
+                        fromX = originX, fromY = originY,
+                        toX = destinationX, toY = destinationY,
+                        hp = unit.health, movement = unit.currentMovement
+                    )
+                )
+            )
+        )
+
+        val authoritative = turnStart.clone()
+        authoritative.setTransients()
+        val failed = SimultaneousTurnReplay.replay(authoritative, operations)
+
+        assertEquals(emptyList<SimultaneousTurnOperation>(), failed)
+        val replayed = authoritative.getCivilization(civ.civName).units.getUnitById(unit.id)!!
+        assertEquals(destinationX, replayed.currentTile.position.x)
+        assertEquals(destinationY, replayed.currentTile.position.y)
+    }
+
+    @Test
     fun gameStateResultReplaysSerializedSideEffects() {
         val testGame = TestGame()
         testGame.makeHexagonalMap(2)
