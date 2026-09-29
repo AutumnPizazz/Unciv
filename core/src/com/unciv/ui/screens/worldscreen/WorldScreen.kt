@@ -1160,7 +1160,7 @@ class WorldScreen(
                         return@runOnNonDaemonThreadPool
                     }
                     val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
-                    val failedOperations = SimultaneousTurnReplay.replay(turnStart, turnOperations)
+                    val failedOperations = SimultaneousTurnReplay.replayOrExplain(turnStart, turnOperations)
                     val failedOperationsReport = SimultaneousTurnOperations
                         .describeFailedSimultaneousTurnOperations(turnStart, failedOperations)
                     if (failedOperationsReport != null) {
@@ -1171,7 +1171,9 @@ class WorldScreen(
                             "Simultaneous turn settlement skipped %d un-replayable operations " +
                                 "(game %s, turn %d): %s",
                             failedOperations.size, gameInfo.gameId, turnStart.turns,
-                            failedOperations.joinToString { "${it.playerId}/${it.sequence}:${it.type}" }
+                            failedOperations.joinToString {
+                                "${it.operation.playerId}/${it.operation.sequence}:${it.operation.type}"
+                            }
                         )
                     }
                     if (!stillOwnsSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)) {

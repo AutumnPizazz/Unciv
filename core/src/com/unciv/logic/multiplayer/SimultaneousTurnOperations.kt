@@ -9,6 +9,7 @@ import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.models.UnitActionType
+import com.unciv.models.translations.tr
 import com.unciv.utils.Log
 
 /** A client-produced operation for a simultaneous multiplayer turn. */
@@ -211,18 +212,21 @@ object SimultaneousTurnOperations {
      * Player-visible description of the operations that settlement could not apply, or null when
      * there are none. A rejected operation used to end up in the debug log only: the turn advanced
      * as if it had been applied and the player whose action was lost was never told.
+     * Knowing which action was lost is not enough to act on it, so the reason travels with it.
      * See docs_plan/simultaneous-turns-v1-action-inventory.md.
+     * This is shown on the settling client, so translating the reason here is safe.
      */
     fun describeFailedSimultaneousTurnOperations(
         gameInfo: GameInfo,
-        failedOperations: List<SimultaneousTurnOperation>
+        failedOperations: List<SimultaneousTurnFailedOperation>
     ): String? {
         if (failedOperations.isEmpty()) return null
-        return failedOperations.joinToString("\n") { operation ->
+        return failedOperations.joinToString("\n") { failure ->
+            val operation = failure.operation
             val civName = gameInfo.civilizations
                 .firstOrNull { it.playerId == operation.playerId }?.civName
                 ?: operation.playerId.ifEmpty { "?" }
-            "$civName - ${describeOperationType(operation.type)}"
+            "$civName - ${describeOperationType(operation.type)} (${failure.reason.sentence.tr()})"
         }
     }
 
@@ -235,19 +239,22 @@ object SimultaneousTurnOperations {
      */
     fun notifyPlayersOfFailedOperations(
         gameInfo: GameInfo,
-        failedOperations: List<SimultaneousTurnOperation>
+        failedOperations: List<SimultaneousTurnFailedOperation>
     ): List<String> {
         if (failedOperations.isEmpty()) return emptyList()
         val notified = ArrayList<String>()
-        for ((playerId, operations) in failedOperations.groupBy { it.playerId }) {
+        for ((playerId, failures) in failedOperations.groupBy { it.operation.playerId }) {
             if (playerId.isEmpty()) continue
             val civ = gameInfo.civilizations.firstOrNull { it.playerId == playerId } ?: continue
             if (civ.playerType == PlayerType.AI) continue
-            // One notification per action: the action name is a placeholder term, so every client
-            // translates it into its own language when the notification is shown.
-            for (action in operations.map { describeOperationType(it.type) }.distinct())
+            // One notification per action and reason: both are placeholder terms, so every client
+            // translates them into its own language when the notification is shown.
+            val problems = failures
+                .map { describeOperationType(it.operation.type) to it.reason.sentence }
+                .distinct()
+            for ((action, reason) in problems)
                 civ.addNotification(
-                    "A simultaneous turn could not apply one of your actions: [$action]",
+                    "A simultaneous turn could not apply one of your actions: [$action] - [$reason]",
                     NotificationCategory.General
                 )
             notified.add(playerId)

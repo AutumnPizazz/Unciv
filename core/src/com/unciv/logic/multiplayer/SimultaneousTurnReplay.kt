@@ -9,17 +9,53 @@ import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.Religion
 import com.unciv.utils.Log
 
+/**
+ * Why settlement could not apply a recorded operation. [sentence] is a translation key, so the
+ * player who lost the action reads the reason in their own language - the reason must not be
+ * pre-translated, because the notification is stored in the save and shared between clients.
+ */
+enum class SimultaneousTurnFailureReason(val sentence: String) {
+    UnitGone("The unit is no longer there"),
+    WorldChanged("The world had already changed when this was settled"),
+    Unreadable("The server could not read this action")
+}
+
+/** One operation settlement could not apply, and why it was refused. */
+data class SimultaneousTurnFailedOperation(
+    val operation: SimultaneousTurnOperation,
+    val reason: SimultaneousTurnFailureReason
+)
+
 /** Applies recorded results to the turn-start game without re-running random combat. */
 object SimultaneousTurnReplay {
-    fun replay(gameInfo: GameInfo, operations: List<SimultaneousTurnOperation>): List<SimultaneousTurnOperation> {
-        val failed = ArrayList<SimultaneousTurnOperation>()
+    fun replay(gameInfo: GameInfo, operations: List<SimultaneousTurnOperation>): List<SimultaneousTurnOperation> =
+        replayOrExplain(gameInfo, operations).map { it.operation }
+
+    /**
+     * Applies what it can, and reports every operation it could not apply together with the reason.
+     * Knowing which action was lost is not enough to act on it (plan 7.5): a move refused because the
+     * unit is gone is a different problem from one refused because the world moved on.
+     */
+    fun replayOrExplain(
+        gameInfo: GameInfo,
+        operations: List<SimultaneousTurnOperation>
+    ): List<SimultaneousTurnFailedOperation> {
+        val failed = ArrayList<SimultaneousTurnFailedOperation>()
         for (operation in operations) {
-            if (!apply(gameInfo, operation)) failed.add(operation)
+            val reason = applyOrExplain(gameInfo, operation) ?: continue
+            failed.add(SimultaneousTurnFailedOperation(operation, reason))
         }
         return failed
     }
 
-    fun apply(gameInfo: GameInfo, operation: SimultaneousTurnOperation): Boolean = try {
+    fun apply(gameInfo: GameInfo, operation: SimultaneousTurnOperation): Boolean =
+        applyOrExplain(gameInfo, operation) == null
+
+    /** @return null when the operation was applied, otherwise the reason it was refused. */
+    fun applyOrExplain(
+        gameInfo: GameInfo,
+        operation: SimultaneousTurnOperation
+    ): SimultaneousTurnFailureReason? = try {
         when (operation.type) {
             "unit.move" -> applyMove(gameInfo, json().fromJson(
                 SimultaneousTurnMoveResult::class.java, operation.payload
@@ -36,44 +72,46 @@ object SimultaneousTurnReplay {
             "game.state" -> applyGameState(gameInfo, json().fromJson(
                 SimultaneousTurnGameStateResult::class.java, operation.payload
             ))
-            "done" -> true
+            "done" -> null
             else -> if (SimultaneousTurnOperations.isStateOperationType(operation.type)) applyGameState(
                 gameInfo, json().fromJson(SimultaneousTurnGameStateResult::class.java, operation.payload)
-            ) else false
+            ) else SimultaneousTurnFailureReason.Unreadable
         }
     } catch (e: Exception) {
         // Swallowing this silently once hid every unit operation being dropped at settlement
         // (a missing no-arg constructor made deserialization throw), so always leave a trace.
         Log.debug("Simultaneous-turn operation %s / %s failed to replay: %s", operation.type, operation.sequence, e)
-        false
+        SimultaneousTurnFailureReason.Unreadable
     }
 
     private fun findUnit(gameInfo: GameInfo, owner: String, id: Int): MapUnit? =
         gameInfo.getCivilizationOrNull(owner)?.units?.getUnitById(id)
 
-    private fun applyMove(gameInfo: GameInfo, result: SimultaneousTurnMoveResult): Boolean {
-        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
-        if (unit.isDestroyed) return false
+    private fun applyMove(gameInfo: GameInfo, result: SimultaneousTurnMoveResult): SimultaneousTurnFailureReason? {
+        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return SimultaneousTurnFailureReason.UnitGone
+        if (unit.isDestroyed) return SimultaneousTurnFailureReason.UnitGone
         // WorldMapHolder records a whole-component snapshot *and* this result for the same click, so
         // by the time this runs the snapshot may already have placed the unit on its destination.
         // All that is left to apply then is the unit's remaining hp and movement - rejecting the op
         // because the unit had "left" its recorded origin silently dropped every such move.
         val currentPosition = unit.currentTile.position
         if (currentPosition.x != result.toX || currentPosition.y != result.toY) {
-            if (currentPosition.x != result.fromX || currentPosition.y != result.fromY) return false
+            if (currentPosition.x != result.fromX || currentPosition.y != result.fromY)
+                return SimultaneousTurnFailureReason.WorldChanged
             unit.movement.applyRecordedMoveToTile(gameInfo.tileMap[result.toX, result.toY])
         }
         unit.health = result.hp
         unit.currentMovement = result.movement
-        return true
+        return null
     }
 
-    private fun applySwap(gameInfo: GameInfo, result: SimultaneousTurnSwapResult): Boolean {
-        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
-        if (unit.isDestroyed) return false
+    private fun applySwap(gameInfo: GameInfo, result: SimultaneousTurnSwapResult): SimultaneousTurnFailureReason? {
+        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return SimultaneousTurnFailureReason.UnitGone
+        if (unit.isDestroyed) return SimultaneousTurnFailureReason.UnitGone
         val currentPosition = unit.currentTile.position
         if (currentPosition.x != result.toX || currentPosition.y != result.toY) {
-            if (currentPosition.x != result.fromX || currentPosition.y != result.fromY) return false
+            if (currentPosition.x != result.fromX || currentPosition.y != result.fromY)
+                return SimultaneousTurnFailureReason.WorldChanged
             val destination = gameInfo.tileMap[result.toX, result.toY]
             if (unit.isEscorting()) {
                 // A swap recorded before the recorder captured a state snapshot carries no escort data,
@@ -82,26 +120,26 @@ object SimultaneousTurnReplay {
                 unit.movement.swapMoveToTile(destination, keepEscorting = true)
             } else {
                 val otherUnit = (if (unit.isCivilian()) destination.civilianUnit else destination.militaryUnit)
-                    ?: return false
+                    ?: return SimultaneousTurnFailureReason.WorldChanged
                 unit.movement.applyRecordedSwapTo(otherUnit)
             }
         }
         unit.health = result.health
         unit.currentMovement = result.movement
-        return true
+        return null
     }
-    private fun applyUnitAction(gameInfo: GameInfo, result: SimultaneousTurnUnitActionResult): Boolean {
-        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return false
-        if (unit.isDestroyed) return false
+    private fun applyUnitAction(gameInfo: GameInfo, result: SimultaneousTurnUnitActionResult): SimultaneousTurnFailureReason? {
+        val unit = findUnit(gameInfo, result.owner, result.unitId) ?: return SimultaneousTurnFailureReason.UnitGone
+        if (unit.isDestroyed) return SimultaneousTurnFailureReason.UnitGone
         unit.action = result.action
         unit.automated = result.automated
         unit.due = result.due
         unit.health = result.health
         unit.currentMovement = result.movement
         if (result.escorting) unit.startEscorting() else unit.stopEscorting()
-        return true
+        return null
     }
-    private fun applyGameState(gameInfo: GameInfo, result: SimultaneousTurnGameStateResult): Boolean {
+    private fun applyGameState(gameInfo: GameInfo, result: SimultaneousTurnGameStateResult): SimultaneousTurnFailureReason? {
         val globalBefore = json().fromJson(
             SimultaneousTurnGlobalState::class.java, result.globalBefore
         )
@@ -109,29 +147,34 @@ object SimultaneousTurnReplay {
             SimultaneousTurnGlobalState::class.java, result.globalAfter
         )
         val currentGlobal = SimultaneousTurnOperations.currentGlobalState(gameInfo)
-        if (!globalStateCompatible(currentGlobal, globalBefore, globalAfter)) return false
+        if (!globalStateCompatible(currentGlobal, globalBefore, globalAfter))
+            return SimultaneousTurnFailureReason.WorldChanged
 
         for (snapshot in result.civilizations) {
-            val current = gameInfo.getCivilizationOrNull(snapshot.key) ?: return false
-            if (!componentCompatible(json().toJson(current), snapshot)) return false
+            val current = gameInfo.getCivilizationOrNull(snapshot.key)
+                ?: return SimultaneousTurnFailureReason.WorldChanged
+            if (!componentCompatible(json().toJson(current), snapshot))
+                return SimultaneousTurnFailureReason.WorldChanged
         }
         for (snapshot in result.tiles) {
             val (x, y) = snapshot.key.split(',').map { it.toInt() }
-            if (!componentCompatible(json().toJson(gameInfo.tileMap[x, y]), snapshot)) return false
+            if (!componentCompatible(json().toJson(gameInfo.tileMap[x, y]), snapshot))
+                return SimultaneousTurnFailureReason.WorldChanged
         }
         for (snapshot in result.religions) {
             val current = gameInfo.religions[snapshot.key]
             val currentJson = if (current == null) null else json().toJson(current)
-            if (!componentCompatible(currentJson, snapshot)) return false
+            if (!componentCompatible(currentJson, snapshot)) return SimultaneousTurnFailureReason.WorldChanged
         }
 
         for (snapshot in result.civilizations) {
-            if (snapshot.after == null) return false
-            val current = gameInfo.civilizations.firstOrNull { it.civName == snapshot.key } ?: return false
+            if (snapshot.after == null) return SimultaneousTurnFailureReason.WorldChanged
+            val current = gameInfo.civilizations.firstOrNull { it.civName == snapshot.key }
+                ?: return SimultaneousTurnFailureReason.WorldChanged
             json().readFields(current, JsonReader().parse(snapshot.after))
         }
         for (snapshot in result.tiles) {
-            if (snapshot.after == null) return false
+            if (snapshot.after == null) return SimultaneousTurnFailureReason.WorldChanged
             val (x, y) = snapshot.key.split(',').map { it.toInt() }
             val tile = gameInfo.tileMap[x, y]
             // readFields only assigns fields present in the JSON, and Gdx does not serialize null
@@ -179,7 +222,7 @@ object SimultaneousTurnReplay {
         // replayed unit change leaves a duplicate behind and later lookups hit the wrong instance.
         for (civ in gameInfo.civilizations) civ.units.clearUnits()
         gameInfo.setTransients()
-        return true
+        return null
     }
 
     /**
@@ -239,18 +282,21 @@ object SimultaneousTurnReplay {
         return true
     }
 
-    private fun applyAttack(gameInfo: GameInfo, result: SimultaneousTurnAttackResult): Boolean {
-        val attacker = findAnyUnit(gameInfo, result.attackerId) ?: return false
-        val target = findUnit(gameInfo, result.targetOwner, result.targetId) ?: return false
-        if (attacker.isDestroyed || target.isDestroyed
-            || target.currentTile.position.x != result.targetX
-            || target.currentTile.position.y != result.targetY
-        ) return false
+    private fun applyAttack(
+        gameInfo: GameInfo,
+        result: SimultaneousTurnAttackResult
+    ): SimultaneousTurnFailureReason? {
+        val attacker = findAnyUnit(gameInfo, result.attackerId) ?: return SimultaneousTurnFailureReason.UnitGone
+        val target = findUnit(gameInfo, result.targetOwner, result.targetId)
+            ?: return SimultaneousTurnFailureReason.UnitGone
+        if (attacker.isDestroyed || target.isDestroyed) return SimultaneousTurnFailureReason.UnitGone
+        if (target.currentTile.position.x != result.targetX || target.currentTile.position.y != result.targetY)
+            return SimultaneousTurnFailureReason.WorldChanged
 
         attacker.health = result.attackerHp
         if (result.targetHp <= 0) target.destroy()
         else target.health = result.targetHp
-        return true
+        return null
     }
 
     private fun findAnyUnit(gameInfo: GameInfo, id: Int): MapUnit? =

@@ -862,8 +862,8 @@ class SimultaneousTurnOperationsTest {
         val report = SimultaneousTurnOperations.describeFailedSimultaneousTurnOperations(
             testGame.gameInfo,
             listOf(
-                SimultaneousTurnOperation(turn = 1, playerId = "player-a", sequence = 4, type = "unit.attack"),
-                SimultaneousTurnOperation(turn = 1, playerId = "player-b", sequence = 5, type = "unit.move")
+                failedOperation(1, "player-a", 4, "unit.attack", SimultaneousTurnFailureReason.WorldChanged),
+                failedOperation(1, "player-b", 5, "unit.move", SimultaneousTurnFailureReason.UnitGone)
             )
         )
 
@@ -872,6 +872,11 @@ class SimultaneousTurnOperationsTest {
         assertTrue("the other player's civ must be named too", report.contains(otherCiv.civName))
         assertTrue(report.contains("unit.attack"))
         assertTrue(report.contains("unit.move"))
+        assertTrue(
+            "the report must say why each action was lost: $report",
+            report.contains(SimultaneousTurnFailureReason.WorldChanged.sentence) &&
+                report.contains(SimultaneousTurnFailureReason.UnitGone.sentence)
+        )
     }
 
     @Test
@@ -928,9 +933,9 @@ class SimultaneousTurnOperationsTest {
         val notified = SimultaneousTurnOperations.notifyPlayersOfFailedOperations(
             testGame.gameInfo,
             listOf(
-                SimultaneousTurnOperation(turn = 1, playerId = "player-a", sequence = 4, type = "state.Trade"),
-                SimultaneousTurnOperation(turn = 1, playerId = "player-a", sequence = 5, type = "state.Trade"),
-                SimultaneousTurnOperation(turn = 1, playerId = "player-b", sequence = 6, type = "unit.move")
+                failedOperation(1, "player-a", 4, "state.Trade", SimultaneousTurnFailureReason.WorldChanged),
+                failedOperation(1, "player-a", 5, "state.Trade", SimultaneousTurnFailureReason.WorldChanged),
+                failedOperation(1, "player-b", 6, "unit.move", SimultaneousTurnFailureReason.UnitGone)
             )
         )
 
@@ -940,6 +945,10 @@ class SimultaneousTurnOperationsTest {
         val text = civ.notifications.last().text
         assertTrue("the notification must name the action: $text", text.contains("[Trade]"))
         assertFalse("the operation type must not leak to the player: $text", text.contains("game.state"))
+        assertTrue(
+            "the notification must name the reason: $text",
+            text.contains("[${SimultaneousTurnFailureReason.WorldChanged.sentence}]")
+        )
         assertEquals(
             "an operation that is not a state change keeps its name",
             otherCivNotificationsBefore + 1, otherCiv.notifications.size
@@ -947,6 +956,10 @@ class SimultaneousTurnOperationsTest {
         assertTrue(
             "a unit operation keeps its name",
             otherCiv.notifications.last().text.contains("[unit.move]")
+        )
+        assertTrue(
+            "a unit operation names its own reason",
+            otherCiv.notifications.last().text.contains("[${SimultaneousTurnFailureReason.UnitGone.sentence}]")
         )
     }
 
@@ -1178,11 +1191,11 @@ class SimultaneousTurnOperationsTest {
         val aiNotificationsBefore = aiCiv.notifications.size
 
         val failed = listOf(
-            SimultaneousTurnOperation(turn = 3, playerId = "playerA", sequence = 1, type = "unit.move"),
-            SimultaneousTurnOperation(turn = 3, playerId = "playerA", sequence = 2, type = "unit.attack"),
+            failedOperation(3, "playerA", 1, "unit.move", SimultaneousTurnFailureReason.UnitGone),
+            failedOperation(3, "playerA", 2, "unit.attack", SimultaneousTurnFailureReason.WorldChanged),
             // An AI civ, and a playerId that no longer exists, must not break the report.
-            SimultaneousTurnOperation(turn = 3, playerId = "playerB", sequence = 3, type = "unit.move"),
-            SimultaneousTurnOperation(turn = 3, playerId = "playerC", sequence = 4, type = "unit.move")
+            failedOperation(3, "playerB", 3, "unit.move", SimultaneousTurnFailureReason.UnitGone),
+            failedOperation(3, "playerC", 4, "unit.move", SimultaneousTurnFailureReason.UnitGone)
         )
 
         val notified = SimultaneousTurnOperations.notifyPlayersOfFailedOperations(testGame.gameInfo, failed)
@@ -1197,9 +1210,82 @@ class SimultaneousTurnOperationsTest {
             texts.any { it.contains("[unit.move]") } && texts.any { it.contains("[unit.attack]") }
         )
         assertTrue(
+            "the report must say why each action was lost: $texts",
+            texts.any { it.contains("[${SimultaneousTurnFailureReason.UnitGone.sentence}]") } &&
+                texts.any { it.contains("[${SimultaneousTurnFailureReason.WorldChanged.sentence}]") }
+        )
+        assertTrue(
             "the report must not describe the operations in bulk: $texts",
             texts.all { it.contains("could not apply one of your actions") }
         )
         assertEquals("AI civs have no use for these notifications", aiNotificationsBefore, aiCiv.notifications.size)
     }
+
+    @Test
+    fun failedOperationsCarryTheReasonTheyWereRefused() {
+        // "Which action was lost" is not actionable on its own (plan 7.5): the player needs to know
+        // whether the unit is gone, whether the world had already moved on, or whether the operation
+        // was corrupt - the three cases need different reactions.
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        civ.playerId = "player-a"
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        civ.variables["modEffect"] = 37
+        val worldSnapshot = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+
+        // The unit this move names never existed on the authoritative board.
+        val missingUnit = SimultaneousTurnOperation(
+            type = "unit.move",
+            payload = json().toJson(
+                SimultaneousTurnMoveResult(
+                    unitId = 999999, owner = civ.civName,
+                    fromX = 0, fromY = 0, toX = 1, toY = 1, hp = 100, movement = 1f
+                )
+            )
+        )
+        // A snapshot may only be applied while the fields it changes still hold their before value.
+        val contestedSnapshot = SimultaneousTurnOperation(
+            type = "game.state", payload = json().toJson(worldSnapshot)
+        )
+        val corruptPayload = SimultaneousTurnOperation(type = "unit.move", payload = "{not json")
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        // A third value: neither the snapshot's before (absent) nor its after (37).
+        authoritative.getCivilization(civ.civName).variables["modEffect"] = 999
+
+        val failures = SimultaneousTurnReplay.replayOrExplain(
+            authoritative, listOf(missingUnit, contestedSnapshot, corruptPayload)
+        )
+
+        assertEquals(
+            "every refused operation must carry its reason, in order",
+            listOf(
+                SimultaneousTurnFailureReason.UnitGone,
+                SimultaneousTurnFailureReason.WorldChanged,
+                SimultaneousTurnFailureReason.Unreadable
+            ),
+            failures.map { it.reason }
+        )
+        assertEquals(
+            "the reason must stay attached to its own operation",
+            listOf(missingUnit, contestedSnapshot, corruptPayload),
+            failures.map { it.operation }
+        )
+    }
+
+    private fun failedOperation(
+        turn: Int,
+        playerId: String,
+        sequence: Long,
+        type: String,
+        reason: SimultaneousTurnFailureReason
+    ) = SimultaneousTurnFailedOperation(
+        SimultaneousTurnOperation(turn = turn, playerId = playerId, sequence = sequence, type = type),
+        reason
+    )
 }
