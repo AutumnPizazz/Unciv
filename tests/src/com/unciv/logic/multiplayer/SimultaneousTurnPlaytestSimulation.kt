@@ -3,6 +3,7 @@ package com.unciv.logic.multiplayer
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.Base64Coder
+import com.badlogic.gdx.utils.JsonReader
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.unciv.UncivGame
@@ -407,10 +408,17 @@ class SimultaneousTurnPlaytestSimulation {
             }
             assertTrue("operations failed to replay: $hardFailures", hardFailures.isEmpty())
             val unrecorded = SimultaneousTurnOperations.diffUnrecordedState(turnStart, base, turnOps)
-            note(
-                "unrecorded state after replay: " +
-                    (unrecorded?.let { "detected (the client-side fallback would record it)" } ?: "none")
-            )
+            if (unrecorded == null) {
+                note("unrecorded state after replay: none")
+            } else {
+                note("unrecorded state after replay: detected (the client-side fallback would record it)")
+                if (unrecorded.globalBefore != unrecorded.globalAfter)
+                    note("  global: ${fieldDiff(unrecorded.globalBefore, unrecorded.globalAfter)}")
+                for (component in unrecorded.civilizations)
+                    note("  civ ${component.key}: ${fieldDiff(component.before, component.after)}")
+                for (component in unrecorded.tiles)
+                    note("  tile ${component.key}: ${fieldDiff(component.before, component.after)}")
+            }
 
             base.nextTurnPolling()
             settler.server.uploadGame(base, withPreview = true)
@@ -419,6 +427,18 @@ class SimultaneousTurnPlaytestSimulation {
         } finally {
             settler.server.releaseSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns, settler.playerId)
         }
+    }
+
+    /** Top-level JSON fields whose serialized values differ between two components. */
+    private fun fieldDiff(before: String?, after: String?): String {
+        if (before == null || after == null) return "before present=${before != null}, after present=${after != null}"
+        val beforeValue = JsonReader().parse(before)
+        val afterValue = JsonReader().parse(after)
+        val keys = LinkedHashSet<String>()
+        for (field in beforeValue) keys.add(field.name)
+        for (field in afterValue) keys.add(field.name)
+        return keys.filter { beforeValue.get(it)?.toString() != afterValue.get(it)?.toString() }
+            .joinToString(", ")
     }
 
     /**

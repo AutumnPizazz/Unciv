@@ -183,15 +183,25 @@ object SimultaneousTurnOperations {
         current: GameInfo,
         operations: List<SimultaneousTurnOperation>
     ): SimultaneousTurnGameStateResult? {
-        val expected = turnStart.clone()
+        // Both sides must be normalized the same way *after* all mutations: setTransients() runs
+        // updateViewableTiles() -> updateLastSeenImprovements(), so normalizing only one side (or
+        // normalizing before replay) reports a phantom unrecorded change every turn. A raw clone()
+        // also leaves the cloned tiles bound to the original tile map (Tile.clone keeps the old
+        // tileMap reference; only setTransients() rebinds it) and keeps each civ's unit list pointing
+        // at pre-replay units, so replaying into it would update the wrong tile objects.
+        val expected = normalizedClone(turnStart)
         SimultaneousTurnReplay.replay(expected, operations)
-        expected.setTransients()
-        // Compare against a normalized copy too: some serialized fields are derived by setTransients(),
-        // and the live game may not have refreshed them after the last mutation. Without this the diff
-        // would report purely derived differences as unrecorded changes and bloat the operation list.
-        val normalizedCurrent = current.clone()
-        normalizedCurrent.setTransients()
-        return captureGameStateChange(UnitActionType.TriggerUnique, expected, normalizedCurrent)
+        return captureGameStateChange(
+            UnitActionType.TriggerUnique, normalizedClone(expected), normalizedClone(current)
+        )
+    }
+
+    /** A deep clone whose transient state (tile map bindings, civ unit lists) is coherent. */
+    private fun normalizedClone(source: GameInfo): GameInfo {
+        val clone = source.clone()
+        for (civilization in clone.civilizations) civilization.units.clearUnits()
+        clone.setTransients()
+        return clone
     }
 
     /**

@@ -33,6 +33,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: stopping a unit's automation sticks in simultaneous turns
 - Fix: exploring new tiles in a simultaneous turn no longer changes other clients' state and drops their actions
 - Fix: recording a simultaneous-turn state change no longer crashes while reading the previous state
+- Fix: simultaneous turns no longer record a redundant catch-all state snapshot on every turn
 
 ### Mod author-facing
 

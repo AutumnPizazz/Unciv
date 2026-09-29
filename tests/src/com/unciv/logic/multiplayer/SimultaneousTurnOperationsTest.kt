@@ -328,6 +328,41 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun diffUnrecordedStateIsEmptyAfterAFaithfulReplay() {
+        // Regression: diffUnrecordedState() normalized its two sides differently, so setTransients()
+        // re-derived Civilization.lastSeenImprovement on one side only and every simultaneous turn
+        // reported a phantom unrecorded change (recording a redundant catch-all operation each turn).
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.elementAt(1), isPlayer = true)
+        testGame.addUnit("Warrior", civ, testGame.getTile(0, 0))
+        testGame.gameInfo.setTransients()
+
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        // The settled state: the player changed one variable, captured as a game.state operation.
+        val current = turnStart.clone()
+        current.setTransients()
+        val currentCiv = current.getCivilization(civ.civName)
+        val before = current.clone()
+        before.setTransients()
+        currentCiv.variables["step"] = 1
+        val operation = SimultaneousTurnOperation(
+            turn = 1, playerId = currentCiv.civName, sequence = 1, type = "game.state",
+            payload = json().toJson(
+                SimultaneousTurnOperations
+                    .captureGameStateChange(UnitActionType.Automate, before, current)!!
+            )
+        )
+
+        assertNull(
+            "replaying the recorded operation must reproduce the settled state exactly",
+            SimultaneousTurnOperations.diffUnrecordedState(turnStart, current, listOf(operation))
+        )
+    }
+
+    @Test
     fun everyOperationPayloadRoundTripsThroughTheSerializer() {
         // libgdx Json instantiates via a no-arg constructor, so every parameter of these classes
         // needs a default. Without that, deserialization throws and settlement silently drops the
