@@ -112,6 +112,12 @@ class WorldScreen(
     @Transient
     private val simultaneousTurnOperations = ArrayList<SimultaneousTurnOperation>()
 
+    /** The state this screen started the turn from, used to detect local changes that no recorded
+     *  operation covers. Only kept for simultaneous-turn games, where settlement replays operations
+     *  on the turn-start save instead of trusting the client's final state. */
+    private val simultaneousTurnStartSnapshot: GameInfo? =
+        if (gameInfo.isSimultaneousTurnsMode()) gameInfo.clone() else null
+
 
     /** Indicates it's the player's ([viewingCiv]) turn */
     var isPlayersTurn = viewingCiv.isCurrentPlayer() || gameInfo.isSimultaneousTurnsMode()
@@ -151,6 +157,25 @@ class WorldScreen(
     fun recordSimultaneousGameStateChange(type: UnitActionType, before: GameInfo?) {
         if (before == null || !gameInfo.isSimultaneousTurnsMode()) return
         val result = SimultaneousTurnOperations.captureGameStateChange(type, before, gameInfo) ?: return
+        recordSimultaneousTurnOperation("game.state", result)
+    }
+
+    /**
+     * Safety net for simultaneous turns: the settlement host rebuilds the turn by replaying recorded
+     * operations on the turn-start save, so any state change made by a code path that did not record
+     * an operation would be lost. Diff the state our recorded operations reproduce against our actual
+     * state and append the difference as a final catch-all operation. Must run before the upload.
+     */
+    private fun reconcileSimultaneousTurnOperations() {
+        val turnStart = simultaneousTurnStartSnapshot ?: return
+        if (!gameInfo.isSimultaneousTurnsMode() || turnStart.turns != gameInfo.turns) return
+        val result = SimultaneousTurnOperations.diffUnrecordedState(
+            turnStart, gameInfo, getSimultaneousTurnOperations()
+        ) ?: return
+        debug(
+            "Simultaneous turn reconciliation captured unrecorded state changes (game %s, turn %d)",
+            gameInfo.gameId, gameInfo.turns
+        )
         recordSimultaneousTurnOperation("game.state", result)
     }
 
@@ -960,6 +985,9 @@ class WorldScreen(
             var submitted = simultaneousTurnDoneUploadedForTurn == submittedTurn
             try {
                 if (!submitted) {
+                    // Capture any local state change that was made without recording an operation,
+                    // so settlement cannot silently drop it.
+                    reconcileSimultaneousTurnOperations()
                     val done = SimultaneousTurnOperation(
                         turn = submittedTurn,
                         playerId = playerId,

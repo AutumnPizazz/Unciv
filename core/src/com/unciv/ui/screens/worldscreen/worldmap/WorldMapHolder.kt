@@ -297,6 +297,10 @@ class WorldMapHolder(
             if (unitView.canAttack() && attackableTile != null) {
                 /** ****** Right-click Attack ****** */
                 val attackerCombatant = unitView.asCombatant()
+                // CN: full-state snapshot so attacks on non-unit targets (cities, improvements) also replay
+                val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
+                    worldScreen.gameInfo.clone()
+                else null
                 if (!unitView.tryMovePreparingAttack(attackableTile)) return
                 if (!SoundPlayer.play(UncivSound(attackerCombatant.getCombatantName())))
                     SoundPlayer.play(attackerCombatant.getAttackSound())
@@ -318,6 +322,8 @@ class WorldMapHolder(
                         targetY = target.currentTile.position.y
                     )
                 )
+                if (gameInfoBefore != null)
+                    worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
                 localShouldUpdate = true
             } else if (unitView.canReach(tileView)) {
                 /** ****** Right-click Move ****** */

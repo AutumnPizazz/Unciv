@@ -172,11 +172,10 @@ class GameParameters : IsPartOfGameInfoSerialization { // Default values are the
 
     companion object {
         /**
-         * Whether players may create games using the experimental simultaneous-turn protocol.
-         * Kept false until the settlement loop is verified end-to-end on a live server; flip to
-         * true to re-expose the option. Games already created with [simultaneousTurns] still run
-         * through the simultaneous code path, so the option staying hidden does not strand them.
+         * Whether players may create games using the simultaneous-turn protocol.
+         * Re-exposed as a beta option; games already created with [simultaneousTurns] keep running
+         * through the simultaneous code path either way.
          */
-        const val SIMULTANEOUS_TURNS_ENABLED = false
+        const val SIMULTANEOUS_TURNS_ENABLED = true
     }
 }

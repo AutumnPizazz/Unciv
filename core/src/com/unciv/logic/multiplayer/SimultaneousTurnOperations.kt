@@ -165,6 +165,24 @@ object SimultaneousTurnOperations {
         )
     }
 
+    /**
+     * The settlement host rebuilds a simultaneous turn by replaying the recorded operations on the
+     * turn-start save. A state change made through a code path that failed to record an operation
+     * would be silently lost. This replays [operations] on a clone of [turnStart] and diffs the
+     * result against [current], so the caller can record any difference as a final catch-all
+     * operation whose "before" matches the state the other operations will have produced.
+     */
+    fun diffUnrecordedState(
+        turnStart: GameInfo,
+        current: GameInfo,
+        operations: List<SimultaneousTurnOperation>
+    ): SimultaneousTurnGameStateResult? {
+        val expected = turnStart.clone()
+        SimultaneousTurnReplay.replay(expected, operations)
+        expected.setTransients()
+        return captureGameStateChange(UnitActionType.TriggerUnique, expected, current)
+    }
+
     fun currentGlobalState(gameInfo: GameInfo) = SimultaneousTurnGlobalState(
         lastUnitId = gameInfo.getLastUnitIdForSimultaneousTurns(),
         diplomaticVictoryVotesCast = HashMap(gameInfo.diplomaticVictoryVotesCast),

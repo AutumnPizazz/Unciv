@@ -288,4 +288,58 @@ class SimultaneousTurnOperationsTest {
             json().toJson(SimultaneousTurnGameStateResult())
         ))
     }
+
+    @Test
+    fun reconciliationCapturesUnrecordedStateChanges() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        // A change made through a code path that forgot to record an operation
+        civ.variables["unrecorded"] = 5
+
+        val result = SimultaneousTurnOperations.diffUnrecordedState(
+            turnStart, testGame.gameInfo, emptyList()
+        )
+        assertNotNull("reconciliation must catch unrecorded changes", result)
+
+        val settlement = turnStart.clone()
+        settlement.setTransients()
+        val operation = SimultaneousTurnOperation(
+            type = "game.state", payload = json().toJson(result)
+        )
+        assertTrue(SimultaneousTurnReplay.apply(settlement, operation))
+        assertEquals(5, settlement.getCivilization(civ.civName).variables["unrecorded"])
+    }
+
+    @Test
+    fun reconciliationProducesNoOperationWhenEveryChangeWasRecorded() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        civ.variables["recorded"] = 9
+        val recorded = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+        val operation = SimultaneousTurnOperation(
+            turn = testGame.gameInfo.turns, playerId = civ.civName, sequence = 1,
+            type = "game.state", payload = json().toJson(recorded)
+        )
+
+        assertNull(
+            "an already-recorded change must not be duplicated",
+            SimultaneousTurnOperations.diffUnrecordedState(
+                turnStart, testGame.gameInfo, listOf(operation)
+            )
+        )
+    }
 }

@@ -215,7 +215,7 @@ class GameOptionsTable(
             { gameParameters.nuclearWeaponsEnabled = it }
 
     private fun Table.addSimultaneousTurnsCheckbox() =
-        addCheckbox("Simultaneous turns (experimental)", gameParameters.simultaneousTurns, lockable = true)
+        addCheckbox("Simultaneous turns (beta)", gameParameters.simultaneousTurns, lockable = true)
         { gameParameters.simultaneousTurns = it }
 
     private fun Table.addIsOnlineMultiplayerCheckbox() =

@@ -21,7 +21,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: more unit and city actions are replicated in simultaneous turns, and Undo is disabled to prevent desync
 - Fix: replaying a simultaneous turn no longer leaves duplicate units behind
 - Fix: unit moves and attacks are no longer dropped at simultaneous-turn settlement
-- Change: the experimental simultaneous-turns option is hidden until it is verified
+- Change: the simultaneous-turns option is available again, now labeled beta
+- Fix: simultaneous turns now also replay city attacks and catch any state change that was not recorded
 
 ### Mod author-facing
 
