@@ -320,9 +320,9 @@ class WorldScreen(
     private var simultaneousTurnFailureReported: String? = null
     /** Watches the targets other players claimed for this turn, so the claims can be shown on the map. */
     private var simultaneousTurnReservationWatcherJob: Job? = null
-    /** Tiles other players claimed this turn, and the turn they were read for. */
+    /** Tiles other players claimed this turn with the claimant of each, and the turn they were read for. */
     @Transient
-    private var simultaneousTurnReservedTilesOnMap: Set<HexCoord> = emptySet()
+    private var simultaneousTurnReservedTileOwners: Map<HexCoord, String> = emptyMap()
     @Transient
     private var simultaneousTurnReservedTilesTurn = -1
 
@@ -333,7 +333,18 @@ class WorldScreen(
      * reservations of the turn they were made in.
      */
     val simultaneousTurnReservedTiles: Set<HexCoord>
-        get() = if (simultaneousTurnReservedTilesTurn == gameInfo.turns) simultaneousTurnReservedTilesOnMap else emptySet()
+        get() = if (simultaneousTurnReservedTilesTurn == gameInfo.turns) simultaneousTurnReservedTileOwners.keys else emptySet()
+
+    /**
+     * The civilization that claimed [position] for the turn being played, or null when nobody did.
+     * Lets the UI refuse an order where the player can see it, instead of leaving them to discover
+     * the collision at settlement.
+     */
+    fun simultaneousTurnClaimantOf(position: HexCoord): String? {
+        if (simultaneousTurnReservedTilesTurn != gameInfo.turns) return null
+        val owner = simultaneousTurnReservedTileOwners[position] ?: return null
+        return gameInfo.civilizations.firstOrNull { it.playerId == owner }?.civName ?: owner
+    }
 
     /** Countdown timer for polling multiplayer mode. */
     private var pollingTimerJob: Job? = null
@@ -1413,11 +1424,11 @@ class WorldScreen(
                     simultaneousTurnReservationsUnsupported = true
                     continue
                 }
-                val claimedTiles = SimultaneousTurnReservations.tilePositionsReservedByOthers(reservations, playerId)
+                val claimedTiles = SimultaneousTurnReservations.tilesReservedByOthers(reservations, playerId)
                 launchOnGLThread {
-                    if (claimedTiles == simultaneousTurnReservedTilesOnMap && turn == simultaneousTurnReservedTilesTurn)
+                    if (claimedTiles == simultaneousTurnReservedTileOwners && turn == simultaneousTurnReservedTilesTurn)
                         return@launchOnGLThread
-                    simultaneousTurnReservedTilesOnMap = claimedTiles
+                    simultaneousTurnReservedTileOwners = claimedTiles
                     simultaneousTurnReservedTilesTurn = turn
                     shouldUpdate = true
                 }

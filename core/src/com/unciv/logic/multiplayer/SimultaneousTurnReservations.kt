@@ -38,15 +38,22 @@ object SimultaneousTurnReservations {
     }
 
     /**
-     * Tiles claimed for this turn by players other than [playerId], for the map marks that make a
-     * claim visible. A claim the player cannot see reads as a bug when their order is refused.
+     * Tiles claimed for this turn by players other than [playerId], with the claimant of each, so the
+     * UI can both mark a claim and name who holds it. A claim the player cannot see reads as a bug
+     * when their order is refused.
      */
+    fun tilesReservedByOthers(
+        reservations: List<SimultaneousTurnReservation>,
+        playerId: String
+    ): Map<HexCoord, String> = reservations
+        .asSequence()
+        .filter { it.owner != playerId && it.owner.isNotEmpty() }
+        .mapNotNull { reservation -> tilePositionOf(reservation.key)?.let { it to reservation.owner } }
+        .toMap()
+
+    /** Tiles claimed for this turn by players other than [playerId], for the map marks. */
     fun tilePositionsReservedByOthers(
         reservations: List<SimultaneousTurnReservation>,
         playerId: String
-    ): Set<HexCoord> = reservations
-        .asSequence()
-        .filter { it.owner != playerId }
-        .mapNotNull { tilePositionOf(it.key) }
-        .toSet()
+    ): Set<HexCoord> = tilesReservedByOthers(reservations, playerId).keys
 }

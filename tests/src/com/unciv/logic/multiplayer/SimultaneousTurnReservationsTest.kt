@@ -43,4 +43,19 @@ class SimultaneousTurnReservationsTest {
             SimultaneousTurnReservations.tilePositionsReservedByOthers(reservations, "playerA")
         )
     }
+
+    @Test
+    fun claimedTilesCarryTheirClaimantForTheHint() {
+        val reservations = listOf(
+            SimultaneousTurnReservation("tile:3,-2", "playerA"),
+            SimultaneousTurnReservation("tile:-1,4", "playerB"),
+            SimultaneousTurnReservation(SimultaneousTurnReservations.forUnit(7), "playerB"),
+            SimultaneousTurnReservation("tile:5,5", "")
+        )
+
+        assertEquals(
+            mapOf(HexCoord(-1, 4) to "playerB"),
+            SimultaneousTurnReservations.tilesReservedByOthers(reservations, "playerA")
+        )
+    }
 }

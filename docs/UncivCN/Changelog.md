@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Added: when another player has already claimed a target this turn, the move button on that tile is grayed out and names the claimant, so the order is refused before you give it
 - Added: in a simultaneous turn, tiles another player already claimed are marked on the map, so a target that would refuse your order is visible before you give it
 - Fix: when a simultaneous turn cannot apply one of your actions, the notification now names the action (for example "Trade") instead of the internal operation type, and each lost action is reported on its own
 - Fix: when a simultaneous turn's actions cannot be uploaded, the player is now told and can retry, instead of losing them silently

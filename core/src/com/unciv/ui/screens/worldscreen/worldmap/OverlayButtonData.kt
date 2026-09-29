@@ -11,6 +11,7 @@ import com.unciv.models.UncivSound
 import com.unciv.models.UnitActionType
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
+import com.unciv.ui.components.UncivTooltip.Companion.addTooltip
 import com.unciv.ui.components.extensions.*
 import com.unciv.ui.components.input.KeyCharAndCode
 import com.unciv.ui.components.input.KeyboardBinding
@@ -66,8 +67,14 @@ class MoveHereOverlayButtonData(val unitToTurnsToDestination: HashMap<MapUnitVie
         moveHereButton.addActor(unitIcon)
 
         val unitsThatCanMove = unitToTurnsToDestination.keys.filter { it.hasMovement() }
+        val claimant = worldMapHolder.worldScreen.simultaneousTurnClaimantOf(tileView.position())
         if (unitsThatCanMove.isEmpty()) moveHereButton.color.a = 0.5f
-        else {
+        else if (claimant != null) {
+            // Another player claimed this target for the turn, so the order would be refused at
+            // settlement: refuse it here instead, where the player can see why.
+            moveHereButton.color.a = 0.5f
+            moveHereButton.addTooltip("That target is already claimed by [$claimant] this turn".tr())
+        } else {
             moveHereButton.onActivation(UncivSound.Silent) {
                 worldMapHolder.moveUnitToTargetTile(unitsThatCanMove, tileView)
             }
