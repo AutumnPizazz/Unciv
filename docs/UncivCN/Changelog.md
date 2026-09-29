@@ -31,6 +31,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: reloading mid-turn in a simultaneous game restores the actions you already took
 - Fix: an improvement destroyed in a simultaneous turn no longer comes back after settlement
 - Fix: stopping a unit's automation sticks in simultaneous turns
+- Fix: exploring new tiles in a simultaneous turn no longer changes other clients' state and drops their actions
+- Fix: recording a simultaneous-turn state change no longer crashes while reading the previous state
 
 ### Mod author-facing
 

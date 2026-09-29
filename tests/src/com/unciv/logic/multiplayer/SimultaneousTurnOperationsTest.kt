@@ -67,6 +67,25 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun gameStateResultAcceptsRawSnapshotWithoutTransients() {
+        // WorldScreen.beginSimultaneousGameStateSnapshot() hands captureGameStateChange() a raw
+        // GameInfo.clone(), and TileMap.clone() leaves the transient tileMatrix empty. The diff must
+        // not index that matrix, or every real snapshot would crash.
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val before = testGame.gameInfo.clone()
+        assertEquals(0, before.tileMap.tileMatrix.size)
+        civ.variables["modEffect"] = 37
+        testGame.getTile(0, 0).improvement = "Farm"
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+        assertEquals(1, result.civilizations.size)
+        assertEquals(listOf("0,0"), result.tiles.map { it.key })
+    }
+
+    @Test
     fun gameStateResultRejectsConflictingComponent() {
         val testGame = TestGame()
         val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)

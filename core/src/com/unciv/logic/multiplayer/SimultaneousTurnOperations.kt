@@ -134,9 +134,13 @@ object SimultaneousTurnOperations {
         }
 
         val tiles = ArrayList<SimultaneousTurnComponentSnapshot>()
+        // Look tiles up by position instead of indexing before.tileMap[x, y]: "before" is normally a
+        // raw GameInfo.clone() (see WorldScreen.beginSimultaneousGameStateSnapshot), and TileMap.clone()
+        // deliberately leaves the transient tileMatrix empty, so indexing would crash for every snapshot.
+        val beforeTiles = before.tileMap.tileList.associateBy { it.position }
         for (afterTile in after.tileMap.tileList) {
-            val beforeTile = before.tileMap[afterTile.position]
-            val beforeJson = json().toJson(beforeTile)
+            val beforeTile = beforeTiles[afterTile.position]
+            val beforeJson = if (beforeTile == null) null else json().toJson(beforeTile)
             val afterJson = json().toJson(afterTile)
             if (beforeJson != afterJson) {
                 val key = "${afterTile.position.x},${afterTile.position.y}"

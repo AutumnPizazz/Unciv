@@ -70,8 +70,10 @@ class ExploredRegion : IsPartOfGameInfoSerialization {
 
     fun clone(): ExploredRegion {
         val toReturn = ExploredRegion()
-        toReturn.topLeft = topLeft
-        toReturn.bottomRight = bottomRight
+        // topLeft/bottomRight are mutated in place below, so they must be copied - assigning the
+        // references would make a cloned civilization share its explored region with the original.
+        toReturn.topLeft = Vector2(topLeft)
+        toReturn.bottomRight = Vector2(bottomRight)
         return toReturn
     }
 

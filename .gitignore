@@ -191,6 +191,12 @@ detekt/reports.html
 release.jks
 /scripts
 
+# playtest-sim 运行产物（脚本与说明仍纳入版本控制）
+/playtest-sim/server/
+/playtest-sim/clients/
+/playtest-sim/logs/
+/playtest-sim/config.properties
+
 # VitePress 文档站（docs-vitepress/）
 docs-vitepress/.vitepress/dist/
 docs-vitepress/.vitepress/cache/
