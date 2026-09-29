@@ -159,6 +159,25 @@ object SimultaneousTurnOperations {
         return nowMillis - maxOf(lastActivityMillis, waitStartedAtMillis) >= timeoutMinutes * 60_000L
     }
 
+    /**
+     * Player-visible description of the operations that settlement could not apply, or null when
+     * there are none. A rejected operation used to end up in the debug log only: the turn advanced
+     * as if it had been applied and the player whose action was lost was never told.
+     * See docs_plan/simultaneous-turns-v1-action-inventory.md.
+     */
+    fun describeFailedSimultaneousTurnOperations(
+        gameInfo: GameInfo,
+        failedOperations: List<SimultaneousTurnOperation>
+    ): String? {
+        if (failedOperations.isEmpty()) return null
+        return failedOperations.joinToString("\n") { operation ->
+            val civName = gameInfo.civilizations
+                .firstOrNull { it.playerId == operation.playerId }?.civName
+                ?: operation.playerId.ifEmpty { "?" }
+            "$civName - ${operation.type}"
+        }
+    }
+
     fun captureGameStateChange(
         action: UnitActionType,
         before: GameInfo,

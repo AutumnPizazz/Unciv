@@ -814,4 +814,35 @@ class SimultaneousTurnOperationsTest {
         parameters.simultaneousTurnTimeoutMinutes = 17
         assertEquals(17, parameters.clone().simultaneousTurnTimeoutMinutes)
     }
+
+    @Test
+    fun failedOperationsAreReportedWithTheCivThatLostThem() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val otherCiv = testGame.addCiv(testGame.ruleset.nations.values.last(), isPlayer = true)
+        civ.playerId = "player-a"
+        otherCiv.playerId = "player-b"
+
+        assertNull(
+            "a settlement without failures must not nag the player",
+            SimultaneousTurnOperations.describeFailedSimultaneousTurnOperations(
+                testGame.gameInfo, emptyList()
+            )
+        )
+
+        val report = SimultaneousTurnOperations.describeFailedSimultaneousTurnOperations(
+            testGame.gameInfo,
+            listOf(
+                SimultaneousTurnOperation(turn = 1, playerId = "player-a", sequence = 4, type = "unit.attack"),
+                SimultaneousTurnOperation(turn = 1, playerId = "player-b", sequence = 5, type = "unit.move")
+            )
+        )
+
+        assertNotNull(report)
+        assertTrue(report!!.contains(civ.civName))
+        assertTrue("the other player's civ must be named too", report.contains(otherCiv.civName))
+        assertTrue(report.contains("unit.attack"))
+        assertTrue(report.contains("unit.move"))
+    }
 }

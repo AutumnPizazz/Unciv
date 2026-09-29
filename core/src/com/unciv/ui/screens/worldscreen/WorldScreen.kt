@@ -1088,10 +1088,12 @@ class WorldScreen(
                     }
                     val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
                     val failedOperations = SimultaneousTurnReplay.replay(turnStart, turnOperations)
-                    if (failedOperations.isNotEmpty()) {
-                        // An un-replayable operation must not lock the game forever. Advance the turn
-                        // and leave an audit trail instead of throwing: the old `check` threw, the
-                        // catch reset isPlayersTurn, and every settlement attempt then repeated forever.
+                    val failedOperationsReport = SimultaneousTurnOperations
+                        .describeFailedSimultaneousTurnOperations(turnStart, failedOperations)
+                    if (failedOperationsReport != null) {
+                        // An un-replayable operation must not lock the game forever, but it must not
+                        // vanish either. This used to be a debug line only: the turn advanced as if the
+                        // operation had been applied and the player it belonged to was never told.
                         debug(
                             "Simultaneous turn settlement skipped %d un-replayable operations " +
                                 "(game %s, turn %d): %s",
@@ -1102,7 +1104,13 @@ class WorldScreen(
                     turnStart.nextTurnPolling(progressBar)
                     game.onlineMultiplayer.updateGame(turnStart)
                     if (game.gameInfo == gameInfo)
-                        launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
+                        launchOnGLThread {
+                            startNewScreenJob(
+                                turnStart, autoPlay,
+                                settlementReport = failedOperationsReport
+                                    ?.let { "Some actions could not be applied".tr() + "\n\n" + it }
+                            )
+                        }
                 } finally {
                     lockRenewalJob.cancel()
                     game.onlineMultiplayer.multiplayerServer.releaseSimultaneousTurnSettlementLock(
@@ -1475,7 +1483,12 @@ class WorldScreen(
 }
 
 /** This exists so that no reference to the current world screen remains, so the old world screen can get garbage collected during [UncivGame.loadGame]. */
-private fun startNewScreenJob(gameInfo: GameInfo, autoPlay: AutoPlay, autosaveDisabled: Boolean = false) {
+private fun startNewScreenJob(
+    gameInfo: GameInfo,
+    autoPlay: AutoPlay,
+    autosaveDisabled: Boolean = false,
+    settlementReport: String? = null
+) {
     Concurrency.run {
         val newWorldScreen = try {
             UncivGame.Current.loadGame(gameInfo, autoPlay)
@@ -1496,6 +1509,18 @@ private fun startNewScreenJob(gameInfo: GameInfo, autoPlay: AutoPlay, autosaveDi
                 && gameInfo.turns % UncivGame.Current.settings.turnsBetweenAutosaves == 0
         if (shouldAutoSave) {
             newWorldScreen.autoSave()
+        }
+
+        // Shown on the *new* screen: a popup opened on the screen being replaced would go away with it.
+        if (settlementReport != null) {
+            withGLContext {
+                Popup(newWorldScreen)
+                    .apply {
+                        addGoodSizedLabel(settlementReport)
+                        addCloseButton()
+                    }
+                    .open()
+            }
         }
     }
 }
