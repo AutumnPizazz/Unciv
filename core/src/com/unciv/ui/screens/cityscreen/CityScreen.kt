@@ -424,7 +424,7 @@ class CityScreen(
             if (!tileGroup.tileView.providesYield() && cityView.getFreePopulation() > 0) {
                 cityView.tryWorkTile(tileGroup.tileView)
                 if (cityView.city.autoLockTiles)
-                    cityView.city.lockedTiles.add(tileGroup.tileView.position())
+                    cityView.tryAutoLockTile(tileGroup.tileView)
                 game.settings.addCompletedTutorialTask("Reassign worked tiles")
             } else {
                 cityView.tryStopWorkingTile(tileGroup.tileView)
@@ -491,7 +491,7 @@ class CityScreen(
                 restoreDefault = { updateAsync() }
             ) {
                 SoundPlayer.play(UncivSound.Chimes)
-                cityView.city.expansion.takeOwnership(tile)
+                cityView.tryClaimTile(tile)
                 UncivGame.Current.replaceCurrentScreen { CityScreen(cityView) }
             }.open()
         }

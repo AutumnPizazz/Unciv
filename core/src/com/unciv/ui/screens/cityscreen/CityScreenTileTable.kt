@@ -61,7 +61,7 @@ class CityScreenTileTable(private val cityScreen: CityScreen) : Table() {
         if (cityScreen.canChangeState) {
             autoLockCell.touchable = Touchable.enabled
             autoLockCell.onActivation {
-                cityView.city.autoLockTiles = !cityView.city.autoLockTiles
+                cityView.toggleAutoLockTiles()
                 update(tileView)
                 cityScreen.updateAsync()
             }

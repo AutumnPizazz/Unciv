@@ -151,7 +151,9 @@ class CityView(city: City,
     fun tryLockTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false
         if (!isWorked(tileView)) return false
-        return city.lockTile(getTile(tileView))
+        var result = false
+        runSimultaneousCityChange { result = city.lockTile(getTile(tileView)) }
+        return result
     }
     fun tryUnlockTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false
@@ -176,6 +178,20 @@ class CityView(city: City,
         var result = false
         runSimultaneousCityChange { result = city.stopWorkingTile(getTile(tileView)) }
         return result
+    }
+    /** Auto-lock a worked tile. This used to mutate [City.lockedTiles] directly, which bypassed
+     *  simultaneous-turn recording: the change only survived because settlement reconciled it as a
+     *  catch-all, and was lost outright when the player never submitted the turn. */
+    fun tryAutoLockTile(tileView: TileView) {
+        runSimultaneousCityChange { city.lockTile(getTile(tileView)) }
+    }
+    /** Toggle the city's auto-lock setting inside the simultaneous-turn recording wrapper. */
+    fun toggleAutoLockTiles() {
+        runSimultaneousCityChange { city.autoLockTiles = !city.autoLockTiles }
+    }
+    /** Claim an unowned tile for this city inside the simultaneous-turn recording wrapper. */
+    fun tryClaimTile(tile: Tile) {
+        runSimultaneousCityChange { city.expansion.takeOwnership(tile) }
     }
     private fun runSimultaneousCityChange(action: () -> Unit) {
         UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
