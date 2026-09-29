@@ -1,6 +1,8 @@
 package com.unciv.logic.multiplayer
 
 import com.badlogic.gdx.utils.JsonReader
+import com.badlogic.gdx.utils.JsonValue
+import com.badlogic.gdx.utils.JsonWriter
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
 import com.unciv.logic.map.mapunit.MapUnit
@@ -107,18 +109,16 @@ object SimultaneousTurnReplay {
 
         for (snapshot in result.civilizations) {
             val current = gameInfo.getCivilizationOrNull(snapshot.key) ?: return false
-            val currentJson = json().toJson(current)
-            if (currentJson != snapshot.before && currentJson != snapshot.after) return false
+            if (!componentCompatible(json().toJson(current), snapshot)) return false
         }
         for (snapshot in result.tiles) {
             val (x, y) = snapshot.key.split(',').map { it.toInt() }
-            val currentJson = json().toJson(gameInfo.tileMap[x, y])
-            if (currentJson != snapshot.before && currentJson != snapshot.after) return false
+            if (!componentCompatible(json().toJson(gameInfo.tileMap[x, y]), snapshot)) return false
         }
         for (snapshot in result.religions) {
             val current = gameInfo.religions[snapshot.key]
             val currentJson = if (current == null) null else json().toJson(current)
-            if (currentJson != snapshot.before && currentJson != snapshot.after) return false
+            if (!componentCompatible(currentJson, snapshot)) return false
         }
 
         for (snapshot in result.civilizations) {
@@ -176,6 +176,42 @@ object SimultaneousTurnReplay {
         for (civ in gameInfo.civilizations) civ.units.clearUnits()
         gameInfo.setTransients()
         return true
+    }
+
+    /**
+     * A full component snapshot is compatible when the current JSON equals its recorded before or
+     * after value. A field-level snapshot only guards the fields it carries, so an unrelated field
+     * that another player's operation already moved no longer rejects the whole component. Every
+     * carried field must still hold either its before or its after value, which keeps a real conflict
+     * (a third value) rejected - and makes writing all of them back safe.
+     */
+    private fun componentCompatible(
+        currentJson: String?,
+        snapshot: SimultaneousTurnComponentSnapshot
+    ): Boolean {
+        if (snapshot.changedFields.isEmpty())
+            return currentJson == snapshot.before || currentJson == snapshot.after
+        if (currentJson == null) return false
+        val current = JsonReader().parse(currentJson)
+        val before = snapshot.before?.let { JsonReader().parse(it) }
+        val after = snapshot.after?.let { JsonReader().parse(it) }
+        return snapshot.changedFields.all { field ->
+            val value = current.get(field)
+            jsonValueEquals(value, before?.get(field)) || jsonValueEquals(value, after?.get(field))
+        }
+    }
+
+    /**
+     * Compares two fields of a partially-serialized component. An absent field and a JSON `null` are
+     * the same thing here, because libgdx omits fields that still hold their prototype value (an empty
+     * collection or map) - so "the field was not in the document" is the ordinary shape of "it was
+     * empty", not a distinguishable value.
+     */
+    private fun jsonValueEquals(first: JsonValue?, second: JsonValue?): Boolean {
+        val firstValue = if (first == null || first.isNull) null else first
+        val secondValue = if (second == null || second.isNull) null else second
+        if (firstValue == null || secondValue == null) return firstValue == null && secondValue == null
+        return firstValue.toJson(JsonWriter.OutputType.json) == secondValue.toJson(JsonWriter.OutputType.json)
     }
 
     /**

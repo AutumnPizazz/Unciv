@@ -845,4 +845,80 @@ class SimultaneousTurnOperationsTest {
         assertTrue(report.contains("unit.attack"))
         assertTrue(report.contains("unit.move"))
     }
+
+    @Test
+    fun aComponentSnapshotCarriesOnlyTheFieldsThatChanged() {
+        // A whole-object snapshot makes the operation proportional to the component, not to the
+        // change: a goody hut used to ship ~4 KB of civilization JSON to describe 24 bytes of gold and
+        // science. Recording only the changed fields keeps the payload proportional to the change.
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        // Normalize the live game the same way: setTransients() itself rewrites exploredRegion and the
+        // great-person counters, so an unnormalized "after" would report changes nobody made.
+        testGame.gameInfo.setTransients()
+        val fullCivJsonLength = json().toJson(civ).length
+
+        civ.variables["modEffect"] = 37
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+
+        val snapshot = result.civilizations.single()
+        assertEquals(listOf("variables"), snapshot.changedFields)
+        assertFalse(
+            "an unchanged field must not be shipped with the operation",
+            snapshot.after!!.contains("civName")
+        )
+        assertTrue(
+            "a one-field change must not carry most of the civilization",
+            snapshot.after!!.length * 2 < fullCivJsonLength
+        )
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        assertTrue(SimultaneousTurnReplay.apply(authoritative, SimultaneousTurnOperation(
+            type = "game.state",
+            payload = json().toJson(result)
+        )))
+        assertEquals(37, authoritative.getCivilization(civ.civName).variables["modEffect"])
+    }
+
+    @Test
+    fun aFieldLevelSnapshotMergesInsteadOfRejectingAnUnrelatedField() {
+        // The old whole-object check rejected the operation as soon as anything in the component
+        // moved, even a field this operation never touched. Per-field checking keeps the conflict
+        // local to the fields the operation actually describes.
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        testGame.gameInfo.setTransients()
+
+        civ.variables["modEffect"] = 37
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.TriggerUnique, before, testGame.gameInfo
+        )!!
+
+        val authoritative = before.clone()
+        authoritative.setTransients()
+        // Another operation already moved a field this one does not mention.
+        val unrelatedFieldValue = authoritative.getCivilization(civ.civName).totalTurnTimeSeconds + 5
+        authoritative.getCivilization(civ.civName).totalTurnTimeSeconds = unrelatedFieldValue
+
+        val applied = SimultaneousTurnReplay.apply(authoritative, SimultaneousTurnOperation(
+            type = "game.state",
+            payload = json().toJson(result)
+        ))
+
+        assertTrue("an unrelated field must not reject the operation", applied)
+        assertEquals(37, authoritative.getCivilization(civ.civName).variables["modEffect"])
+        assertEquals(
+            unrelatedFieldValue,
+            authoritative.getCivilization(civ.civName).totalTurnTimeSeconds
+        )
+    }
 }

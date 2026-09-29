@@ -1,5 +1,7 @@
 package com.unciv.logic.multiplayer
 
+import com.badlogic.gdx.utils.JsonReader
+import com.badlogic.gdx.utils.JsonWriter
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
@@ -67,7 +69,13 @@ data class SimultaneousTurnSwapResult(
 data class SimultaneousTurnComponentSnapshot(
     val key: String = "",
     val before: String? = null,
-    val after: String? = null
+    val after: String? = null,
+    /**
+     * When non-empty, [before] and [after] carry only these top-level fields and replay must confine
+     * both its conflict check and its write to them. Empty means "full before/after JSON", which is
+     * what every operation recorded before this field existed looks like.
+     */
+    val changedFields: List<String> = ArrayList()
 )
 
 data class SimultaneousTurnGlobalState(
@@ -189,7 +197,7 @@ object SimultaneousTurnOperations {
             val beforeJson = if (beforeCiv == null) null else json().toJson(beforeCiv)
             val afterJson = json().toJson(afterCiv)
             if (beforeJson != afterJson)
-                civilizations.add(SimultaneousTurnComponentSnapshot(afterCiv.civName, beforeJson, afterJson))
+                civilizations.add(componentSnapshot(afterCiv.civName, beforeJson, afterJson))
         }
 
         val tiles = ArrayList<SimultaneousTurnComponentSnapshot>()
@@ -214,7 +222,7 @@ object SimultaneousTurnOperations {
             val beforeJson = if (beforeReligion == null) null else json().toJson(beforeReligion)
             val afterJson = if (afterReligion == null) null else json().toJson(afterReligion)
             if (beforeJson != afterJson)
-                religions.add(SimultaneousTurnComponentSnapshot(name, beforeJson, afterJson))
+                religions.add(componentSnapshot(name, beforeJson, afterJson))
         }
 
         val beforeGlobal = captureGlobalState(before)
@@ -227,6 +235,67 @@ object SimultaneousTurnOperations {
             civilizations,
             tiles,
             religions
+        )
+    }
+
+    /**
+     * A component snapshot that carries only the top-level fields that actually changed.
+     *
+     * A whole-object snapshot makes the operation proportional to the *component* instead of to the
+     * change: picking up a goody hut shipped ~4 KB of civilization JSON to describe the 24 bytes of
+     * gold and science it granted. A field-level snapshot also lets replay merge per field, so an
+     * unrelated field another player already moved no longer rejects the whole component.
+     *
+     * Falls back to the full before/after JSON whenever a faithful partial cannot be built: a new
+     * component (no before), a field that disappeared in `after` (libgdx Json cannot write an explicit
+     * null back, so clearing still needs the whole-object path), or JSON that differs without any
+     * top-level field differing.
+     */
+    private fun componentSnapshot(
+        key: String,
+        beforeJson: String?,
+        afterJson: String?
+    ): SimultaneousTurnComponentSnapshot {
+        val full = SimultaneousTurnComponentSnapshot(key, beforeJson, afterJson)
+        // A component that appeared or disappeared has nothing to diff field by field: the whole
+        // object is the change. (A removed component is applied by deleting it, see applyGameState.)
+        if (beforeJson == null || afterJson == null) return full
+        val beforeValue = JsonReader().parse(beforeJson)
+        val afterValue = JsonReader().parse(afterJson)
+        val fieldNames = LinkedHashSet<String>()
+        for (field in afterValue) fieldNames.add(field.name)
+        for (field in beforeValue) fieldNames.add(field.name)
+
+        val changedFields = ArrayList<String>()
+        val beforePartial = StringBuilder("{")
+        val afterPartial = StringBuilder("{")
+        for (name in fieldNames) {
+            val beforeField = beforeValue.get(name)
+            val afterField = afterValue.get(name)
+            val beforeFieldJson = beforeField?.toJson(JsonWriter.OutputType.json)
+            val afterFieldJson = afterField?.toJson(JsonWriter.OutputType.json)
+            if (beforeFieldJson == afterFieldJson) continue
+            // A field that disappeared needs the whole-object path: libgdx cannot write an explicit
+            // null back, so a partial cannot express the removal.
+            if (afterField == null) return full
+            changedFields.add(name)
+            // A field the before-document never carried (libgdx omits fields that still hold their
+            // prototype value, such as an empty map) has to stay absent here too. Replay compares the
+            // parsed current value against JsonValue.get(), which is null for an absent field, so
+            // writing a literal `null` would make the two never compare equal and reject the whole
+            // operation - which is exactly the common "an empty map gained an entry" case.
+            if (beforeField != null) {
+                if (beforePartial.length > 1) beforePartial.append(',')
+                beforePartial.append('"').append(name).append("\":").append(beforeFieldJson)
+            }
+            if (afterPartial.length > 1) afterPartial.append(',')
+            afterPartial.append('"').append(name).append("\":").append(afterFieldJson)
+        }
+        if (changedFields.isEmpty()) return full
+        beforePartial.append('}')
+        afterPartial.append('}')
+        return SimultaneousTurnComponentSnapshot(
+            key, beforePartial.toString(), afterPartial.toString(), changedFields
         )
     }
 

@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: a simultaneous turn now uploads only the values that changed, not whole civilizations
 - Change: enabling simultaneous turns now disables the game options that conflict with them
 - Fix: trade offers you send, retract or decline are no longer at risk of being lost in a simultaneous turn
 - Fix: locking a tile, claiming a tile and toggling auto-lock no longer risk being lost in a simultaneous turn
