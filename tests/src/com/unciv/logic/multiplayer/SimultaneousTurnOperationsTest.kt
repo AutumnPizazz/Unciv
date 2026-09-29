@@ -342,4 +342,69 @@ class SimultaneousTurnOperationsTest {
             )
         )
     }
+
+    @Test
+    fun snapshotMustBeRecordedBeforeGranularOperationsSoItIsNotRejected() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(0, 0))
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        // An action that sets a unit flag and then moves. The snapshot describes before -> after-move.
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        unit.action = UnitActionType.Explore.value
+        val granular = SimultaneousTurnOperation(
+            turn = 1, playerId = civ.civName, sequence = 0, type = "unit.action",
+            payload = json().toJson(
+                SimultaneousTurnUnitActionResult(
+                    unitId = unit.id, owner = civ.civName, action = unit.action,
+                    due = unit.due, health = unit.health, movement = unit.currentMovement,
+                    escorting = unit.isEscorting()
+                )
+            )
+        )
+        unit.movement.moveToTile(testGame.getTile(0, 1))
+        val snapshot = SimultaneousTurnOperation(
+            turn = 1, playerId = civ.civName, sequence = 0, type = "game.state",
+            payload = json().toJson(
+                SimultaneousTurnOperations.captureGameStateChange(
+                    UnitActionType.Explore, before, testGame.gameInfo
+                )!!
+            )
+        )
+
+        // Settlement replays in merged (turn, playerId, sequence) order. When the granular op was
+        // recorded first, the unit flag no longer matches either side of the snapshot, so the whole
+        // snapshot is rejected and the move it carried is lost. This is the bug that made every
+        // recording site order its snapshot call before the granular one.
+        val buggyOps = SimultaneousTurnOperations.merge(
+            emptyList(),
+            listOf(granular.copy(sequence = 1), snapshot.copy(sequence = 2))
+        )
+        assertEquals(listOf("unit.action", "game.state"), buggyOps.map { it.type })
+        val buggy = turnStart.clone()
+        buggy.setTransients()
+        assertEquals(
+            "a snapshot recorded after a granular op must be rejected",
+            listOf(snapshot.copy(sequence = 2)),
+            SimultaneousTurnReplay.replay(buggy, buggyOps)
+        )
+        assertEquals(0, buggy.getCivilization(civ.civName).units.getUnitById(unit.id)!!.currentTile.position.y)
+
+        // Snapshot first: it applies cleanly, and the granular operation is a harmless no-op on top.
+        val fixedOps = SimultaneousTurnOperations.merge(
+            emptyList(),
+            listOf(snapshot.copy(sequence = 1), granular.copy(sequence = 2))
+        )
+        assertEquals(listOf("game.state", "unit.action"), fixedOps.map { it.type })
+        val fixed = turnStart.clone()
+        fixed.setTransients()
+        val failed = SimultaneousTurnReplay.replay(fixed, fixedOps)
+        assertTrue("snapshot first must replay cleanly: $failed", failed.isEmpty())
+        assertEquals(1, fixed.getCivilization(civ.civName).units.getUnitById(unit.id)!!.currentTile.position.y)
+    }
 }

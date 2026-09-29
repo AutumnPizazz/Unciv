@@ -348,7 +348,12 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         }
 
         worldScreen.battleAnimationDeferred(attacker, damageToAttacker, defender, damageToDefender)
-        // CN simultaneous-turn bookkeeping: views don't expose unit identity, so resolve the model units
+        // CN simultaneous-turn bookkeeping: record the full state diff *before* the granular attack op
+        // below. Replay applies operations in recorded order, and the snapshot is only accepted when every
+        // component still matches one side of it; recording the granular op first would mutate the units
+        // so the snapshot matches neither side and gets rejected, silently dropping XP/kill/capture effects.
+        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
+        // Views don't expose unit identity, so resolve the model units
         val attackerUnit = (attacker as? MapUnitCombatantView)?.getUnitView()?.getUnit()
         val defenderUnit = (defender as? MapUnitCombatantView)?.getUnitView()?.getUnit()
         if (attackerUnit != null && defenderUnit != null)
@@ -364,7 +369,6 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
                     targetY = defenderUnit.currentTile.position.y
                 )
             )
-        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
         if (!attacker.canAttack()) hide()
     }
 

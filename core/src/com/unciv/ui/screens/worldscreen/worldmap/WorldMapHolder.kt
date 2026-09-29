@@ -308,6 +308,10 @@ class WorldMapHolder(
                 val defenderCombatant = attackableTile.getCombatant()
                 if (defenderCombatant != null)
                     worldScreen.battleAnimationDeferred(attackerCombatant, damageToAttacker, defenderCombatant, damageToDefender)
+                // CN: record the full state diff *before* the granular attack op below, so replay applies
+                // it to a clean state instead of rejecting it after the granular op mutated the units.
+                if (gameInfoBefore != null)
+                    worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
                 // CN: record the attack for simultaneous-turn replay
                 val target = (defenderCombatant as? MapUnitCombatantView)?.getUnitView()?.getUnit()
                 if (target != null) worldScreen.recordSimultaneousTurnOperation(
@@ -322,8 +326,6 @@ class WorldMapHolder(
                         targetY = target.currentTile.position.y
                     )
                 )
-                if (gameInfoBefore != null)
-                    worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
                 localShouldUpdate = true
             } else if (unitView.canReach(tileView)) {
                 /** ****** Right-click Move ****** */
@@ -403,6 +405,10 @@ class WorldMapHolder(
                     SoundPlayer.play(UncivSound.Whoosh)
                     if (selectedUnitView.getTile() != targetTileView)
                         selectedUnitView.trySetMoveToAction(targetTileView)
+                    // CN: record the full state diff *before* the granular move op below, so replay applies
+                    // it to a clean state instead of rejecting it after the granular op mutated the unit.
+                    if (gameInfoBefore != null)
+                        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
                     worldScreen.recordSimultaneousTurnOperation(
                         "unit.move",
                         SimultaneousTurnMoveResult(
@@ -416,8 +422,6 @@ class WorldMapHolder(
                             movement = selectedUnit.currentMovement
                         )
                     )
-                    if (gameInfoBefore != null)
-                        worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
                     if (selectedUnitView.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
                     worldScreen.shouldUpdate = true

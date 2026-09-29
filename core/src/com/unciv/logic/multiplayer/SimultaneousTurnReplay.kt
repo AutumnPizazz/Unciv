@@ -116,7 +116,14 @@ object SimultaneousTurnReplay {
         for (snapshot in result.tiles) {
             if (snapshot.after == null) return false
             val (x, y) = snapshot.key.split(',').map { it.toInt() }
-            json().readFields(gameInfo.tileMap[x, y], JsonReader().parse(snapshot.after))
+            val tile = gameInfo.tileMap[x, y]
+            // readFields only assigns fields present in the JSON, and Gdx does not serialize null
+            // fields. A unit that left this tile would therefore stay behind as a stale duplicate
+            // (and setTransients below would register it again). Clear the unit slots first.
+            tile.militaryUnit = null
+            tile.civilianUnit = null
+            tile.airUnits = ArrayList()
+            json().readFields(tile, JsonReader().parse(snapshot.after))
         }
         for (snapshot in result.religions) {
             if (snapshot.after == null) gameInfo.religions.remove(snapshot.key)

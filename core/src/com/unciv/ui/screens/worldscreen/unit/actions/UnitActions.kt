@@ -282,7 +282,11 @@ object UnitActions {
         if (unit.isExploring()) return
         yield(UnitAction(UnitActionType.Explore, 5f) {
             unit.action = UnitActionType.Explore.value
-            recordSimultaneousUnitAction(unit)
+            // Explore is a snapshotted action: the outer wrapper records a full state diff that
+            // already covers both this flag and the movement `automatedExplore` performs below.
+            // Recording a granular `unit.action` operation here too would be replayed first and
+            // leave the unit in a state that matches neither side of the snapshot, making the
+            // snapshot (and the exploration itself) get rejected at settlement.
             if (unit.hasMovement()) UnitAutomation.automatedExplore(unit)
         })
     }
