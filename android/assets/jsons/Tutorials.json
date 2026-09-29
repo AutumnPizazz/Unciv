@@ -635,7 +635,7 @@
             {"text":"Bindings mapped to their default keys are displayed in gray, those reassigned by you in white."},
             {"text":"Conflicting assignments are marked red. Conflicts can exist across categories, like World Screen / Unit Actions. Note that at the moment, the game does not prevent saving conflicting assignments, though the result may be unexpected."},
             {},
-            {"text":"For discussion about missing entries, see the linked github issue.","link":"https://github.com/yairm210/Unciv/issues/8862"}
+            {"text":"For discussion about missing entries, see the linked github issue.","link":"https://github.com/AutumnPizazz/Unciv/issues"}
         ]
     },
     {

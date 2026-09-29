@@ -17,7 +17,11 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Change: the keyboard-bindings tutorial now links to the UncivCN repository
+
 ### Mod author-facing
+
+- Change: the multiple-atlas validation warning now links to the UncivCN documentation
 
 ## 4.22.4.4 (build 1266)
 

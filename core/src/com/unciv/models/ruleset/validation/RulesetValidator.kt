@@ -857,7 +857,7 @@ open class RulesetValidator protected constructor(
         if (folder.child("game2.png").exists()){
             lines.add(
                 "Your images are being generated into multiple atlas files - this can cause lag for players. " +
-                        "Please consult https://yairm210.github.io/Unciv/Modders/Images-and-Audio/#rendering-performance on how to improve rendering performance.",
+                        "Please consult https://club.unciv.cn/Unciv/Modders/Images-and-Audio#rendering-performance on how to improve rendering performance.",
                 RulesetErrorSeverity.WarningOptionsOnly, sourceObject = null
             )
         }
