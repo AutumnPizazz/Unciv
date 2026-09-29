@@ -116,7 +116,18 @@ class WorldScreen(
      *  operation covers. Only kept for simultaneous-turn games, where settlement replays operations
      *  on the turn-start save instead of trusting the client's final state. */
     private val simultaneousTurnStartSnapshot: GameInfo? =
-        if (gameInfo.isSimultaneousTurnsMode()) gameInfo.clone() else null
+        if (gameInfo.isSimultaneousTurnsMode()) {
+            // The archive a client reloads mid-turn carries the counter from [GameInfo.nextTurnPolling],
+            // which resets it to 0. Operations this player already uploaded in this turn were numbered
+            // from that same value, and the server's (turn, playerId, sequence) dedup keeps the first
+            // one it saw - so restarting at 0 would silently discard every new operation. Jump the
+            // counter past anything earlier sessions can have used before recording this session.
+            gameInfo.nextSimultaneousOperationSequence = maxOf(
+                gameInfo.nextSimultaneousOperationSequence,
+                System.currentTimeMillis()
+            )
+            gameInfo.clone()
+        } else null
 
 
     /** Indicates it's the player's ([viewingCiv]) turn */

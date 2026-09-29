@@ -27,6 +27,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: an action that both moves a unit and changes other state is now replayed completely in simultaneous turns
 - Fix: a unit that leaves a tile is no longer left behind there during simultaneous-turn replay
 - Fix: a conflict between two players in one simultaneous turn no longer discards their other changes
+- Fix: resuming a simultaneous turn after a reload no longer drops actions taken afterwards
 
 ### Mod author-facing
 
