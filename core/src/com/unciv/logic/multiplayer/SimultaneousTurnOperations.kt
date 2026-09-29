@@ -287,12 +287,12 @@ object SimultaneousTurnOperations {
         }
 
     suspend fun download(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> {
+        // Both stores must be read, not just the atomic one. Upload falls back to the legacy
+        // whole-file store when the atomic append is rejected - a late-game turn can exceed the
+        // server's per-request limit (413) - and reading only the atomic store once it had any row
+        // made those operations invisible to everyone, so settlement silently dropped them.
         val atomicData = server.loadSimultaneousTurnOperations(gameId)
-        if (atomicData != null) return decode(atomicData)
-        return try {
-            decode(server.fileStorage().loadFileData(fileName(gameId)))
-        } catch (_: MultiplayerFileNotFoundException) {
-            emptyList()
-        }
+        val atomic = if (atomicData == null) emptyList() else decode(atomicData)
+        return merge(atomic, loadLegacyOperations(server, gameId))
     }
 }

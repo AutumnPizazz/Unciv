@@ -38,6 +38,7 @@ class SimultaneousTurnServerIntegrationTest {
     private val locks = ConcurrentHashMap<String, String>()
     private val gameId = "simultaneous-e2e"
     private var atomicOpsSupported = true
+    private var atomicAppendRejected = false
 
     companion object {
         /** Same headless adjustment the other multiplayer integration test needs. */
@@ -111,6 +112,24 @@ class SimultaneousTurnServerIntegrationTest {
     }
 
     @Test
+    fun operationsRejectedByTheAtomicAppendAreStillSeenByDownload() {
+        // Regression: a turn whose upload exceeds the server's per-request limit (413) falls back to
+        // the legacy whole-file store. Download used to return the atomic store as soon as it had any
+        // row, so those fallback operations were invisible to everyone and silently dropped.
+        val atomicOp = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}", 123)
+        val rejectedOp = SimultaneousTurnOperation(1, "playerB", 2, "unit.move", "{}", 456)
+        runBlocking {
+            assertTrue(server.appendSimultaneousTurnOperations(gameId, SimultaneousTurnOperations.encode(listOf(atomicOp))))
+            atomicAppendRejected = true
+            SimultaneousTurnOperations.upload(server, gameId, listOf(rejectedOp))
+            assertEquals(
+                setOf("playerA", "playerB"),
+                SimultaneousTurnOperations.download(server, gameId).map { it.playerId }.toSet()
+            )
+        }
+    }
+
+    @Test
     fun legacyUploadFallsBackAndKeepsBothClientsOperations() {
         atomicOpsSupported = false
         val a = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}")
@@ -170,6 +189,11 @@ class SimultaneousTurnServerIntegrationTest {
                 "POST" -> {
                     if (!atomicOpsSupported) {
                         exchange.sendResponseHeaders(404, -1)
+                        return
+                    }
+                    if (atomicAppendRejected) {
+                        // Mirrors server-ts rejecting an over-limit payload with HTTP 413.
+                        exchange.sendResponseHeaders(413, -1)
                         return
                     }
                     val incoming = SimultaneousTurnOperations.decode(

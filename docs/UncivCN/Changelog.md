@@ -18,6 +18,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 ### Player-facing
 
 - Change: the keyboard-bindings tutorial now links to the UncivCN repository
+- Fix: actions are no longer silently dropped when a simultaneous-turn upload is too large
 
 ### Mod author-facing
 
