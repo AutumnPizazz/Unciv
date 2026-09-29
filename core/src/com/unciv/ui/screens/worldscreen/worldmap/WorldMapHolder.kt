@@ -533,6 +533,12 @@ class WorldMapHolder(
     internal fun swapMoveUnitToTargetTile(selectedUnitView: MapUnitView, targetTileView: TileView) {
         val selectedUnit = selectedUnitView.getUnit()
         val previousPosition = selectedUnit.currentTile.position
+        // An escorted swap moves a pair of units, so its result cannot be re-derived from the recorded
+        // swap alone - replaying the movement rules could turn the swap into a plain move or move only
+        // half of the pair. Record the resulting state first, exactly like a normal move does.
+        val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
+            worldScreen.gameInfo.clone()
+        else null
         markUnitMoveTutorialComplete(selectedUnitView)
         selectedUnitView.trySwapMoveToTile(targetTileView, keepEscorting = true)
 
@@ -544,6 +550,8 @@ class WorldMapHolder(
 
         if (selectedUnitView.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
+        if (gameInfoBefore != null)
+            worldScreen.recordSimultaneousGameStateChange(UnitActionType.TriggerUnique, gameInfoBefore)
         worldScreen.recordSimultaneousTurnOperation(
             "unit.swap",
             SimultaneousTurnSwapResult(

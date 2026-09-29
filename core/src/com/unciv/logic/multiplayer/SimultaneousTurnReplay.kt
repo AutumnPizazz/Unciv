@@ -74,7 +74,9 @@ object SimultaneousTurnReplay {
             if (currentPosition.x != result.fromX || currentPosition.y != result.fromY) return false
             val destination = gameInfo.tileMap[result.toX, result.toY]
             if (unit.isEscorting()) {
-                // An escort pair swaps as a pair; that path still re-runs the movement rules.
+                // A swap recorded before the recorder captured a state snapshot carries no escort data,
+                // so the pair has to be re-derived from the movement rules. Swaps recorded by current
+                // clients are already applied by their snapshot and never reach this branch.
                 unit.movement.swapMoveToTile(destination, keepEscorting = true)
             } else {
                 val otherUnit = (if (unit.isCivilian()) destination.civilianUnit else destination.militaryUnit)

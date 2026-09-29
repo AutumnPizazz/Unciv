@@ -1,6 +1,11 @@
 package com.unciv.logic.multiplayer
 
 import com.unciv.json.json
+import com.unciv.logic.GameInfo
+import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.map.HexCoord
+import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.map.tile.Tile
 import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.GameParameters
 import com.unciv.testing.BaseTestRunner
@@ -943,5 +948,145 @@ class SimultaneousTurnOperationsTest {
             unrelatedFieldValue,
             authoritative.getCivilization(civ.civName).totalTurnTimeSeconds
         )
+    }
+
+    @Test
+    fun anEscortedSwapIsAppliedFromItsRecordedResultInsteadOfBeingReplayed() {
+        // A swap of an escort pair moves two units on each side, and the swap result alone cannot
+        // express that - so the recorder captures a state snapshot first, like a move does. Replaying
+        // both must reproduce the actor's state, with the snapshot carrying the pair.
+        val fixture = escortedSwapFixture()
+        val operations = listOf(fixture.snapshotOperation, fixture.swapOperation)
+        val authoritative = fixture.turnStart.clone()
+        authoritative.setTransients()
+
+        val failed = SimultaneousTurnReplay.replay(authoritative, operations)
+
+        assertEquals(emptyList<SimultaneousTurnOperation>(), failed)
+        assertNull(
+            "the recorded snapshot and swap must reproduce the swapped state exactly",
+            SimultaneousTurnOperations.diffUnrecordedState(
+                fixture.turnStart, fixture.actor, operations
+            )
+        )
+        assertEscortPairsSwapped(fixture, authoritative)
+    }
+
+    @Test
+    fun aSwapsResultSnapshotAloneReproducesBothEscortPairs() {
+        // This snapshot holding the whole pair is what makes the escort branch of applySwap a
+        // compatibility path for old operations rather than the way current swaps are settled.
+        val fixture = escortedSwapFixture()
+        val operations = listOf(fixture.snapshotOperation)
+        val authoritative = fixture.turnStart.clone()
+        authoritative.setTransients()
+
+        val failed = SimultaneousTurnReplay.replay(authoritative, operations)
+
+        assertEquals(emptyList<SimultaneousTurnOperation>(), failed)
+        assertNull(
+            "the snapshot alone must describe the whole pair swap",
+            SimultaneousTurnOperations.diffUnrecordedState(
+                fixture.turnStart, fixture.actor, operations
+            )
+        )
+        assertEscortPairsSwapped(fixture, authoritative)
+    }
+
+    @Test
+    fun aSwapRecordedWithoutASnapshotStillFallsBackToTheMovementRules() {
+        // Operations uploaded by older clients carry no snapshot, so re-deriving the pair is the only
+        // way to apply them - that path must keep working.
+        val fixture = escortedSwapFixture()
+        val authoritative = fixture.turnStart.clone()
+        authoritative.setTransients()
+
+        val failed = SimultaneousTurnReplay.replay(authoritative, listOf(fixture.swapOperation))
+
+        assertEquals(emptyList<SimultaneousTurnOperation>(), failed)
+        assertEscortPairsSwapped(fixture, authoritative)
+    }
+
+    /** One civ with an escorting military+settler pair, and a lone military unit next to it. */
+    private class EscortedSwapFixture(
+        val civ: Civilization,
+        val origin: Tile,
+        val destination: Tile,
+        val warrior: MapUnit,
+        val settler: MapUnit,
+        val swappedWarrior: MapUnit,
+        val turnStart: GameInfo,
+        val actor: GameInfo,
+        val snapshotOperation: SimultaneousTurnOperation,
+        val swapOperation: SimultaneousTurnOperation
+    )
+
+    private fun escortedSwapFixture(): EscortedSwapFixture {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        // A player can only swap with their own units, and the escort pair is the interesting case:
+        // it moves two units while the recorded swap result names only one of them.
+        val otherCiv = testGame.addCiv(testGame.ruleset.nations.values.elementAt(1), isPlayer = true)
+        testGame.addUnit("Warrior", otherCiv, testGame.getTile(0, 2))
+        val origin = testGame.getTile(0, 0)
+        val destination = testGame.getTile(1, 0)
+        val warrior = testGame.addUnit("Warrior", civ, origin)
+        val settler = testGame.addUnit("Settler", civ, origin)
+        warrior.startEscorting()
+        val swappedWarrior = testGame.addUnit("Warrior", civ, destination)
+        testGame.gameInfo.setTransients()
+
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+        // The acting client's own state, and the swap it performed on it.
+        val actor = turnStart.clone()
+        actor.setTransients()
+        val before = actor.clone()
+        before.setTransients()
+        val actorWarrior = actor.getCivilization(civ.civName).units.getUnitById(warrior.id)!!
+        actorWarrior.movement.swapMoveToTile(actor.tileMap[destination.position], keepEscorting = true)
+
+        return EscortedSwapFixture(
+            civ = civ, origin = origin, destination = destination,
+            warrior = warrior, settler = settler, swappedWarrior = swappedWarrior,
+            turnStart = turnStart, actor = actor,
+            snapshotOperation = SimultaneousTurnOperation(
+                type = "game.state",
+                payload = json().toJson(
+                    SimultaneousTurnOperations.captureGameStateChange(
+                        UnitActionType.TriggerUnique, before, actor
+                    )!!
+                )
+            ),
+            swapOperation = SimultaneousTurnOperation(
+                type = "unit.swap",
+                payload = json().toJson(
+                    SimultaneousTurnSwapResult(
+                        unitId = warrior.id, owner = civ.civName,
+                        fromX = origin.position.x, fromY = origin.position.y,
+                        toX = destination.position.x, toY = destination.position.y,
+                        health = actorWarrior.health, movement = actorWarrior.currentMovement
+                    )
+                )
+            )
+        )
+    }
+
+    private fun assertEscortPairsSwapped(fixture: EscortedSwapFixture, gameInfo: GameInfo) {
+        assertUnitOn(gameInfo, fixture.civ.civName, fixture.warrior.id, fixture.destination.position)
+        assertUnitOn(gameInfo, fixture.civ.civName, fixture.settler.id, fixture.destination.position)
+        assertUnitOn(gameInfo, fixture.civ.civName, fixture.swappedWarrior.id, fixture.origin.position)
+        val warrior = gameInfo.getCivilization(fixture.civ.civName).units.getUnitById(fixture.warrior.id)!!
+        assertTrue("the pair must still escort each other after the swap", warrior.isEscorting())
+        val settler = gameInfo.getCivilization(fixture.civ.civName).units.getUnitById(fixture.settler.id)!!
+        assertTrue("the civilian half of the pair must travel with it", settler.isEscorting())
+    }
+
+    private fun assertUnitOn(gameInfo: GameInfo, civName: String, unitId: Int, position: HexCoord) {
+        val unit = gameInfo.getCivilization(civName).units.getUnitById(unitId)
+        assertNotNull("unit $unitId must still exist", unit)
+        assertEquals("unit $unitId x", position.x, unit!!.currentTile.position.x)
+        assertEquals("unit $unitId y", position.y, unit.currentTile.position.y)
     }
 }

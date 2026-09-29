@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: an escorted swap in a simultaneous turn is now settled from its recorded result instead of being re-derived, so it can no longer turn into a different move
 - Fix: a simultaneous turn now tells you when it could not record part of your turn, instead of silently working around it
 - Fix: a simultaneous turn now also refuses an attack on a target another player already claimed this turn
 - Fix: a simultaneous turn now refuses an order whose target another player already claimed this turn, instead of silently dropping it at settlement
