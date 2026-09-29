@@ -6,6 +6,7 @@ import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -184,5 +185,107 @@ class SimultaneousTurnOperationsTest {
             .filter { it.id == unit.id }.toList()
         assertEquals("civ unit list must not keep a stale duplicate", 1, civUnits.size)
         assertEquals("civ unit movement", 0f, civUnits.single().currentMovement, 0.0001f)
+    }
+
+    @Test
+    fun settlementConvergesForIndependentPlayers() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civA = testGame.addCiv(testGame.ruleset.nations.values.elementAt(0), isPlayer = true)
+        val civB = testGame.addCiv(testGame.ruleset.nations.values.elementAt(1), isPlayer = true)
+        val unitA = testGame.addUnit("Warrior", civA, testGame.getTile(0, 0))
+        val unitB = testGame.addUnit("Warrior", civB, testGame.getTile(0, 1))
+        testGame.gameInfo.setTransients()
+
+        // Every client begins the simultaneous turn from this exact serialized state
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        // Player A performs a whole-state change (what automated movement records)
+        val beforeA = testGame.gameInfo.clone()
+        beforeA.setTransients()
+        unitA.currentMovement = 0f
+        civA.variables["aStep"] = 1
+        val opA = SimultaneousTurnOperation(
+            turn = 1, playerId = civA.civName, sequence = 1, type = "game.state",
+            payload = json().toJson(
+                SimultaneousTurnOperations.captureGameStateChange(UnitActionType.Automate, beforeA, testGame.gameInfo)!!
+            )
+        )
+
+        // Player B moves one of its own units
+        val fromB = unitB.currentTile.position
+        unitB.movement.moveToTile(testGame.getTile(1, 1))
+        assertEquals("move must reach the destination", 1, unitB.currentTile.position.x)
+        assertEquals("move must reach the destination", 1, unitB.currentTile.position.y)
+        val opB = SimultaneousTurnOperation(
+            turn = 1, playerId = civB.civName, sequence = 1, type = "unit.move",
+            payload = json().toJson(
+                SimultaneousTurnMoveResult(
+                    unitId = unitB.id, owner = civB.civName,
+                    fromX = fromB.x, fromY = fromB.y, toX = 1, toY = 1,
+                    hp = unitB.health, movement = unitB.currentMovement
+                )
+            )
+        )
+
+        val settlement = turnStart.clone()
+        settlement.setTransients()
+        val failed = SimultaneousTurnReplay.replay(settlement, listOf(opA, opB))
+        assertTrue("operations must replay: $failed", failed.isEmpty())
+
+        // Both players' effects coexist in the settled state
+        val settledA = settlement.getCivilization(civA.civName)
+        assertEquals(1, settledA.variables["aStep"])
+        assertEquals("settled unit movement", 0f, settledA.units.getUnitById(unitA.id)!!.currentMovement, 0.0001f)
+        assertEquals("no duplicate for player A", 1, settledA.units.getCivUnits().count { it.id == unitA.id })
+
+        val settledB = settlement.getCivilization(civB.civName).units.getUnitById(unitB.id)!!
+        assertEquals(1, settledB.currentTile.position.x)
+        assertEquals(1, settledB.currentTile.position.y)
+        assertEquals("no duplicate for player B", 1,
+            settlement.getCivilization(civB.civName).units.getCivUnits().count { it.id == unitB.id })
+
+        // Whole-state operations are idempotent: replaying one again must not duplicate units
+        assertTrue(SimultaneousTurnReplay.apply(settlement, opA))
+        assertEquals("re-applying a state snapshot must stay idempotent", 1,
+            settlement.getCivilization(civA.civName).units.getCivUnits().count { it.id == unitA.id })
+    }
+
+    @Test
+    fun everyOperationPayloadRoundTripsThroughTheSerializer() {
+        // libgdx Json instantiates via a no-arg constructor, so every parameter of these classes
+        // needs a default. Without that, deserialization throws and settlement silently drops the
+        // operation - this must never regress.
+        val move = json().fromJson(
+            SimultaneousTurnMoveResult::class.java,
+            json().toJson(SimultaneousTurnMoveResult(1, "civ", 2, 3, 4, 5, 100, 1.5f))
+        )
+        assertEquals(1, move.unitId)
+        assertEquals("civ", move.owner)
+        assertEquals(4, move.toX)
+        assertEquals(1.5f, move.movement, 0.0001f)
+
+        assertEquals(2, json().fromJson(
+            SimultaneousTurnAttackResult::class.java,
+            json().toJson(SimultaneousTurnAttackResult(1, 2, "civ", 100, 0, 4, 5))
+        ).targetId)
+
+        val action = json().fromJson(
+            SimultaneousTurnUnitActionResult::class.java,
+            json().toJson(SimultaneousTurnUnitActionResult(1, "civ", "Fortify", true, 100, 1f, true))
+        )
+        assertEquals("Fortify", action.action)
+        assertTrue(action.escorting)
+
+        assertEquals(1.5f, json().fromJson(
+            SimultaneousTurnSwapResult::class.java,
+            json().toJson(SimultaneousTurnSwapResult(1, "civ", 2, 3, 4, 5, 100, 1.5f))
+        ).movement, 0.0001f)
+
+        assertNotNull(json().fromJson(
+            SimultaneousTurnGameStateResult::class.java,
+            json().toJson(SimultaneousTurnGameStateResult())
+        ))
     }
 }

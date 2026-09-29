@@ -16,47 +16,50 @@ data class SimultaneousTurnOperation(
     val createdAtMillis: Long = System.currentTimeMillis()
 )
 
+// Note: every parameter needs a default value so Kotlin emits a no-arg constructor -
+// libgdx Json cannot instantiate these classes otherwise, which made settlement silently
+// drop every recorded unit operation (see the round-trip tests in SimultaneousTurnOperationsTest).
 data class SimultaneousTurnMoveResult(
-    val unitId: Int,
-    val owner: String,
-    val fromX: Int,
-    val fromY: Int,
-    val toX: Int,
-    val toY: Int,
-    val hp: Int,
-    val movement: Float
+    val unitId: Int = 0,
+    val owner: String = "",
+    val fromX: Int = 0,
+    val fromY: Int = 0,
+    val toX: Int = 0,
+    val toY: Int = 0,
+    val hp: Int = 0,
+    val movement: Float = 0f
 )
 
 data class SimultaneousTurnAttackResult(
-    val attackerId: Int,
-    val targetId: Int,
-    val targetOwner: String,
-    val attackerHp: Int,
-    val targetHp: Int,
-    val targetX: Int,
-    val targetY: Int
+    val attackerId: Int = 0,
+    val targetId: Int = 0,
+    val targetOwner: String = "",
+    val attackerHp: Int = 0,
+    val targetHp: Int = 0,
+    val targetX: Int = 0,
+    val targetY: Int = 0
 )
 
 
 data class SimultaneousTurnUnitActionResult(
-    val unitId: Int,
-    val owner: String,
-    val action: String?,
-    val due: Boolean,
-    val health: Int,
-    val movement: Float,
+    val unitId: Int = 0,
+    val owner: String = "",
+    val action: String? = null,
+    val due: Boolean = false,
+    val health: Int = 0,
+    val movement: Float = 0f,
     val escorting: Boolean = false
 )
 
 data class SimultaneousTurnSwapResult(
-    val unitId: Int,
-    val owner: String,
-    val fromX: Int,
-    val fromY: Int,
-    val toX: Int,
-    val toY: Int,
-    val health: Int,
-    val movement: Float
+    val unitId: Int = 0,
+    val owner: String = "",
+    val fromX: Int = 0,
+    val fromY: Int = 0,
+    val toX: Int = 0,
+    val toY: Int = 0,
+    val health: Int = 0,
+    val movement: Float = 0f
 )
 
 data class SimultaneousTurnComponentSnapshot(
