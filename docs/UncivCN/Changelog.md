@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Fix: trade offers you send, retract or decline are no longer at risk of being lost in a simultaneous turn
 - Fix: locking a tile, claiming a tile and toggling auto-lock no longer risk being lost in a simultaneous turn
 - Fix: actions a simultaneous-turn settlement could not apply are now listed instead of being lost silently
 - Fix: a simultaneous turn no longer stalls forever when a player quits; the host sets how long to wait

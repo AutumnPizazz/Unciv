@@ -96,7 +96,7 @@ class TradePopup(worldScreen: WorldScreen) : Popup(worldScreen) {
         }.row()
 
         addButton("Not this time.", 'n') {
-            tradeRequest.decline(viewingCiv)
+            runSimultaneousTradeChange { tradeRequest.decline(viewingCiv) }
             close()
             requestingCiv.addNotification("[${viewingCiv.civName}] has denied your trade request", NotificationCategory.Trade, viewingCiv.civName, NotificationIcon.Trade)
             worldScreen.shouldUpdate = true
@@ -116,8 +116,17 @@ class TradePopup(worldScreen: WorldScreen) : Popup(worldScreen) {
     }
 
     override fun close() {
-        viewingCiv.tradeRequests.remove(tradeRequest)
+        runSimultaneousTradeChange { viewingCiv.tradeRequests.remove(tradeRequest) }
         super.close()
+    }
+
+    /** Route a trade-request change through simultaneous-turn recording when a world screen is up,
+     *  so settlement replays it from this action instead of patching up a catch-all diff. Outside
+     *  simultaneous turns (or without a world screen) this is a plain call to [action]. */
+    private fun runSimultaneousTradeChange(action: () -> Unit) {
+        UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+            com.unciv.models.UnitActionType.TriggerUnique, action
+        ) ?: action()
     }
 
     class TradeThanksPopup(leaderIntroTable: LeaderIntroTable, worldScreen: WorldScreen) : Popup(worldScreen) {

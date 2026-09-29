@@ -1,5 +1,6 @@
 package com.unciv.view
 
+import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.trade.Trade
 import com.unciv.logic.trade.TradeLogic
@@ -38,15 +39,28 @@ class TradeView(private val civ: Civilization, private val otherCiv: Civilizatio
     // Actions - proposing
     fun tryProposeStagedTrade(): Boolean {
         if (tradeLogic.currentTrade.ourOffers.isEmpty() && tradeLogic.currentTrade.theirOffers.isEmpty()) return false
-        otherCiv.tradeRequests.add(TradeRequest(civ.civID, tradeLogic.currentTrade.reverse()))
-        civ.cache.updateCivResources()
+        runSimultaneousTradeChange {
+            otherCiv.tradeRequests.add(TradeRequest(civ.civID, tradeLogic.currentTrade.reverse()))
+            civ.cache.updateCivResources()
+        }
         return true
     }
 
     fun tryRetractOffer(): Boolean {
         if (!hasPendingOfferFromUs()) return false
-        otherCiv.tradeRequests.removeAll { it.requestingCiv == civ.civID }
-        civ.cache.updateCivResources()
+        runSimultaneousTradeChange {
+            otherCiv.tradeRequests.removeAll { it.requestingCiv == civ.civID }
+            civ.cache.updateCivResources()
+        }
         return true
+    }
+
+    /** Route a trade offer change through simultaneous-turn recording when a world screen is up, so
+     *  settlement replays it from this action instead of patching up a catch-all diff. Outside
+     *  simultaneous turns (or without a world screen) this is a plain call to [action]. */
+    private fun runSimultaneousTradeChange(action: () -> Unit) {
+        UncivGame.Current.worldScreen?.runAndRecordSimultaneousGameStateChange(
+            com.unciv.models.UnitActionType.TriggerUnique, action
+        ) ?: action()
     }
 }

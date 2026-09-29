@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.utils.Align
 import com.unciv.Constants
 import com.unciv.GUI
+import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.TechManager
 import com.unciv.models.UncivSound
@@ -417,7 +418,10 @@ class TechPickerScreen(
 
         if (civInfo.gameInfo.gameParameters.godMode && !civInfo.tech.isResearched(tech.name)
                 && selectedTech == previousSelectedTech) {
-            civInfo.tech.addTechnology(tech.name)
+            val addTechnology = { civInfo.tech.addTechnology(tech.name) }
+            UncivGame.Current.worldScreen
+                ?.runAndRecordSimultaneousGameStateChange(UnitActionType.TriggerUnique, addTechnology)
+                ?: addTechnology()
         }
 
         if (civTech.isResearched(tech.name) && !tech.isContinuallyResearchable()) {
