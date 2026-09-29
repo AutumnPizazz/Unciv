@@ -180,7 +180,12 @@ object SimultaneousTurnOperations {
         val expected = turnStart.clone()
         SimultaneousTurnReplay.replay(expected, operations)
         expected.setTransients()
-        return captureGameStateChange(UnitActionType.TriggerUnique, expected, current)
+        // Compare against a normalized copy too: some serialized fields are derived by setTransients(),
+        // and the live game may not have refreshed them after the last mutation. Without this the diff
+        // would report purely derived differences as unrecorded changes and bloat the operation list.
+        val normalizedCurrent = current.clone()
+        normalizedCurrent.setTransients()
+        return captureGameStateChange(UnitActionType.TriggerUnique, expected, normalizedCurrent)
     }
 
     /**
