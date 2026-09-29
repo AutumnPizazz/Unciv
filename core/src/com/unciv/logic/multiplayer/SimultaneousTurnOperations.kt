@@ -96,6 +96,16 @@ data class SimultaneousTurnGameStateResult(
     val religions: List<SimultaneousTurnComponentSnapshot> = ArrayList()
 )
 
+/**
+ * Thrown when a client's operations for a turn did not reach the server.
+ *
+ * The upload used to return normally when both the atomic append and the whole-file fallback lost
+ * the operations: the turn then settled without them and the player kept playing as if they had been
+ * recorded. The message is a translation key - the caller shows it to the player.
+ */
+class SimultaneousTurnOperationUploadException :
+    Exception("The server did not keep the actions of this turn")
+
 object SimultaneousTurnOperations {
     private val snapshottedUnitActions = setOf(
         UnitActionType.FoundCity,
@@ -483,6 +493,10 @@ object SimultaneousTurnOperations {
                 gameId
             )
         }
+        // Falling through here means the operations are not on the server. Returning normally would
+        // report a successful upload, so the turn would settle without this player's actions and they
+        // would never learn they were lost. Report it instead - the caller retries and tells the player.
+        throw SimultaneousTurnOperationUploadException()
     }
 
     private suspend fun loadLegacyOperations(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> =

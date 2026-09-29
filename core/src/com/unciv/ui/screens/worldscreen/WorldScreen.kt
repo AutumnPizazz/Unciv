@@ -284,6 +284,14 @@ class WorldScreen(
     private var simultaneousTurnWatcherJob: Job? = null
     /** Set once the server answers 404 for reservations, so older servers are not asked on every action. */
     private var simultaneousTurnReservationsUnsupported = false
+    /**
+     * Turn and reason of the last submission/settlement failure shown to the player. The pass retries
+     * every few seconds, so the same failure must not produce a new ToastPopup each time.
+     */
+    @Transient
+    private var simultaneousTurnFailureReportedForTurn = -1
+    @Transient
+    private var simultaneousTurnFailureReported: String? = null
 
     /** Countdown timer for polling multiplayer mode. */
     private var pollingTimerJob: Job? = null
@@ -1155,9 +1163,29 @@ class WorldScreen(
                     if (retryLocally) isPlayersTurn = true
                     shouldUpdate = true
                     nextTurnButton.update()
+                    reportSimultaneousTurnFailure(submittedTurn, ex, retryLocally)
                 }
             }
         }
+    }
+
+    /**
+     * Tells the player why their turn did not reach the server. Before this the failure was only
+     * logged: a rejected or lost upload looked exactly like a successful one, and the player kept
+     * playing as if their actions had been recorded.
+     */
+    private fun reportSimultaneousTurnFailure(turn: Int, ex: Exception, retryLocally: Boolean) {
+        val reason = (ex.message ?: ex.javaClass.simpleName).tr()
+        if (turn == simultaneousTurnFailureReportedForTurn && reason == simultaneousTurnFailureReported) return
+        simultaneousTurnFailureReportedForTurn = turn
+        simultaneousTurnFailureReported = reason
+        // Both halves are translated separately, and the reason is not put in square brackets: a server
+        // message can itself contain brackets, which a placeholder-bearing string cannot carry.
+        val lead = if (retryLocally)
+            "Could not submit your turn - please try again"
+        else
+            "Could not finish the turn"
+        ToastPopup("${lead.tr()}\n$reason", this, 5000)
     }
 
     /**

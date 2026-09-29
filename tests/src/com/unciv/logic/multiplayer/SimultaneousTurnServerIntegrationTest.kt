@@ -11,6 +11,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.BeforeClass
@@ -43,6 +44,8 @@ class SimultaneousTurnServerIntegrationTest {
     private val gameId = "simultaneous-e2e"
     private var atomicOpsSupported = true
     private var atomicAppendRejected = false
+    /** Simulates a legacy whole-file write that answers 200 without keeping the data. */
+    private var legacyOpsWritesDropped = false
     private var reservationsSupported = true
 
     companion object {
@@ -136,6 +139,19 @@ class SimultaneousTurnServerIntegrationTest {
     }
 
     @Test
+    fun anUploadLostByBothStoresIsReportedInsteadOfSilentlyDropped() {
+        // Regression: after three failed whole-file attempts the upload returned normally. The caller
+        // then believed the turn was submitted, so it settled without this player's actions and the
+        // player kept playing as if they had been recorded.
+        val op = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}", 123)
+        atomicAppendRejected = true
+        legacyOpsWritesDropped = true
+        assertThrows(SimultaneousTurnOperationUploadException::class.java) {
+            runBlocking { SimultaneousTurnOperations.upload(server, gameId, listOf(op)) }
+        }
+    }
+
+    @Test
     fun legacyUploadFallsBackAndKeepsBothClientsOperations() {
         atomicOpsSupported = false
         val a = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}")
@@ -218,7 +234,10 @@ class SimultaneousTurnServerIntegrationTest {
             val name = exchange.requestURI.path.removePrefix("/files/")
             when (exchange.requestMethod) {
                 "PUT" -> {
-                    storedFiles[name] = exchange.requestBody.readBytes().toString(Charsets.UTF_8)
+                    val body = exchange.requestBody.readBytes().toString(Charsets.UTF_8)
+                    // A dropped write still answers 200, so the client cannot tell from the response.
+                    if (legacyOpsWritesDropped && name.endsWith(".ops")) storedFiles.remove(name)
+                    else storedFiles[name] = body
                     exchange.sendResponseHeaders(200, -1)
                 }
                 "GET" -> {
