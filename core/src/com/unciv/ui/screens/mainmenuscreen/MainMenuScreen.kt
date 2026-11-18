@@ -30,7 +30,6 @@ import com.unciv.logic.map.MapType
 import com.unciv.logic.map.mapgenerator.MapGenerator
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSetupInfo
-import com.unciv.models.metadata.GameSettings.PlayerRegion
 import com.unciv.models.ruleset.Ruleset
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.tilesets.TileSetCache
@@ -299,48 +298,11 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         installerProgressBar = InstallerDownloadProgress()
         installerProgressBar.setPosition(stage.width / 2, versionTable.height + 12f, Align.bottom)
         stage.addActor(installerProgressBar)
-        askCommunityTermsIfNeeded()
-        askPlayerRegionIfNeeded()
-    }
-
-    /** 首次启动显示社区服务条款与年龄确认弹窗（见 [CommunityTermsPopup]）；已接受则跳过。 */
-    private fun askCommunityTermsIfNeeded() {
-        if (game.settings.hasAcceptedCommunityTerms) return
-        CommunityTermsPopup(stage).open()
-    }
-
-    /** 首次启动询问玩家所在地区，保存后开始检查更新。 */
-    private fun askPlayerRegionIfNeeded() {
-        if (game.settings.playerRegion.isNotEmpty()) {
+        if (game.settings.hasAcceptedCommunityTerms) {
             startUpdateCheck()
-            return
+        } else {
+            CommunityTermsPopup(stage, ::startUpdateCheck).open()
         }
-        val popup = Popup(stage)
-        popup.add("Select your region".toLabel(fontSize = Constants.headingFontSize, alignment = Align.center)).row()
-        popup.add(
-            ("Update checks use the community server in mainland China and your selected download source elsewhere.\n" +
-                "Installer downloads follow the download source in Options - Advanced.")
-                .toLabel(alignment = Align.center)
-        ).pad(10f).row()
-        val mainlandButton = PlayerRegion.MainlandChina.displayName.toTextButton()
-        mainlandButton.onClick {
-            game.settings.playerRegion = PlayerRegion.MainlandChina.name
-            game.settings.save()
-            popup.close()
-            startUpdateCheck()
-        }
-        val overseasButton = PlayerRegion.Overseas.displayName.toTextButton()
-        overseasButton.onClick {
-            game.settings.playerRegion = PlayerRegion.Overseas.name
-            game.settings.save()
-            popup.close()
-            startUpdateCheck()
-        }
-        val buttonRow = Table()
-        buttonRow.add(mainlandButton).pad(5f)
-        buttonRow.add(overseasButton).pad(5f)
-        popup.add(buttonRow).row()
-        popup.open()
     }
 
     private fun startBackgroundMapGeneration() {
@@ -409,7 +371,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         updateCheckJob?.cancel()
         var job: Job? = null
         job = Concurrency.run("UpdateCheck") {
-            val result = UpdateChecker.checkForUpdates()
+            val result = UpdateChecker.checkForUpdates(game.settings)
             launchOnGLThread {
                 if (job?.isCancelled == true) return@launchOnGLThread
                 onUpdateCheckResult(result)
@@ -437,20 +399,11 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
 
             is UpdateCheckResult.UpToDate -> Unit
 
-            is UpdateCheckResult.CheckFailed -> suggestSwitchingDownloadSource()
+            is UpdateCheckResult.CheckFailed -> ToastPopup(
+                "Could not check for updates. If this keeps happening, switch the download source in Options - Advanced.".tr(),
+                this
+            )
         }
-    }
-
-    /** When the update check fails. Mainland China players query the CN download server
-     *  (network problem, unrelated to the mod download source); everyone else queries the
-     *  download source, so the usual fix is switching that source.
-     *  Must be called on the GL thread. */
-    private fun suggestSwitchingDownloadSource() {
-        val message = if (PlayerRegion.fromStoredName(game.settings.playerRegion) == PlayerRegion.MainlandChina)
-            "Could not check for updates - the download server is unreachable. Check your network and try again later."
-        else
-            "Could not check for updates. If this keeps happening, switch the download source in Options - Advanced."
-        ToastPopup(message.tr(), this)
     }
 
     /** Fill [popup] with "new version available" content: current vs latest version and a download link */

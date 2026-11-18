@@ -142,9 +142,6 @@ object Constants {
     /** URL to the wiki, including trailing slash */
     const val wikiURL = "https://club.unciv.cn/Unciv/"
 
-    /** 为中国大陆玩家提供 GitHub Release 版本清单，供游戏内检查更新。 */
-    const val uncivDownloadServer = "https://unciv.civgo.top:30123"
-
     /** Chinese-language setting names (file names without .properties) */
     val chineseLanguages = setOf("Simplified_Chinese", "Traditional_Chinese")
 

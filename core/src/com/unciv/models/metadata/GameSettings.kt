@@ -76,18 +76,6 @@ class GameSettings {
     }
     var showLongPressIndicators = LongPressIndicatorSetting.Default
 
-    /** 玩家所在地区，用于选择版本查询服务（见 [playerRegion]）。 */
-    enum class PlayerRegion(val displayName: String) {
-        MainlandChina("Mainland China"),
-        Overseas("Outside mainland China");
-
-        companion object {
-            /** 从存储名解析，未识别时返回 null（表示未设置） */
-            @Readonly
-            fun fromStoredName(name: String) = entries.firstOrNull { it.name == name }
-        }
-    }
-
     var showZoomButtons = false
     var showUnitNotes = false
     var showTileNotes = false
@@ -177,17 +165,10 @@ class GameSettings {
     var turnsBetweenAutosaves = 1
     var allowRandomVariance = false
 
-    /** Download source for mods and installers. The [ModDownloadSource.Custom] entry uses [customModDownloadPrefix]. */
+    /** Download source for mods, update checks and installers. [ModDownloadSource.Custom] uses [customModDownloadPrefix]. */
     var modDownloadSource: String = ModDownloadSource.Official.name
     /** Custom URL prefix used when [modDownloadSource] is Custom, e.g. "https://gh-proxy.com/" */
     var customModDownloadPrefix = ""
-
-    /**
-     * 玩家所在地区 - name of a [PlayerRegion] entry, "" = 未设置（首次启动弹窗询问）。
-     * 中国大陆地区从社区服务查询新版本（[Constants.uncivDownloadServer]）。
-     * 其他地区从 [modDownloadSource] 指定的来源查询。
-     */
-    var playerRegion: String = ""
 
     @Readonly
     internal fun isRandomVarianceEnabled(isOnlineMultiplayer: Boolean) =

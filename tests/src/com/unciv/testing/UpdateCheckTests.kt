@@ -1,14 +1,19 @@
 package com.unciv.testing
 
+import com.sun.net.httpserver.HttpServer
+import com.unciv.json.json
+import com.unciv.logic.UpdateCheckResult
 import com.unciv.logic.UpdateChecker
 import com.unciv.logic.compareVersionStrings
 import com.unciv.logic.github.GithubAPI
 import com.unciv.logic.github.GithubAPI.ModDownloadSource
 import com.unciv.models.metadata.GameSettings
-import com.unciv.models.metadata.GameSettings.PlayerRegion
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.net.InetSocketAddress
 
 @RunWith(BaseTestRunner::class)
 class UpdateCheckTests {
@@ -118,23 +123,51 @@ class UpdateCheckTests {
     }
 
     @Test
-    fun installerLinksFollowTheDownloadSourceInEveryRegion() {
+    fun updateCheckAndInstallerLinksFollowTheDownloadSource() {
+        val updateUrl = "https://api.github.com/repos/AutumnPizazz/Unciv/releases/latest"
         val installerUrl = "https://github.com/AutumnPizazz/Unciv/releases/download/5.0.1.1/UncivCN-5.0.1.1.Apk"
         val settings = GameSettings()
-        for (region in listOf("", PlayerRegion.MainlandChina.name, PlayerRegion.Overseas.name)) {
-            settings.playerRegion = region
+        for (url in listOf(updateUrl, installerUrl)) {
             settings.modDownloadSource = ModDownloadSource.Official.name
-            Assert.assertEquals(installerUrl, GithubAPI.proxify(installerUrl, settings))
+            Assert.assertEquals(url, GithubAPI.proxify(url, settings))
 
             settings.modDownloadSource = ModDownloadSource.GhFastTop.name
-            Assert.assertEquals("https://ghfast.top/$installerUrl", GithubAPI.proxify(installerUrl, settings))
+            Assert.assertEquals("https://ghfast.top/$url", GithubAPI.proxify(url, settings))
+        }
+    }
+
+    @Test
+    fun updateCheckUsesTheSelectedMirrorEvenWithLegacyRegionSettings() {
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        val tag = "999.0.0"
+        server.createContext("/https://api.github.com/repos/AutumnPizazz/Unciv/releases/latest") { exchange ->
+            val body = """{"tag_name":"$tag"}""".toByteArray()
+            exchange.sendResponseHeaders(200, body.size.toLong())
+            exchange.responseBody.use { it.write(body) }
+        }
+        server.start()
+        try {
+            for (region in listOf("", "MainlandChina", "Overseas")) {
+                val settings = json().fromJson(GameSettings::class.java, """
+                    {
+                        "playerRegion": "$region",
+                        "modDownloadSource": "Custom",
+                        "customModDownloadPrefix": "http://127.0.0.1:${server.address.port}/"
+                    }
+                """.trimIndent())
+                val result = runBlocking { withTimeout(5000) { UpdateChecker.checkForUpdates(settings) } }
+                Assert.assertTrue("Unexpected update check result for legacy region '$region': $result",
+                    result is UpdateCheckResult.UpdateAvailable)
+                Assert.assertEquals(tag, (result as UpdateCheckResult.UpdateAvailable).latestRelease.tag_name)
+            }
+        } finally {
+            server.stop(0)
         }
     }
 
     @Test
     fun customMirrorPrefixesGitHubReleaseLinksExactlyOnce() {
         val settings = GameSettings().apply {
-            playerRegion = PlayerRegion.MainlandChina.name
             modDownloadSource = ModDownloadSource.Custom.name
             customModDownloadPrefix = " https://mirror.example/gh/// "
         }

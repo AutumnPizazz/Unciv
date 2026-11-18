@@ -24,9 +24,7 @@ import com.unciv.ui.screens.basescreen.BaseScreen
  * 接受结果写入 [com.unciv.models.metadata.GameSettings.hasAcceptedCommunityTerms] 并立即保存，
  * 之后不再弹出。
  */
-class CommunityTermsPopup(stageToShowOn: Stage) : Popup(stageToShowOn) {
-    constructor(screen: BaseScreen) : this(screen.stage)
-
+class CommunityTermsPopup(stageToShowOn: Stage, onAccepted: () -> Unit) : Popup(stageToShowOn) {
     init {
         addGoodSizedLabel("Community services terms", size = Constants.headingFontSize).colspan(2).row()
 
@@ -61,6 +59,7 @@ class CommunityTermsPopup(stageToShowOn: Stage) : Popup(stageToShowOn) {
         ) {
             UncivGame.Current.settings.hasAcceptedCommunityTerms = true
             UncivGame.Current.settings.save()
+            onAccepted()
         }.actor
         agreeButton.isEnabled = acceptCheckBox.isChecked
         acceptCheckBox.onChange { agreeButton.isEnabled = acceptCheckBox.isChecked }

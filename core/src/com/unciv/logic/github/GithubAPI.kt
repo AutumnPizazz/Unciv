@@ -77,7 +77,7 @@ object GithubAPI {
     }
 
     /**
-     * Where to fetch GitHub data, including mods and release installers.
+     * Where to fetch GitHub data for mods, update checks and release installers.
      *
      * Players with restricted access to github.com (e.g. in mainland China) can switch to a
      * public GitHub proxy/mirror - entries only prepend their [urlPrefix] to GitHub-hosted URLs,
@@ -237,8 +237,8 @@ object GithubAPI {
      *  of the game repository - goes through the active download source like everything else.
      *  @return parsed release or `null` if the request was unsuccessful
      */
-    suspend fun fetchLatestRelease(owner: String, repoName: String): LatestRelease? {
-        val resp = request { url(proxify("$baseUrl/repos/$owner/$repoName/releases/latest")) }
+    suspend fun fetchLatestRelease(owner: String, repoName: String, settings: GameSettings): LatestRelease? {
+        val resp = request { url(proxify("$baseUrl/repos/$owner/$repoName/releases/latest", settings)) }
         if (!resp.status.isSuccess()) return null
         return try {
             json().fromJson(LatestRelease::class.java, resp.bodyAsText())

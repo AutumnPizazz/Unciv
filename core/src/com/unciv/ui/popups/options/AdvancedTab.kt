@@ -18,7 +18,6 @@ import com.unciv.logic.github.GithubAPI
 import com.unciv.logic.map.HexCoord
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSettings
-import com.unciv.models.metadata.GameSettings.PlayerRegion
 import com.unciv.models.metadata.GameSettings.ScreenSize
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.translations.TranslationFileWriter
@@ -64,7 +63,6 @@ internal class AdvancedTab(
     optionsPopup: OptionsPopup
 ): OptionsPopupTab(optionsPopup) {
     override fun lateInitialize() {
-        addPlayerRegion()
         addDownloadSource()
 
         addSeparator()
@@ -106,21 +104,7 @@ internal class AdvancedTab(
 
     private var customPrefixRow: Table? = null
 
-    /** 选择检查更新时使用的服务。主菜单在首次启动时也会询问。 */
-    private fun addPlayerRegion() {
-        add("Player region".toLabel()).left().fillX()
-        val select = TranslatedSelectBox(
-            PlayerRegion.entries.map { it.displayName },
-            PlayerRegion.fromStoredName(settings.playerRegion)?.displayName ?: PlayerRegion.MainlandChina.displayName
-        )
-        add(select).pad(10f).minWidth(rightWidgetMinWidth).maxWidth(rightWidgetMinWidth).right().row()
-        select.onChange {
-            val newRegion = PlayerRegion.entries.first { it.displayName == select.selected.value }
-            settings.playerRegion = newRegion.name
-        }
-    }
-
-    /** Selects the GitHub download source for mods and installers. Stores the enum name. */
+    /** Selects the GitHub download source for mods, update checks and installers. Stores the enum name. */
     private fun addDownloadSource() {
         add("Download source".toLabel()).left().fillX()
         val select = TranslatedSelectBox(
