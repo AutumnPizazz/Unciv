@@ -3,7 +3,9 @@ package com.unciv.logic.automation.civilization
 import com.unciv.view.GameView
 import com.unciv.UncivGame
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.civilization.managers.TurnManager
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.models.metadata.GameSettings.AutomaticPromotions
 import com.unciv.models.metadata.GameSettings.PathfindingAlgorithm
 import com.unciv.models.metadata.GameSettings.PathfindingAlgorithm.AStarPathfinding
 import com.unciv.testing.TestGame
@@ -41,6 +43,30 @@ class NextTurnAutomationTest(private val algorithm: PathfindingAlgorithm) {
         civInfo = testGame.addCiv()
         val capital = testGame.addCity(civInfo, testGame.tileMap[0,0])
         assertTrue(capital.isCapital())
+    }
+
+    @Test
+    fun `local promotion preference does not change an online player's units at turn start`() {
+        val player = testGame.addCiv(isPlayer = true)
+        val warrior = testGame.addUnit("Warrior", player, testGame.tileMap[0,2])
+        warrior.promotions.XP = 10
+        assertTrue(warrior.promotions.canBePromoted())
+
+        val settings = UncivGame.Current.settings
+        val previousPreference = settings.automaticPromotions
+        try {
+            settings.automaticPromotions = AutomaticPromotions.ForAllUnits
+            testGame.gameInfo.gameParameters.isOnlineMultiplayer = true
+            TurnManager(player).startTurn()
+            assertTrue(warrior.promotions.promotions.isEmpty())
+            assertTrue(warrior.promotions.canBePromoted())
+
+            testGame.gameInfo.gameParameters.isOnlineMultiplayer = false
+            TurnManager(player).startTurn()
+            assertFalse(warrior.promotions.promotions.isEmpty())
+        } finally {
+            settings.automaticPromotions = previousPreference
+        }
     }
 
     @Test

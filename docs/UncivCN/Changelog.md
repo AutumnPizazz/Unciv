@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Multiplayer turns no longer apply another player's automatic promotion preference.
 - Added save search and fixes from Unciv 5.0.1.
 - UncivSrv now runs on Go. [See the upgrade guide.](../Developers/Building-Locally.md#uncivsrv-go-server)
 - Multiplayer restart votes now work on UncivSrv and survive reconnects.

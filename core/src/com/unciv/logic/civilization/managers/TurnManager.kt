@@ -96,7 +96,10 @@ class TurnManager(val civInfo: Civilization) {
         val promotableUnits = civInfo.units.getCivUnits()
             .filter { it.promotions.canBePromoted() }
             .toList()
-        if (UncivGame.Current.settings.automaticPromotions == GameSettings.AutomaticPromotions.ForAllUnits) {
+        // In multiplayer another player's client may be starting this turn.
+        if (!civInfo.gameInfo.gameParameters.isOnlineMultiplayer &&
+            UncivGame.Current.settings.automaticPromotions == GameSettings.AutomaticPromotions.ForAllUnits
+        ) {
             val gameView = GameView(civInfo.gameInfo, civInfo)
             for (unit in promotableUnits) NextTurnAutomation.applyPromotions(gameView.getMapUnitView(unit))
         } else if (promotableUnits.size <= 3) {
