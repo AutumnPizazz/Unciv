@@ -309,8 +309,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         CommunityTermsPopup(stage).open()
     }
 
-    /** 首次启动询问玩家所在地区（决定更新下载走的服务器）；已设置则直接检查更新。
-     *  弹窗会说明两个选项的含义，玩家选完后保存设置并开始检查更新。 */
+    /** 首次启动询问玩家所在地区，保存后开始检查更新。 */
     private fun askPlayerRegionIfNeeded() {
         if (game.settings.playerRegion.isNotEmpty()) {
             startUpdateCheck()
@@ -319,9 +318,8 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         val popup = Popup(stage)
         popup.add("Select your region".toLabel(fontSize = Constants.headingFontSize, alignment = Align.center)).row()
         popup.add(
-            "This decides which server your in-game updates download from:\n" +
-                "- Mainland China: downloads come from the official CN server - recommended if github.com is often unreachable in your network.\n" +
-                "- Outside mainland China: downloads follow the source you set in Options - Advanced (GitHub by default)."
+            ("Update checks use the community server in mainland China and your selected download source elsewhere.\n" +
+                "Installer downloads follow the download source in Options - Advanced.")
                 .toLabel(alignment = Align.center)
         ).pad(10f).row()
         val mainlandButton = PlayerRegion.MainlandChina.displayName.toTextButton()
@@ -406,7 +404,7 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
     }
 
     //region Update check
-    /** Query the game repository's latest GitHub release in the background - goes through the active download source */
+    /** Query the game repository's latest release in the background. */
     private fun startUpdateCheck() {
         updateCheckJob?.cancel()
         var job: Job? = null

@@ -3,6 +3,9 @@ package com.unciv.testing
 import com.unciv.logic.UpdateChecker
 import com.unciv.logic.compareVersionStrings
 import com.unciv.logic.github.GithubAPI
+import com.unciv.logic.github.GithubAPI.ModDownloadSource
+import com.unciv.models.metadata.GameSettings
+import com.unciv.models.metadata.GameSettings.PlayerRegion
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -115,30 +118,32 @@ class UpdateCheckTests {
     }
 
     @Test
-    fun isReleaseInstallerUrl_matchesReleaseDownloadsOnly() {
-        // GitHub release 安装包下载 URL 匹配；GitHub API、模组 zip、发布页不匹配
-        Assert.assertTrue(GithubAPI.isReleaseInstallerUrl(
-            "https://github.com/AutumnPizazz/Unciv/releases/download/4.21.10.1/UncivCN-4.21.10.1.Apk"
-        ))
-        Assert.assertFalse(GithubAPI.isReleaseInstallerUrl(
-            "https://api.github.com/repos/AutumnPizazz/Unciv/releases/latest"
-        ))
-        Assert.assertFalse(GithubAPI.isReleaseInstallerUrl(
-            "https://github.com/SomeAuthor/SomeMod/archive/refs/heads/master.zip"
-        ))
+    fun installerLinksFollowTheDownloadSourceInEveryRegion() {
+        val installerUrl = "https://github.com/AutumnPizazz/Unciv/releases/download/5.0.1.1/UncivCN-5.0.1.1.Apk"
+        val settings = GameSettings()
+        for (region in listOf("", PlayerRegion.MainlandChina.name, PlayerRegion.Overseas.name)) {
+            settings.playerRegion = region
+            settings.modDownloadSource = ModDownloadSource.Official.name
+            Assert.assertEquals(installerUrl, GithubAPI.proxify(installerUrl, settings))
+
+            settings.modDownloadSource = ModDownloadSource.GhFastTop.name
+            Assert.assertEquals("https://ghfast.top/$installerUrl", GithubAPI.proxify(installerUrl, settings))
+        }
     }
 
     @Test
-    fun cnServerUrlFor_mapsReleaseDownloads() {
-        // GitHub release 安装包 URL → CN 社区下载服务器 /dl/<tag>/<file>
-        Assert.assertEquals(
-            "https://unciv.civgo.top:30123/dl/4.21.10.1/UncivCN-4.21.10.1.Apk",
-            GithubAPI.cnServerUrlFor(
-                "https://github.com/AutumnPizazz/Unciv/releases/download/4.21.10.1/UncivCN-4.21.10.1.Apk"
-            )
-        )
-        // 非安装包 URL 原样返回
-        val apiUrl = "https://api.github.com/repos/AutumnPizazz/Unciv/releases/latest"
-        Assert.assertEquals(apiUrl, GithubAPI.cnServerUrlFor(apiUrl))
+    fun customMirrorPrefixesGitHubReleaseLinksExactlyOnce() {
+        val settings = GameSettings().apply {
+            playerRegion = PlayerRegion.MainlandChina.name
+            modDownloadSource = ModDownloadSource.Custom.name
+            customModDownloadPrefix = " https://mirror.example/gh/// "
+        }
+        val release = "https://github.com/AutumnPizazz/Unciv/releases/tag/5.0.1.1"
+        val installer = "https://github.com/AutumnPizazz/Unciv/releases/download/5.0.1.1/UncivCN-5.0.1.1.msi"
+        for (url in listOf(release, installer)) {
+            val mirrored = "https://mirror.example/gh/$url"
+            Assert.assertEquals(mirrored, GithubAPI.proxify(url, settings))
+            Assert.assertEquals(mirrored, GithubAPI.proxify(mirrored, settings))
+        }
     }
 }

@@ -106,8 +106,7 @@ internal class AdvancedTab(
 
     private var customPrefixRow: Table? = null
 
-    /** 玩家所在地区 - 决定游戏内更新下载走的服务器（中国大陆 → CN 官方下载服务器，其他 → 玩家设置的下载源）
-     *  首次启动主菜单会弹窗询问；此处可随时修改。 */
+    /** 选择检查更新时使用的服务。主菜单在首次启动时也会询问。 */
     private fun addPlayerRegion() {
         add("Player region".toLabel()).left().fillX()
         val select = TranslatedSelectBox(
@@ -121,9 +120,7 @@ internal class AdvancedTab(
         }
     }
 
-    /** Lets players with restricted access to github.com switch the download source to a mirror/proxy.
-     *  The SelectBox shows the source display names ("GitHub (official)", "gh-proxy.com", ...),
-     *  while the enum name is stored in the settings. */
+    /** Selects the GitHub download source for mods and installers. Stores the enum name. */
     private fun addDownloadSource() {
         add("Download source".toLabel()).left().fillX()
         val select = TranslatedSelectBox(

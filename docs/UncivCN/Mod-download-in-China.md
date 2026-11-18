@@ -8,7 +8,7 @@
 
 Almost all Unciv mods are published on GitHub, and the in-game mod browser searches, previews and downloads mods through GitHub's services. Access to GitHub from mainland China is unreliable: the mod list often fails to load and downloads frequently break. This makes installing mods very hard for players in China.
 
-UncivCN ships a built-in **download source** switch to solve exactly this problem. The source is not only used for the mod list, preview images and downloads - the in-game update check (querying the latest GitHub release) goes through the same source.
+UncivCN's **Download source** setting applies to the mod list, preview images, mod downloads and GitHub Release installers.
 
 ## In-game solution: switch the download source
 
@@ -43,7 +43,9 @@ Only GitHub-hosted URLs (github.com, raw.githubusercontent.com, avatars.githubus
 
 ## Game update check
 
-On entering the main menu, the game queries the latest release of the UncivCN repository in the background (also through the active download source). When a newer version exists, the version label at the bottom of the main menu shows a "New version available" hint; clicking the version label shows the new version info and a link to the download page. If the check fails due to network problems, a confirmation popup offers a one-click switch to a mirror download source (same interaction as the mod list failure).
+The main menu checks for new releases in the background. With the region set to Mainland China, the game checks the community version manifest. For other regions, it checks GitHub through the selected download source.
+
+When you see **New version available**, click the version label to download your platform's installer or open the release page. Both use the download source selected in **Options → Advanced**. Choose **GitHub (official)** to connect directly or select a mirror to use it for GitHub Release links.
 
 ## Manual way: paste an accelerated link
 

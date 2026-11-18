@@ -17,6 +17,7 @@ outline: [2, 2]
 
 ### 玩家可感知
 
+- 新版本安装包按所选下载源从 GitHub Release 下载。
 - 在线联机仅支持社区 Go 服务器。
 - UncivCN 停止发布 Go 服务端 Docker 镜像和 Release 附件。
 - 补全新增界面、联机提示和规则的简体中文。

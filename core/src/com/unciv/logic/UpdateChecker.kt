@@ -27,17 +27,13 @@ object UpdateChecker {
     /** Whether release [tag] is newer than the currently running game version */
     fun isNewerThanCurrent(tag: String) = isNewerThan(tag, UncivGame.VERSION.text)
 
-    /** 玩家是否应使用 CN 官方下载服务器：地区设置为「中国大陆」；未设置时按中国大陆处理（宁慢勿失败） */
+    /** 中国大陆玩家通过社区服务查询新版本，未设置地区时也使用该服务。 */
     private fun shouldUseCnServer() =
         PlayerRegion.fromStoredName(UncivGame.Current.settings.playerRegion) != PlayerRegion.Overseas
 
     /**
-     * Query the latest release of the game repository.\n
-     * Routing follows the player's region setting ([GameSettings.playerRegion], asked on first
-     * launch): mainland China players query the CN download server's `/api/downloads/latest.json`
-     * (same schema as the GitHub "latest release" API,
-     * github.com is unreliable there); everyone else queries the GitHub API through the active
-     * download source like mod downloads do.
+     * Query the game's latest release. Players in mainland China use the community manifest at
+     * `/api/downloads/latest.json`. Other players query GitHub through their selected download source.
      */
     suspend fun checkForUpdates(): UpdateCheckResult {
         val release = try {

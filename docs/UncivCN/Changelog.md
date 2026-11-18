@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- New version installers use your selected GitHub download source.
 - Online multiplayer now connects only to the community Go server.
 - UncivCN no longer publishes Go server Docker images or GitHub Release downloads.
 - Added Simplified Chinese translations for new menus, multiplayer messages, and rules.
