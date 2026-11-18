@@ -17,7 +17,6 @@ import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.files.GameSetupSaver
 import com.unciv.logic.files.MapSaver
 import com.unciv.logic.map.MapGeneratedMainType
-import com.unciv.logic.multiplayer.Multiplayer
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSetupClipboard
@@ -345,8 +344,7 @@ class NewGameScreen(
 
         if (gameSetupInfo.gameParameters.isOnlineMultiplayer) {
             if (!checkConnectionToMultiplayerServer())
-                return if (Multiplayer.usesCustomServer()) "Couldn't connect to Multiplayer Server!"
-                    else "Couldn't connect to Dropbox!"
+                return "Couldn't connect to Multiplayer Server!"
 
             for (player in gameSetupInfo.gameParameters.players.filter { it.playerType == PlayerType.Human }) {
                 if (!(IdChecker.checkAndReturnPlayerUuid(player.playerId)?.playerID?.isUUID() ?: false)) {
@@ -463,8 +461,7 @@ class NewGameScreen(
 
     private fun checkConnectionToMultiplayerServer(): Boolean {
         return try {
-            val multiplayerServer = UncivGame.Current.settings.multiplayer.getServer()
-            val u = URI(if (Multiplayer.usesDropbox()) "https://content.dropboxapi.com" else multiplayerServer).toURL()
+            val u = URI(Constants.uncivMultiplayerServer).toURL()
             val con = u.openConnection()
             con.connectTimeout = 3000
             con.connect()
@@ -545,7 +542,7 @@ class NewGameScreen(
         }
 
         if (gameSetupInfo.gameParameters.isOnlineMultiplayer) {
-            newGame.isUpToDate = true // So we don't try to download it from dropbox the second after we upload it - the file is not yet ready for loading!
+            newGame.isUpToDate = true // Avoid downloading the save again immediately after uploading it.
             try {
                 game.onlineMultiplayer.createGame(newGame)
                 game.files.autosaves.requestAutoSave(newGame)

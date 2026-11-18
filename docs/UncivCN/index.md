@@ -18,7 +18,7 @@
 
 | Category    | Features                                                                                                                                                                                                                             |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Multiplayer | [Polling multiplayer](./Polling-multiplayer), default server (unciv.civgo.top, community-run), save-scumming RNG disabled online                                                                                                                        |
+| Multiplayer | [Polling multiplayer](./Polling-multiplayer), community Go server, save-scumming RNG disabled online                                                                                                                        |
 | Maps        | Three mirrored map modes, wraparound (ring) maps, no radius parity restriction                                                                                                                                                       |
 | Modding     | [Lua scripting](./Features#lua-scripting-since-4-20-8-2-continuously-extended), [MergeAction extended JSON](./Features#mergeaction-extended-json-system-4-20-7-3), tile-claim, [mirror mod download source](./Mod-download-in-China) |
 | UI          | Unit pins / map pins, auto-lock citizens button, export/import game settings to clipboard                                                                                                                                            |
@@ -34,7 +34,7 @@ Details in [Features](./Features) and [Differences vs upstream](./Differences).
 ./gradlew desktop:dist       # build JAR → desktop/build/libs/Unciv.jar
 ```
 
-For server options, see the [multiplayer guide](../Other/Multiplayer.md#hosting-a-multiplayer-server).
+See the [multiplayer guide](../Other/Multiplayer.md) for connection steps.
 
 Android builds need `local.properties` (`sdk.dir`) or the `ANDROID_HOME` environment variable.
 

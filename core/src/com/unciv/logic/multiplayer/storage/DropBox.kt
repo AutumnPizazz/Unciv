@@ -1,7 +1,6 @@
 package com.unciv.logic.multiplayer.storage
 
 import com.unciv.json.json
-import com.unciv.ui.components.extensions.UncivDateFormat.parseDate
 import com.unciv.utils.Log
 import com.unciv.utils.debug
 import java.io.BufferedReader
@@ -10,12 +9,12 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URI
-import java.util.Date
 import java.util.Timer
 import kotlin.concurrent.timer
 
 
-object DropBox: FileStorage {
+/** Downloads the optional music pack from its upstream host. */
+object DropBox {
     private var remainingRateLimitSeconds = 0
     private var rateLimitTimer: Timer? = null
 
@@ -68,50 +67,6 @@ object DropBox: FileStorage {
         }
     }
 
-    // This is the location in Dropbox only
-    private fun getLocalGameLocation(fileName: String) = "/MultiplayerGames/$fileName"
-
-    override fun deleteFile(fileName: String) {
-        dropboxApi(
-            url="https://api.dropboxapi.com/2/files/delete_v2",
-            data="{\"path\":\"${getLocalGameLocation(fileName)}\"}",
-            contentType="application/json"
-        )
-    }
-
-    override fun getFileMetaData(fileName: String): FileMetaData {
-        val stream = dropboxApi(
-            url="https://api.dropboxapi.com/2/files/get_metadata",
-            data="{\"path\":\"${getLocalGameLocation(fileName)}\"}",
-            contentType="application/json"
-        )!!
-        val reader = BufferedReader(InputStreamReader(stream, Charsets.UTF_8))
-        return json().fromJson(MetaData::class.java, reader.readText())
-    }
-
-    override fun saveFileData(fileName: String, data: String) {
-        dropboxApi(
-            url="https://content.dropboxapi.com/2/files/upload",
-            data=data,
-            contentType="application/octet-stream",
-            dropboxApiArg = """{"path":"${getLocalGameLocation(fileName)}","mode":{".tag":"overwrite"}}"""
-        )!!
-    }
-
-    override fun loadFileData(fileName: String): InputStream = downloadFile(getLocalGameLocation(fileName))
-
-    override fun authenticate(userId: String, password: String): Boolean {
-        throw NotImplementedError()
-    }
-
-    override fun checkAuthStatus(userId: String, password: String): AuthStatus {
-        throw NotImplementedError()
-    }
-
-    override fun setPassword(newPassword: String): Boolean {
-        throw NotImplementedError()
-    }
-
     fun downloadFile(fileName: String): InputStream {
         val response = dropboxApi("https://content.dropboxapi.com/2/files/download",
                 contentType = "text/plain", dropboxApiArg = "{\"path\":\"$fileName\"}")
@@ -133,16 +88,6 @@ object DropBox: FileStorage {
                 rateLimitTimer?.cancel()
         }
         throw FileStorageRateLimitReached(remainingRateLimitSeconds)
-    }
-
-    @Suppress("PropertyName")  // and don't make that private or this suppress won't work
-    private class MetaData: FileMetaData {
-//        var name = ""
-        var server_modified = ""
-
-        override fun getLastModified(): Date {
-            return server_modified.parseDate()
-        }
     }
 
     @Suppress("PropertyName")

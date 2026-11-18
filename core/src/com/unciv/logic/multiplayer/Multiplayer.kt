@@ -1,6 +1,5 @@
 package com.unciv.logic.multiplayer
 
-import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
@@ -76,9 +75,7 @@ private const val RESTART_TAKEOVER_TIMEOUT_MS = 2 * 60 * 1000L
  *
  * See the file of [com.unciv.logic.multiplayer.HasMultiplayerGameName] for all available [EventBus] events.
  */
-class Multiplayer {
-    /** Handles SERVER DATA only */
-    val multiplayerServer = MultiplayerServer()
+class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()) {
     /** Handles LOCAL FILES only */
     val multiplayerFiles = MultiplayerFiles()
 
@@ -119,8 +116,7 @@ class Multiplayer {
                 val preview = currentGame?.preview
                 // Simultaneous games must keep refreshing so clients notice the turn advance and
                 // adopt the settled snapshot; WorldScreen discards previews that don't advance the turn.
-                if (currentGame != null && (usesCustomServer() || preview == null
-                        || preview.gameParameters.simultaneousTurns == true || !preview.isUsersTurn())) {
+                if (currentGame != null) {
                     throttle(lastCurGameRefresh, multiplayerSettings.currentGameRefreshDelay, {}, {}) { currentGame.requestUpdate() }
                 }
 
@@ -187,7 +183,7 @@ class Multiplayer {
         val gamePreview: GameInfoPreview = try {
             multiplayerServer.tryDownloadGamePreview(gameId)
         } catch (_: MultiplayerFileNotFoundException) {
-            // Game is so old that a preview could not be found on dropbox lets try the real gameInfo instead
+            // Older games may have no preview, so try the full save instead.
             multiplayerServer.tryDownloadGame(gameId).asPreview()
         }
         multiplayerFiles.addGame(gamePreview, saveFileName)
@@ -519,8 +515,8 @@ class Multiplayer {
 
     /**
      * Broadcasts a restart vote signal through the WebSocket chat channel. Best-effort only:
-     * the authoritative state is always re-read from the server files, so servers without chat
-     * support (e.g. Dropbox) simply fall back to polling.
+     * the authoritative state is always re-read from the server files, so clients can fall back
+     * to polling when chat is unavailable.
      */
     private fun broadcastRestartVoteSignal(gameId: String, type: String) {
         val playerId = UncivGame.Current.settings.multiplayer.getUserId()
@@ -629,10 +625,6 @@ class Multiplayer {
                 || preview1.turns == preview2.turns && preview1.currentPlayer != preview2.currentPlayer
     }
 
-    companion object {
-        fun usesCustomServer() = UncivGame.Current.settings.multiplayer.getServer() != Constants.dropboxMultiplayerServer
-        fun usesDropbox() = !usesCustomServer()
-    }
 }
 
 /**

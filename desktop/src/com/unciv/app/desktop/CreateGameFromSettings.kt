@@ -1,6 +1,7 @@
 package com.unciv.app.desktop
 
 import com.badlogic.gdx.files.FileHandle
+import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.json.fromJsonFile
 import com.unciv.json.json
@@ -8,9 +9,9 @@ import com.unciv.logic.GameStarter
 import com.unciv.logic.map.MapParameters
 import com.unciv.logic.multiplayer.storage.AuthStatus
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
-import com.unciv.logic.multiplayer.storage.UncivServerFileStorage
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.metadata.GameSetupInfo
+import com.unciv.models.translations.tr
 
 /**
  * Configuration schema for creating games from JSON files.
@@ -66,23 +67,24 @@ object CreateGameFromSettings {
      */
     private fun setupMultiplayer(gameParameters: GameParameters, serverPassword: String) {
         val gameSettings = UncivGame.Current.settings
-        val multiplayerServerUrl = gameParameters.multiplayerServerUrl.toString()
+        val previousServerUrl = gameParameters.multiplayerServerUrl
+        require(previousServerUrl.isNullOrBlank() || previousServerUrl.trimEnd('/') == Constants.uncivMultiplayerServer) {
+            "Set the multiplayer server in the game configuration to [${Constants.uncivMultiplayerServer}].".tr()
+        }
+        gameParameters.multiplayerServerUrl = Constants.uncivMultiplayerServer
         val userId = gameParameters.players[0].playerId
 
-        gameSettings.multiplayer.setServer(multiplayerServerUrl)
         gameSettings.multiplayer.setUserId(userId)
         gameSettings.multiplayer.setCurrentServerPassword(serverPassword)
 
-        println("Multiplayer setup: server=$multiplayerServerUrl, userId=$userId")
+        println("Multiplayer setup: server=${Constants.uncivMultiplayerServer}, userId=$userId")
 
-        UncivServerFileStorage.serverUrl = multiplayerServerUrl
-        UncivServerFileStorage.timeout = 30000
-
-        val authStatus = UncivServerFileStorage.checkAuthStatus(userId, serverPassword)
+        val storage = MultiplayerServer().fileStorage()
+        val authStatus = storage.checkAuthStatus(userId, serverPassword)
         when (authStatus) {
             AuthStatus.UNREGISTERED -> {
                 println("User not registered, authenticating...")
-                UncivServerFileStorage.authenticate(userId, serverPassword)
+                storage.authenticate(userId, serverPassword)
                 println("Authentication successful")
             }
             AuthStatus.VERIFIED -> {

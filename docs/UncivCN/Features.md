@@ -61,9 +61,9 @@ Adds a **polling multiplayer** mode on top of the dynamic-turn system: the same 
 
 Full mechanics: [Polling multiplayer](./Polling-multiplayer).
 
-## Default server (4.21.0.1)
+## Multiplayer server
 
-The default multiplayer server is `https://unciv.civgo.top:30123` (community-run, not an official server).
+Online multiplayer connects to the community's closed-source Go server at `https://unciv.civgo.top:30123`.
 
 ## Save version isolation (4.20.17.2)
 

@@ -116,7 +116,7 @@ Interestingly, [Civilization is a registered trademark](https://tsdr.uspto.gov/#
 
 ## Run with Docker [![Docker](https://github.com/yairm210/Unciv/actions/workflows/dockerPublish.yml/badge.svg)](https://github.com/yairm210/Unciv/actions/workflows/dockerPublish.yml)
 
-This image runs the desktop client. UncivCN has ended Docker and GitHub Release distribution for the closed-source Go multiplayer server.
+This image runs the desktop client. UncivCN online multiplayer connects only to the community's closed-source Go server. See the [multiplayer guide](docs/Other/Multiplayer.md).
 
 `docker run -d -p 6901:6901 -p 5901:5901 ghcr.io/yairm210/unciv`
 Then go to http://localhost:6901/vnc.html?password=headless

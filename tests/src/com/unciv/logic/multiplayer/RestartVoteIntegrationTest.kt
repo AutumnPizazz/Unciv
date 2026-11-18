@@ -2,6 +2,7 @@ package com.unciv.logic.multiplayer
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.unciv.UncivGame
@@ -96,11 +97,9 @@ class RestartVoteIntegrationTest {
         UncivGame.Current = UncivGame()
         UncivGame.Current.files = UncivFiles(Gdx.files)
         UncivGame.Current.settings = com.unciv.models.metadata.GameSettings().apply {
-            multiplayer.setServer(serverUrl)
             multiplayer.setUserId(playerA)
         }
-        multiplayer = Multiplayer()
-        multiplayer.multiplayerGameUpdater.cancel() // no background polling in tests
+        multiplayer = createTestClient()
 
         game = createOnlineGame(listOf(playerA, playerB))
         UncivGame.Current.gameInfo = game
@@ -179,6 +178,22 @@ class RestartVoteIntegrationTest {
 
     /** Runs a test body with the coroutine scope the Multiplayer suspend APIs need. */
     private fun runVoteTest(block: suspend () -> Unit) = runBlocking { block() }
+
+    private fun createTestClient() = Multiplayer(MultiplayerServer.forTesting(serverUrl)).apply {
+        multiplayerGameUpdater.cancel()
+    }
+
+    @Test
+    fun previewRefreshIgnoresTheServerAddressStoredInTheSave() = runVoteTest {
+        UncivGame.Current.onlineMultiplayer = multiplayer
+        multiplayer.multiplayerServer.tryUploadGamePreview(game.asPreview())
+        game.gameParameters.multiplayerServerUrl = "http://127.0.0.1:0"
+        val preview = MultiplayerGamePreview(FileHandle(gameId), game.asPreview())
+
+        preview.requestUpdate(forceUpdate = true)
+
+        assertNull(preview.error)
+    }
 
     //region Scenarios
 
@@ -383,7 +398,7 @@ class RestartVoteIntegrationTest {
         serverUrl = config.getProperty("server", "")
         assumeTrue("Run playtest-sim/run.sh real to test the Go server", serverUrl.isNotEmpty())
         val settings = UncivGame.Current.settings.multiplayer
-        settings.setServer(serverUrl)
+        multiplayer = createTestClient()
         settings.setCurrentServerPassword("playtest123")
         val players = listOf(
             "aaaaaaaa-1111-4111-8111-111111111111",
@@ -442,7 +457,7 @@ class RestartVoteIntegrationTest {
         }
 
         asPlayer(b)
-        multiplayer = Multiplayer().apply { multiplayerGameUpdater.cancel() }
+        multiplayer = createTestClient()
         assertNull(multiplayer.getCachedRestartVote(gameId))
         multiplayer.refreshRestartVote(gameId) // Restores the cache and executes the passed restart.
         val restored = multiplayer.getCachedRestartVote(gameId)!!
@@ -466,7 +481,7 @@ class RestartVoteIntegrationTest {
         val (a, b, c) = connectToGo()
         assertEquals(RestartVoteStatus.OPEN, multiplayer.startRestartVote(gameId, 10, 60)!!.status)
         asPlayer(b)
-        multiplayer = Multiplayer().apply { multiplayerGameUpdater.cancel() }
+        multiplayer = createTestClient()
         assertNull(multiplayer.getCachedRestartVote(gameId))
         multiplayer.refreshRestartVote(gameId)
         assertEquals(mapOf(a to true), multiplayer.getCachedRestartVote(gameId)!!.votes)

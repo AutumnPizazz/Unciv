@@ -20,19 +20,7 @@ Click "Multiplayer" on top,
 
 ![Connect to server - step 2](./images/image2.png)
 
-Enter the server address: <https://unciv.civgo.top:30123>
-
-![Connect to server - step 3](./images/image3.png)
-
-Set the sync frequency as shown above,
-
-Set a password (default is 123456) to prevent others from impersonating your player ID and disturbing your games,
-
-Click "Check server connection" — a "Success!" popup should appear,
-
-![Connect to server - step 4](./images/image4.png)
-
-Exit Unciv (kill background processes), reopen it, return to the same screen and click "Check server connection" again. If it still says "Success!", you've successfully connected to the server!
+The client already shows the community server address, `https://unciv.civgo.top:30123`. Select **Check connection** to verify that you can reach it and sign in. Set a password to protect your player ID.
 
 ## Getting your player ID
 

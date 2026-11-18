@@ -588,7 +588,7 @@ class SimultaneousTurnPlaytestSimulation {
     private fun createClient(label: String, playerId: String): PlaytestClient {
         val header = "Basic " + Base64Coder.encodeString("$playerId:$PASSWORD")
         val dir = File(clientsDir, label).apply { mkdirs() }
-        return PlaytestClient(label, playerId, dir, MultiplayerServer(serverUrl, mapOf("Authorization" to header)))
+        return PlaytestClient(label, playerId, dir, MultiplayerServer.forTesting(serverUrl, mapOf("Authorization" to header)))
     }
 
     private fun register(client: PlaytestClient) {

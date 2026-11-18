@@ -65,9 +65,9 @@ title: UncivCN 新特性
 
 完整机制见 [轮询联机机制](./Polling-multiplayer)。
 
-## 默认服务器（4.21.0.1）
+## 联机服务器
 
-联机默认服务器改为 `https://unciv.civgo.top:30123`（由社区维护，并非官方服务器）。
+在线联机固定使用社区运营的闭源 Go 服务器 `https://unciv.civgo.top:30123`。
 
 ## 游戏版本兼容性隔离（4.20.17.2）
 

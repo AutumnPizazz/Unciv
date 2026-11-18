@@ -1,15 +1,52 @@
 package com.unciv.models.metadata
 
+import com.badlogic.gdx.utils.JsonReader
+import com.unciv.Constants
 import com.unciv.UncivGame
+import com.unciv.json.json
 import com.unciv.logic.GameInfo
+import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.models.ruleset.unique.GameContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test
 import kotlin.random.Random
 
 class GameSettingsTests {
+    @Test
+    fun `Legacy server settings cannot change the community endpoint or reuse other servers' passwords`() {
+        val legacySettings = """
+            {
+                "multiplayerServer": "Dropbox",
+                "multiplayer": {
+                    "server": "https://example.com",
+                    "passwords": {"https://example.com": "other-password"}
+                }
+            }
+        """.trimIndent()
+        val settings = json().fromJson(GameSettings::class.java, legacySettings)
+        settings.doMigrations(JsonReader().parse(legacySettings))
+
+        assertEquals(Constants.uncivMultiplayerServer, MultiplayerServer().getServerUrl())
+        assertNull(settings.multiplayer.getCurrentServerPassword())
+    }
+
+    @Test
+    fun `Existing community credentials survive the removal of custom servers`() {
+        val settings = json().fromJson(GameSettings::class.java, """
+            {"multiplayer": {
+                "server": "https://example.com",
+                "userId": "existing-player",
+                "passwords": {"${Constants.uncivMultiplayerServer}": "community-password"}
+            }}
+        """.trimIndent())
+
+        assertEquals("existing-player", settings.multiplayer.getUserId())
+        assertEquals("community-password", settings.multiplayer.getCurrentServerPassword())
+    }
+
     private fun getRandomSources(
         allowRandomVariance: Boolean,
         isOnlineMultiplayer: Boolean

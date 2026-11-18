@@ -157,6 +157,6 @@ Detekt 检查代码异味和其他 lint 问题。
 
 ### UncivSrv（Go 服务器）
 
-UncivSrv 已闭源，由独立仓库维护。UncivCN 的公开仓库和客户端构建不依赖它，也不发布 Go 服务端 Docker 镜像或 GitHub Release 附件。自建服务器的其他选择见[多人游戏指南](../Other/Multiplayer.md#架设多人游戏服务器)。
+UncivCN 在线联机固定使用社区运营的闭源 UncivSrv。服务端由独立仓库维护。连接步骤见[多人游戏指南](../Other/Multiplayer.md)。
 
 现有 TypeScript 服务的维护者若要升级到 Go 版，应先备份 SQLite 数据库，再用旧版服务端恢复全部冷归档对局。Go 版不读取冷归档。

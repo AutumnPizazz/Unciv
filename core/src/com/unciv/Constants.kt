@@ -115,8 +115,7 @@ object Constants {
     const val simulationCiv1 = "SimulationCiv1"
     const val simulationCiv2 = "SimulationCiv2"
 
-    const val dropboxMultiplayerServer = "Dropbox"
-    const val uncivDefaultServer = "https://unciv.civgo.top:30123"
+    const val uncivMultiplayerServer = "https://unciv.civgo.top:30123"
 
     const val defaultTileset = "HexaRealm"
     /** Default for TileSetConfig.fallbackTileSet - Don't change unless you've also moved the crosshatch, borders, and arrows as well */

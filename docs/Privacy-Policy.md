@@ -25,7 +25,7 @@ Passwords are stored as `scrypt` hashes with a random salt per account: nobody, 
 
 ## Your choices
 
-- **Use another server**: in the game, open Options → Advanced and set your own multiplayer server URL. You can also import your own player ID there.
+- **Import your player ID** under Options → Advanced.
 - **Delete or export your data**: ask in the QQ group or open an issue; we will hand out your saves and delete your account and data.
 - Everything else the game stores (settings, single-player saves) stays on your device. The servers only ever see what the multiplayer client uploads.
 - If a minor registered without a guardian's consent, contact us and we will delete the account.

@@ -1,19 +1,13 @@
 package com.unciv.ui.popups.options
 
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.utils.Array
-import com.unciv.json.DurationSerializer
-import com.unciv.logic.multiplayer.Multiplayer
 import com.unciv.models.UncivSound
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.format
-import com.unciv.ui.components.input.onChange
-import com.unciv.ui.screens.basescreen.BaseScreen
 import com.unciv.utils.toGdxArray
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KProperty0
 
 
 internal interface MultiplayerSelectBoxHelpers {
@@ -46,21 +40,14 @@ internal interface MultiplayerSelectBoxHelpers {
 
     /** A helper to more easily initialize and connect a standard SelectBox for Duration properties
      *  @param property The setting property to edit - used in [value]
-     *  @param extraCustomServerOptions Additional items when using a custom server. Use [createRefreshOptions] to translate.
-     *  @param dropboxOptions Items always offered. Use [createRefreshOptions] to translate.
-     *  @property getItems Use to pass initial items to `addSelectBox`
+     *  @param options Items to offer. Use [createRefreshOptions] to translate them.
      *  @property value Use `this::value` as property parameter for `addSelectBox`
-     *  @property selectBox Store the SelectBox here to allow using [update]
      */
     class RefreshSelectOptions(
         private val property: KMutableProperty0<Duration>,
-        extraCustomServerOptions: Iterable<DurationItem>,
-        dropboxOptions: Iterable<DurationItem>
+        options: Iterable<DurationItem>
     ) {
-        private val customServerItems: Array<DurationItem> = (extraCustomServerOptions + dropboxOptions).toGdxArray()
-        private val dropboxItems: Array<DurationItem> = dropboxOptions.toGdxArray()
-
-        lateinit var selectBox: SelectBox<DurationItem>
+        val items: Array<DurationItem> = options.toGdxArray()
 
         var value: DurationItem
             get() = DurationItem(property.get()) // can do without pretty label as it's used only for selection
@@ -68,16 +55,5 @@ internal interface MultiplayerSelectBoxHelpers {
                 property.set(value.value)
             }
 
-        fun getItems(isCustomServer: Boolean = Multiplayer.usesCustomServer()) =
-            if (isCustomServer) customServerItems else dropboxItems
-
-        /** Maintains the currently selected item if possible, otherwise resets to the first item */
-        fun update(isCustomServer: Boolean) {
-            val newItems = getItems(isCustomServer)
-            if (selectBox.items.size == newItems.size) return
-            val prev = selectBox.selected
-            selectBox.items = newItems
-            selectBox.selected = prev
-        }
     }
 }

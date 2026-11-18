@@ -24,19 +24,7 @@ title: Unciv 联机教程
 
 ![与联机服务器建立联系 - 步骤2](../../../../Community/Guides/Multiplayer-tutorial/images/image2.png)
 
-输入服务器地址，地址为：<https://unciv.civgo.top:30123>
-
-![与联机服务器建立联系 - 步骤3](../../../../Community/Guides/Multiplayer-tutorial/images/image3.png)
-
-并按上图设置同步频率，
-
-设置密码（默认密码是123456）以防止他人冒用你的玩家 ID 干扰对局，
-
-点击"检查服务器连接"按钮，此时应该弹窗提示"成功！"，
-
-![与联机服务器建立联系 - 步骤4](../../../../Community/Guides/Multiplayer-tutorial/images/image4.png)
-
-退出 Unciv 并取消后台进程，打开 Unciv，回到原来界面再次点击"检查服务器连接"，若仍提示"成功!"，说明你成功与服务器建立联系！
+客户端已显示社区服务器地址 `https://unciv.civgo.top:30123`。点击**检测连接**，确认能访问服务器并登录。请设置密码以保护你的玩家 ID。
 
 ## 获取玩家 ID
 

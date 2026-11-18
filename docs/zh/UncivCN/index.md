@@ -23,7 +23,7 @@ title: UncivCN 分支介绍
 
 | 类别  | 特性                                                                                                                                                                    |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 联机  | [轮询联机](./Polling-multiplayer)、默认服务器（unciv.civgo.top，由社区维护）、联机禁用读档随机数                                                                                                            |
+| 联机  | [轮询联机](./Polling-multiplayer)、固定使用社区 Go 服、联机禁用读档随机数                                                                                                            |
 | 地图  | 三种镜像地图模式、环形地图、取消半径奇偶限制                                                                                                                                                |
 | 模组  | [Lua 脚本](./Features#lua-模组系统-4-20-8-2-起-持续增强)、[MergeAction 扩展 JSON 系统](./Features#mergeaction-扩展-json-系统-4-20-7-3)、tile-claim 地块归属、[国内镜像下载源](./Mod-download-in-China) |
 | UI  | 单位钉/地图钉、人口自动锁定按钮、设置导出/导入剪贴板                                                                                                                                           |
@@ -39,7 +39,7 @@ title: UncivCN 分支介绍
 ./gradlew desktop:dist       # 构建 JAR → desktop/build/libs/Unciv.jar
 ```
 
-服务器选项见[多人游戏指南](../Other/Multiplayer.md#架设多人游戏服务器)。
+连接步骤见[多人游戏指南](../Other/Multiplayer.md)。
 
 Android 构建需 `local.properties`（`sdk.dir`）或 `ANDROID_HOME` 环境变量。
 

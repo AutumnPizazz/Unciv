@@ -522,7 +522,7 @@ class ApiV2(private val baseUrl: String) : ApiV2Wrapper(baseUrl), Disposable {
      *
      * 1. Create a new WebSocket connection after logging in (ignoring existing sockets)
      * 2. Update the [UncivGame.Current.settings.multiplayer.userId]
-     *    (this makes using APIv0/APIv1 games impossible if the user ID is not preserved!)
+     *    (this makes using APIv1 games impossible if the user ID is not preserved!)
      */
     @Suppress("KDocUnresolvedReference")
     override suspend fun afterLogin() {
@@ -571,9 +571,7 @@ class ApiV2(private val baseUrl: String) : ApiV2Wrapper(baseUrl), Disposable {
         }
         val success = auth.login(
             UncivGame.Current.settings.multiplayer.userName,
-            UncivGame.Current.settings.multiplayer.getPassword(
-                UncivGame.Current.onlineMultiplayer.multiplayerServer.getServerUrl()
-            ) ?: "",
+            UncivGame.Current.settings.multiplayer.getCurrentServerPassword() ?: "",
             suppress = true
         )
         if (success) {

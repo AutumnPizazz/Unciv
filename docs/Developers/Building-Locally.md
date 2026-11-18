@@ -271,6 +271,6 @@ Building artifacts (running `./gradlew desktop:packrWindows64`, `./gradlew deskt
 
 ### UncivSrv (Go server)
 
-UncivSrv is closed-source and maintained separately. The public UncivCN repository and its client builds do not depend on it. UncivCN does not publish Go server Docker images or GitHub Release assets. For self-hosting alternatives, see the [multiplayer guide](../Other/Multiplayer.md#hosting-a-multiplayer-server).
+UncivCN online multiplayer connects to the community's closed-source UncivSrv instance. The server is maintained separately from the public client repository. For connection steps, see the [multiplayer guide](../Other/Multiplayer.md).
 
 Operators upgrading an existing TypeScript deployment to Go should back up its SQLite database and restore all cold-archived games with the old server first. The Go server does not read cold archives.

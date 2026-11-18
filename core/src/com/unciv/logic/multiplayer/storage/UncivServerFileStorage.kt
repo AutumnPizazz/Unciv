@@ -7,10 +7,11 @@ import com.unciv.logic.UncivShowableException
 import com.unciv.utils.debug
 import java.io.InputStream
 
-object UncivServerFileStorage : FileStorage {
-    var authHeader: Map<String, String>? = null
-    var serverUrl: String = ""
-    var timeout: Int = 30000
+internal class UncivServerFileStorage(
+    private val serverUrl: String,
+    private val authHeader: Map<String, String>
+) : FileStorage {
+    private val timeout = 30000
 
     override fun saveFileData(fileName: String, data: String) {
         SimpleHttp.sendRequest(Net.HttpMethods.PUT, fileUrl(fileName), content=data, timeout=timeout, header=authHeader) {
@@ -126,12 +127,11 @@ object UncivServerFileStorage : FileStorage {
     override fun authenticate(userId: String, password: String): Boolean {
         var authenticated = false
         val preEncodedAuthValue = "$userId:$password"
-        authHeader = mapOf("Authorization" to "Basic ${Base64Coder.encodeString(preEncodedAuthValue)}")
-        SimpleHttp.sendGetRequest("$serverUrl/auth", timeout=timeout, header=authHeader) {
+        val submittedAuthHeader = mapOf("Authorization" to "Basic ${Base64Coder.encodeString(preEncodedAuthValue)}")
+        SimpleHttp.sendGetRequest("$serverUrl/auth", timeout=timeout, header=submittedAuthHeader) {
                 success, result, code ->
             if (!success) {
                 debug("Error from UncivServer during authentication: %s", result)
-                authHeader = null
                 when (code) {
                     401 -> throw MultiplayerAuthException(Exception(result))
                     else -> throw Exception(result)
@@ -146,8 +146,8 @@ object UncivServerFileStorage : FileStorage {
     override fun checkAuthStatus(userId: String, password: String): AuthStatus {
         var authStatus = AuthStatus.UNKNOWN
         val preEncodedAuthValue = "$userId:$password"
-        authHeader = mapOf("Authorization" to "Basic ${Base64Coder.encodeString(preEncodedAuthValue)}")
-        SimpleHttp.sendGetRequest("$serverUrl/auth", timeout = timeout, header = authHeader) { _, _, code ->
+        val submittedAuthHeader = mapOf("Authorization" to "Basic ${Base64Coder.encodeString(preEncodedAuthValue)}")
+        SimpleHttp.sendGetRequest("$serverUrl/auth", timeout = timeout, header = submittedAuthHeader) { _, _, code ->
             authStatus = when (code) {
                 200 -> AuthStatus.VERIFIED
                 204 -> AuthStatus.UNREGISTERED
@@ -159,9 +159,6 @@ object UncivServerFileStorage : FileStorage {
     }
 
     override fun setPassword(newPassword: String): Boolean {
-        if (authHeader == null)
-            return false
-
         var setSuccessful = false
         SimpleHttp.sendRequest(Net.HttpMethods.PUT, "$serverUrl/auth", content=newPassword, timeout=timeout, header=authHeader) {
                 success, result, code ->

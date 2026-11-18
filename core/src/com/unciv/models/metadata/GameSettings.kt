@@ -438,31 +438,20 @@ class GameSettings {
         /**
          * Never ever make it public. If you need a method make it.
          * But do remember to call [ChatWebSocket.restart] with `force = true` whenever required.
+         * Keep the serialized map so existing community server credentials can still be read.
          */
-        private val passwords = mutableMapOf<String, String>()
+        private val passwords = linkedMapOf<String, String>()
         @Readonly
-        fun getPassword(serverUrl: String) = passwords[serverUrl]
-        @Readonly
-        fun getCurrentServerPassword() = passwords[server]
+        fun getCurrentServerPassword() = passwords[Constants.uncivMultiplayerServer]
         fun setCurrentServerPassword(password: String) {
-            val oldPassword = passwords[server]
+            val oldPassword = passwords.put(Constants.uncivMultiplayerServer, password)
             if (oldPassword != null && oldPassword != password) {
                 ChatWebSocket.restart(force = true)
             }
-            passwords[server] = password
         }
 
         @Suppress("unused")  // @GGuenni knows what he intended with this field
         var userName: String = ""
-
-        private var server = Constants.uncivDefaultServer
-        fun getServer() = server
-        fun setServer(value: String) {
-            if (server != value) {
-                server = value
-                ChatWebSocket.restart(force = true)
-            }
-        }
 
         val friendList: MutableList<FriendList.Friend> = mutableListOf()
         var turnCheckerEnabled = true
@@ -473,10 +462,9 @@ class GameSettings {
         var allGameRefreshDelay: Duration = Duration.ofMinutes(5)
         var currentGameTurnNotificationSound: UncivSound = UncivSound.Silent
         var otherGameTurnNotificationSound: UncivSound = UncivSound.Silent
-        var hideDropboxWarning = false
 
         fun getAuthHeader(): String {
-            val serverPassword = passwords[server] ?: "123456"
+            val serverPassword = getCurrentServerPassword() ?: "123456"
             val preEncodedAuthValue = "$userId:$serverPassword"
             return "Basic ${Base64Coder.encodeString(preEncodedAuthValue)}"
         }

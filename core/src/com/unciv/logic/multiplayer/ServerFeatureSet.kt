@@ -8,7 +8,6 @@ package com.unciv.logic.multiplayer
  * to allow for future expansion and backwards compatibility.
  *
  * Everything is optional, so if a feature is not present, it is assumed to be 0.
- * Dropbox does not support anything of this, so it will always be 0.
  */
 data class ServerFeatureSet(
     val authVersion: Int = 0,

@@ -14,22 +14,30 @@ import com.unciv.logic.multiplayer.ServerFeatureSet
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Allows access to games stored on a server for multiplayer purposes.
- * Defaults to using UncivGame.Current.settings.multiplayerServer if fileStorageIdentifier is not given.
+ * Allows access to games on the UncivCN community server.
  *
  * For low-level access only, use [UncivGame.onlineMultiplayer] on [UncivGame.Current] if you're looking to load/save a game.
  *
- * @param fileStorageIdentifier must be given if UncivGame.Current might not be initialized
  * @see FileStorage
- * @see UncivGame.settings.multiplayer.server
  */
 @Suppress("RedundantSuspendModifier") // Methods can take a long time, so force users to use them in a coroutine to not get ANRs on Android
-class MultiplayerServer(
-    val fileStorageIdentifier: String? = null,
-    private var authenticationHeader: Map<String, String>? = null
+class MultiplayerServer private constructor(
+    private val serverUrl: String,
+    private val authenticationHeader: Map<String, String>?
 ) {
+    /** The background turn checker supplies its own authentication header. */
+    constructor(authenticationHeader: Map<String, String>? = null) :
+        this(Constants.uncivMultiplayerServer, authenticationHeader)
+
+    companion object {
+        @VisibleForTesting
+        fun forTesting(serverUrl: String, authenticationHeader: Map<String, String>? = null) =
+            MultiplayerServer(serverUrl, authenticationHeader)
+    }
+
     private var featureSet = ServerFeatureSet()
     fun getFeatureSet() = featureSet
     fun setFeatureSet(value: ServerFeatureSet) {
@@ -39,29 +47,23 @@ class MultiplayerServer(
         }
     }
 
-    fun getServerUrl() = fileStorageIdentifier ?: UncivGame.Current.settings.multiplayer.getServer()
+    fun getServerUrl() = serverUrl
 
     fun fileStorage(): FileStorage {
-        val authHeader = if (authenticationHeader == null) {
+        val authHeader = if (authenticationHeader != null) authenticationHeader else {
             val settings = UncivGame.Current.settings.multiplayer
             mapOf("Authorization" to settings.getAuthHeader())
-        } else authenticationHeader
-
-        return if (getServerUrl() == Constants.dropboxMultiplayerServer) DropBox
-        else UncivServerFileStorage.apply {
-            serverUrl = this@MultiplayerServer.getServerUrl()
-            this.authHeader = authHeader
         }
+
+        return UncivServerFileStorage(serverUrl, authHeader)
     }
 
     /**
-     * Checks if the server is alive and sets the [serverFeatureSet] accordingly.
+     * Checks if the server is alive and sets its [ServerFeatureSet] accordingly.
      * @return true if the server is alive, false otherwise
      */
     suspend fun checkServerStatus(): Boolean {
-        val server = getServerUrl()
-        val isAliveSuffix = "/isalive"
-        val resp = UncivKtor.client.get("$server$isAliveSuffix")
+        val resp = UncivKtor.client.get("$serverUrl/isalive")
 
         if (resp.status.isSuccess()) {
             setFeatureSet(
@@ -72,17 +74,6 @@ class MultiplayerServer(
                     ServerFeatureSet()
                 }
             )
-
-            /**
-             * The following block is an one time optimization that
-             * ensures that we are not following redirects every time
-             */
-            val multiplayer = UncivGame.Current.settings.multiplayer
-            if (server == multiplayer.getServer()) {
-                multiplayer.setServer(
-                    resp.request.url.toString().removeSuffix(isAliveSuffix)
-                )
-            }
 
             return true
         }
@@ -194,7 +185,7 @@ class MultiplayerServer(
 
     suspend fun tryDownloadGame(gameId: String): GameInfo {
         val gameInfo = UncivFiles.gameInfoFromStream { fileStorage().loadFileData(gameId) }
-        gameInfo.gameParameters.multiplayerServerUrl = UncivGame.Current.settings.multiplayer.getServer()
+        gameInfo.gameParameters.multiplayerServerUrl = serverUrl
         return gameInfo
     }
 

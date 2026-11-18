@@ -8,7 +8,6 @@ import com.unciv.logic.multiplayer.GameUpdateResult.Type.CHANGED
 import com.unciv.logic.multiplayer.GameUpdateResult.Type.FAILURE
 import com.unciv.logic.multiplayer.GameUpdateResult.Type.UNCHANGED
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
-import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.extensions.isLargerThan
 import com.unciv.utils.debug
@@ -20,10 +19,8 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 
 
-/** @see getUpdateThrottleInterval */
-private const val DROPBOX_THROTTLE_PERIOD = 8L
-/** @see getUpdateThrottleInterval */
-private const val CUSTOM_SERVER_THROTTLE_PERIOD = 1L
+/** How often games can be checked for remote updates. */
+private val updateThrottleInterval = Duration.ofSeconds(1)
 
 /** Represents an in-memory + disk-backed preview of a game */
 class MultiplayerGamePreview(
@@ -85,7 +82,7 @@ class MultiplayerGamePreview(
         launchOnGLThread {
             EventBus.send(MultiplayerGameUpdateStarted(name))
         }
-        val throttleInterval = if (forceUpdate) Duration.ZERO else getUpdateThrottleInterval()
+        val throttleInterval = if (forceUpdate) Duration.ZERO else updateThrottleInterval
         val updateResult = if (forceUpdate || needsUpdate()) {
             attemptAction(lastOnlineUpdate, onUnchanged, onError, ::update)
         } else {
@@ -114,8 +111,7 @@ class MultiplayerGamePreview(
 
     private suspend fun update(): GameUpdateResult {
         val curPreview = if (preview != null) preview!! else loadPreviewFromFile()
-        val serverIdentifier = curPreview.gameParameters.multiplayerServerUrl
-        val newPreview = MultiplayerServer(serverIdentifier).tryDownloadGamePreview(curPreview.gameId)
+        val newPreview = UncivGame.Current.onlineMultiplayer.multiplayerServer.tryDownloadGamePreview(curPreview.gameId)
         if (newPreview.turns == curPreview.turns && newPreview.currentPlayer == curPreview.currentPlayer) return GameUpdateResult(UNCHANGED, newPreview)
         
         setNewPreview(newPreview)
@@ -161,11 +157,4 @@ private class GameUpdateResult private constructor(
     constructor(error: Throwable) : this(FAILURE, null, error)
 
     enum class Type { CHANGED, UNCHANGED, FAILURE }
-}
-
-/**
- * How often games can be checked for remote updates. More attempted checks within this time period will do nothing.
- */
-private fun getUpdateThrottleInterval(): Duration {
-    return Duration.ofSeconds(if (Multiplayer.usesCustomServer()) CUSTOM_SERVER_THROTTLE_PERIOD else DROPBOX_THROTTLE_PERIOD)
 }

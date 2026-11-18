@@ -36,7 +36,6 @@ import com.unciv.ui.components.widgets.UncivSlider
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.screens.basescreen.BaseScreen
-import com.unciv.ui.screens.multiplayerscreens.MultiplayerHelpers
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KMutableProperty1
 
@@ -240,9 +239,6 @@ class GameOptionsTable(
             { shouldUseMultiplayer ->
                 gameParameters.isOnlineMultiplayer = shouldUseMultiplayer
                 updatePlayerPickerTable("")
-                if (shouldUseMultiplayer) {
-                    MultiplayerHelpers.showDropboxWarning(previousScreen as BaseScreen)
-                }
                 update()
             }
 

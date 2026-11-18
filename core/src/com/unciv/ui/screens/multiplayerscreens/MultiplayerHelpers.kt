@@ -1,13 +1,10 @@
 package com.unciv.ui.screens.multiplayerscreens
 
-import com.badlogic.gdx.Gdx
 import com.unciv.Constants
 import com.unciv.UncivGame
-import com.unciv.logic.multiplayer.Multiplayer
 import com.unciv.logic.multiplayer.MultiplayerGamePreview
 import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.formatShort
-import com.unciv.ui.components.extensions.toCheckBox
 import com.unciv.ui.components.fonts.Fonts
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.screens.basescreen.BaseScreen
@@ -112,26 +109,4 @@ object MultiplayerHelpers {
         return descriptionText.toString().tr()
     }
 
-    fun showDropboxWarning(screen: BaseScreen) {
-        if (!Multiplayer.usesDropbox() || UncivGame.Current.settings.multiplayer.hideDropboxWarning) return
-
-        val dropboxWarning = Popup(screen)
-        dropboxWarning.addGoodSizedLabel(
-            "You're currently using the default multiplayer server, which is based on a free Dropbox account. " +
-            "Because a lot of people use this, it is uncertain if you'll actually be able to access it consistently. " +
-            "Consider using a custom server instead."
-        ).colspan(2).row()
-        dropboxWarning.addButton("Open Documentation") {
-            val docsURL = Constants.wikiURLForLanguage()
-            val hostingAnchor = if (docsURL.endsWith("zh/")) "#架设多人游戏服务器" else "#hosting-a-multiplayer-server"
-            Gdx.net.openURI("${docsURL}Other/Multiplayer/$hostingAnchor")
-        }.colspan(2).row()
-
-        val checkBox = "Don't show again".toCheckBox()
-        dropboxWarning.add(checkBox)
-        dropboxWarning.addCloseButton {
-            UncivGame.Current.settings.multiplayer.hideDropboxWarning = checkBox.isChecked
-        }
-        dropboxWarning.open()
-    }
 }

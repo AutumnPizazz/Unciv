@@ -22,10 +22,6 @@ private fun GameSettings.migrateMultiplayerSettings(json: JsonValue) {
     if (userId != null && userId.isString) {
         multiplayer.setUserId(userId.asString())
     }
-    val server = json.get("multiplayerServer")
-    if (server != null && server.isString) {
-        multiplayer.setServer(server.asString())
-    }
     val enabled = json.get("multiplayerTurnCheckerEnabled")
     if (enabled != null && enabled.isBoolean) {
         multiplayer.turnCheckerEnabled = enabled.asBoolean()

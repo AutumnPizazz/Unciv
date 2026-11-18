@@ -1,8 +1,6 @@
 package com.unciv.logic.multiplayer
 
-import com.unciv.Constants
 import com.unciv.json.json
-import com.unciv.logic.multiplayer.ApiVersion.APIv0
 import com.unciv.logic.multiplayer.ApiVersion.APIv1
 import com.unciv.logic.multiplayer.ApiVersion.APIv2
 import com.unciv.logic.multiplayer.apiv2.DEFAULT_CONNECT_TIMEOUT
@@ -23,7 +21,6 @@ import kotlinx.serialization.json.Json
 /**
  * Enum determining the version of a remote server API implementation
  *
- * [APIv0] is used to reference DropBox. It doesn't support any further features.
  * [APIv1] is used for the UncivServer built-in server implementation as well as
  * for servers implementing this interface. Examples thereof include:
  *  - https://github.com/Mape6/Unciv_server (Python)
@@ -43,7 +40,7 @@ import kotlinx.serialization.json.Json
  * @see [Multiplayer.determineServerAPI]
  */
 enum class ApiVersion {
-    APIv0, APIv1, APIv2;
+    APIv1, APIv2;
 
     companion object {
         /**
@@ -52,9 +49,7 @@ enum class ApiVersion {
          * This function doesn't make use of any currently used workers or high-level
          * connection pools, but instead opens and closes the transports inside it.
          *
-         * It will first check if the [baseUrl] equals the [Constants.dropboxMultiplayerServer]
-         * to check for [ApiVersion.APIv0]. Dropbox may be unavailable, but this is **not**
-         * checked here. It will then try to connect to ``/isalive`` of [baseUrl]. If a
+         * It tries to connect to ``/isalive`` of [baseUrl]. If a
          * HTTP 200 response is received, it will try to decode the response body as JSON.
          * On success (regardless of the content of the JSON), [ApiVersion.APIv1] has been
          * detected. Otherwise, it will try ``/api/version`` to detect [ApiVersion.APIv2]
@@ -67,9 +62,6 @@ enum class ApiVersion {
          *   or de-serialization problems (ony when [suppress] is false)
          */
         suspend fun detect(baseUrl: String, suppress: Boolean = true, timeout: Long? = null): ApiVersion? {
-            if (baseUrl == Constants.dropboxMultiplayerServer) {
-                return APIv0
-            }
             val fixedBaseUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
 
             // This client instance should be used during the API detection

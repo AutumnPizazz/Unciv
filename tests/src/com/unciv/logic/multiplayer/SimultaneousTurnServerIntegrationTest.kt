@@ -66,7 +66,7 @@ class SimultaneousTurnServerIntegrationTest {
         httpServer.createContext("/simultaneous-turn-lock/") { handleLockRequest(it) }
         httpServer.executor = Executors.newCachedThreadPool()
         httpServer.start()
-        server = MultiplayerServer(
+        server = MultiplayerServer.forTesting(
             "http://127.0.0.1:${httpServer.address.port}",
             mapOf("Authorization" to "test")
         )
@@ -183,7 +183,7 @@ class SimultaneousTurnServerIntegrationTest {
     }
 
     /** The real server derives the owner from authentication, so each player needs its own credentials. */
-    private fun playerServer(playerId: String) = MultiplayerServer(
+    private fun playerServer(playerId: String) = MultiplayerServer.forTesting(
         "http://127.0.0.1:${httpServer.address.port}",
         mapOf("Authorization" to playerId)
     )

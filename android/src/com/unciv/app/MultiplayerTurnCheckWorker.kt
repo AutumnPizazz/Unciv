@@ -27,6 +27,7 @@ import androidx.work.workDataOf
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.DefaultAndroidFiles
+import com.unciv.Constants
 import com.unciv.logic.GameInfo
 import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
@@ -229,7 +230,7 @@ class MultiplayerTurnCheckWorker(appContext: Context, workerParams: WorkerParame
                 val inputData = workDataOf(Pair(FAIL_COUNT, 0), Pair(GAME_ID, gameIds), Pair(GAME_NAME, gameNames),
                         Pair(USER_ID, settings.getUserId()), Pair(CONFIGURED_DELAY, settings.turnCheckerDelay.seconds),
                         Pair(PERSISTENT_NOTIFICATION_ENABLED, settings.turnCheckerPersistentNotificationEnabled),
-                        Pair(FILE_STORAGE, settings.getServer()),
+                        Pair(FILE_STORAGE, Constants.uncivMultiplayerServer),
                         Pair(AUTH_HEADER, settings.getAuthHeader()))
 
                 if (settings.turnCheckerPersistentNotificationEnabled) {
@@ -271,8 +272,7 @@ class MultiplayerTurnCheckWorker(appContext: Context, workerParams: WorkerParame
     }
 
     /**
-     * Contains gameIds that, if true is set for them, we will not check for updates again. The data here only lives until the user enters Unciv again,
-     * so if the user changes their remote server, this will be reset and we will check for turns again.
+     * Skip games whose previews were not found during this worker's lifetime.
      */
     private val notFoundRemotely = mutableMapOf<String, Boolean>()
 
@@ -290,8 +290,13 @@ class MultiplayerTurnCheckWorker(appContext: Context, workerParams: WorkerParame
         Log.i(LOG_TAG, "doWork")
         val showPersistNotific = inputData.getBoolean(PERSISTENT_NOTIFICATION_ENABLED, true)
         val configuredDelay = getConfiguredDelay(inputData)
-        val fileStorage = inputData.getString(FILE_STORAGE)
+        // Discard work scheduled by an older client with another server's credentials.
+        if (inputData.getString(FILE_STORAGE) != Constants.uncivMultiplayerServer) {
+            NotificationManagerCompat.from(applicationContext).cancel(NOTIFICATION_ID_SERVICE)
+            return@runBlocking Result.success()
+        }
         val authHeader = inputData.getString(AUTH_HEADER)!!
+        val multiplayerServer = MultiplayerServer(mapOf("Authorization" to authHeader))
 
         try {
             val gameIds = inputData.getStringArray(GAME_ID)!!
@@ -314,7 +319,7 @@ class MultiplayerTurnCheckWorker(appContext: Context, workerParams: WorkerParame
 
                 try {
                     Log.d(LOG_TAG, "doWork download $gameId")
-                    val gamePreview = MultiplayerServer(fileStorage, mapOf("Authorization" to authHeader)).tryDownloadGamePreview(gameId)
+                    val gamePreview = multiplayerServer.tryDownloadGamePreview(gameId)
                     Log.d(LOG_TAG, "doWork download $gameId done")
                     val currentTurnPlayer = gamePreview.getCivilization(gamePreview.currentPlayer)
 
@@ -341,7 +346,7 @@ class MultiplayerTurnCheckWorker(appContext: Context, workerParams: WorkerParame
                     Log.i(LOG_TAG, "doWork FileNotFoundException ${ex.message}")
                     // FileNotFoundException is thrown by OnlineMultiplayer().tryDownloadGamePreview(gameId)
                     // and indicates that there is no game preview present for this game
-                    // in the dropbox so we should not check for this game in the future anymore
+                    // on the server so we should not check for this game again
                     notFoundRemotely[gameId] = true
                 }
             }
@@ -372,7 +377,7 @@ class MultiplayerTurnCheckWorker(appContext: Context, workerParams: WorkerParame
                 if (showPersistNotific) { showPersistentNotification(applicationContext, applicationContext.resources.getString(R.string.Notify_Error_Retrying), configuredDelay) }
                 // If check fails, retry in one minute.
                 // Makes sense, since checks only happen if Internet is available in principle.
-                // Therefore a failure means either a problem with the GameInfo or with Dropbox.
+                // A failure indicates a problem with the save or the multiplayer server.
                 val inputDataFailIncrease = Data.Builder().putAll(inputData).putInt(FAIL_COUNT, failCount + 1).build()
                 enqueue(applicationContext, Duration.ofMinutes(1), inputDataFailIncrease)
             }

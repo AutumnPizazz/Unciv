@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Online multiplayer now connects only to the community Go server.
 - UncivCN no longer publishes Go server Docker images or GitHub Release downloads.
 - Added Simplified Chinese translations for new menus, multiplayer messages, and rules.
 - Polling and simultaneous turns now require your restart vote before you can mark the turn done.
