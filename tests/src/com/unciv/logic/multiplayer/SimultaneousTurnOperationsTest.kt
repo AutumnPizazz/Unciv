@@ -10,6 +10,7 @@ import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.GameParameters
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
+import com.unciv.view.GameView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -92,6 +93,40 @@ class SimultaneousTurnOperationsTest {
         val replayed = authoritative.getCivilization(civ.civName).units.getUnitById(unit.id)!!
         assertEquals(destinationX, replayed.currentTile.position.x)
         assertEquals(destinationY, replayed.currentTile.position.y)
+    }
+
+    @Test
+    fun paidUpgradeFromUnitViewReplaysUnitsAndGold() {
+        for (upgradeCount in 1..2) {
+            val testGame = TestGame()
+            testGame.makeHexagonalMap(3)
+            val upgradedUnit = testGame.ruleset.units.getValue("Composite Bowman")
+            val civ = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+            testGame.addCity(civ, testGame.getTile(0, 0))
+            civ.tech.addTechnology("Construction", false)
+            val units = (0 until upgradeCount).map { testGame.addUnit("Archer", civ, testGame.getTile(it, 0)) }
+            civ.addGold(1000)
+            civ.units.clearUnits()
+            testGame.gameInfo.setTransients()
+            val before = testGame.gameInfo.clone()
+            val view = GameView(testGame.gameInfo, civ)
+            for (unit in units) assertTrue(view.getMapUnitView(unit).tryUpgradeTo(upgradedUnit))
+            assertTrue(civ.gold < 1000)
+
+            val result = SimultaneousTurnOperations.captureGameStateChange(UnitActionType.Upgrade, before, testGame.gameInfo)!!
+            val operations = SimultaneousTurnOperations.splitGameStateResult(result).mapIndexed { index, part ->
+                SimultaneousTurnOperation(
+                    sequence = index.toLong(),
+                    type = SimultaneousTurnOperations.stateOperationType(UnitActionType.Upgrade.name),
+                    payload = json().toJson(part)
+                )
+            }
+            before.setTransients()
+            assertEquals(emptyList<SimultaneousTurnFailedOperation>(), SimultaneousTurnReplay.replayOrExplain(before, operations))
+            val replayedCiv = before.getCivilization(civ.civName)
+            assertEquals(civ.gold, replayedCiv.gold)
+            assertEquals(List(upgradeCount) { upgradedUnit.name }, replayedCiv.units.getCivUnits().map { it.name }.toList())
+        }
     }
 
     @Test

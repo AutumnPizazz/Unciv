@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.unciv.GUI
 import com.unciv.models.Counter
+import com.unciv.models.UnitActionType
 import com.unciv.logic.map.mapunit.PossibleUpgrade
 import com.unciv.ui.screens.worldscreen.unit.actions.UiUnitActionType
 import com.unciv.models.translations.tr
@@ -86,7 +88,7 @@ class UnitUpgradeMenu(
         val upgradeAllButton = getButton(upgradeAllText, KeyboardBinding.UpgradeAll, ::doAllUpgrade)
         val insufficientGold = unit.civ().gold < allCost
         val insufficientResources = getInsufficientResourcesMessage(allResources, unit.civ())
-        upgradeAllButton.isDisabled = insufficientGold || insufficientResources.isNotEmpty()
+        upgradeAllButton.isDisabled = !GUI.isAllowedChangeState() || insufficientGold || insufficientResources.isNotEmpty()
         add(upgradeAllButton).padTop(7f).growX().row()
         if (insufficientResources.isEmpty()) return@apply
         val label = ColorMarkupLabel(insufficientResources, Color.SCARLET)
@@ -107,14 +109,18 @@ class UnitUpgradeMenu(
     }
 
     private fun doUpgrade() {
+        if (!GUI.isAllowedChangeState()) return
         SoundPlayer.play(UiUnitActionType.Upgrade.uncivSound)
-        unit.tryUpgradeTo(unitToUpgradeTo)
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.Upgrade) {
+            unit.tryUpgradeTo(unitToUpgradeTo)
+        }
     }
 
     private fun doAllUpgrade() {
+        if (!GUI.isAllowedChangeState()) return
         SoundPlayer.playRepeated(UiUnitActionType.Upgrade.uncivSound)
-        for (unit in allUpgradableUnits) {
-            unit.tryUpgradeTo(unitToUpgradeTo)
+        GUI.getWorldScreen().runAndRecordSimultaneousGameStateChange(UnitActionType.Upgrade) {
+            for (unit in allUpgradableUnits) unit.tryUpgradeTo(unitToUpgradeTo)
         }
     }
 }
