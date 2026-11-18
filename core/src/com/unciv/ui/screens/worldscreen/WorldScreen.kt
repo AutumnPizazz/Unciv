@@ -1028,9 +1028,15 @@ class WorldScreen(
         return (System.currentTimeMillis() - lastSeen) < onlineTimeoutMs
     }
 
-    /** Called when the player clicks "I'm done".
-     *  Marks the current player as done and either passes to the next player or advances the turn. */
-    fun finishPollingTurn() {
+    /** Handles "I'm done" without blocking automatic passes or settlement retries. */
+    internal fun finishTurnFromPlayer() {
+        if (!isPlayersTurn || isNextTurnUpdateRunning() || restartVoteBlocksNextTurn()) return
+        if (gameInfo.isSimultaneousTurnsMode()) finishSimultaneousTurn()
+        else finishPollingTurn()
+    }
+
+    /** Marks the current player as done and either passes to the next player or advances the turn. */
+    private fun finishPollingTurn() {
         if (!isPlayersTurn || isNextTurnUpdateRunning()) return
         isPlayersTurn = false
         shouldUpdate = true
@@ -1070,7 +1076,7 @@ class WorldScreen(
      * to finish owns settlement for this turn and rebuilds the authoritative snapshot by replaying
      * the sidecar operations from the turn-start save.
      */
-    fun finishSimultaneousTurn() {
+    private fun finishSimultaneousTurn() {
         // A player who already submitted is waiting for the last player. An operation signal
         // may call this again to perform the settlement check, but never while its upload job runs.
         if ((!isPlayersTurn && !gameInfo.isSimultaneousTurnsMode()) || isNextTurnUpdateRunning()) return
