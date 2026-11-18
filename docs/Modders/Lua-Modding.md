@@ -196,6 +196,7 @@ local num = tonumber(ctx.store.get("count", "0"))
 ```
 
 Storage data is saved in the game file and persists across save/load cycles.
+Recorded simultaneous-turn actions also replay their storage writes. Actions that change different keys can coexist; if an earlier action changed the same key, the later action is rejected together with its other recorded effects. Use separate keys for counters that different players can update in the same turn.
 
 ## ctx.evaluateConditional — Conditional Evaluation
 

@@ -149,6 +149,10 @@ object SimultaneousTurnReplay {
         val currentGlobal = SimultaneousTurnOperations.currentGlobalState(gameInfo)
         if (!globalStateCompatible(currentGlobal, globalBefore, globalAfter))
             return SimultaneousTurnFailureReason.WorldChanged
+        for (change in result.luaStoreChanges) {
+            if (gameInfo.modLuaStorage[change.modName]?.get(change.key) != change.before)
+                return SimultaneousTurnFailureReason.WorldChanged
+        }
 
         for (snapshot in result.civilizations) {
             val current = gameInfo.getCivilizationOrNull(snapshot.key)
@@ -216,6 +220,15 @@ object SimultaneousTurnReplay {
         }
         if (globalBefore.lastUnitId != globalAfter.lastUnitId)
             gameInfo.setLastUnitIdForSimultaneousTurns(globalAfter.lastUnitId)
+        for (change in result.luaStoreChanges) {
+            if (change.after != null) {
+                gameInfo.modLuaStorage.getOrPut(change.modName) { HashMap() }[change.key] = change.after
+            } else {
+                val store = gameInfo.modLuaStorage[change.modName] ?: continue
+                store.remove(change.key)
+                if (store.isEmpty()) gameInfo.modLuaStorage.remove(change.modName)
+            }
+        }
         // A tile snapshot replaces the MapUnit instances stored in Tile.*Unit, while each civ's unit
         // list still references the pre-replay objects. setTransients() rebuilds those lists from the
         // map, but UnitManager.addUnit() appends - so discard the stale lists first, otherwise every

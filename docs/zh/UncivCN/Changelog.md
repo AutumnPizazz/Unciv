@@ -52,6 +52,7 @@ outline: [2, 2]
 
 ### 模组作者可感知
 
+- 同步回合结算保留 [Lua 持久化存储](/zh/Modders/Lua-Modding)写入。
 - 变更：多图集校验警告的链接改为 UncivCN 文档
 
 ## 4.22.4.4（build 1266）

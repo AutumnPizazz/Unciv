@@ -6,8 +6,10 @@ import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
+import com.unciv.logic.scripting.LuaAPI
 import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.GameParameters
+import com.unciv.models.ruleset.unique.GameContext
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import com.unciv.view.GameView
@@ -18,6 +20,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.luaj.vm2.LuaValue
 
 @RunWith(BaseTestRunner::class)
 class SimultaneousTurnOperationsTest {
@@ -127,6 +130,38 @@ class SimultaneousTurnOperationsTest {
             assertEquals(civ.gold, replayedCiv.gold)
             assertEquals(List(upgradeCount) { upgradedUnit.name }, replayedCiv.units.getCivUnits().map { it.name }.toList())
         }
+    }
+
+    @Test
+    fun recordedLuaStorageWritesMergePerKeyAndRejectConflictingActions() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+        val start = testGame.gameInfo
+        start.setTransients()
+
+        fun record(key: String, value: String, gold: Int = 0): SimultaneousTurnOperation {
+            val after = start.clone().apply { setTransients() }
+            val actor = after.getCivilization(civ.civName)
+            val store = LuaAPI.buildContext(actor, null, null, null, "", GameContext(actor), "Test Mod").get("store")
+            assertEquals("missing", store.get("get").call(LuaValue.valueOf(key), LuaValue.valueOf("missing")).tojstring())
+            assertTrue(after.modLuaStorage.isEmpty())
+            store.get("set").call(LuaValue.valueOf(key), LuaValue.valueOf(value))
+            actor.addGold(gold)
+            val state = SimultaneousTurnOperations.captureGameStateChange(UnitActionType.TriggerUnique, start, after)!!
+            return SimultaneousTurnOperation(type = "state.TriggerUnique", payload = json().toJson(
+                SimultaneousTurnOperations.splitGameStateResult(state).single()
+            ))
+        }
+
+        val first = record("count", "1")
+        val independent = record("other", "2")
+        val stale = record("count", "3", gold = 50)
+        val replayed = start.clone().apply { setTransients() }
+        assertEquals(listOf(SimultaneousTurnFailedOperation(stale, SimultaneousTurnFailureReason.WorldChanged)),
+            SimultaneousTurnReplay.replayOrExplain(replayed, listOf(first, independent, stale)))
+        assertEquals(mapOf("count" to "1", "other" to "2"), replayed.modLuaStorage["Test Mod"])
+        assertEquals(civ.gold, replayed.getCivilization(civ.civName).gold)
     }
 
     @Test

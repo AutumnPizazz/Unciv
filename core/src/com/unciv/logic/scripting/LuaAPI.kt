@@ -192,17 +192,17 @@ object LuaAPI {
         })
 
         if (modName.isNotEmpty()) {
-            val storage = civInfo.gameInfo.modLuaStorage.getOrPut(modName) { HashMap() }
+            val storage = civInfo.gameInfo.modLuaStorage
             val store = LuaValue.tableOf()
             store.registerApi("store", "get", luaFunction { args ->
                 val key = args.arg(1).tojstring()
                 val defaultValue = if (args.narg() > 1) args.arg(2).tojstring() else ""
-                LuaValue.valueOf(storage[key] ?: defaultValue)
+                LuaValue.valueOf(storage[modName]?.get(key) ?: defaultValue)
             })
             store.registerApi("store", "set", luaFunction { args ->
                 val key = args.arg(1).tojstring()
                 val value = args.arg(2).tojstring()
-                storage[key] = value
+                storage.getOrPut(modName) { HashMap() }[key] = value
                 LuaValue.NIL
             })
             ctx.registerApi("ctx", "store", store)

@@ -88,13 +88,21 @@ data class SimultaneousTurnGlobalState(
     val variables: Map<String, Int> = HashMap()
 )
 
+data class SimultaneousTurnLuaStoreChange(
+    val modName: String = "",
+    val key: String = "",
+    val before: String? = null,
+    val after: String? = null
+)
+
 data class SimultaneousTurnGameStateResult(
     val action: String = "",
     val globalBefore: String = "",
     val globalAfter: String = "",
     val civilizations: List<SimultaneousTurnComponentSnapshot> = ArrayList(),
     val tiles: List<SimultaneousTurnComponentSnapshot> = ArrayList(),
-    val religions: List<SimultaneousTurnComponentSnapshot> = ArrayList()
+    val religions: List<SimultaneousTurnComponentSnapshot> = ArrayList(),
+    val luaStoreChanges: List<SimultaneousTurnLuaStoreChange> = ArrayList()
 )
 
 /**
@@ -351,14 +359,25 @@ object SimultaneousTurnOperations {
 
         val beforeGlobal = captureGlobalState(before)
         val afterGlobal = captureGlobalState(after)
-        if (beforeGlobal == afterGlobal && civilizations.isEmpty() && tiles.isEmpty() && religions.isEmpty()) return null
+        val luaStoreChanges = ArrayList<SimultaneousTurnLuaStoreChange>()
+        for (mod in (before.modLuaStorage.keys + after.modLuaStorage.keys).sorted()) {
+            val oldStore = before.modLuaStorage[mod].orEmpty()
+            val newStore = after.modLuaStorage[mod].orEmpty()
+            for (key in (oldStore.keys + newStore.keys).sorted()) {
+                if (oldStore[key] != newStore[key])
+                    luaStoreChanges.add(SimultaneousTurnLuaStoreChange(mod, key, oldStore[key], newStore[key]))
+            }
+        }
+        if (beforeGlobal == afterGlobal && civilizations.isEmpty() && tiles.isEmpty() &&
+            religions.isEmpty() && luaStoreChanges.isEmpty()) return null
         return SimultaneousTurnGameStateResult(
             action,
             json().toJson(beforeGlobal),
             json().toJson(afterGlobal),
             civilizations,
             tiles,
-            religions
+            religions,
+            luaStoreChanges
         )
     }
 
@@ -467,6 +486,7 @@ object SimultaneousTurnOperations {
         describeComponents("civilizations", result.civilizations, parts)
         describeComponents("tiles", result.tiles, parts)
         describeComponents("religions", result.religions, parts)
+        if (result.luaStoreChanges.isNotEmpty()) parts.add("Lua storage (${result.luaStoreChanges.size} changed keys)")
         if (result.globalBefore != result.globalAfter) {
             val fields = changedFieldNames(result.globalBefore, result.globalAfter)
             parts.add(if (fields.isEmpty()) "global" else "global (${fields.joinToString(", ")})")
@@ -513,6 +533,8 @@ object SimultaneousTurnOperations {
      * unrelated, compatible changes. Independent operations keep the conflict local.
      */
     fun splitGameStateResult(result: SimultaneousTurnGameStateResult): List<SimultaneousTurnGameStateResult> {
+        // A script's saved values may describe its other effects. Check them together before replay writes either.
+        if (result.luaStoreChanges.isNotEmpty()) return listOf(result)
         val parts = ArrayList<SimultaneousTurnGameStateResult>()
         // Always use ArrayList: listOf() / emptyList() return java.util.Collections singletons, and
         // libgdx Json writes their concrete class into the payload but cannot instantiate it again.

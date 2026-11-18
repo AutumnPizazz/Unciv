@@ -52,6 +52,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Mod author-facing
 
+- [Lua storage writes](/Modders/Lua-Modding) now persist when simultaneous turns are replayed.
 - Change: the multiple-atlas validation warning now links to the UncivCN documentation
 
 ## 4.22.4.4 (build 1266)
