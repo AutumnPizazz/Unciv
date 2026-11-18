@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.unciv.logic.map.MapGeneratedMainType
 import com.unciv.logic.map.MapType
 import com.unciv.logic.scripting.LuaScriptManager
+import com.unciv.ui.components.extensions.setItems
 import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.components.input.onChange
 import com.unciv.ui.components.widgets.TranslatedSelectBox
@@ -15,7 +16,7 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
     private var mapTypeSpecificTable = Table()
     internal val generatedMapOptionsTable = MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.generated)
     private val randomMapOptionsTable = MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.randomGenerated)
-    internal val luaMapOptionsTable = MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.luaGenerated)
+    private val luaMapOptionsTable by lazy { MapParametersTable(newGameScreen, mapParameters, MapGeneratedMainType.luaGenerated) }
     private val savedMapOptionsTable = MapFileSelectTable(newGameScreen, mapParameters)
     private val scenarioOptionsTable = ScenarioSelectTable(newGameScreen)
     internal val mapTypeSelectBox: TranslatedSelectBox
@@ -27,40 +28,7 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
 
         val mapTypes = getMapTypes()
 
-        val initialMapType = mapParameters.type.takeIf { it in mapTypes } ?: MapGeneratedMainType.generated
-        mapTypeSelectBox = TranslatedSelectBox(mapTypes, initialMapType)
-
-        fun updateOnMapTypeChange() {
-            mapTypeSpecificTable.clear()
-            when (mapTypeSelectBox.selected.value) {
-                MapGeneratedMainType.custom -> {
-                    mapParameters.type = MapGeneratedMainType.custom
-                    mapTypeSpecificTable.add(savedMapOptionsTable)
-                    savedMapOptionsTable.activateCustomMaps()
-                    newGameScreen.unlockTables()
-                }
-                MapGeneratedMainType.generated -> {
-                    mapParameters.name = ""
-                    mapParameters.type = generatedMapOptionsTable.mapTypeSelectBox.selected.value
-                    mapTypeSpecificTable.add(generatedMapOptionsTable)
-                    newGameScreen.unlockTables()
-                }
-                MapGeneratedMainType.randomGenerated -> {
-                    mapParameters.name = ""
-                    randomMapOptionsTable.activateRandomMapType()
-                    mapTypeSpecificTable.add(randomMapOptionsTable)
-                    newGameScreen.unlockTables()
-                }
-                MapGeneratedMainType.scenario -> {
-                    mapParameters.name = ""
-                    mapTypeSpecificTable.add(scenarioOptionsTable)
-                    scenarioOptionsTable.selectScenario()
-                    newGameScreen.lockTables()
-                }
-            }
-            newGameScreen.gameSetupInfo.gameParameters.godMode = false
-            newGameScreen.updateTables()
-        }
+        mapTypeSelectBox = TranslatedSelectBox(mapTypes, getMainType(mapTypes))
 
         // activate once, so the MapGeneratedMainType.generated controls show
         updateOnMapTypeChange()
@@ -78,6 +46,11 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
         if (LuaScriptManager.getMapScripts(newGameScreen.ruleset).isNotEmpty()) add(MapGeneratedMainType.luaGenerated)
         if (savedMapOptionsTable.isNotEmpty()) add(MapGeneratedMainType.custom)
         if (newGameScreen.game.files.getScenarioFiles().any()) add(MapGeneratedMainType.scenario)
+    }
+
+    private fun getMainType(mapTypes: Collection<String>): String {
+        val type = if (mapParameters.type == MapType.scripted) MapGeneratedMainType.luaGenerated else mapParameters.type
+        return if (type in mapTypes) type else MapGeneratedMainType.generated
     }
 
     private fun updateOnMapTypeChange() {
@@ -98,11 +71,13 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
             MapGeneratedMainType.luaGenerated -> {
                 mapParameters.name = ""
                 mapParameters.type = MapType.scripted
+                luaMapOptionsTable.refreshMapScriptSelectBox()
                 mapTypeSpecificTable.add(luaMapOptionsTable)
                 newGameScreen.unlockTables()
             }
             MapGeneratedMainType.randomGenerated -> {
                 mapParameters.name = ""
+                randomMapOptionsTable.activateRandomMapType()
                 mapTypeSpecificTable.add(randomMapOptionsTable)
                 newGameScreen.unlockTables()
             }
@@ -126,17 +101,13 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
         generatedMapOptionsTable.update()
         randomMapOptionsTable.update()
 
-        // An imported setup may reference a Lua map script - restore the Lua Generated type then.
-        val luaScriptsAvailable = LuaScriptManager.getMapScripts(newGameScreen.ruleset).isNotEmpty()
-        val desiredType = when {
-            mapParameters.type == MapType.scripted && luaScriptsAvailable -> MapGeneratedMainType.luaGenerated
-            else -> mapParameters.type.takeIf { it in getMapTypes() } ?: MapGeneratedMainType.generated
-        }
-        val oldSelection = mapTypeSelectBox.selected.value
-        // setSelected fires a change event (and thus updateOnMapTypeChange) only if the selection actually changed
+        val mapTypes = getMapTypes()
+        val desiredType = getMainType(mapTypes)
+        mapTypeSelectBox.selection.setProgrammaticChangeEvents(false)
+        mapTypeSelectBox.setItems(mapTypes.map { TranslatedSelectBox.TranslatedString(it) })
         mapTypeSelectBox.setSelected(desiredType)
-        if (mapTypeSelectBox.selected.value == oldSelection)
-            updateOnMapTypeChange()
+        mapTypeSelectBox.selection.setProgrammaticChangeEvents(true)
+        updateOnMapTypeChange()
     }
 
     internal fun getSelectedScenario(): ScenarioSelectTable.ScenarioData? {

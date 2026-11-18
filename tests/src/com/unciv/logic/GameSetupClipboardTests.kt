@@ -3,6 +3,7 @@ package com.unciv.logic
 import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.map.MapParameters
 import com.unciv.logic.map.MapSize
+import com.unciv.logic.map.MapType
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.metadata.GameSetupClipboard
 import com.unciv.models.metadata.GameSetupInfo
@@ -159,6 +160,21 @@ class GameSetupClipboardTests {
         Assert.assertEquals(0.3f, map.resourceRichness, 0.0001f)
         Assert.assertEquals(0.05f, map.waterThreshold, 0.0001f)
         Assert.assertEquals(LinkedHashSet(listOf("Map Mod")), map.mods)
+    }
+
+    @Test
+    fun importingLuaSetupReplacesTheMapTypeAndScript() {
+        val target = makeSetup()
+        val source = makeSetup().apply {
+            mapParameters.type = MapType.scripted
+            mapParameters.mapScript = "LuaMapScriptExample"
+            mapParameters.name = ""
+        }
+        val decoded = GameSetupClipboard.decode(GameSetupClipboard.encode(source))
+        GameSetupClipboard.copyValuesInto(target, decoded)
+        Assert.assertEquals(MapType.scripted, target.mapParameters.type)
+        Assert.assertEquals("LuaMapScriptExample", target.mapParameters.mapScript)
+        Assert.assertEquals("", target.mapParameters.name)
     }
 
     @Test

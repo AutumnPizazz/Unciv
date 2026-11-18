@@ -54,7 +54,9 @@ object GameSetupClipboard {
      * [GameSetupInfo.gameParameters] and [GameSetupInfo.mapParameters] objects.
      */
     fun copyValuesInto(target: GameSetupInfo, source: GameSetupInfo) {
-        val json = json()
+        // Missing fields in an export decode as defaults. Write those defaults when copying
+        // into a reused instance, so values from the previous setup cannot leak through.
+        val json = json().apply { setUsePrototypes(false) }
         json.readFields(target.gameParameters, JsonReader().parse(json.toJson(source.gameParameters)))
         json.readFields(target.mapParameters, JsonReader().parse(json.toJson(source.mapParameters)))
     }

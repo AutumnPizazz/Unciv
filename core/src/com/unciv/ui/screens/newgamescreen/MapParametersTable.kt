@@ -108,9 +108,6 @@ class MapParametersTable(
             label.wrap = true
             add(label).colspan(2).grow().row()
         }
-        // Lua map scripts: force type to Scripted
-        if (mapGeneratedMainType == MapGeneratedMainType.luaGenerated)
-            mapParameters.type = MapType.scripted
         addMapShapeSelectBox()
         addMapTypeSelectBox()
         addWorldSizeTable()
@@ -220,9 +217,6 @@ class MapParametersTable(
             }
             add(optionsTable).colspan(2).grow().row()
         } else if (mapGeneratedMainType == MapGeneratedMainType.luaGenerated) {
-            // Lua mode: no map type dropdown, only the script selector
-            mapParameters.type = MapType.scripted
-            updateMapScriptSelectBox()
             add(mapScriptsTable).colspan(2).grow().row()
         } else {
             mapTypeSelectBox = TranslatedSelectBox(mapTypes, mapParameters.type)
@@ -245,7 +239,7 @@ class MapParametersTable(
     }
 
     /** Builds the Lua map script selector (shown only in Lua mode). */
-    private fun updateMapScriptSelectBox() {
+    internal fun refreshMapScriptSelectBox() {
         mapScriptsTable.clear()
         if (mapParameters.type != MapType.scripted) return
         if (forMapEditor) return  // Map scripts are for new games only
@@ -255,23 +249,18 @@ class MapParametersTable(
         val scripts = LuaScriptManager.getMapScripts(ruleset)
         if (scripts.isEmpty()) return
 
-        val scriptNames = scripts.map { it.name }
-        val initialScript = if (mapParameters.mapScript.isNotEmpty()) {
-            scripts.firstOrNull { it.modName == mapParameters.mapScript }?.name
-                ?: scriptNames.firstOrNull() ?: ""
-        } else {
-            scriptNames.firstOrNull() ?: ""
-        }
+        val initialScript = scripts.firstOrNull { it.modName == mapParameters.mapScript } ?: scripts.first()
+        mapParameters.mapScript = initialScript.modName
 
-        mapScriptSelectBox = TranslatedSelectBox(scriptNames, initialScript)
+        mapScriptSelectBox = TranslatedSelectBox(scripts.map { it.name }, initialScript.name)
 
         mapScriptSelectBox.onChange {
             val selected = scripts.firstOrNull { it.name == mapScriptSelectBox.selected.value }
             mapParameters.mapScript = selected?.modName ?: ""
         }
 
-        add("{Map Script}:".toLabel()).left()
-        add(mapScriptSelectBox).fillX().row()
+        mapScriptsTable.add("{Map Script}:".toLabel()).left()
+        mapScriptsTable.add(mapScriptSelectBox).fillX().row()
     }
 
     /** For [MapGeneratedMainType.randomGenerated]: sets [mapParameters].type to a valid value
