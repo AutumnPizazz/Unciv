@@ -15,6 +15,8 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+## 5.0.1.1 (build 1267)
+
 ### Player-facing
 
 - All players check for updates through their selected download source, without choosing a region.
