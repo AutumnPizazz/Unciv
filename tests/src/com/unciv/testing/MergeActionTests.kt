@@ -957,6 +957,54 @@ class MergeActionTests {
     }
 
     @Test
+    fun `technology injection and replacement preserve columns after removal`() {
+        val base = Ruleset().apply {
+            name = "TestBase"
+            modOptions.isBaseRuleset = true
+            fun addColumn(vararg names: String) {
+                val column = TechColumn().apply {
+                    columnNumber = techColumns.size
+                    era = "Ancient era"
+                    techCost = 20
+                }
+                for (techName in names) {
+                    val technology = Technology().apply { name = techName; cost = 20; this.column = column }
+                    column.techs.add(technology)
+                    technologies[techName] = technology
+                }
+                techColumns.add(column)
+            }
+            addColumn("Pottery", "Writing")
+            addColumn("Obsolete Tech")
+            addColumn("Calendar")
+        }
+        val mod = Ruleset().apply {
+            name = "TestMod"
+            modOptions.techsToRemove.add("Obsolete Tech")
+            rawJsonArrays["Techs.json"] = JsonReader().parse("""
+                [{"columnNumber":0,"era":"Ancient era","techCost":70,"techs":[
+                    {"name":"Pottery","_mergeAction":{"action":"TRY_INJECT"},"quote":"new quote"},
+                    {"name":"Writing","row":1},
+                    {"name":"Mining","row":2}
+                ]}]
+            """.trimIndent())
+        }
+
+        val merged = Ruleset().apply { add(base); add(mod) }
+        Assert.assertEquals(setOf("Pottery", "Writing", "Mining", "Calendar"), merged.technologies.keys)
+        Assert.assertEquals(listOf(0, 1), merged.techColumns.map { it.columnNumber })
+        Assert.assertEquals(setOf("Pottery", "Writing", "Mining"), merged.techColumns[0].techs.map { it.name }.toSet())
+        Assert.assertSame(merged.techColumns[1], merged.technologies.getValue("Calendar").column)
+        val pottery = merged.technologies.getValue("Pottery")
+        Assert.assertEquals(20, pottery.cost)
+        Assert.assertEquals("new quote", pottery.quote)
+        Assert.assertEquals(70, merged.technologies.getValue("Writing").cost)
+        Assert.assertEquals(70, merged.technologies.getValue("Mining").cost)
+        Assert.assertEquals(3, base.techColumns.size)
+        Assert.assertNotEquals("new quote", base.technologies.getValue("Pottery").quote)
+    }
+
+    @Test
     fun `unknown merge condition fails loudly instead of injecting unconditionally`() {
         val json = JsonReader().parse("""
         [

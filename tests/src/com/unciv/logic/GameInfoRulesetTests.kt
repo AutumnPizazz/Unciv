@@ -1,7 +1,9 @@
 package com.unciv.logic
 
 import com.unciv.json.json
+import com.unciv.logic.files.UncivFiles
 import com.unciv.testing.BaseTestRunner
+import com.unciv.testing.TestAssets
 import com.unciv.testing.TestGame
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -10,6 +12,17 @@ import org.junit.runner.RunWith
 
 @RunWith(BaseTestRunner::class)
 class GameInfoRulesetTests {
+    @Test
+    fun loadsRealSaveFromCompatibilityVersionFour() {
+        // Reuse the shipped vanilla browser fixture; no Web build or browser is needed to load it.
+        val fixture = TestAssets.repoRoot().resolve("web/validation/reflection-field/src/main/resources/validation/browser-game-save.json")
+        val saved = UncivFiles.gameInfoFromString(fixture.readText())
+        assertEquals(4, saved.version.number)
+        assertEquals(1, saved.turns)
+        assertEquals("Prince", saved.getDifficulty().name)
+        assertEquals(saved.gameParameters.speed, saved.speed.name)
+    }
+
     @Test
     fun savedDifficultyAndSpeedKeepTheirNamesAfterLoad() {
         val saved = savedGame(online = false)
