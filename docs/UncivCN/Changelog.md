@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Loading a save reports missing difficulty or speed instead of silently changing its rules.
 - Fixed selecting and restoring [Lua maps](/Modders/Lua-Modding) in the new game screen.
 - Unit upgrades made from the popup now survive simultaneous turn settlement.
 - Multiplayer turns no longer apply another player's automatic promotion preference.
