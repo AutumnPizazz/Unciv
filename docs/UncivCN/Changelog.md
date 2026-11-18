@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Added Simplified Chinese translations for new menus, multiplayer messages, and rules.
 - Polling and simultaneous turns now require your restart vote before you can mark the turn done.
 - Loading a save reports missing difficulty or speed instead of silently changing its rules.
 - Fixed selecting and restoring [Lua maps](/Modders/Lua-Modding) in the new game screen.
