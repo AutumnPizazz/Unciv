@@ -309,7 +309,7 @@ jobs:
           path: .github/workflows/UncivCN.msi
           if-no-files-found: error
 
-  upload-github-release-and-post-to-discord:
+  upload-github-release:
     needs: [get-release-body, android-build, packr-build, build-msi]
     runs-on: ubuntu-latest
     steps:
@@ -374,7 +374,7 @@ jobs:
   #   CN_DL_SERVER : 下载服务器地址，如 https://unciv.civgo.top:30123
   # 未配置 Secret 或校验失败时，正式版本发布任务必须失败，避免国内更新源停留在旧版本。
   verify-cn-download-server:
-    needs: upload-github-release-and-post-to-discord
+    needs: upload-github-release
     runs-on: ubuntu-latest
     steps:
       - name: Verify CN download server
