@@ -2,23 +2,37 @@
 #
 # 启动一次本地双客户端同时回合试玩模拟（A/B 两个客户端 + 一次结算）。
 #
-# 所有产物集中写入 .local/playtest-sim/：
+# 所有产物集中写入 .local/playtest-sim.*：
 #   server/          真实 server-go 的 SQLite 与日志（real 模式）
 #   clients/clientA/ 每回合上传的操作、下载的存档与状态指纹
 #   clients/clientB/
 #   logs/report.md   可读的过程报告
 #
 # 用法：
-#   ./playtest-sim/run.sh              # 默认：启动真实 server-go，走真实 HTTP 契约
-#   ./playtest-sim/run.sh embedded     # 快跑：用测试内置的 HttpServer，不依赖 Go
-#   PLAYTEST_PORT=12000 ./playtest-sim/run.sh
+#   ./playtest-sim/run.sh              # 默认：用测试内置的 HttpServer，不依赖 Go
+#   PLAYTEST_PORT=12000 ./playtest-sim/run.sh real  # 仅在有本地私有 server-go/ 副本时可用
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MODE="${1:-embedded}"
+SRV="$ROOT/server-go"
+case "$MODE" in
+  embedded) ;;
+  real)
+    if [[ ! -f "$SRV/go.mod" ]]; then
+      echo "[playtest] real 模式需要已获授权的本地 server-go/ 副本。公开仓库请使用 embedded 模式。" >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "用法：$0 [embedded|real]" >&2
+    exit 2
+    ;;
+esac
+
 mkdir -p "$ROOT/.local"
 SIM="$(mktemp -d "$ROOT/.local/playtest-sim.XXXXXX")"
 PORT="${PLAYTEST_PORT:-11451}"
-MODE="${1:-real}"
 
 mkdir -p "$SIM/server" "$SIM/logs" "$SIM/clients"
 
@@ -35,7 +49,6 @@ if [[ "$MODE" == "embedded" ]]; then
   echo "[playtest] embedded mode: the test will boot its own in-process HTTP server"
   echo "server=" > "$SIM/config.properties"
 else
-  SRV="$ROOT/server-go"
   echo "[playtest] building server-go"
   (cd "$SRV" && go build -o "$SIM/server/unciv-srv" .)
   echo "[playtest] starting server-go on port $PORT"

@@ -8,7 +8,7 @@ Unciv 项目的核心架构和主要类。
 
 ## 项目概述
 
-Unciv 是一个使用 LibGDX 框架开发的开源策略游戏，支持 Android、Desktop 和 Server 平台。
+Unciv 是一个使用 LibGDX 框架开发的开源策略游戏，支持 Android 和桌面平台。Go 联机服务端由独立的闭源项目维护。
 
 ## 目录结构
 
@@ -17,7 +17,6 @@ Unciv/
 ├── core/              # 核心游戏逻辑
 ├── desktop/           # 桌面端代码
 ├── android/           # Android 端代码
-├── server-go/         # 联机服务端子模块
 ├── tests/             # 测试代码
 └── buildSrc/          # 构建脚本
 ```
@@ -35,10 +34,6 @@ Unciv/
 ### android 模块
 
 Android 端配置、权限、启动器。
-
-### server-go 子模块
-
-[UncivSrv](https://github.com/blyrin/unciv-srv) 多人联机服务端，使用 Go 开发并打包为 Docker 镜像。
 
 ## 核心类
 

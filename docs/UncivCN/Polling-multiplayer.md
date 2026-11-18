@@ -82,7 +82,6 @@ Core logic spans the following source files:
 | `Multiplayer.kt` | null-safety fix for `GameInfoPreview.isUsersTurn()` |
 | `MultiplayerGamePreview.kt` | null-safety fix for `GameInfoPreview.getCurrentPlayerCiv()` |
 | `ChatWebSocket.kt` | client-side `GameUpdated` reception and refresh trigger |
-| `server-go/` (chat handlers) | server-side WebSocket broadcast after upload |
 | `GameSettings.kt` | default password set to 123456 |
 
 ## Notes

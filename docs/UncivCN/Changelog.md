@@ -17,6 +17,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- UncivCN no longer publishes Go server Docker images or GitHub Release downloads.
 - Added Simplified Chinese translations for new menus, multiplayer messages, and rules.
 - Polling and simultaneous turns now require your restart vote before you can mark the turn done.
 - Loading a save reports missing difficulty or speed instead of silently changing its rules.
@@ -171,7 +172,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.10.2 (build 1257)
 
-- Update: updates are now routed by region - mainland China uses the official CN server (see [server-ts/README.md](https://github.com/blyrin/unciv-srv/blob/main/README.md))
+- Update: updates are now routed by region - mainland China uses the CN download server
 - Update: first launch asks your region (changeable in Options - Advanced)
 - Merged upstream: fixed several spectator and city-screen crashes
 

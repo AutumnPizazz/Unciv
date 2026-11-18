@@ -1,15 +1,16 @@
 # playtest-sim — 本地双客户端同时回合试玩模拟
 
-这个目录是一次「两个真实客户端打同一局同时回合游戏」的可复现模拟。它不做嘴炮：
-两个独立的 `GameInfo` 客户端（A / B）各自行动、各自上传操作，其中一个按
+这个目录提供双客户端同时回合的可复现模拟。两个独立的 `GameInfo` 客户端（A / B）各自行动、各自上传操作，其中一个按
 `WorldScreen.finishSimultaneousTurn` 的流程结算，然后双方重新下载并逐字节比对状态。
 
 ## 跑一次
 
 ```bash
-./playtest-sim/run.sh              # 启动 server-go，验证真实 HTTP 接口
-./playtest-sim/run.sh embedded     # 用测试内置 HttpServer 快跑，不依赖 Go
+./playtest-sim/run.sh              # 默认使用测试内置的 HttpServer，不依赖 Go
+./playtest-sim/run.sh real         # 仅供拥有本地私有 server-go/ 副本的维护者联调
 ```
+
+Go 服务端已闭源。`real` 模式使用维护者已有的本地副本。
 
 `config.properties` 由脚本生成：有 `server=` 时测试连外部服务器，留空时测试自建
 内置服务器。没有这个文件（也没有 `-Dplaytest.sim.enabled=true`）时，测试会被
@@ -42,4 +43,3 @@ JUnit `Assume` 跳过，因此不影响常规 `./gradlew :tests:test`。
 - 被复刻的客户端记录语义：`core/src/com/unciv/ui/screens/worldscreen/WorldScreen.kt`
 - 操作捕获/拆分/合并：`core/src/com/unciv/logic/multiplayer/SimultaneousTurnOperations.kt`
 - 回放：`core/src/com/unciv/logic/multiplayer/SimultaneousTurnReplay.kt`
-- 服务端：`server-go/`

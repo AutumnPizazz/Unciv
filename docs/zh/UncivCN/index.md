@@ -39,7 +39,7 @@ title: UncivCN 分支介绍
 ./gradlew desktop:dist       # 构建 JAR → desktop/build/libs/Unciv.jar
 ```
 
-多人服务器见 [UncivSrv（TypeScript 服务器）](../Developers/Building-Locally.md#uncivsrvtypescript-服务器)。
+服务器选项见[多人游戏指南](../Other/Multiplayer.md#架设多人游戏服务器)。
 
 Android 构建需 `local.properties`（`sdk.dir`）或 `ANDROID_HOME` 环境变量。
 

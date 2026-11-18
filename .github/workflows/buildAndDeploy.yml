@@ -124,32 +124,6 @@ jobs:
           path: |
             deploy/linuxFilesForJar.zip
 
-      - name: Checkout Go server submodule
-        run: git submodule update --init server-go
-
-      - uses: actions/setup-go@v6
-        with:
-          go-version-file: server-go/go.mod
-          cache-dependency-path: server-go/go.sum
-
-      - name: Vet Go server
-        working-directory: server-go
-        run: go vet ./...
-
-      - name: Build and package UncivSrv Docker image
-        working-directory: server-go
-        run: |
-          docker build -t unciv-srv:${{ github.ref_name }} .
-          mkdir -p ../deploy
-          docker save unciv-srv:${{ github.ref_name }} | gzip > ../deploy/UncivSrv-${{ github.ref_name }}.tar.gz
-
-      - name: Upload UncivSrv Docker image
-        uses: actions/upload-artifact@v4
-        with:
-          name: UncivSrv
-          path: deploy/UncivSrv-${{ github.ref_name }}.tar.gz
-          if-no-files-found: error
-
       - name: Build Unciv Lua API VSCode extension (vsix)
         run: |
           mkdir -p deploy
@@ -351,7 +325,6 @@ jobs:
           mv UncivCNDeploymentZips/UncivCN-Windows64.zip deploy/UncivCN-Windows64-${{ github.ref_name }}.zip
           mv UncivCNDeploymentZips/UncivCN-Linux64.zip deploy/UncivCN-Linux64-${{ github.ref_name }}.zip
           mv UncivCNAPK/UncivCN-${{ github.ref_name }}.Apk deploy
-          mv UncivSrv/UncivSrv-${{ github.ref_name }}.tar.gz deploy/
           mv UncivLuaAPI/unciv-lua-api-*.vsix deploy/
           [ -d "UncivCN-MSI" ] && mv UncivCN-MSI/UncivCN.msi deploy/UncivCN-${{ github.ref_name }}.msi || true
 

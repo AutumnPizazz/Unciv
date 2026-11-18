@@ -8,7 +8,7 @@ The [desktop](https://github.com/yairm210/Unciv/tree/master/desktop) and [androi
 
 The [tests](https://github.com/yairm210/Unciv/tree/master/tests) folder contains tests that can be run manually via gradle with `./gradlew tests:test`, and are run automatically by Travis for every push.
 
-The [server-go](https://github.com/blyrin/unciv-srv) submodule contains the Go multiplayer server, packaged as a Docker image.
+The Go multiplayer server is maintained separately as a closed-source project.
 
 
 ## Translations

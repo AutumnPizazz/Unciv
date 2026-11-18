@@ -157,14 +157,6 @@ Detekt 检查代码异味和其他 lint 问题。
 
 ### UncivSrv（Go 服务器）
 
-多人联机服务器位于 `server-go/` 子模块（[blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)）。Go 版本以 `server-go/go.mod` 为准：
+UncivSrv 已闭源，由独立仓库维护。UncivCN 的公开仓库和客户端构建不依赖它，也不发布 Go 服务端 Docker 镜像或 GitHub Release 附件。自建服务器的其他选择见[多人游戏指南](../Other/Multiplayer.md#架设多人游戏服务器)。
 
-```bash
-git submodule update --init server-go
-cd server-go
-go run .
-```
-
-配置选项见 `server-go/example.env`。使用 Docker 时，在 `server-go/` 内执行 `docker compose up -d --build`，SQLite 数据库持久化在 `/data` 卷中。
-
-从 TypeScript 版升级前，先备份数据库，并用旧版服务端恢复全部冷归档对局。Go 版已移除冷归档读取功能。
+现有 TypeScript 服务的维护者若要升级到 Go 版，应先备份 SQLite 数据库，再用旧版服务端恢复全部冷归档对局。Go 版不读取冷归档。

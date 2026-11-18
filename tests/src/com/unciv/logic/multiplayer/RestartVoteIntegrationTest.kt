@@ -377,11 +377,11 @@ class RestartVoteIntegrationTest {
 
     private suspend fun connectToGo(timeoutMinutes: Int = 60): List<String> {
         val dir = System.getProperty("playtest.sim.dir")
-        assumeTrue("Run playtest-sim/run.sh with the Go server", dir != null)
+        assumeTrue("Run playtest-sim/run.sh real to test the Go server", dir != null)
         val config = Properties()
         File(dir!!, "config.properties").inputStream().use { config.load(it) }
         serverUrl = config.getProperty("server", "")
-        assumeTrue("Run playtest-sim/run.sh with the Go server", serverUrl.isNotEmpty())
+        assumeTrue("Run playtest-sim/run.sh real to test the Go server", serverUrl.isNotEmpty())
         val settings = UncivGame.Current.settings.multiplayer
         settings.setServer(serverUrl)
         settings.setCurrentServerPassword("playtest123")

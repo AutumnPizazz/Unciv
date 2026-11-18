@@ -145,9 +145,8 @@ object Constants {
 
     /** UncivCN 社区下载服务器（与联机服务器同域，由社区维护、并非官方服务）。
      *  游戏内更新检查与安装包下载固定走它（不依赖 github.com 可达性，也不受模组下载源设置影响）：
-     *  - 检查更新：`GET <server>/api/downloads/latest.json`（server-go 动态生成，格式兼容 GitHub latest release API）
-     *  - 安装包下载：`<server>/dl/<版本tag>/<文件名>`
-     *  详见 server-go/README.md */
+     *  - 检查更新：`GET <server>/api/downloads/latest.json`（格式兼容 GitHub latest release API）
+     *  - 安装包下载：`<server>/dl/<版本tag>/<文件名>` */
     const val uncivDownloadServer = "https://unciv.civgo.top:30123"
 
     /** Chinese-language setting names (file names without .properties) */

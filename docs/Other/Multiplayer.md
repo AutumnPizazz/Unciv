@@ -1,6 +1,6 @@
 # Multiplayer
 
-Multiplayer in Unciv is based on simple save file up/download, which is why it is based on a free Dropbox account by default. However, a lot of people use this default, so it is uncertain if you'll actually be able to access it consistently. See [Hosting a Multiplayer server](#hosting-a-multiplayer-server) for hosting your own server.
+UncivCN multiplayer uses a shared server to exchange game saves. You can use the default server or set a compatible server address in the multiplayer options. For self-hosting, see [Hosting a Multiplayer server](#hosting-a-multiplayer-server).
 
 ## How to play
 
@@ -15,58 +15,12 @@ When the host enables restart voting, a surviving player can start a vote from t
 
 ## Hosting a Multiplayer server
 
-Due to certain limitations on Dropbox's API, with the current influx of players, we've many times reached the point that Dropbox has become unavailable.
+The Go multiplayer server (UncivSrv) is closed-source and maintained separately. UncivCN no longer distributes Go server Docker images or GitHub Release downloads.
 
-Therefore, you can now host your own Unciv server on any computer that can run Java programs.
-
-This guide is written for people with a moderate amount of technical knowledge about computer software and who are able to search the web to learn stuff they might not know. If you're completely new to this, you'll likely not be able to follow without some larger time investment to learn.
-
-If you're proficient in server hosting, there's another how-to for you at the end.
-
-### How To
-
-Install [Go](https://go.dev/) at the version specified in `server-go/go.mod`, or install [Docker](https://www.docker.com/). The [UncivSrv](https://github.com/blyrin/unciv-srv) server is in this repository's `server-go/` submodule.
-
-From the repository root, open a terminal, enter the submodule and start it:
-
-```bash
-git submodule update --init server-go
-cd server-go
-go run .
-```
-
-If you use Docker instead:
-
-```bash
-git submodule update --init server-go
-cd server-go
-docker compose up -d --build
-```
-
-Your server has now started!
-
-To check if everything works, you can start Unciv on the same computer, go to "Options > Multiplayer", then enter `http://localhost:11451` as the "Server address" and click "Check connection to server". You should now get a "Success!" result, which means it's working!
-
-To connect with other devices outside your local network or to make your server accessible from the web, you'll need a real IP. If your ISP provides you with a real IP already, forward your server's port (default 11451) with your router, and your server would be exposed to the internet! In this case you can also use `http://<your-real-ip-adress>:<your-forwarded-port>`. For example, if you have the IP `203.0.113.1` and forwarded the port of your server to port `1234`, your server can be accessed from the internet from the url `http://203.0.113.1:1234`. Additionally, since the `HTTP` protocol defaults to port `80`, if you have forwarded your server to port `80`, you wouldn’t need to specify any port. For example, if you forward the server's port to port `80` of your real IP, your server would be exposed to `http://<your-real-ip>` or in this case `http://203.0.113.1`.
-
-
-On the other device, enter the URL to your server (`http://<your IP address>:<your chosen port>`), click 'check connection' from the new device, and if you get the same "Success!" result - congratulations, you're connected to the same server and can start a multiplayer game!
-
-Please note:
-* Devices *not* connected to the same server will *not* be able to participate in multiplayer games together
-* In many places, your external IP address changes periodically. If that is the case, you either have to update the IP all the time or use something like a dynamic DNS service.
-* To start your server from some special ports like `80` or `443`, you would need admin privileges. If you want to use those ports, run PowerShell as admin. However, if you use port forwarding from a router, you really don't need to do this. You can start the server from port `11451` and forward it to `80`.
-
-### How To for people with hosting experience
-
-* Configure the port, database path, registration mode (`open`/`approval`/`closed`) and chat in `.env`; see `server-go/example.env`.
-* Build it with `go build -o unciv-srv .`, then run `./unciv-srv`.
-    * Storage is SQLite with automatic database migrations.
-    * Player passwords are stored as scrypt hashes rather than a plaintext file.
+For self-hosting, choose a compatible implementation below and follow its documentation. Support for UncivCN features such as simultaneous turns and restart votes varies by server. Before starting a game, all players should enter the same server URL under **Options → Multiplayer** and select **Check connection to server**.
 
 ## Third-party (unofficial) software for hosting your own Unciv server
 
-* [https://github.com/blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) (Go, the `server-go/` submodule of this repository)
 * [https://github.com/Mape6/Unciv_server](https://github.com/Mape6/Unciv_server) (Python)
 * [https://gitlab.com/azzurite/unciv-server](https://gitlab.com/azzurite/unciv-server) (NodeJS)
 * [https://github.com/oynqr/rust_unciv_server](https://github.com/oynqr/rust_unciv_server) (Rust)

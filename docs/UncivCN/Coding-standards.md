@@ -29,7 +29,6 @@ For a from-scratch setup (environment, IDE configuration) see [Building-Locally]
 | `core/` | 99% of the game code: logic, models, UI, serialization, ruleset. Pure Kotlin, no platform dependencies |
 | `desktop/` | Desktop launcher and platform features (JNA notifications, Discord RPC) |
 | `android/` | Android launcher; `android/assets/` holds the shared assets for all platforms (images, JSON, translations) |
-| `server-go/` | Multiplayer server (Go, Fiber and SQLite), submodule [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
 | `tests/` | JUnit 4 + Mockito unit tests |
 
 Key packages (`core/src/com/unciv/`):
@@ -167,7 +166,7 @@ Before releasing, check off:
 - [ ] Local verification: `./gradlew tests:test` **and** `cd docs-vitepress && npm run docs:build` (skipping the latter only surfaces docs failures in CI after the release)
 - [ ] Push both the branch **and the tag separately** (`git push origin <branch>` + `git push origin <tag>`); the Deploy workflow triggers on tags only — pushing the branch alone does not release
 
-After releasing, verify GitHub Release asset completeness: `UncivCN-<version>.Apk`, `.jar`, `Windows64.zip`, `Linux64.zip`, `UncivSrv-<version>.tar.gz`, `.msi`.
+After releasing, verify the APK, desktop JAR, Windows and Linux ZIPs, MSI, and Lua extension VSIX are attached. UncivCN does not publish Go server assets or Docker images.
 
 Lessons learned:
 - **No bare angle brackets in markdown**: `<gameId>` is parsed by VitePress/Vue as an unclosed HTML tag (`Element is missing end tag`) and breaks the docs build — use `{gameId}` or `&lt;...&gt;`

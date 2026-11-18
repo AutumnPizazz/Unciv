@@ -1,4 +1,6 @@
 .git
+.local/
+server-go/
 Dockerfile
 docker-compose.yml
 desktop/.jre-cache/

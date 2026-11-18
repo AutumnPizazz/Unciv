@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test check run dist docs docs-site detekt bump server-build server-vet server-lint clean
+.PHONY: help build test check run dist docs docs-site detekt bump clean
 
 help: ## 显示本帮助
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
@@ -35,15 +35,6 @@ detekt: ## Detekt 静态检查（CLI，配置见 docs/zh/UncivCN/Coding-standard
 
 bump: ## 升版本（./gradlew bumpVersion；make bump newVersion=x 或 make bump bump=patch）
 	./gradlew bumpVersion $(if $(newVersion),-PnewVersion=$(newVersion)) $(if $(bump),-Pbump=$(bump))
-
-server-build: ## 构建 Go 服务端
-	cd server-go && go build ./...
-
-server-vet: ## 静态检查 Go 服务端
-	cd server-go && go vet ./...
-
-server-lint: ## 代码检查 Go 服务端（golangci-lint）
-	cd server-go && golangci-lint run ./...
 
 clean: ## 清理构建产物（./gradlew clean）
 	./gradlew clean

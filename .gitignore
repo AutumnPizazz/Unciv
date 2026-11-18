@@ -214,3 +214,4 @@ docs-vitepress/node_modules/
 /desktop/packr/*
 
 /.local/
+/server-go/

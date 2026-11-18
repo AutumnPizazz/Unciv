@@ -1,4 +1,4 @@
-# Jobs to test the code base and build the client and server app
+# Jobs to build the Android and desktop clients
 name: Build Multiplatform
 
 
@@ -59,7 +59,7 @@ jobs:
           retention-days: 1
         continue-on-error: true
 
-  # Job to build the desktop and server JAR files on all available platforms
+  # Job to build the desktop client on all available platforms
   build-desktop:
     defaults:
       run:
@@ -99,16 +99,3 @@ jobs:
         # Only run this step on ubuntu-latest, since Java is cross-platform anyways
         if: ${{ matrix.os == 'ubuntu-latest' }}
         continue-on-error: true
-
-  build-go-server:
-    runs-on: ubuntu-latest
-    name: Build Go Server
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Checkout Go server submodule
-        run: git submodule update --init server-go
-
-      - name: Build Docker image (verification only)
-        working-directory: server-go
-        run: docker build -t unciv-srv:test .

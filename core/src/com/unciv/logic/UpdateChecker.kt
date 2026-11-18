@@ -35,7 +35,7 @@ object UpdateChecker {
      * Query the latest release of the game repository.\n
      * Routing follows the player's region setting ([GameSettings.playerRegion], asked on first
      * launch): mainland China players query the CN download server's `/api/downloads/latest.json`
-     * (served by `server-go` installer hosting, same schema as the GitHub "latest release" API,
+     * (same schema as the GitHub "latest release" API,
      * github.com is unreliable there); everyone else queries the GitHub API through the active
      * download source like mod downloads do.
      */

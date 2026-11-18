@@ -1,6 +1,6 @@
 # Unciv 项目指南
 
-开源 Kotlin 版《文明5》复刻，基于 LibGDX，支持 Android / Desktop / Server。
+开源 Kotlin 版《文明5》复刻，基于 LibGDX，支持 Android / Desktop，客户端可连接联机服务。
 构建命令、项目结构、游戏状态模型、资源路径等开发参考见 `docs/zh/UncivCN/Coding-standards.md`
 第一至三、九节（中英两版同步；改动文档/生成器/unique/翻译前先通读全文）。
 
@@ -40,12 +40,12 @@
 
 解决合并冲突原则：
 1.版本号以本仓库为准
-2.服务器的权威实现是 `server-go/` 子模块（blyrin/unciv-srv）。上游改动 `server/` 时，按第 5 条评估并映射到 Go 服务端；不恢复 Kotlin 服务端。
+2.Go 联机服务端（UncivSrv）独立维护且已闭源，本仓库不跟踪其源码或子模块，也不构建或发布服务端 Docker 镜像和 Release 产物。上游改动 `server/` 时只评估客户端协议兼容性，不恢复 Kotlin 服务端。
 3.上游仓库改动架构时，需要评估本仓库新功能是否需要跟随架构改动
 4.上游仓库与本仓库对类似功能实现方式不同时，向用户提问决定采纳哪一方的实现
 5.上游仓库改动本仓库已删除或改动的代码时，需要评估上游仓库意图，找到本仓库的代替实现方法，作出更高层面的适配
 
-- 修改 `server-go/` 前遵循其 `AGENTS.md`；在主仓库运行 `playtest-sim/run.sh` 验证同步回合和重开投票。
+- 在主仓库运行 `playtest-sim/run.sh` 验证同步回合。真实 Go 接口及重开投票联调仅在有授权的本地私有副本时运行 `playtest-sim/run.sh real`。
 - Web 保持 `-Pweb` 按需构建验证，CN 文档站不部署游戏。
 
 ## 子仓库模组（CoeHarMod）

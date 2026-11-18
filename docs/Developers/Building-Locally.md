@@ -271,14 +271,6 @@ Building artifacts (running `./gradlew desktop:packrWindows64`, `./gradlew deskt
 
 ### UncivSrv (Go server)
 
-The multiplayer server lives in the `server-go/` submodule ([blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)). Use the Go version specified in `server-go/go.mod`:
+UncivSrv is closed-source and maintained separately. The public UncivCN repository and its client builds do not depend on it. UncivCN does not publish Go server Docker images or GitHub Release assets. For self-hosting alternatives, see the [multiplayer guide](../Other/Multiplayer.md#hosting-a-multiplayer-server).
 
-```bash
-git submodule update --init server-go
-cd server-go
-go run .
-```
-
-See `server-go/example.env` for configuration. Run `docker compose up -d --build` from `server-go/` to deploy with Docker; SQLite is persisted in `/data`.
-
-Before upgrading a TypeScript deployment, back up its database and restore all cold-archived games using the old server. The Go server no longer reads cold archives.
+Operators upgrading an existing TypeScript deployment to Go should back up its SQLite database and restore all cold-archived games with the old server first. The Go server does not read cold archives.
