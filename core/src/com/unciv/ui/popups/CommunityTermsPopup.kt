@@ -17,7 +17,7 @@ import com.unciv.ui.screens.basescreen.BaseScreen
 /**
  * 首次启动时要求玩家阅读并接受社区服务条款、并声明已满 18 周岁的弹窗。
  *
- * 本构建的社区服务（联机、下载、文档站）定位为仅面向成年人（见 `docs/Terms-of-Service.md`），
+ * 本构建的社区服务（联机、文档站）定位为仅面向成年人（见 `docs/Terms-of-Service.md`），
  * 所以这里是一个必须处理的闸门：不勾选则“Agree and continue”不可用，
  * 选择“Decline and exit”会结束游戏进程。
  *
@@ -29,7 +29,7 @@ class CommunityTermsPopup(stageToShowOn: Stage, onAccepted: () -> Unit) : Popup(
         addGoodSizedLabel("Community services terms", size = Constants.headingFontSize).colspan(2).row()
 
         addGoodSizedLabel(
-            "The community services of this build - online multiplayer, in-game downloads and the " +
+            "The community services of this build - online multiplayer and the " +
                 "documentation site - are free, non-commercial and maintained by volunteers. " +
                 "They are not an official service and are intended for adults only."
         ).colspan(2).row()

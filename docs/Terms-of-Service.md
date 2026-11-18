@@ -1,14 +1,15 @@
 # Terms of Service
 
-These terms apply to the community services provided for UncivCN: the community multiplayer servers, the community download server and this documentation site. The services are built and maintained by volunteers of the UncivCN community as a personal, non-commercial effort. They are **not** official services: Unciv itself is made by the upstream team at https://github.com/yairm210/Unciv, which is not involved in and not responsible for these services. By using any of them you accept these terms and the [Privacy Policy](/Privacy-Policy).
+These terms apply to the community services provided for UncivCN: the community multiplayer servers and this documentation site. The services are built and maintained by volunteers of the UncivCN community as a personal, non-commercial effort. They are **not** official services: Unciv itself is made by the upstream team at https://github.com/yairm210/Unciv, which is not involved in and not responsible for these services. By using any of them you accept these terms and the [Privacy Policy](/Privacy-Policy).
 
 ## 1. What the services are
 
 - **Multiplayer servers**: uploading and downloading save files, simultaneous turns and optional in-game chat.
-- **Download server**: serving the UncivCN version manifest and download links (the installers themselves are hosted on GitHub Releases).
 - **Documentation site**: project documentation and changelogs.
 
 All of it is free, non-commercial technical infrastructure maintained by community volunteers as a personal effort. **We provide technical infrastructure only and do not publish or operate the game itself**: no payment, subscription or in-game item is sold here. The documentation site and installers are hosted on third-party platforms such as GitHub; when you visit them you are dealing with those platforms directly.
+
+Installers are hosted on GitHub Releases. The client checks for updates and downloads installers using the GitHub download source you select under **Options → Advanced**.
 
 ## 2. Minors
 

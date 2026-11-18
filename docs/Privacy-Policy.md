@@ -1,6 +1,6 @@
 # Privacy Policy
 
-This policy applies to the community services run for UncivCN: this documentation site, the community download server and the community multiplayer servers. They are built and maintained by volunteers of the UncivCN community as a personal effort. They are **not** operated by, affiliated with or endorsed by the Unciv project or its developers — the game itself is made by the upstream team at https://github.com/yairm210/Unciv. The maintainer of these services is the data controller.
+This policy applies to the community services run for UncivCN: this documentation site and the community multiplayer servers. They are built and maintained by volunteers of the UncivCN community as a personal effort. They are **not** operated by, affiliated with or endorsed by the Unciv project or its developers — the game itself is made by the upstream team at https://github.com/yairm210/Unciv. The maintainer of these services is the data controller.
 
 Questions, deletion and export requests: [QQ group](https://qm.qq.com/q/j92c3iUnZ0) or [GitHub Issues](https://github.com/AutumnPizazz/Unciv/issues).
 

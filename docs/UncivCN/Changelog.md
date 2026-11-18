@@ -15,6 +15,10 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## Unreleased
 
+### Player-facing
+
+- The terms and privacy policy no longer list downloads as a community service.
+
 ## 5.0.1.1 (build 1267)
 
 ### Player-facing

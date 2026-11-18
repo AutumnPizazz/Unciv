@@ -368,37 +368,3 @@ jobs:
             ${{needs.get-release-body.outputs.release_body_zh}}
 
             </details>
-
-  # 校验 CN 社区下载服务器已切到本次版本（服务器只转发版本清单、/dl/ 直链 302 跳转，不再托管安装包）。
-  # 需要的 Secret（仓库 Settings → Secrets and variables → Actions）：
-  #   CN_DL_SERVER : 下载服务器地址，如 https://unciv.civgo.top:30123
-  # 未配置 Secret 或校验失败时，正式版本发布任务必须失败，避免国内更新源停留在旧版本。
-  verify-cn-download-server:
-    needs: upload-github-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify CN download server
-        env:
-          DL_SERVER: ${{ secrets.CN_DL_SERVER }}
-        run: |
-          if [ -z "$DL_SERVER" ]; then
-            echo "错误：未配置 CN_DL_SERVER，无法校验 CN 更新源"
-            exit 1
-          fi
-          echo "等待服务器版本清单切换到 tag=${{ github.ref_name }}..."
-          for attempt in {1..30}; do
-            latest_tag=$(curl --fail --show-error --silent \
-              "$DL_SERVER/api/downloads/latest.json" | jq -r '.tag_name // empty')
-            if [ "$latest_tag" = "${{ github.ref_name }}" ]; then
-              apk_url="$DL_SERVER/dl/${{ github.ref_name }}/UncivCN-${{ github.ref_name }}.Apk"
-              echo "校验 APK 直链：$apk_url"
-              curl --fail --show-error --silent --location --head --output /dev/null "$apk_url"
-              echo "CN 下载服务器已切换到 $latest_tag，APK 直链可用"
-              exit 0
-            fi
-            echo "第 $attempt 次检查：当前 latest.json 为 ${latest_tag:-<empty>}，10 秒后重试"
-            sleep 10
-          done
-
-          echo "CN 下载服务器在超时时间内未更新到 ${{ github.ref_name }}"
-          exit 1
