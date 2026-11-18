@@ -24,8 +24,6 @@ import com.unciv.models.ruleset.unique.Unique
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
 import com.unciv.ui.screens.victoryscreen.RankingType
-import com.unciv.ui.screens.worldscreen.unit.actions.UnitActionsUpgrade
-import com.unciv.models.UpgradeUnitAction
 import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 
@@ -66,7 +64,9 @@ object LuaAPI {
     private fun LuaTable.registerApi(owner: String, name: String, value: LuaValue): LuaTable {
         if (name !in apiCatalog[owner].orEmpty())
             com.unciv.utils.Log.error("LuaAPI: '$name' (owner '$owner') is missing from apiCatalog - the CLI mod checker will not know it")
-        knownApiMethods.getOrPut(owner) { java.util.concurrent.ConcurrentHashMap.newKeySet() }.add(name)
+        knownApiMethods.getOrPut(owner) {
+            java.util.Collections.newSetFromMap(java.util.concurrent.ConcurrentHashMap<String, Boolean>())
+        }.add(name)
         this.set(name, value)
         return this
     }
@@ -221,10 +221,10 @@ object LuaAPI {
         t.registerApi("civ", "isHuman", LuaValue.valueOf(civ.isHuman()))
         t.registerApi("civ", "isAI", LuaValue.valueOf(civ.isAI()))
         t.registerApi("civ", "isAlive", LuaValue.valueOf(civ.isAlive()))
-        t.registerApi("civ", "isMajorCiv", LuaValue.valueOf(civ.isMajorCiv()))
+        t.registerApi("civ", "isMajorCiv", LuaValue.valueOf(civ.isMajorCiv))
         t.registerApi("civ", "isCityState", LuaValue.valueOf(civ.isCityState))
         t.registerApi("civ", "isBarbarian", LuaValue.valueOf(civ.isBarbarian))
-        t.registerApi("civ", "isSpectator", LuaValue.valueOf(civ.isSpectator()))
+        t.registerApi("civ", "isSpectator", LuaValue.valueOf(civ.isSpectator))
         t.registerApi("civ", "getNation", luaFunction { LuaValue.valueOf(civ.nation.name) })
         t.registerApi("civ", "getLeaderName", luaFunction { LuaValue.valueOf(civ.nation.leaderName) })
         t.registerApi("civ", "getScore", luaFunction {
@@ -1116,10 +1116,10 @@ object LuaAPI {
             LuaValue.valueOf(steps)
         })
         t.registerApi("unit", "upgrade", luaFunction {
-            val upgradeAction = UnitActionsUpgrade.getFreeUpgradeAction(unit)
-            if (upgradeAction.any()) {
-                upgradeAction.minBy { (it as UpgradeUnitAction).unitToUpgradeTo.cost }.action?.invoke()
-            }
+            val upgrade = unit.upgrade.getUpgradesOfKind(isSpecial = false)
+                .filter { unit.upgrade.canPerformUpgrade(it, isFree = true) }
+                .minByOrNull { it.upgradedUnit.cost }
+            if (upgrade != null) unit.upgrade.performUpgrade(upgrade, isFree = true)
             LuaValue.NIL
         })
         t.registerApi("unit", "destroy", luaFunction {

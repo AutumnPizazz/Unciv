@@ -6,7 +6,7 @@ import com.unciv.models.ruleset.VariableScope
 import com.unciv.models.ruleset.unique.Unique
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
-import com.unciv.ui.screens.worldscreen.unit.actions.UnitActionModifiers
+import com.unciv.logic.map.mapunit.actions.UnitActionModifiers
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith

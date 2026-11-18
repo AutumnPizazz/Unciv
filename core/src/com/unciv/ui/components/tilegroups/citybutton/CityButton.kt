@@ -1,5 +1,12 @@
 package com.unciv.ui.components.tilegroups.citybutton
 
+import com.unciv.view.getCivInnerColor
+import com.unciv.view.getCurrentConstruction
+import com.unciv.models.ruleset.INonPerpetualConstruction
+import com.unciv.ui.components.tilegroups.mix
+import com.unciv.view.hasMovement
+import com.unciv.view.isAirUnit
+import com.unciv.view.isCityState
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.math.Interpolation
@@ -21,6 +28,7 @@ import com.unciv.ui.screens.cityscreen.CityReligionInfoTable
 import com.unciv.ui.screens.cityscreen.CityScreen
 import com.unciv.view.ForeignCityView
 import com.unciv.ui.screens.diplomacyscreen.DiplomacyScreen
+import com.unciv.utils.DebugUtils
 import yairm210.purity.annotations.Readonly
 
 /**
@@ -58,9 +66,68 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
 
     @Readonly private fun belongsToViewingCiv() = foreignCityView.isOwnedByViewer()
 
+    /** Hash of everything the button's tables are built from. If unchanged, the (expensive) rebuild is skipped */
+    private var lastUpdateKey: Long? = null
+
+    private fun getUpdateKey(isCityViewable: Boolean): Long {
+        val city = foreignCityView
+        val selectedCiv = GUI.getSelectedPlayer()
+        var key = 1L
+            .mix(isCityViewable).mix(selectedCiv.civName).mix(viewingPlayer.civName)
+            // Common to all tables
+            .mix(city.name).mix(city.owningCiv().civName)
+            .mix(city.getPopulationCount()).mix(city.isCapital())
+            .mix(city.getHealth()).mix(city.getMaxHealth()).mix(city.getDefendingStrength())
+            .mix(city.isAtWarWith(selectedCiv))
+            .mix(city.getMajorityReligion()?.getIconName())
+            // StatusTable
+            .mix(city.isBlockaded()).mix(city.isConnectedToCapital()).mix(city.isInResistance())
+            .mix(city.isPuppet()).mix(city.isBeingRazed()).mix(city.isWeLoveTheKingDayActive())
+
+        if (isCityViewable)
+            key = key.mix(tileGroup.tileView.getVisibleUnits().count { it.isAirUnit() })
+
+        // InfluenceTable
+        if (city.isCityState() && city.civKnows(selectedCiv)) {
+            val diplomacyManager = city.getDiplomacyManagerWith(selectedCiv)!!
+            key = key.mix(diplomacyManager.getInfluence()).mix(diplomacyManager.relationshipLevel())
+        }
+
+        // Growth and construction bars - only for cities we're allowed to see inside
+        val detailedCityView = city.tryGetCityView()
+        key = key.mix(detailedCityView != null)
+        if (detailedCityView != null) {
+            key = key.mix(detailedCityView.getFoodStored()).mix(detailedCityView.getFoodToNextPopulation())
+                .mix(detailedCityView.foodForNextTurn())
+            val constructions = detailedCityView.constructions
+            val currentName = constructions.currentConstructionName() // Once: the queue can change between two reads
+            key = key.mix(currentName)
+            val construction = constructions.getConstruction(currentName)
+            if (construction is INonPerpetualConstruction)
+                key = key.mix(constructions.getWorkDone(construction.name))
+                    .mix(detailedCityView.getConstructionProductionCost(construction))
+                    .mix(detailedCityView.getCurrentCityStats().production)
+        }
+        return key
+    }
+
     fun update(isCityViewable: Boolean) {
-        val selectedPlayer = foreignCityView.getViewingCiv()
         isViewable = isCityViewable
+
+        moveButtonUpIfDeselected()
+
+        val key = getUpdateKey(isCityViewable)
+        if (key != lastUpdateKey) {
+            lastUpdateKey = key
+            rebuild(isCityViewable)
+        }
+
+        // Depends on the neighbors' units, which our key doesn't cover - cheap, so always done
+        updateHiddenUnitMarkers(isCityViewable)
+    }
+
+    private fun rebuild(isCityViewable: Boolean) {
+        val selectedPlayer = foreignCityView.getViewingCiv()
 
         clear()
         setButtonActions()
@@ -102,8 +169,6 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
 
         setOrigin(Align.center)
         centerX(tileGroup)
-
-        updateHiddenUnitMarkers(isCityViewable)
     }
 
     private enum class HiddenUnitMarkerPosition {Left, Center, Right}
@@ -120,7 +185,7 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
         if (!isButtonMoved && (tileGroup.tileView.civilianUnit != null))
             insertHiddenUnitMarker(HiddenUnitMarkerPosition.Center)
 
-        for (neighbor in tileGroup.tileView.getVisibleNeighbors()) {
+        for (neighbor in tileGroup.neighbors) {
             val direction = tileGroup.tileView.position().minus(neighbor.position())
 
             if (isButtonMoved) {
@@ -176,9 +241,13 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
             // second tap on the button will go to the city screen
             // if this city belongs to you and you are not iterating though the air units
             val cityView = foreignCityView.tryGetCityView()
-            val isIteratingUnits = tileGroup.tileView.getVisibleUnits().none { it == unitTable.selectedUnit }
-            if (cityView != null && isIteratingUnits) {
-                GUI.pushScreen{ CityScreen(cityView) }
+            val selectedUnit = unitTable.selectedUnit
+            val isIteratingAirUnits = selectedUnit != null && selectedUnit.isAirUnit()
+                && selectedUnit.getTile() == foreignCityView.getCenterTile()
+            // Foreign cities with a spy should offer both diplomacy and inspection.
+            val openCityDirectly = belongsToViewingCiv() || viewingPlayer.isSpectator || DebugUtils.VISIBLE_MAP
+            if (cityView != null && !isIteratingAirUnits && openCityDirectly) {
+                GUI.pushScreen { CityScreen(cityView) }
             }
             else if (foreignCityView.isKnownTo(viewingPlayer))
                 foreignCityInfoPopup()
@@ -196,7 +265,10 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
             }
         }
         onRightClick(action = ::enterCityOrInfoPopup)
+    }
 
+    private fun moveButtonUpIfDeselected() {
+        val unitTable = GUI.getUnitTable()
         // when deselected, move city button to its original position
         if (unitTable.selectedCity != foreignCityView && unitTable.selectedUnit?.getTile() != foreignCityView.getCenterTile() && unitTable.selectedSpy == null)
             moveButtonUp()
@@ -229,7 +301,7 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
     }
 
     private fun foreignCityInfoPopup() {
-        fun openDiplomacy() = GUI.pushScreen{ 
+        fun openDiplomacy() = GUI.pushScreen {
             DiplomacyScreen(foreignCityView.gameView.civView, foreignCityView.owningCiv())
         }
 
@@ -246,7 +318,7 @@ class CityButton(val foreignCityView: ForeignCityView, private val tileGroup: Ti
             if (foreignCityView.isReligionEnabled())
                 add(CityReligionInfoTable(foreignCityView, true)).colspan(3).row()
             addOKButton("Diplomacy") { openDiplomacy() }
-            if (espionageCityView != null) addButton("View") { GUI.pushScreen{
+            if (espionageCityView != null) addButton("View") { GUI.pushScreen {
                 CityScreen(espionageCityView)
             } }
             add().expandX()

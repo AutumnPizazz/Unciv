@@ -7,28 +7,24 @@
 ## 跑一次
 
 ```bash
-./playtest-sim/run.sh              # 启动真实 server-ts，走真实 HTTP 契约（推荐）
-./playtest-sim/run.sh embedded     # 用测试内置 HttpServer 快跑，不依赖 Node
+./playtest-sim/run.sh              # 启动 server-go，验证真实 HTTP 接口
+./playtest-sim/run.sh embedded     # 用测试内置 HttpServer 快跑，不依赖 Go
 ```
 
 `config.properties` 由脚本生成：有 `server=` 时测试连外部服务器，留空时测试自建
 内置服务器。没有这个文件（也没有 `-Dplaytest.sim.enabled=true`）时，测试会被
 JUnit `Assume` 跳过，因此不影响常规 `./gradlew :tests:test`。
 
-## 产物（全部集中在本目录）
+## 测试产物
+
+每次运行会创建 `.local/playtest-sim.*` 目录，日志路径见脚本输出。
 
 | 路径 | 内容 |
 | --- | --- |
 | `logs/report.md` | 人类可读的完整过程报告 |
 | `logs/simulation.log` | 同样的逐行日志 |
 | `clients/clientA/`、`clients/clientB/` | 每回合上传的 `*.ops.json`、下载的 `*.sav`、状态指纹 `*.state.txt` |
-| `server/` | real 模式：server-ts 的 SQLite 与 `server.log`；embedded 模式：内置服务器的 `files/`、`operations/` 转储 |
-
-清理或复用：
-
-```bash
-rm -rf playtest-sim/server playtest-sim/clients playtest-sim/logs   # 只清产物，保留脚本
-```
+| `server/` | real 模式：Go 服务端的临时 SQLite 与 `server.log`；embedded 模式：内置服务器的 `files/`、`operations/` 转储 |
 
 ## 模拟覆盖了什么
 
@@ -38,6 +34,7 @@ rm -rf playtest-sim/server playtest-sim/clients playtest-sim/logs   # 只清产�
   重新播种为墙上时钟），再移动一次并提交。结算必须同时保住重载前后的两批操作
   ——这正是「重载后复用操作序号导致新操作被静默丢弃」那个回归。
 - **第 3 回合**：换另一个客户端做结算者，再做一轮移动 + state 改动。
+- **重开投票（仅 Go 模式）**：并发提交不丢票，重连恢复投票并下载新局；多数反对不重开，超时未投计为同意，并发时只有一个客户端领到重开资格。
 
 ## 相关代码
 
@@ -45,4 +42,4 @@ rm -rf playtest-sim/server playtest-sim/clients playtest-sim/logs   # 只清产�
 - 被复刻的客户端记录语义：`core/src/com/unciv/ui/screens/worldscreen/WorldScreen.kt`
 - 操作捕获/拆分/合并：`core/src/com/unciv/logic/multiplayer/SimultaneousTurnOperations.kt`
 - 回放：`core/src/com/unciv/logic/multiplayer/SimultaneousTurnReplay.kt`
-- 服务端：`server-ts/`
+- 服务端：`server-go/`

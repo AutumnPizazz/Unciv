@@ -155,19 +155,16 @@ Detekt 检查代码异味和其他 lint 问题。
 更彻底的做法是偶尔在 Studio 的终端（或 Unicv 项目文件夹内的任何 shell）运行 `git gc --prune=now --aggressive`，
 但要先确保清理掉所有过时的分支，且剩余分支与它们对应的远程分支同步（如果只有本地分支，则基于 master）。
 
-### UncivSrv（TypeScript 服务器）
+### UncivSrv（Go 服务器）
 
-功能完善的多人联机服务器位于 `server-ts/` 子模块（[blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)）——WebSocket 聊天、Web 管理后台、SQLite 存储与自动数据库迁移、登录限流、定时清理过期数据等。需要 Node.js 20+ 与 pnpm 10+：
+多人联机服务器位于 `server-go/` 子模块（[blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)）。Go 版本以 `server-go/go.mod` 为准：
 
 ```bash
-cd server-ts
-pnpm install
-pnpm typecheck   # 类型检查
-pnpm test        # 运行 Vitest 测试
-pnpm dev         # 用 tsx 开发运行
-pnpm build && pnpm start   # 构建并运行编译产物
+git submodule update --init server-go
+cd server-go
+go run .
 ```
 
-配置通过 `.env` 文件读取——可用选项见 `server-ts/example.env`。
+配置选项见 `server-go/example.env`。使用 Docker 时，在 `server-go/` 内执行 `docker compose up -d --build`，SQLite 数据库持久化在 `/data` 卷中。
 
-该子模块还自带 `Dockerfile` / `docker-compose.yml` 支持容器化部署——在 `server-ts/` 内执行 `docker compose up -d --build` 即可，SQLite 数据库持久化在 `/data` 卷中。详见其 README。
+从 TypeScript 版升级前，先备份数据库，并用旧版服务端恢复全部冷归档对局。Go 版已移除冷归档读取功能。

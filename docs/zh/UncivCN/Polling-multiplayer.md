@@ -82,7 +82,7 @@
 | `Multiplayer.kt` | `GameInfoPreview.isUsersTurn()` 空值安全修复 |
 | `MultiplayerGamePreview.kt` | `GameInfoPreview.getCurrentPlayerCiv()` 空值安全修复 |
 | `ChatWebSocket.kt` | 客户端 `GameUpdated` 消息接收与刷新触发 |
-| `server-ts/`（chat 处理器） | 服务端文件上传后 WebSocket 广播 |
+| `server-go/`（chat 处理器） | 服务端文件上传后 WebSocket 广播 |
 | `GameSettings.kt` | 默认密码设为 123456 |
 
 ## 注意事项

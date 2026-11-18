@@ -2,20 +2,21 @@
 #
 # 启动一次本地双客户端同时回合试玩模拟（A/B 两个客户端 + 一次结算）。
 #
-# 所有产物集中写入 playtest-sim/，删除该目录即可清理：
-#   server/          真实 server-ts 的 SQLite 与日志（real 模式）
+# 所有产物集中写入 .local/playtest-sim/：
+#   server/          真实 server-go 的 SQLite 与日志（real 模式）
 #   clients/clientA/ 每回合上传的操作、下载的存档与状态指纹
 #   clients/clientB/
 #   logs/report.md   可读的过程报告
 #
 # 用法：
-#   ./playtest-sim/run.sh              # 默认：启动真实 server-ts，走真实 HTTP 契约
-#   ./playtest-sim/run.sh embedded     # 快跑：用测试内置的 HttpServer，不依赖 Node
+#   ./playtest-sim/run.sh              # 默认：启动真实 server-go，走真实 HTTP 契约
+#   ./playtest-sim/run.sh embedded     # 快跑：用测试内置的 HttpServer，不依赖 Go
 #   PLAYTEST_PORT=12000 ./playtest-sim/run.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SIM="$ROOT/playtest-sim"
+mkdir -p "$ROOT/.local"
+SIM="$(mktemp -d "$ROOT/.local/playtest-sim.XXXXXX")"
 PORT="${PLAYTEST_PORT:-11451}"
 MODE="${1:-real}"
 
@@ -34,23 +35,18 @@ if [[ "$MODE" == "embedded" ]]; then
   echo "[playtest] embedded mode: the test will boot its own in-process HTTP server"
   echo "server=" > "$SIM/config.properties"
 else
-  SRV="$ROOT/server-ts"
-  if [[ ! -f "$SRV/dist/main.js" ]]; then
-    echo "[playtest] building server-ts (pnpm build)"
-    (cd "$SRV" && pnpm build)
-  fi
-
-  echo "[playtest] starting real server-ts on 127.0.0.1:$PORT"
+  SRV="$ROOT/server-go"
+  echo "[playtest] building server-go"
+  (cd "$SRV" && go build -o "$SIM/server/unciv-srv" .)
+  echo "[playtest] starting server-go on port $PORT"
   (
-    cd "$SRV"
+    cd "$SIM/server"
     PORT="$PORT" \
     DB_PATH="$SIM/server/unciv-srv.db" \
-    ADMIN_USERNAME=admin \
-    ADMIN_PASSWORD=admin123 \
+    ADMIN_PASSWORD="$(openssl rand -hex 24)" \
     REGISTER_MODE=open \
     CHAT_ENABLED=false \
-    ARCHIVE_ENABLED=false \
-    node dist/main.js
+    exec "$SIM/server/unciv-srv"
   ) > "$SIM/server/server.log" 2>&1 &
   SERVER_PID=$!
 
@@ -74,8 +70,9 @@ fi
 
 cd "$ROOT"
 ./gradlew :tests:test \
+  "-Dplaytest.sim.dir=$SIM" \
   --tests "com.unciv.logic.multiplayer.SimultaneousTurnPlaytestSimulation" \
-  --rerun-tasks
+  --tests "com.unciv.logic.multiplayer.RestartVoteIntegrationTest"
 
 echo
 echo "[playtest] done."

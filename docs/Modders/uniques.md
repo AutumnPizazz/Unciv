@@ -555,6 +555,14 @@ Example: "[This Unit] is destroyed"
 Applicable to: UnitTriggerable
 
 :::
+::: details [unitTriggerTarget] takes over the City-State owning the tile it's standing on
+Only allows taking over City-States not at war with the unit's root nation. Does not require a friendship or an alliance with the target City-State.
+
+Example: "[This Unit] takes over the City-State owning the tile it's standing on"
+
+Applicable to: UnitTriggerable
+
+:::
 ::: details [unitTriggerTarget] gets a name from the [unitNameGroup] group
 Example: "[This Unit] gets a name from the [Scientist] group"
 
@@ -802,6 +810,18 @@ Applicable to: Global
 
 :::
 ::: details City-State Influence recovers at twice the normal rate
+Applicable to: Global
+
+:::
+::: details Gain [positiveAmount] Influence per turn with City-States you could demand tribute from
+Example: "Gain [3] Influence per turn with City-States you could demand tribute from"
+
+Applicable to: Global
+
+:::
+::: details Units are [relativeAmount]% more effective at intimidating City-States
+Example: "Units are [+20]% more effective at intimidating City-States"
+
 Applicable to: Global
 
 :::
@@ -1331,6 +1351,18 @@ Example: "[+20]% enemy spy effectiveness [in all cities]"
 Applicable to: Global
 
 :::
+::: details [relativeAmount]% counterintelligence effectiveness [cityFilter]
+Example: "[+20]% counterintelligence effectiveness [in all cities]"
+
+Applicable to: Global
+
+:::
+::: details [relativeAmount]% enemy counterintelligence effectiveness [cityFilter]
+Example: "[+20]% enemy counterintelligence effectiveness [in all cities]"
+
+Applicable to: Global
+
+:::
 ::: details New spies start with [amount] level(s)
 Example: "New spies start with [3] level(s)"
 
@@ -1556,6 +1588,8 @@ Applicable to: Global, Unit
 
 :::
 ::: details All healing effects doubled
+Does not stack
+
 Applicable to: Global, Unit
 
 :::
@@ -1606,6 +1640,8 @@ Applicable to: Global, Unit
 
 :::
 ::: details Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 Example: "Earn [3]% of killed [Wounded] unit's [Cost] as [Mana]"
 
 Applicable to: Global, Unit
@@ -2209,6 +2245,8 @@ Applicable to: Tech, Policy, FounderBelief, FollowerBelief, Building, Unit, Prom
 
 :::
 ::: details Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 Example: "Earn [3]% of [Wounded] unit's [Cost] as [Mana] when killed within 4 tiles of a city following this religion"
 
 Applicable to: FollowerBelief
@@ -2266,7 +2304,7 @@ Applicable to: Building, Unit, Improvement
 
 :::
 ::: details Unbuildable
-Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
+Blocks from being built and from the default Gold purchase, possibly by conditional. It is then hidden from the menu, unless a unique allows buying it, such as "Can be purchased with [stat] [cityFilter]" on the object or a civ's "May buy [buildingFilter] buildings with [stat] [cityFilter]"; in that case it is shown and can be bought
 
 Applicable to: Building, Unit, Improvement
 
@@ -2608,7 +2646,7 @@ Applicable to: Building, Unit, Improvement
 
 :::
 ::: details Unbuildable
-Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
+Blocks from being built and from the default Gold purchase, possibly by conditional. It is then hidden from the menu, unless a unique allows buying it, such as "Can be purchased with [stat] [cityFilter]" on the object or a civ's "May buy [buildingFilter] buildings with [stat] [cityFilter]"; in that case it is shown and can be bought
 
 Applicable to: Building, Unit, Improvement
 
@@ -3030,6 +3068,8 @@ Applicable to: Global, Unit
 
 :::
 ::: details All healing effects doubled
+Does not stack
+
 Applicable to: Global, Unit
 
 :::
@@ -3152,12 +3192,16 @@ Applicable to: Global, Unit
 
 :::
 ::: details Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 Example: "Earn [3]% of killed [Wounded] unit's [Cost] as [Mana]"
 
 Applicable to: Global, Unit
 
 :::
 ::: details May capture killed [mapUnitFilter] units
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 Example: "May capture killed [Wounded] units"
 
 Applicable to: Unit
@@ -3812,7 +3856,7 @@ Applicable to: Building, Unit, Improvement
 
 :::
 ::: details Unbuildable
-Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith
+Blocks from being built and from the default Gold purchase, possibly by conditional. It is then hidden from the menu, unless a unique allows buying it, such as "Can be purchased with [stat] [cityFilter]" on the object or a civ's "May buy [buildingFilter] buildings with [stat] [cityFilter]"; in that case it is shown and can be bought
 
 Applicable to: Building, Unit, Improvement
 
@@ -4458,6 +4502,12 @@ Applicable to: ModOptions
 
 :::
 ## Event uniques
+::: details Only the first available choice is offered
+When triggered, only the first choice (in declaration order) whose conditionals apply is offered. This makes the event equivalent to a `when`/`case` statement.
+
+Applicable to: Event
+
+:::
 ::: details Only available
 Meant to be used together with conditionals, like "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;". Only allows Building when ALL conditionals are met. Will also block Upgrade and Transform actions. See also CanOnlyBeBuiltWhen
 
@@ -5426,6 +5476,8 @@ Applicable to: UnitTriggerCondition
 
 :::
 ::: details &lt;upon defeating a [mapUnitFilter] unit&gt;
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 Example: "upon defeating a [Wounded] unit"
 
 Applicable to: UnitTriggerCondition
@@ -5460,6 +5512,8 @@ Applicable to: UnitTriggerCondition
 
 :::
 ::: details &lt;upon being defeated&gt;
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 Applicable to: UnitTriggerCondition
 
 :::
@@ -5737,7 +5791,7 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 | `tileFilter` | Anything that can be used either in an improvementFilter or in a terrainFilter can be used here, plus 'unimproved' |
 | `unitNameGroup` | The name of a unit name group found in UnitNameGroups.json, or one of their unique tags. |
 | `unitTriggerTarget` | `This Unit` or `Target Unit`. |
-| `unitType` | Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type, or a multi-filter of these. |
+| `unitType` | Can be 'Land', 'Water', 'Air', any unit type, a filtering Unique on a unit type. |
 | `unitVariableName` | The name of any unit-scope variable defined in Variables.json (scope 'unit'). |
 | `validationWarning` | Suppresses one specific Ruleset validation warning. This can specify the full text verbatim including correct upper/lower case, or it can be a wildcard case-insensitive simple pattern starting and ending in an asterisk ('*'). If the suppression unique is used within an object or as modifier (not ModOptions), the wildcard symbols can be omitted, as selectivity is better due to the limited scope. |
 | `variableName` | The name of any variable defined in Variables.json. |

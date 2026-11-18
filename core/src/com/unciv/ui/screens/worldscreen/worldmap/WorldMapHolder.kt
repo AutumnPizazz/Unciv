@@ -1,5 +1,12 @@
 package com.unciv.ui.screens.worldscreen.worldmap
 
+import com.unciv.view.hasMovement
+import com.unciv.view.isAirUnit
+import com.unciv.view.isCivilian
+import com.unciv.view.isExploring
+import com.unciv.view.isMoving
+import com.unciv.view.isPreparingAirSweep
+import com.unciv.view.isPreparingParadrop
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -11,7 +18,6 @@ import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.*
 import com.unciv.UncivGame
 import com.unciv.logic.map.*
-import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.mapunit.movement.UnitMovement
 import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
@@ -21,8 +27,8 @@ import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.UncivSound
 import com.unciv.view.ForeignCityView
-import com.unciv.view.MapUnitCombatantView
 import com.unciv.view.GameView
+import com.unciv.view.MapUnitCombatantView
 import com.unciv.view.MapUnitView
 import com.unciv.view.SpyView
 import com.unciv.view.TileView
@@ -125,10 +131,12 @@ class WorldMapHolder(
             override fun tap(event: InputEvent?, x: Float, y: Float, count: Int, button: Int) {
                 val child = tileGroupMap.hit(x, y, true) ?: return
 
-                if (child is CityButton) { // the city button can be below the tilegroup, since it moves down when first clicked
-                    // Alt+click (desktop) edits the note for the city center tile
-                    if (button == 0 && Gdx.input.isAltKeyPressed() && editNoteAt(child.foreignCityView.getCenterTile())) return
-                    onTileClicked(child.foreignCityView.getCenterTile())
+                // The hit actor is a descendant of the city button (e.g. a label inside CityTable), not the button itself.
+                // The city button can be below the tilegroup, since it moves down when first clicked
+                val cityButton = child.firstAscendant(CityButton::class.java)
+                if (cityButton != null) {
+                    if (button == 0 && Gdx.input.isAltKeyPressed() && editNoteAt(cityButton.foreignCityView.getCenterTile())) return
+                    onTileClicked(cityButton.foreignCityView.getCenterTile())
                     return
                 }
                 if (child is WorldTileGroup) {
@@ -256,7 +264,7 @@ class WorldMapHolder(
         if (newSelectedUnit == null || newSelectedUnit.isCivilian()) {
             val unitsInTile = tileView.getVisibleUnits()
             if (previousSelectedCity != null && previousSelectedCity.canBombard()
-                    && tileView.getVisibleTilesInDistance(2).contains(previousSelectedCity.getCenterTile())
+                    && tileView.getExploredTilesInDistance(2).contains(previousSelectedCity.getCenterTile())
                     && unitsInTile.any()
                     && unitsInTile.first().civ().isAtWarWith(worldScreen.selectedGameView.civView)) {
                 // try to select the closest city to bombard this guy
@@ -294,9 +302,18 @@ class WorldMapHolder(
         } else {
             // This seems inefficient as the tileToAttack is already known - but the method also calculates tileToAttackFrom
             val attackableTile = unitView
-                    .getAttackableEnemies(unitView.getDistanceToTiles())
+                    .getAttackableEnemies()
                     .firstOrNull { it.getTileToAttack() == tileView }
-            if (unitView.canAttack() && attackableTile != null) {
+            // As in Civ V, a ranged unit captures a lone enemy civilian by moving onto it; one on the other domain
+            // (a land unit and a civilian at sea) can only be attacked
+            val defender = attackableTile?.getCombatant()
+            val capturesByMoving = defender is MapUnitCombatantView && defender.getUnitView().isCivilian()
+                && unitView.getBaseUnit().isRanged() && tileView.isLand == unitView.getBaseUnit().isLandUnit && unitView.canReachInCurrentTurn(tileView)
+            if (capturesByMoving) {
+                /** ****** Right-click Move to capture ****** */
+                moveUnitToTargetTile(listOf(unitView), tileView)
+                localShouldUpdate = true
+            } else if (unitView.canAttack() && attackableTile != null) {
                 /** ****** Right-click Attack ****** */
                 // CN: claim every target this attack touches before changing anything, so that two
                 // players cannot attack the same defender in one turn (each would record its own
@@ -784,11 +801,11 @@ class WorldMapHolder(
      * @param selectUnit Select a unit at the destination
      * @return `true` if scroll position was changed, `false` otherwise
      */
-    fun setCenterPosition(vector: HexCoord, immediately: Boolean = false, selectUnit: Boolean = true, forceSelectUnit: MapUnit? = null): Boolean {
+    fun setCenterPosition(vector: HexCoord, immediately: Boolean = false, selectUnit: Boolean = true, forceSelectUnit: MapUnitView? = null): Boolean {
         val tileGroup = tileGroups.values.firstOrNull { it.tileView.position() == vector } ?: return false
         selectedTile = tileGroup.tileView
         if (selectUnit || forceSelectUnit != null)
-            worldScreen.bottomUnitTable.tileSelected(selectedTile!!, forceSelectUnit?.let { worldScreen.selectedGameView.getForeignMapUnitView(it).tryGetMapUnitView() })
+            worldScreen.bottomUnitTable.tileSelected(selectedTile!!, forceSelectUnit)
 
         // The Y axis of [scrollY] is inverted - when at 0 we're at the top, not bottom - so we invert it back.
         if (!scrollTo(tileGroup.x + tileGroup.width / 2, maxY - (tileGroup.y + tileGroup.width / 2), immediately))

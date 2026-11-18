@@ -48,7 +48,6 @@ These shapes are used all over Unciv and can be replaced to make a lot of UI ele
 | CityScreen/CityConstructionTable/ | PickConstructionButtonSelected | null | |
 | CityScreen/CityConstructionTable/ | QueueEntry | null | |
 | CityScreen/CityConstructionTable/ | QueueEntrySelected | null | |
-| CityScreen/CityScreenTileTable/ | AutoLockCell | null | |
 | CityScreen/CityScreenTileTable/ | Background | null | |
 | CityScreen/CityScreenTileTable/ | InnerTable | null | |
 | CityScreen/CityStatsTable/ | Background | null | |
@@ -141,6 +140,7 @@ These shapes are used all over Unciv and can be replaced to make a lot of UI ele
 | WorldScreen/ | Notification | roundedEdgeRectangle | |
 | WorldScreen/ | PickTechButton | roundedEdgeRectangle | |
 | WorldScreen/ | TileInfoTable | null | |
+| WorldScreen/ | TileInfoTableBorder | null | |
 | WorldScreen/ | TutorialTaskTable | null | |
 | WorldScreen/ | UnitTable | roundedEdgeRectangleMid | |
 | WorldScreen/CityButton/ | AirUnitTable | roundedEdgeRectangleSmall | |

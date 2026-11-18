@@ -1,5 +1,6 @@
 package com.unciv.ui.images
 
+import com.badlogic.gdx.Application.ApplicationType
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
@@ -68,6 +69,7 @@ object ImageGetter {
             
         ImageGetter.ruleset = ruleset
         textureRegionDrawables.clear()
+        ninePatchDrawables.clear()
 
         val setFontFamilyJob = Concurrency.run {
             // Loading available fonts can take a long time
@@ -113,6 +115,8 @@ object ImageGetter {
                 try {
                     debug("Loading %s = %s", extraAtlas, file.path())
                     tempAtlas = TextureAtlas(file)  // load if not
+                    if (Gdx.app.type == ApplicationType.WebGL)
+                        tempAtlas.textures.forEach { it.setFilter(it.minFilter, TextureFilter.Linear) }
                     atlases[extraAtlas] = tempAtlas  // cache the freshly loaded
                 } catch (ex: Exception) {
                     debug("Could not load file $file")

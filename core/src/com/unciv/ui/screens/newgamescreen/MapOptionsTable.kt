@@ -30,6 +30,38 @@ class MapOptionsTable(private val newGameScreen: NewGameScreen) : Table() {
         val initialMapType = mapParameters.type.takeIf { it in mapTypes } ?: MapGeneratedMainType.generated
         mapTypeSelectBox = TranslatedSelectBox(mapTypes, initialMapType)
 
+        fun updateOnMapTypeChange() {
+            mapTypeSpecificTable.clear()
+            when (mapTypeSelectBox.selected.value) {
+                MapGeneratedMainType.custom -> {
+                    mapParameters.type = MapGeneratedMainType.custom
+                    mapTypeSpecificTable.add(savedMapOptionsTable)
+                    savedMapOptionsTable.activateCustomMaps()
+                    newGameScreen.unlockTables()
+                }
+                MapGeneratedMainType.generated -> {
+                    mapParameters.name = ""
+                    mapParameters.type = generatedMapOptionsTable.mapTypeSelectBox.selected.value
+                    mapTypeSpecificTable.add(generatedMapOptionsTable)
+                    newGameScreen.unlockTables()
+                }
+                MapGeneratedMainType.randomGenerated -> {
+                    mapParameters.name = ""
+                    randomMapOptionsTable.activateRandomMapType()
+                    mapTypeSpecificTable.add(randomMapOptionsTable)
+                    newGameScreen.unlockTables()
+                }
+                MapGeneratedMainType.scenario -> {
+                    mapParameters.name = ""
+                    mapTypeSpecificTable.add(scenarioOptionsTable)
+                    scenarioOptionsTable.selectScenario()
+                    newGameScreen.lockTables()
+                }
+            }
+            newGameScreen.gameSetupInfo.gameParameters.godMode = false
+            newGameScreen.updateTables()
+        }
+
         // activate once, so the MapGeneratedMainType.generated controls show
         updateOnMapTypeChange()
 

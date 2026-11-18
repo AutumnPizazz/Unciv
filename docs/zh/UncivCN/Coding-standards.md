@@ -18,7 +18,9 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
   --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt 检查（警告）
 ```
 
-技术栈：Kotlin 2.4.10 · Gradle 9.4.1 · LibGDX 1.14.2 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+技术栈：Kotlin 2.4.20 · Gradle 9.4.1 · LibGDX 1.14.2 · Ktor 3.5.2 · Kotlinx Serialization · purity-plugin · Detekt
+
+浏览器版按需构建，见 [web/BUILDING.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/web/BUILDING.md)。CN 文档站不部署浏览器版。
 
 > 版本以 `gradle/libs.versions.toml` 为唯一真源，此处仅摘录速览，两者须保持同步。
 
@@ -31,7 +33,7 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 | `core/` | 99% 的游戏代码：逻辑、模型、UI、序列化、规则集。纯 Kotlin，不依赖平台 |
 | `desktop/` | 桌面启动器与平台功能（JNA 通知、Discord RPC） |
 | `android/` | Android 启动器；`android/assets/` 为各平台共享资源（图片、JSON、翻译） |
-| `server-ts/` | 多人服务器（TypeScript，Hono + better-sqlite3 + ws），子模块 [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
+| `server-go/` | 多人服务器（Go、Fiber 与 SQLite），子模块 [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
 | `tests/` | JUnit 4 + Mockito 单元测试 |
 
 关键包（`core/src/com/unciv/`）：

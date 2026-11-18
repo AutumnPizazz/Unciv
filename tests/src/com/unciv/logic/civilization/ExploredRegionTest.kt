@@ -25,12 +25,12 @@ class ExploredRegionTest {
                 mapSize = MapSize(4)
             }
         )
-        region.checkTilePosition(HexCoord(0, 0), null)
+        region.expandToInclude(HexCoord(0, 0), null)
         val widthBefore = region.getWidth()
         val heightBefore = region.getHeight()
 
         val clone = region.clone()
-        clone.checkTilePosition(HexCoord(2, 0), null)
+        clone.expandToInclude(HexCoord(2, 0), null)
 
         Assert.assertEquals(
             "expanding a cloned explored region must not expand the original",

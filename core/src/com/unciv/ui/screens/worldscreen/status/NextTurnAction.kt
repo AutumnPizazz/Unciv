@@ -1,5 +1,9 @@
 package com.unciv.ui.screens.worldscreen.status
 
+import com.unciv.view.isMoving
+import com.unciv.view.isExploring
+import com.unciv.view.currentConstructionName
+import com.unciv.view.dueUnitsCount
 import com.badlogic.gdx.graphics.Color
 import com.unciv.Constants
 import com.unciv.models.Counter
@@ -10,7 +14,7 @@ import com.unciv.ui.components.extensions.enable
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.popups.ConfirmPopup
 import com.unciv.ui.screens.cityscreen.CityScreen
-import com.unciv.ui.screens.overviewscreen.EspionageOverviewScreen
+import com.unciv.ui.screens.espionage.EspionageScreen
 import com.unciv.ui.screens.pickerscreens.DiplomaticVotePickerScreen
 import com.unciv.ui.screens.pickerscreens.PantheonPickerScreen
 import com.unciv.ui.screens.pickerscreens.PolicyPickerScreen
@@ -62,16 +66,16 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
             getCityWithNoProductionSet(worldScreen) != null
         override fun action(worldScreen: WorldScreen) {
             val city = getCityWithNoProductionSet(worldScreen) ?: return
-            worldScreen.game.pushScreen{ CityScreen(city) }
+            worldScreen.game.pushScreen { CityScreen(city) }
         }
     },
     PickTech("Pick a tech", Color.SKY) {
         override fun isChoice(worldScreen: WorldScreen) =
             worldScreen.selectedGameView.civView.shouldOpenTechPicker()
         override fun action(worldScreen: WorldScreen) =
-            worldScreen.game.pushScreen{
-                TechPickerScreen(worldScreen.selectedGameView.civView.getCiv(), null)
-            }.let {  }
+            worldScreen.game.pushScreen {
+                TechPickerScreen(worldScreen.selectedGameView.civView.getCiv())
+            }
     },
     PickPolicy("Pick a policy", Color.VIOLET) {
         override fun isChoice(worldScreen: WorldScreen) =
@@ -85,7 +89,7 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
         override fun isChoice(worldScreen: WorldScreen) =
                 worldScreen.gameInfo.isEspionageEnabled() && worldScreen.selectedGameView.civView.shouldShowMoveSpies()
         override fun action(worldScreen: WorldScreen) {
-            worldScreen.game.pushScreen { EspionageOverviewScreen(worldScreen.selectedCiv, worldScreen) }
+            worldScreen.game.pushScreen { EspionageScreen(worldScreen.selectedCiv, worldScreen) }
             worldScreen.selectedGameView.civView.tryDismissMoveSpies()
         }
     },
@@ -189,7 +193,9 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
             if (selectedGameView.civView.isSpectator()) return false
             if (game.settings.automatedUnitsMoveOnTurnStart) return false
             if (selectedGameView.civView.hasMovedAutomatedUnitsThisTurn()) return false
-            return selectedGameView.civView.hasUnitsReadyToAutomate()
+            return selectedGameView.civView.getUnits().any {
+                it.currentMovement > Constants.minimumMovementEpsilon && (it.isAutomated() || it.isExploring() || it.isMoving())
+            }
         }
 
         private fun moveAutomatedUnits(worldScreen: WorldScreen) {

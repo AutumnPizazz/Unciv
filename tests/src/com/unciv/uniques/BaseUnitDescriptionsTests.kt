@@ -1,7 +1,7 @@
 package com.unciv.uniques
 
 import com.unciv.ui.components.fonts.Fonts
-import com.unciv.ui.objectdescriptions.BaseUnitDescriptions
+import com.unciv.ui.objectdescriptions.BaseUnitDescriptions.getBaseUnitCivilopediaTextLines
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import org.junit.Assert
@@ -28,7 +28,7 @@ class BaseUnitDescriptionsTests {
         }
 
     private fun civilopediaLines(maxHP: Int = 100, maintenanceCost: Float = 1f) =
-        BaseUnitDescriptions.getCivilopediaTextLines(createUnit(maxHP, maintenanceCost), game.ruleset)
+        createUnit(maxHP, maintenanceCost).getBaseUnitCivilopediaTextLines(game.ruleset)
 
     @Test
     fun `max HP shows in civilopedia when non-default`() {

@@ -24,7 +24,6 @@ import yairm210.purity.annotations.Readonly
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-@InternalState
 class StatTreeNode {
     val children = LinkedHashMap<String, StatTreeNode>()
     private var innerStats: Stats? = null
@@ -155,9 +154,10 @@ class CityStats(val city: City) {
 
     @Readonly
     private fun getStatsFromProduction(production: Float): Stats? {
-        if (Stat.isStat(city.cityConstructions.currentConstructionName())) {
+        val currentName = city.cityConstructions.currentConstructionName() // Once: the queue can change between two reads
+        if (Stat.isStat(currentName)) {
             val stats = Stats()
-            val stat = Stat.valueOf(city.cityConstructions.currentConstructionName())
+            val stat = Stat.valueOf(currentName)
             stats[stat] = production * getStatConversionRate(stat)
             return stats
         }
@@ -260,12 +260,12 @@ class CityStats(val city: City) {
 
     @Readonly
     private fun getStatsFromUniquesBySource(): StatTreeNode {
-        val sourceToStats = StatTreeNode()
+        @LocalState val sourceToStats = StatTreeNode()
 
         val cityStateStatsMultipliers = city.civ.getMatchingUniques(UniqueType.BonusStatsFromCityStates).toList()
 
         fun addUniqueStats(unique: Unique) {
-            @LocalState val stats = unique.stats.clone()
+            val stats = unique.stats.clone()
             if (unique.sourceObjectType==UniqueTarget.CityState)
                 for (multiplierUnique in cityStateStatsMultipliers)
                     stats[Stat.valueOf(multiplierUnique.params[1])] *= multiplierUnique.params[0].toPercent()
@@ -364,7 +364,7 @@ class CityStats(val city: City) {
 
     @Readonly
     private fun getStatsPercentBonusesFromUniquesBySource(currentConstruction: IConstruction): StatTreeNode {
-        val sourceToStats = StatTreeNode()
+        @LocalState val sourceToStats = StatTreeNode()
 
         fun addUniqueStats(unique: Unique, stat: Stat, amount: Float) {
             val stats = Stats()
@@ -555,6 +555,12 @@ class CityStats(val city: City) {
                 newHappinessList[source] = newHappinessList[source]!! + stats.totalStats.happiness
             }
 
+        // "[relativeAmount]% [Happiness]" scales the happiness this city produces, not its unhappiness (#16025)
+        val happinessPercentBonus = statPercentBonusTree.totalStats.happiness
+        if (happinessPercentBonus != 0f)
+            for ((source, amount) in newHappinessList)
+                if (amount > 0f) newHappinessList[source] = amount * happinessPercentBonus.toPercent()
+
         // we don't want to modify the existing happiness list because that leads
         // to concurrency problems if we iterate on it while changing
         happinessList = newHappinessList
@@ -585,7 +591,7 @@ class CityStats(val city: City) {
     
     @Readonly
     private fun getStatPercentBonusList(currentConstruction: IConstruction): StatTreeNode = timeThis("CityStats.getStatPercentBonusList") {
-        val newStatsBonusTree = StatTreeNode()
+        @LocalState val newStatsBonusTree = StatTreeNode()
 
         newStatsBonusTree.addStats(getStatPercentBonusesFromGoldenAge(city.civ.goldenAges.isGoldenAge()),"Golden Age")
         newStatsBonusTree.addStats(getStatPercentBonusesFromRailroad(), "Railroad")
@@ -626,9 +632,10 @@ class CityStats(val city: City) {
         val statsFromSpecialists = getStatsFromSpecialists(city.population.getNewSpecialists())
         val statsFromUniquesBySource = getStatsFromUniquesBySource()
         updateBaseStatList(statsFromBuildings, statsFromSpecialists, statsFromUniquesBySource)
-        updateCityHappiness(statsFromBuildings, statsFromSpecialists, statsFromUniquesBySource)
         variableYieldPercentBonuses = HashMap()
+        // Percent bonuses first, so "[relativeAmount]% [Happiness]" can apply to city happiness (#16025)
         updateStatPercentBonusList(currentConstruction)
+        updateCityHappiness(statsFromBuildings, statsFromSpecialists, statsFromUniquesBySource)
         collectVariablePercentBonuses()
 
         updateFinalStatList(currentConstruction, calculateGrowthModifiers) // again, we don't edit the existing currentCityStats directly, in order to avoid concurrency exceptions

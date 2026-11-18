@@ -11,6 +11,8 @@ Unciv 的多人游戏基于简单的存档文件上传/下载，因此默认基�
 0. 游戏 ID 会自动复制到你的剪贴板。（如果弄丢了，可以从 `主菜单 -> 多人游戏 -> 复制游戏 ID` 重新获取。）把这个游戏 ID 发给其他玩家。
 0. 其他玩家需要进入 `主菜单 -> 多人游戏 -> 添加多人游戏`，输入你发给他们的游戏 ID。然后他们就可以从多人游戏界面加入游戏了。
 
+房主开启重开投票后，仍存活的玩家可在指定回合从局内菜单发起投票。存活玩家全部投票或到达截止时间时结算；超时未投票视为同意，票数平局也通过。UncivSrv 会在玩家重连或服务端重启后保留投票状态。投票通过后按原配置创建新局。
+
 ## 架设多人游戏服务器
 
 由于 Dropbox API 的某些限制，加上当前玩家的涌入，我们已经多次达到 Dropbox 不可用的地步。
@@ -23,20 +25,21 @@ Unciv 的多人游戏基于简单的存档文件上传/下载，因此默认基�
 
 ### 操作步骤
 
-开始之前，你需要安装 [Node.js 20+](https://nodejs.org/) 与 [pnpm 10+](https://pnpm.io/)，或者安装 [Docker](https://www.docker.com/)。服务器由 TypeScript 版 [UncivSrv](https://github.com/blyrin/unciv-srv) 提供，位于仓库的 `server-ts/` 子模块中。
+安装 `server-go/go.mod` 指定版本的 [Go](https://go.dev/)，或安装 [Docker](https://www.docker.com/)。[UncivSrv](https://github.com/blyrin/unciv-srv) 联机服务端位于本仓库的 `server-go/` 子模块。
 
 在仓库根目录打开终端，进入子模块并启动：
 
 ```bash
-cd server-ts
-pnpm install
-pnpm build && pnpm start
+git submodule update --init server-go
+cd server-go
+go run .
 ```
 
 如果使用 Docker，则改为：
 
 ```bash
-cd server-ts
+git submodule update --init server-go
+cd server-go
 docker compose up -d --build
 ```
 
@@ -55,17 +58,14 @@ docker compose up -d --build
 
 ### 给有架设经验的人
 
-* 安装 Node.js 20+ 与 pnpm 10+（或使用 Docker）
-* 获取 [UncivSrv](https://github.com/blyrin/unciv-srv) 源码（本仓库 `server-ts/` 子模块即为其快照）
-* 用 `.env` 文件配置——可选项见 `server-ts/example.env`
-    * 服务器监听地址/端口、数据库路径、注册模式（`open`/`approval`/`closed`）、聊天开关等均在 `.env` 中设置。
-* 启动：`pnpm build && pnpm start`（开发时 `pnpm dev`）
+* 在 `.env` 设置监听端口、数据库路径、注册模式（`open`/`approval`/`closed`）和聊天开关，参见 `server-go/example.env`。
+* 运行 `go build -o unciv-srv .` 构建，再以 `./unciv-srv` 启动。
     * 存储使用 SQLite，自动执行数据库迁移。
     * 玩家密码以 scrypt 哈希保存，不再是明文文件。
 
 ## 第三方（非官方）自建 Unciv 服务器软件
 
-* [https://github.com/blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)（TypeScript，本仓库 `server-ts/` 子模块；功能最全）
+* [https://github.com/blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)（Go，本仓库 `server-go/` 子模块）
 * [https://github.com/Mape6/Unciv_server](https://github.com/Mape6/Unciv_server)（Python）
 * [https://gitlab.com/azzurite/unciv-server](https://gitlab.com/azzurite/unciv-server)（NodeJS）
 * [https://github.com/oynqr/rust_unciv_server](https://github.com/oynqr/rust_unciv_server)（Rust）

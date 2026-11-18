@@ -17,7 +17,7 @@ Unciv/
 ├── core/              # 核心游戏逻辑
 ├── desktop/           # 桌面端代码
 ├── android/           # Android 端代码
-├── server/            # 服务器端代码
+├── server-go/         # 联机服务端子模块
 ├── tests/             # 测试代码
 └── buildSrc/          # 构建脚本
 ```
@@ -36,9 +36,9 @@ Unciv/
 
 Android 端配置、权限、启动器。
 
-### server 模块
+### server-go 子模块
 
-基于 Ktor 的多人游戏服务器。
+[UncivSrv](https://github.com/blyrin/unciv-srv) 多人联机服务端，使用 Go 开发并打包为 Docker 镜像。
 
 ## 核心类
 

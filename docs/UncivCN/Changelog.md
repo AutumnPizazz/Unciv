@@ -17,6 +17,9 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
+- Added save search and fixes from Unciv 5.0.1.
+- UncivSrv now runs on Go. [See the upgrade guide.](../Developers/Building-Locally.md#uncivsrv-go-server)
+- Multiplayer restart votes now work on UncivSrv and survive reconnects.
 - Fix: the settlement report after a simultaneous turn now says how many actions could not be applied, and lists each of them with its reason in a section you can expand or collapse
 - Fix: when a simultaneous turn cannot apply a unit order, the notification now names it ("Move unit", "Attack", "Swap units", or the unit's action such as "Guard") instead of the internal operation type
 - Fix: the "target already claimed" warning in a simultaneous turn no longer depends on the server, which now only relays messages - the clients work out the claims from the actions themselves, so the warning and the map marks appear on every server

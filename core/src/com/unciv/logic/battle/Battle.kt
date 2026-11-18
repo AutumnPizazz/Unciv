@@ -1,5 +1,7 @@
 package com.unciv.logic.battle
 
+import com.unciv.models.metadata.GameSettings
+import com.unciv.view.GameView
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.automation.civilization.NextTurnAutomation
@@ -16,7 +18,7 @@ import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
 import com.unciv.models.stats.SubStat
 import com.unciv.ui.components.UnitMovementMemoryType
-import com.unciv.ui.screens.worldscreen.unit.actions.UnitActionsPillage
+import com.unciv.logic.map.mapunit.actions.UnitActionsPillage
 import com.unciv.utils.debug
 import yairm210.purity.annotations.Pure
 import yairm210.purity.annotations.Readonly
@@ -421,7 +423,7 @@ object Battle {
         }
 
         // CS friendship from killing barbarians
-        if (defeatedUnit.getCivInfo().isBarbarian && !defeatedUnit.isCivilian() && civUnit.getCivInfo().isMajorCiv()) {
+        if (defeatedUnit.getCivInfo().isBarbarian && !defeatedUnit.isCivilian() && civUnit.getCivInfo().isMajorCiv) {
             for (cityState in defeatedUnit.getCivInfo().gameInfo.getAliveCityStates()) {
                 if (civUnit.getCivInfo().knows(cityState) && defeatedUnit.unit.threatensCiv(cityState)) {
                     cityState.cityStateFunctions.threateningBarbarianKilledBy(civUnit.getCivInfo())
@@ -601,7 +603,7 @@ object Battle {
             if (plunderedAmount == 0) continue
             civ.addStat(key, plunderedAmount)
             civ.addNotification(
-                "${plunderingUnit.getNotificationDisplay("your ")} plundered [${plunderedAmount}] [${key.name}] from [${plunderedUnit.getName()}]",
+                "${plunderingUnit.getNotificationDisplay("Your ")} plundered [${plunderedAmount}] [${key.name}] from [${plunderedUnit.getName()}]",
                 plunderedUnit.getTile().position,
                 NotificationCategory.War,
                 plunderingUnit.getName(), NotificationIcon.War, "StatIcons/${key.name}",
@@ -618,7 +620,7 @@ object Battle {
         damageDealt: DamageDealt? = null
     ) {
         if (attacker.getCivInfo() == defender.getCivInfo()) return
-        
+
         // If what happened was that a civilian unit was captured, that's dealt with in the captureCivilianUnit function
         val (battleActionIcon, battleActionString) = when {
             attacker !is CityCombatant && attacker.isDefeated() ->
@@ -638,8 +640,8 @@ object Battle {
 
         val defenderString =
                 if (defender.isCity())
-                    if (defender.isDefeated() && attacker.isRanged()) " the defence of [" + defender.getName() + "]"
-                    else " [" + defender.getName() + "]"
+                    if (defender.isDefeated() && attacker.isRanged()) "the defence of [" + defender.getName() + "]"
+                    else "[" + defender.getName() + "]"
                 else defender.getNotificationDisplay("our ")
 
         val attackerHurtString = if (damageDealt != null && damageDealt.defenderDealt != 0) " ([-${damageDealt.defenderDealt}] HP)" else ""
@@ -647,7 +649,7 @@ object Battle {
         val notificationString = "$attackerString$attackerHurtString $battleActionString $defenderString$defenderHurtString"
         val attackerIcon = if (attacker is CityCombatant) NotificationIcon.City else attacker.getName()
         val defenderIcon = if (defender is CityCombatant) NotificationIcon.City else defender.getName()
-        
+
         val locations = LocationAction(attackedTile.position, attackerTile?.position)
         defender.getCivInfo().addNotification(notificationString, locations, NotificationCategory.War, attackerIcon, battleActionIcon, defenderIcon)
     }
@@ -720,7 +722,7 @@ object Battle {
         val xpGained = (baseXP * xpModifier).toInt()
         promotions.XP += xpGained
 
-        if (!otherIsBarbarian && civ.isMajorCiv()) { // Can't get great generals from Barbarians
+        if (!otherIsBarbarian && civ.isMajorCiv) { // Can't get great generals from Barbarians
             var greatGeneralUnits = civ.gameInfo.ruleset.greatGeneralUnits
                 .filter { it.hasUnique(UniqueType.GreatPersonFromCombat, gameContext) &&
                         // Check if the unit is allowed for the Civ, ignoring build constrants
@@ -746,7 +748,11 @@ object Battle {
             }
         }
 
-        if (!thisCombatant.isDefeated() && !unitCouldAlreadyPromote && promotions.canBePromoted()) {
+        // Post-battle auto-promote is never valid here: attackers have attacked,
+        // defenders are not on their turn. TurnManager handles auto-promote instead.
+        if (!thisCombatant.isDefeated() && !unitCouldAlreadyPromote && promotions.canBePromoted()
+            && UncivGame.Current.settings.automaticPromotions != GameSettings.AutomaticPromotions.ForAllUnits
+        ) {
             civ.addNotification("[${thisCombatant.unit.displayName()}] can be promoted!",
                 listOf(MapUnitAction(thisCombatant.unit), PromoteUnitAction(thisCombatant.unit)),
                 NotificationCategory.Units, thisCombatant.unit.name)
@@ -832,7 +838,7 @@ object Battle {
     private fun automateCityConquer(civInfo: Civilization, city: City) {
         if (!city.hasDiplomaticMarriage()) {
             val foundingCiv = city.foundingCivObject!!
-            var valueAlliance = NextTurnAutomation.valueCityStateAlliance(civInfo, foundingCiv)
+            var valueAlliance = NextTurnAutomation.valueCityStateAlliance(GameView(civInfo.gameInfo, civInfo).civView, foundingCiv)
             if (civInfo.getHappiness() < 0)
                 valueAlliance -= civInfo.getHappiness() // put extra weight on liberating if unhappy
             if (foundingCiv.isCityState && city.civ != civInfo && foundingCiv != civInfo

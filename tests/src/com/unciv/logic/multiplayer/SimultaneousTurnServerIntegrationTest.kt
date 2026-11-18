@@ -24,7 +24,7 @@ import java.util.concurrent.Executors
 /**
  * End-to-end check of the simultaneous-turn HTTP contract.
  *
- * A local server implements the same routes as UncivServer / server-ts (`/files/{name}`,
+ * A local server implements the UncivSrv routes (`/files/{name}`,
  * `/simultaneous-turn-operations/{gameId}`, `/simultaneous-turn-lock/{gameId}[/renew]`), so this
  * exercises the Kotlin client's wire format - method, path, body, expected status code - which unit
  * tests against the in-memory model cannot catch.
@@ -40,6 +40,7 @@ class SimultaneousTurnServerIntegrationTest {
     private val gameId = "simultaneous-e2e"
     private var atomicOpsSupported = true
     private var atomicAppendRejected = false
+    private var rejectsLegacyOpsFileName = false
     /** Simulates a legacy whole-file write that answers 200 without keeping the data. */
     private var legacyOpsWritesDropped = false
 
@@ -115,6 +116,17 @@ class SimultaneousTurnServerIntegrationTest {
     }
 
     @Test
+    fun downloadFromAtomicOnlyServerIgnoresUnsupportedLegacyFileName() {
+        val op = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}", 123)
+        rejectsLegacyOpsFileName = true
+        runBlocking {
+            assertTrue(SimultaneousTurnOperations.download(server, gameId).isEmpty())
+            SimultaneousTurnOperations.upload(server, gameId, listOf(op))
+            assertEquals(listOf(op), SimultaneousTurnOperations.download(server, gameId))
+        }
+    }
+
+    @Test
     fun operationsRejectedByTheAtomicAppendAreStillSeenByDownload() {
         // Regression: a turn whose upload exceeds the server's per-request limit (413) falls back to
         // the legacy whole-file store. Download used to return the atomic store as soon as it had any
@@ -179,6 +191,12 @@ class SimultaneousTurnServerIntegrationTest {
     private fun handleFileRequest(exchange: HttpExchange) {
         try {
             val name = exchange.requestURI.path.removePrefix("/files/")
+            if (rejectsLegacyOpsFileName && name.endsWith(".ops")) {
+                val failure = """{"type":"error","message":"无效的游戏ID格式"}""".toByteArray()
+                exchange.sendResponseHeaders(400, failure.size.toLong())
+                exchange.responseBody.write(failure)
+                return
+            }
             when (exchange.requestMethod) {
                 "PUT" -> {
                     val body = exchange.requestBody.readBytes().toString(Charsets.UTF_8)
@@ -217,7 +235,7 @@ class SimultaneousTurnServerIntegrationTest {
                         return
                     }
                     if (atomicAppendRejected) {
-                        // Mirrors server-ts rejecting an over-limit payload with HTTP 413.
+                        // Model a server rejecting an over-limit payload with HTTP 413.
                         exchange.sendResponseHeaders(413, -1)
                         return
                     }

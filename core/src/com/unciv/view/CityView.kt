@@ -25,6 +25,7 @@ import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.ruleset.unit.BaseUnit
 import com.unciv.models.stats.Stat
 import com.unciv.models.stats.Stats
+import com.unciv.logic.map.tile.RoadStatus
 import yairm210.purity.annotations.Readonly
 
 /** View of a [City] from the perspective of the viewer's [gameView]. UI should use this and not city directly.
@@ -33,13 +34,15 @@ class CityView(city: City,
                viewer: Civilization,
                spectatorMode: Boolean = false,
                gameView: GameView) : ForeignCityView(city, viewer, spectatorMode, gameView) {
+    @Readonly internal fun getCity(): City = city
+
     // Navigation
     /** The viewing player's full CivView (always a self-view). For the city's owning civ, use [owningCiv]. */
     @Readonly fun viewingCiv(): CivView = gameView.civView
 
     /** Cities the viewer can page through in CityScreen: own cities normally, or spy-visited cities when spying. */
     @Readonly fun getViewableCities(): List<CityView> {
-        val isSpying = city.civ !== viewer && viewer.gameInfo.isEspionageEnabled() && !viewer.isSpectator()
+        val isSpying = city.civ !== viewer && viewer.gameInfo.isEspionageEnabled() && !viewer.isSpectator
         return if (isSpying) viewer.espionageManager.getCitiesWithOurSpies()
             .filter { it.civ != viewer }
             .map { gameView.getCityView(it) }
@@ -47,10 +50,13 @@ class CityView(city: City,
     }
 
     // Data retrieval
+    /** Cities of the same civ within [maxDistance] of this city */
+    @Readonly fun getNeighboringOwnCities(maxDistance: Int = 12): List<CityView> =
+        city.getNeighboringCities(maxDistance).filter { it.civ == city.civ }.map { gameView.getCityView(it) }
+    @Readonly fun getRoadTypeOfConnectionToCapital(): RoadStatus = city.cityStats.getRoadTypeOfConnectionToCapital()
     @Readonly fun isInRange(tileView: TileView): Boolean = tileView.unwrap() in city.tilesInRange
 
-    @Readonly fun centerTile(): TileView = gameView.tileMapView.getTile(city.getCenterTile())
-    @Readonly fun getTiles(): Sequence<TileView> = city.getTiles().map { gameView.tileMapView.getTile(it) }
+    @Deprecated("Scheduled for removal")
     @Readonly fun tileView(tile: Tile): TileView = gameView.tileMapView.getTile(tile)
 
     @Readonly fun getWorkRange(): Int = city.getWorkRange()
@@ -71,8 +77,6 @@ class CityView(city: City,
     @Readonly fun getStatsOfSpecialist(specialistName: String): Stats = city.cityStats.getStatsOfSpecialist(specialistName)
 
     // City state
-    @Readonly fun isStarving(): Boolean = city.isStarving()
-    @Readonly fun isGrowing(): Boolean = city.isGrowing()
     val demandedResource: String get() = city.demandedResource
     @Readonly fun getFlag(flag: CityFlags): Int = city.getFlag(flag)
     @Readonly fun getCityFocus(): CityFocus = city.getCityFocus()
@@ -95,7 +99,6 @@ class CityView(city: City,
 
     // Constructions
     val constructions: CityConstructionsView get() = CityConstructionsView(city.cityConstructions, gameView, viewer, spectatorMode)
-    @Readonly fun currentConstructionName(): String = city.cityConstructions.currentConstructionName()
     @Readonly fun getBuiltBuildings(): Sequence<Building> = city.cityConstructions.getBuiltBuildings()
     @Readonly fun hasMatchingUnique(uniqueType: UniqueType): Boolean = city.getMatchingUniques(uniqueType).any()
     @Readonly fun getDisabledConstructions(): Set<String> = city.disabledConstructions
@@ -115,7 +118,6 @@ class CityView(city: City,
     @Readonly fun hasSoldBuildingThisTurn(): Boolean = city.hasSoldBuildingThisTurn
     @Readonly fun isGodModeEnabled(): Boolean = city.civ.gameInfo.gameParameters.godMode
     @Readonly fun getUnitShouldUseSavedPromotion(baseUnit: String): Boolean? = city.unitShouldUseSavedPromotion[baseUnit]
-    @Readonly fun getCityAmbienceSound(): String = city.civ.getEra().citySound
     @Readonly fun getGarrison(): MapUnitView? = city.getGarrison()?.let { gameView.getMapUnitView(it) }
     @Readonly fun canBeDestroyed(): Boolean = city.canBeDestroyed()
     @Readonly fun getExpandRange(): Int = city.getExpandRange()
@@ -141,7 +143,7 @@ class CityView(city: City,
     @Readonly fun isOwnedTile(tileView: TileView): Boolean = tileView.unwrap().getCity() === city
     @Readonly fun getStatDiffForImprovement(tileView: TileView, improvement: TileImprovement): Stats =
         tileView.unwrap().stats.getStatDiffForImprovement(improvement, city.civ, city)
-    @Readonly fun rankStatsValue(stats: Stats): Float = Automation.rankStatsValue(stats, city.civ)
+    @Readonly fun rankStatsValue(stats: Stats): Float = Automation.rankStatsValue(stats, gameView.getCivView(city.civ))
     /** CN claim-tile UI: allows resolving the model [Tile] behind a [TileView] for the [com.unciv.ui.screens.cityscreen.CityScreenTileTable] claim button */
     @Readonly fun getTile(tileView: TileView): Tile = tileView.unwrap()
 
@@ -357,3 +359,12 @@ class CityView(city: City,
     }
 
 }
+
+// Helpers built on top of the view API, rather than being part of it
+@Readonly fun CityView.isStarving(): Boolean = foodForNextTurn() < 0
+@Readonly fun CityView.isGrowing(): Boolean = foodForNextTurn() > 0
+@Readonly fun CityView.currentConstructionName(): String = constructions.currentConstructionName()
+
+/** Explored tiles in work range that belong to this city's civ and could be worked */
+@Readonly fun CityView.getWorkableTiles(): Sequence<TileView> =
+    getCenterTile().getExploredTilesInDistance(getWorkRange()).filter { it.getOwner() == owningCiv() }

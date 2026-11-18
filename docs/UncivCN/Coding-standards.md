@@ -14,7 +14,9 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
   --config .github/workflows/detekt_config/detekt-warnings.yml    # Detekt check (warnings)
 ```
 
-Tech stack: Kotlin 2.4.10 · Gradle 9.4.1 · LibGDX 1.14.2 · Ktor 3.2.3 · Kotlinx Serialization · purity-plugin · Detekt
+Tech stack: Kotlin 2.4.20 · Gradle 9.4.1 · LibGDX 1.14.2 · Ktor 3.5.2 · Kotlinx Serialization · purity-plugin · Detekt
+
+The browser target is opt-in: see [web/BUILDING.md](https://github.com/AutumnPizazz/Unciv/blob/UncivCN/web/BUILDING.md). It does not publish with the CN docs.
 
 > `gradle/libs.versions.toml` is the single source of truth for versions; this line is just a quick summary and must be kept in sync.
 
@@ -27,7 +29,7 @@ For a from-scratch setup (environment, IDE configuration) see [Building-Locally]
 | `core/` | 99% of the game code: logic, models, UI, serialization, ruleset. Pure Kotlin, no platform dependencies |
 | `desktop/` | Desktop launcher and platform features (JNA notifications, Discord RPC) |
 | `android/` | Android launcher; `android/assets/` holds the shared assets for all platforms (images, JSON, translations) |
-| `server-ts/` | Multiplayer server (TypeScript, Hono + better-sqlite3 + ws), submodule [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
+| `server-go/` | Multiplayer server (Go, Fiber and SQLite), submodule [blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) |
 | `tests/` | JUnit 4 + Mockito unit tests |
 
 Key packages (`core/src/com/unciv/`):

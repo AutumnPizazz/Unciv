@@ -188,27 +188,28 @@ class MainMenuScreen: BaseScreen(), RecreateOnResize {
         column1.add(quickstartTable).row()
 
         val newGameButton = getMenuButton("Start new game", "OtherIcons/New", KeyboardBinding.StartNewGame) {
-            game.pushScreen{ NewGameScreen() } 
+            game.pushScreen { NewGameScreen() } 
         }
         column1.add(newGameButton).row()
 
         val loadGameTable = getMenuButton("Load game", "OtherIcons/Load", KeyboardBinding.MainMenuLoad) {
-            game.pushScreen{ LoadGameScreen() }
+            game.pushScreen { LoadGameScreen() }
         }
         column1.add(loadGameTable).row()
 
         val multiplayerTable = getMenuButton("Multiplayer", "OtherIcons/Multiplayer", KeyboardBinding.Multiplayer) {
-            game.pushScreen{ MultiplayerScreen() }
+            if (game.supportsOnlineMultiplayer) game.pushScreen { MultiplayerScreen() }
+            else ToastPopup("Online multiplayer is unavailable in the browser preview.", this)
         }
         column2.add(multiplayerTable).row()
 
         val mapEditorScreenTable = getMenuButton("Map editor", "OtherIcons/MapEditor", KeyboardBinding.MapEditor) {
-            game.pushScreen{ MapEditorScreen() }
+            game.pushScreen { MapEditorScreen() }
         }
         column2.add(mapEditorScreenTable).row()
 
         val modsTable = getMenuButton("Mods", "OtherIcons/Mods", KeyboardBinding.ModManager) {
-            game.pushScreen{ ModManagementScreen() }
+            game.pushScreen { ModManagementScreen() }
         }
         column2.add(modsTable).row()
 

@@ -313,7 +313,7 @@ class SimultaneousTurnOperationsTest {
             UnitActionType.Explore, UnitActionType.HurryResearch, UnitActionType.HurryPolicy,
             UnitActionType.HurryWonder, UnitActionType.HurryBuilding, UnitActionType.Fortify,
             UnitActionType.Sleep, UnitActionType.Skip, UnitActionType.Guard, UnitActionType.SetUp,
-            UnitActionType.SwapUnits, UnitActionType.StopMovement, UnitActionType.StopAutomation
+            UnitActionType.StopMovement, UnitActionType.StopAutomation
         )
         for (type in playable) {
             assertFalse("$type must stay playable in simultaneous turns",

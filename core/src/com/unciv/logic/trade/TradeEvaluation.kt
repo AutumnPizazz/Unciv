@@ -1,5 +1,6 @@
 package com.unciv.logic.trade
 
+import com.unciv.view.GameView
 import com.unciv.Constants
 import com.unciv.logic.automation.civilization.DiplomacyAutomation
 import com.unciv.logic.automation.civilization.MotivationToAttackAutomation
@@ -51,20 +52,23 @@ class TradeEvaluation {
             || ourDiploManager.hasModifier(DiplomaticModifiers.SharedEmbassies)))
             return false
 
+        // One side can hand the other the gold for a research agreement in the same trade
+        val goldFromThem = trade.theirOffers.filter { it.type == TradeOfferType.Gold }.sumOf { it.amount }
+        val goldFromUs = trade.ourOffers.filter { it.type == TradeOfferType.Gold }.sumOf { it.amount }
         for (offer in trade.ourOffers)
-            if (!isOfferValid(offer, offerer, tradePartner)) {
+            if (!isOfferValid(offer, offerer, tradePartner, goldFromThem - goldFromUs)) {
                 return false
             }            
 
         for (offer in trade.theirOffers)
-            if (!isOfferValid(offer, tradePartner, offerer)) {
+            if (!isOfferValid(offer, tradePartner, offerer, goldFromUs - goldFromThem)) {
                 return false
             }
         return true
     }
 
     @Readonly
-    private fun isOfferValid(tradeOffer: TradeOffer, offerer: Civilization, tradePartner: Civilization): Boolean {
+    private fun isOfferValid(tradeOffer: TradeOffer, offerer: Civilization, tradePartner: Civilization, netGoldReceived: Int): Boolean {
 
         @Readonly
         fun hasResource(tradeOffer: TradeOffer): Boolean {
@@ -82,7 +86,7 @@ class TradeEvaluation {
                 //   these are a safeguard against future automation changes 
                 when (tradeOffer.name) {
                     Constants.peaceTreaty -> offerer.isAtWarWith(tradePartner)
-                    Constants.researchAgreement -> !offerer.getDiplomacyManager(tradePartner)!!.hasFlag(DiplomacyFlags.ResearchAgreement)
+                    Constants.researchAgreement -> !offerer.getDiplomacyManager(tradePartner)!!.hasFlag(DiplomacyFlags.ResearchAgreement) && offerer.gold + netGoldReceived >= tradeOffer.amount
                     Constants.defensivePact -> !offerer.getDiplomacyManager(tradePartner)!!.hasFlag(DiplomacyFlags.DefensivePact)
                     else -> true // potentional future treaties
                 }
@@ -380,7 +384,7 @@ class TradeEvaluation {
                 return when (offer.name) {
                     // Since it will be evaluated twice, once when they evaluate our offer and once when they evaluate theirs
                     Constants.peaceTreaty -> evaluatePeaceCostForThem(civInfo, tradePartner)
-                    Constants.defensivePact -> if (DiplomacyAutomation.wantsToSignDefensivePact(civInfo, tradePartner)) 0
+                    Constants.defensivePact -> if (DiplomacyAutomation.wantsToSignDefensivePact(GameView(civInfo.gameInfo, civInfo).civView, tradePartner)) 0
                         else 100000
                     Constants.researchAgreement -> -offer.amount
                     else -> 1000
@@ -532,7 +536,7 @@ class TradeEvaluation {
         if (ourCombatStrength * 1.5f >= theirCombatStrength && theirCombatStrength * 1.5f >= ourCombatStrength)
             return 0 // we're roughly equal, there's no huge power imbalance
         if (ourCombatStrength > theirCombatStrength) {
-            if (MotivationToAttackAutomation.hasAtLeastMotivationToAttack(ourCiv, otherCiv, 0f) <= 0) return 0
+            if (MotivationToAttackAutomation.hasAtLeastMotivationToAttack(ourCiv, GameView(ourCiv.gameInfo, ourCiv).getForeignCivView(otherCiv), 0f) <= 0) return 0
             val absoluteAdvantage = ourCombatStrength - theirCombatStrength
             val percentageAdvantage = absoluteAdvantage / theirCombatStrength.toFloat()
             // We don't add the same constraint here. We should not make peace easily if we're

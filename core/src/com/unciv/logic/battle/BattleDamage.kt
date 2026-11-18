@@ -15,6 +15,7 @@ import com.unciv.ui.components.extensions.toPercent
 import yairm210.purity.annotations.LocalState
 import yairm210.purity.annotations.Pure
 import yairm210.purity.annotations.Readonly
+import yairm210.purity.annotations.ReturnsNewInstance
 import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.pow
@@ -38,7 +39,7 @@ object BattleDamage {
         return "$source - $conditionalsText"
     }
 
-    @Readonly
+    @Readonly @ReturnsNewInstance
     private fun getGeneralModifiers(combatant: ICombatant, enemy: ICombatant, combatAction: CombatAction, tileToAttackFrom: Tile): Counter<String> {
         val modifiers = Counter<String>()
 
@@ -140,7 +141,7 @@ object BattleDamage {
         attacker: ICombatant,
         defender: ICombatant, tileToAttackFrom: Tile
     ): Counter<String> {
-        @LocalState val modifiers = getGeneralModifiers(attacker, defender, CombatAction.Attack, tileToAttackFrom)
+        val modifiers = getGeneralModifiers(attacker, defender, CombatAction.Attack, tileToAttackFrom)
 
         if (attacker is MapUnitCombatant) {
 
@@ -230,7 +231,7 @@ object BattleDamage {
 
     @Readonly
     fun getDefenceModifiers(attacker: ICombatant, defender: ICombatant, tileToAttackFrom: Tile): Counter<String> {
-        @LocalState val modifiers = getGeneralModifiers(defender, attacker, CombatAction.Defend, tileToAttackFrom)
+        val modifiers = getGeneralModifiers(defender, attacker, CombatAction.Defend, tileToAttackFrom)
         val tile = defender.getTile()
 
         if (defender is MapUnitCombatant && !defender.unit.isEmbarked()) { // Embarked units get no terrain defensive bonuses

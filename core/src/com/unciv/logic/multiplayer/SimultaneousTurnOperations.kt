@@ -586,7 +586,7 @@ object SimultaneousTurnOperations {
 
     private suspend fun loadLegacyOperations(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> =
         try {
-            decode(server.fileStorage().loadFileData(fileName(gameId)))
+            server.fileStorage().loadFileData(fileName(gameId)).bufferedReader().use { decode(it.readText()) }
         } catch (_: MultiplayerFileNotFoundException) {
             emptyList()
         }

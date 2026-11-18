@@ -58,9 +58,12 @@ object DesktopLauncher {
         // The uniques checker requires the file system to be set up, which happens after lwjgl initializes it
         if (arg.isNotEmpty() && arg[0] == "mod-ci") {
             ImagePacker.packImagesPerMod(".", ".")
-            val ruleset = Ruleset()
-            ruleset.folderLocation = FileHandle(".")
-            val jsonsFolder = FileHandle("jsons")
+            val modFolder = FileHandle(File(".").canonicalFile)
+            val ruleset = Ruleset().apply {
+                name = modFolder.name()
+                folderLocation = modFolder
+            }
+            val jsonsFolder = modFolder.child("jsons")
             if (jsonsFolder.exists()) {
                 // Load vanilla ruleset from the JAR, in case the mod requires parts of it
                 RulesetCache.loadRulesets(consoleMode = true, noMods = true)

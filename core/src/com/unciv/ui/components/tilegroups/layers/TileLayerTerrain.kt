@@ -1,5 +1,6 @@
 package com.unciv.ui.components.tilegroups.layers
 
+import com.unciv.view.getBaseTerrain
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.unciv.UncivGame
@@ -7,6 +8,7 @@ import com.unciv.view.CivView
 import com.unciv.view.TileView
 import com.unciv.logic.map.NeighborDirection
 import com.unciv.ui.components.tilegroups.TileGroup
+import com.unciv.ui.components.tilegroups.mix
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.screens.basescreen.BaseScreen
 import yairm210.purity.annotations.Readonly
@@ -127,7 +129,7 @@ class TileLayerTerrain(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup,
     private val neighborEdgeDataByNeighbor = HashMap<TileView, NeighborEdgeData>()
 
     private fun getEdgeTileLocations(): Sequence<String> =
-        tileGroup.tileView.getVisibleNeighbors().flatMap { neighbor ->
+        tileGroup.neighbors.asSequence().flatMap { neighbor ->
             val neighborEdgeData = neighborEdgeDataByNeighbor.getOrPut(neighbor) {
                 val clockPosition = tileGroup.tileView.getNeighborClockPosition(neighbor)
                 val direction = NeighborDirection.byClockPosition[clockPosition]
@@ -238,7 +240,7 @@ class TileLayerTerrain(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup,
     private fun updateTileColor(viewingCiv: CivView?) {
         val isViewable = isViewable(viewingCiv)
         val tileView = tileGroup.tileView
-        val colorPillagedTile = isViewable && tileView.isPillaged() && !usePillagedImprovementImage(tileView)
+        val colorPillagedTile = isViewable && (tileView.improvementIsPillaged || tileView.roadIsPillaged) && !usePillagedImprovementImage(tileView)
 
         val baseTerrainColor = when {
             colorPillagedTile && strings.tileSetConfig.useColorAsBaseTerrain -> tileView.getBaseTerrain()
@@ -284,6 +286,7 @@ class TileLayerTerrain(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup,
     }
 
     fun dim(brightness: Float) {
+        invalidate() // we mutate colors in place; the next update() must reset them
         // Dimming with alpha looks weird with overlapping tiles— Can't just set group alpha.
         // Image.draw() doesn't inherit parent colour tints— Can't just set group colour.
         // Covering up with fogImage or adding another tileset image with variable alpha doesn't look good for all terrain shapes— Can't cover up group with image.
@@ -294,6 +297,30 @@ class TileLayerTerrain(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup,
         for (image in tileBaseImages) {
             image.color.lerp(BaseScreen.clearColor, 1-brightness)
         }
+    }
+
+    // Everything doUpdate reads: own terrain/improvement/resource/owner/rivers, viewer-dependent visibility,
+    // and the exploration state + terrain of neighbors (edge images)
+    override fun getUpdateKey(viewingCiv: CivView?): Long {
+        val tileView = tileGroup.tileView
+        val settings = UncivGame.Current.settings
+        var key = 1L
+            .mix(viewingCiv?.civName)
+            .mix(tileView.isForceVisible())
+            .mix(isViewable(viewingCiv))
+            .mix(settings.showPixelImprovements)
+            .mix(tileView.baseTerrain)
+            .mix(tileView.naturalWonder)
+            .mix(tileView.terrainFeatures)
+            .mix(tileView.getShownImprovement())
+            .mix(tileView.getViewableResource(if (tileView.isForceVisible()) null else viewingCiv)?.name)
+            .mix(tileView.improvementIsPillaged)
+            .mix(tileView.roadIsPillaged)
+            .mix(tileView.getOwner()?.civName)
+            .mix(tileView.owningCity() != null)
+            .mix(tileView.hasBottomRightRiver).mix(tileView.hasBottomRiver).mix(tileView.hasBottomLeftRiver)
+        for (neighbor in tileGroup.neighbors) key = key.mix(neighbor.getCachedTerrainNameSet().hashCode())
+        return key
     }
 
     override fun doUpdate(viewingCiv: CivView?) {

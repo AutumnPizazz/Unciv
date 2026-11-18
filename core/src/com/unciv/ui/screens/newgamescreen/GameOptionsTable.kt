@@ -119,7 +119,8 @@ class GameOptionsTable(
 
         val checkboxTable = Table().apply { defaults().left().pad(2.5f) }
         val selectBoxTable = Table()
-        checkboxTable.addIsOnlineMultiplayerCheckbox()
+        if (UncivGame.Current.supportsOnlineMultiplayer)
+            checkboxTable.addIsOnlineMultiplayerCheckbox()
         if (gameParameters.isOnlineMultiplayer){
             // Simultaneous turns replace or contradict several options below: the skip-turn and
             // force-resign buttons rewrite the whole save (discarding the turn's operations), polling
@@ -445,7 +446,7 @@ class GameOptionsTable(
         }
         slider.isDisabled = locked
         val snapValues = floatArrayOf(100f,150f,200f,250f,300f,350f,400f,450f,500f,550f,600f,650f,700f,750f,800f,900f,1000f,1250f,1500f)
-        slider.setSnapToValues(threshold = 125f, *snapValues)
+        slider.setSnapToValues(threshold = 125f, *snapValues, editLabel = "{Max Turns}:")
         return slider
     }
 
@@ -525,7 +526,7 @@ class GameOptionsTable(
         defaultMinuteValue: Int,
         disabled: Boolean = false
     ) {
-        add(title.toLabel(hideIcons = true)).right()
+        add(title.toLabel(hideIcons = true)).colspan(3).left().row()
 
         val selector = DurationSelector(gameParameters, param, defaultDayValue, defaultHourValue, defaultMinuteValue)
         if (disabled) {
@@ -571,16 +572,19 @@ class GameOptionsTable(
         private val minuteValues: Array<Int> = arrayOf(0,3,5,10,15,20,25,30,35,40,45,50)
 
     ) {
-        val dayBox: SelectBox<String> = createTimeCell(dayValues, defaultDayValue, "d")
-        val hourBox: SelectBox<String> = createTimeCell(hourValues, defaultHourValue, "h")
-        val minuteBox: SelectBox<String> = createTimeCell(minuteValues, defaultMinuteValue, "m")
+        val dayBox: SelectBox<String> = createTimeCell(dayValues, defaultDayValue, "Days")
+        val hourBox: SelectBox<String> = createTimeCell(hourValues, defaultHourValue, "Hours")
+        val minuteBox: SelectBox<String> = createTimeCell(minuteValues, defaultMinuteValue, "Minutes")
         val boxes: List<SelectBox<String>> = listOf(dayBox, hourBox, minuteBox)
 
         init { for (box in boxes) {box.onChange {preventNullTime(); updateGameParameter()}} }
 
         fun preventNullTime() {
-            if (dayBox.selected == "0d" && hourBox.selected == "0h" && minuteBox.selected == "0m") {
-                minuteBox.selected ="3m"
+            if (dayValues[dayBox.selectedIndex] == 0
+                && hourValues[hourBox.selectedIndex] == 0
+                && minuteValues[minuteBox.selectedIndex] == 0
+            ) {
+                minuteBox.selectedIndex = minuteValues.indexOf(3)
             }
         }
 
@@ -591,12 +595,12 @@ class GameOptionsTable(
 
             param.set(gameParameters, value)
         }
-
-        fun createTimeCell(intValues: Array<Int>, initialValue: Int, suffix: String): SelectBox<String> {
+        
+        fun createTimeCell(intValues: Array<Int>, initialValue: Int, unit: String): SelectBox<String> {
             val timeBox = SelectBox<String>(BaseScreen.skin)
-            val stringValues =  Array(intValues.size) { i -> "${intValues[i]}" + suffix }
+            val stringValues = Array(intValues.size) { "[${intValues[it]}] $unit".tr() }
             timeBox.setItems(*stringValues)
-            timeBox.selected = "$initialValue" + suffix
+            timeBox.selectedIndex = intValues.indexOf(initialValue)
             return timeBox
         }
     }

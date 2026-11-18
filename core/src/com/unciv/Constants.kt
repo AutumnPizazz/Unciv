@@ -105,6 +105,8 @@ object Constants {
 
     const val remove = "Remove "
     const val repair = "Repair"
+    /** [com.unciv.logic.map.mapunit.MapUnit.action] value while automatically connecting a road */
+    const val connectRoadAction = "Connect road"
 
     const val uniqueOrDelimiter = "\" OR \""
     const val stringSplitCharacter = '␟' // U+241 - Unit separator character. Used to join texts and split them with a char that is virtually guaranteed to not be used in normal text. 
@@ -143,9 +145,9 @@ object Constants {
 
     /** UncivCN 社区下载服务器（与联机服务器同域，由社区维护、并非官方服务）。
      *  游戏内更新检查与安装包下载固定走它（不依赖 github.com 可达性，也不受模组下载源设置影响）：
-     *  - 检查更新：`GET <server>/api/downloads/latest.json`（server-ts 动态生成，格式兼容 GitHub latest release API）
+     *  - 检查更新：`GET <server>/api/downloads/latest.json`（server-go 动态生成，格式兼容 GitHub latest release API）
      *  - 安装包下载：`<server>/dl/<版本tag>/<文件名>`
-     *  详见 server-ts/README.md */
+     *  详见 server-go/README.md */
     const val uncivDownloadServer = "https://unciv.civgo.top:30123"
 
     /** Chinese-language setting names (file names without .properties) */
@@ -161,4 +163,11 @@ object Constants {
      *  keeping the release tag in sync with the CN version scheme (e.g. 4.21.6.5).
      *  The upstream default is "yairm210/Unciv". */
     const val updateCheckRepo = "AutumnPizazz/Unciv"
+
+
+    /** Gdx's own default (only visible in the ActorGestureListener() constructor) for the "tap square" -
+     *  distance the pointer can travel between tap events while still being considered the same tap.
+     *  Gdx docs say unit is pixels, but they're actually stage units for an ActorGestureListener.
+     */
+    const val DEFAULT_HALF_TAP_SQUARE_SIZE = 20f
 }

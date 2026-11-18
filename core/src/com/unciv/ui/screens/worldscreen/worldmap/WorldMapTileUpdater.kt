@@ -1,14 +1,22 @@
 package com.unciv.ui.screens.worldscreen.worldmap
 
+import com.unciv.view.getFutureAutomatedRoadConnectionTiles
+import com.unciv.view.getNukeBlastRadius
+import com.unciv.view.isAirUnit
+import com.unciv.view.isMilitary
+import com.unciv.view.isNuclearWeapon
+import com.unciv.view.isAutomatingRoadConnection
+import com.unciv.view.isMoving
+import com.unciv.view.isPreparingAirSweep
+import com.unciv.view.isPreparingParadrop
 import com.badlogic.gdx.graphics.Color
 import com.unciv.UncivGame
 import com.unciv.logic.automation.unit.CityLocationTileRanker
-import com.unciv.logic.battle.TargetHelper
-import com.unciv.logic.city.City
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.ui.components.extensions.colorFromRGB
 import com.unciv.view.AttackableTileView
 import com.unciv.view.CivView
+import com.unciv.view.ForeignCityView
 import com.unciv.view.MapUnitView
 import com.unciv.view.SpyView
 
@@ -31,8 +39,7 @@ object WorldMapTileUpdater {
                 updateTilesForSelectedSpy(unitTable.selectedSpy!!)
             }
             unitTable.selectedCity != null -> {
-                val city = unitTable.selectedCity!!.getCity()
-                updateBombardableTilesForSelectedCity(city)
+                updateBombardableTilesForSelectedCity(unitTable.selectedCity!!)
                 // We still want to show road paths to the selected city if they are present
                 if (unitTable.selectedUnitIsConnectingRoad) {
                     updateTilesForSelectedUnit(unitTable.selectedUnits[0])
@@ -73,14 +80,13 @@ object WorldMapTileUpdater {
 
         // Fade out less relevant images if a military unit is selected
         if (unitView.isMilitary()) {
-            val unit = unitView.getUnit()
             for (group in tileGroups.values) {
 
                 // Fade out population icons
                 group.layerMisc.dimPopulation(true)
 
                 val shownImprovementName = group.tileView.getShownImprovement()
-                val shownImprovement = unit.civ.gameInfo.ruleset.tileImprovements[shownImprovementName]
+                val shownImprovement = group.tileView.getRuleset().tileImprovements[shownImprovementName]
 
                 // Fade out improvement icons (but not barb camps or ruins)
                 if (shownImprovement != null &&
@@ -105,7 +111,7 @@ object WorldMapTileUpdater {
         // Z-Layer: 0
         // Highlight suitable tiles in road connecting mode
         if (worldScreen.bottomUnitTable.selectedUnitIsConnectingRoad) {
-            if (!unitView.rulesetHasRoadImprovement()) return
+            if (unitView.getTile().getRuleset().roadImprovement == null) return
             val connectRoadTileOverlayColor = Color.RED
             for (tileView in unitView.getValidRoadConnectionTiles())  {
                 tileGroups[tileView]!!.layerOverlay.showHighlight(connectRoadTileOverlayColor, 0.3f)
@@ -200,7 +206,7 @@ object WorldMapTileUpdater {
             // (per Nuke.mayUseNuke) regardless of visible enemies on them; for everything else we still only
             // want to show tiles we can currently see.
             val attackableTiles: List<AttackableTileView> =
-                unitView.getAttackableEnemies(unitView.getDistanceToTiles())
+                unitView.getAttackableEnemies()
                     .filter { unitView.isNuclearWeapon() || it.getTileToAttack().isVisible() }
                     .distinctBy { it.getTileToAttack() }
 
@@ -222,10 +228,9 @@ object WorldMapTileUpdater {
         // Highlight best tiles for city founding
         if (unitView.hasUnique(UniqueType.FoundCity)
             && UncivGame.Current.settings.showSettlersSuggestedCityLocations) {
-            val unit = unitView.getUnit()
-            CityLocationTileRanker.getBestTilesToFoundCity(unit, 5, minimumValue = 50f).tileRankMap.asSequence()
-                .filter { it.key.isExplored(unit.civ) }.sortedByDescending { it.value }.take(3).forEach {
-                    tileGroups[tileMapView.getTile(it.key)]!!.layerOverlay.showGoodCityLocationIndicator()
+            CityLocationTileRanker.getBestTilesToFoundCity(unitView, 5, minimumValue = 50f).tileRankMap.asSequence()
+                .sortedByDescending { it.value }.take(3).forEach {
+                    tileGroups[it.key]!!.layerOverlay.showGoodCityLocationIndicator()
                 }
         }
     }
@@ -246,9 +251,9 @@ object WorldMapTileUpdater {
         }
     }
 
-    private fun WorldMapHolder.updateBombardableTilesForSelectedCity(city: City) {
+    private fun WorldMapHolder.updateBombardableTilesForSelectedCity(city: ForeignCityView) {
         if (!city.canBombard()) return
-        for (tileView in TargetHelper.getBombardableTiles(city).map { tileMapView.getTile(it) }) {
+        for (tileView in city.getBombardableTiles()) {
             val group = tileGroups[tileView]!!
             group.layerOverlay.showHighlight(colorFromRGB(237, 41, 57))
             group.layerOverlay.showCrosshair()

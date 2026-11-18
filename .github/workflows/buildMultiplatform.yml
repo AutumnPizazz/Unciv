@@ -100,36 +100,15 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         continue-on-error: true
 
-  # Job to typecheck, test and verify the Docker image of the TypeScript server (UncivSrv submodule)
-  build-ts-server:
+  build-go-server:
     runs-on: ubuntu-latest
-    name: Build TypeScript Server
+    name: Build Go Server
     steps:
       - uses: actions/checkout@v5
 
-      - name: Checkout TS server submodule
-        run: git submodule update --init server-ts
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Install dependencies
-        working-directory: server-ts
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        working-directory: server-ts
-        run: pnpm typecheck
-
-      - name: Run tests
-        working-directory: server-ts
-        run: pnpm test
+      - name: Checkout Go server submodule
+        run: git submodule update --init server-go
 
       - name: Build Docker image (verification only)
-        working-directory: server-ts
+        working-directory: server-go
         run: docker build -t unciv-srv:test .

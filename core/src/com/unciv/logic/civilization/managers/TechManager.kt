@@ -96,9 +96,9 @@ class TechManager : IsPartOfGameInfoSerialization {
     @Readonly
     private fun getScienceModifier(techName: String): Float { // https://forums.civfanatics.com/threads/the-mechanics-of-overflow-inflation.517970/
         val numberOfCivsResearchedThisTech = civInfo.getKnownCivs()
-            .count { it.isMajorCiv() && it.tech.isResearched(techName) }
+            .count { it.isMajorCiv && it.tech.isResearched(techName) }
         val numberOfCivsRemaining = civInfo.gameInfo.civilizations
-            .count { it.isMajorCiv() && !it.isDefeated() }
+            .count { it.isMajorCiv && !it.isDefeated() }
         return 1 + numberOfCivsResearchedThisTech / numberOfCivsRemaining.toFloat() * 0.3f
     }
 
@@ -262,8 +262,18 @@ class TechManager : IsPartOfGameInfoSerialization {
         addScience(finalScienceToAdd)
     }
 
+    /**
+     *  Adds science "income" e.g. from normal research (see [endTurn]) or a triggered Unique.
+     *
+     *  Also called from [updateResearchProgress] to _apply_ overflow.
+     *  Adds the points to the [current research][currentTechnology], or, if there is none, to [overflow][overflowScience].
+     */
     fun addScience(scienceGet: Int) {
-        val currentTechnology = currentTechnologyName() ?: return
+        val currentTechnology = currentTechnologyName()
+        if (currentTechnology == null) {
+            overflowScience += scienceGet
+            return
+        }
         techsInProgress[currentTechnology] = researchOfTech(currentTechnology) + scienceGet
         if (techsInProgress[currentTechnology]!! < costOfTech(currentTechnology))
             return
@@ -309,7 +319,7 @@ class TechManager : IsPartOfGameInfoSerialization {
 
         moveToNewEra(showNotification)
 
-        if (!civInfo.isSpectator() && showNotification)
+        if (!civInfo.isSpectator && showNotification)
             civInfo.addNotification("Research of [$techName] has completed!", TechAction(techName),
                 NotificationCategory.General,
                 NotificationIcon.Science)
@@ -391,7 +401,11 @@ class TechManager : IsPartOfGameInfoSerialization {
             return obsoleteUnits[old]?.name  // Replacement, or pass through null to remove from queue
         }
         for (city in civInfo.cities) {
-            city.cityConstructions.transformQueue(::transformConstruction)
+            city.cityConstructions.editQueue {
+                val transformed = mapNotNull { transformConstruction(it, city) }
+                clear()
+                addAll(transformed)
+            }
         }
 
         // Add notifications for obsolete units/constructions
@@ -426,13 +440,13 @@ class TechManager : IsPartOfGameInfoSerialization {
         if (previousEra == currentEra) return
         
         if (showNotification) {
-            if (!civInfo.isSpectator())
+            if (!civInfo.isSpectator)
                 civInfo.addNotification(
                     "You have entered the [$currentEra]!",
                     NotificationCategory.General,
                     NotificationIcon.Science
                 )
-            if (civInfo.isMajorCiv()) {
+            if (civInfo.isMajorCiv) {
                 for (knownCiv in civInfo.getKnownCivsWithSpectators()) {
                     knownCiv.addNotification(
                         "[${civInfo.civName}] has entered the [$currentEra]!",
@@ -444,7 +458,7 @@ class TechManager : IsPartOfGameInfoSerialization {
             for (policyBranch in getRuleset().policyBranches.values.filter {
                 it.era == currentEra.name && civInfo.policies.isAdoptable(it)
             }) {
-                if (!civInfo.isSpectator())
+                if (!civInfo.isSpectator)
                     civInfo.addNotification(
                         "[${policyBranch.name}] policy branch unlocked!",
                         PolicyAction(policyBranch.name),

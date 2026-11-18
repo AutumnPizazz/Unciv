@@ -93,6 +93,6 @@ class RestartMarker {
 
 /** playerIds of all currently alive human (non-spectator) players of [this] game. */
 fun GameInfo.getAliveHumanPlayerIds(): Set<String> = civilizations
-    .filter { it.isHuman() && it.isAlive() && !it.isSpectator() }
+    .filter { it.isHuman() && it.isAlive() && !it.isSpectator }
     .map { it.playerId }
     .toSet()

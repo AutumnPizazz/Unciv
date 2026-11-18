@@ -24,7 +24,7 @@ class ExportDataPopup(
 ) : Popup(screen, scrollable = Popup.Scrollability.WithoutButtons) {
 
     init {
-        val majorCivs = gameInfo.civilizations.filter { it.isMajorCiv() }.sortedBy { it.civName }
+        val majorCivs = gameInfo.civilizations.filter { it.isMajorCiv }.sortedBy { it.civName }
         // Union of every major civ's history: one civ may have joined late or been defeated early,
         // and exporting must not silently drop turns the others do have.
         val availableTurns = majorCivs.flatMap { it.statsHistory.keys }.distinct().sorted()
@@ -52,7 +52,7 @@ class ExportDataPopup(
         val lastTurnsButton = "Export last N turns".tr().toTextButton()
         lastTurnsButton.onClick {
             AskNumberPopup(
-                screen,
+                screen.stage,
                 label = "How many turns to export?".tr(),
                 defaultValue = 5,
                 bounds = 1..availableTurns.size,

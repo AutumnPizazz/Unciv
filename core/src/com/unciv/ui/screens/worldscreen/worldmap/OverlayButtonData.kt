@@ -1,14 +1,18 @@
 package com.unciv.ui.screens.worldscreen.worldmap
 
+import com.unciv.models.UnitActionType
+import com.unciv.view.hasMovement
+import com.unciv.view.isPreparingParadrop
+import com.unciv.view.GameView
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.utils.Align
+import com.unciv.Constants
 import com.unciv.logic.automation.unit.UnitAutomation
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.UncivSound
-import com.unciv.models.UnitActionType
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
 import com.unciv.ui.components.UncivTooltip.Companion.addTooltip
@@ -20,22 +24,24 @@ import com.unciv.ui.components.input.onActivation
 import com.unciv.ui.components.widgets.UnitIconGroup
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.screens.basescreen.BaseScreen
-import com.unciv.ui.screens.overviewscreen.EspionageOverviewScreen
+import com.unciv.ui.screens.espionage.EspionageScreen
 import com.unciv.view.ForeignCityView
 import com.unciv.view.MapUnitView
 import com.unciv.view.SpyView
 import com.unciv.view.TileView
 
 /** Interface for creating floating "action" buttons on tiles */
-interface OverlayButtonData{
+interface OverlayButtonData {
     fun createButton(worldMapHolder: WorldMapHolder): Actor
 }
 
 const val buttonSize = 60f
 const val smallerCircleSizes = 25f
 
-class MoveHereOverlayButtonData(val unitToTurnsToDestination: HashMap<MapUnitView, Int>, val tileView: TileView) :
-    OverlayButtonData {
+class MoveHereOverlayButtonData(
+    val unitToTurnsToDestination: HashMap<MapUnitView, Int>,
+    val tileView: TileView
+) : OverlayButtonData {
     override fun createButton(worldMapHolder: WorldMapHolder): Actor {
         return getMoveHereButton(worldMapHolder)
     }
@@ -143,12 +149,11 @@ class ConnectRoadOverlayButtonData(val unitView: MapUnitView, val tileView: Tile
 
     private fun connectRoadToTargetTile(worldMapHolder: WorldMapHolder, selectedUnit: MapUnit, targetTilePosition: HexCoord) {
         selectedUnit.automatedRoadConnectionDestination = targetTilePosition
-        selectedUnit.automatedRoadConnectionPath = null
-        selectedUnit.action = UnitActionType.ConnectRoad.value
+        selectedUnit.action = Constants.connectRoadAction
         selectedUnit.automated = true
         // Moving now would be lost at settlement unless it is recorded as a state diff.
         worldMapHolder.worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.Automate) {
-            UnitAutomation.automateUnitMoves(selectedUnit)
+            UnitAutomation.automateUnitMoves(GameView(selectedUnit.civ.gameInfo, selectedUnit.civ).getMapUnitView(selectedUnit))
         }
 
         SoundPlayer.play(UncivSound("wagon"))
@@ -180,6 +185,12 @@ class MoveSpyOverlayButtonData(val spyView: SpyView, val cityView: ForeignCityVi
                     center(spyActionButton)
                 }
             )
+            spyActionButton.addActor(
+                ImageGetter.getImage("OtherIcons/Spy_White")
+                    .surroundWithCircle(smallerCircleSizes, color = ImageGetter.CHARCOAL).apply {
+                        setPosition(2f, spyActionButton.height - 2f, Align.topLeft)
+                    }
+            )
         } else {
             spyActionButton.addActor(
                 ImageGetter.getImage("OtherIcons/Close").apply {
@@ -195,9 +206,9 @@ class MoveSpyOverlayButtonData(val spyView: SpyView, val cityView: ForeignCityVi
         spyActionButton.onActivation(UncivSound.Silent) {
             if (cityView != null) {
                 spyView.tryMoveTo(cityView)
-                worldScreen.game.pushScreen{ EspionageOverviewScreen(worldScreen.selectedCiv, worldScreen) }
+                worldScreen.game.pushScreen { EspionageScreen(worldScreen.selectedCiv, worldScreen) }
             } else {
-                worldScreen.game.pushScreen{ EspionageOverviewScreen(worldScreen.selectedCiv, worldScreen) }
+                worldScreen.game.pushScreen { EspionageScreen(worldScreen.selectedCiv, worldScreen) }
                 worldScreen.bottomUnitTable.selectSpy(null)
             }
             worldMapHolder.removeUnitActionOverlay()
@@ -207,7 +218,6 @@ class MoveSpyOverlayButtonData(val spyView: SpyView, val cityView: ForeignCityVi
         }
         spyActionButton.keyShortcuts.add(KeyCharAndCode.TAB)
         spyActionButton.keyShortcuts.add(KeyCharAndCode.RETURN)
-        spyActionButton.keyShortcuts.add(KeyCharAndCode.NUMPAD_ENTER)
 
         return spyActionButton
     }

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -65,15 +66,18 @@ abstract class BaseScreen : Screen {
     private val fpsLabel: Label? = if (this !is GameStartScreen) "".toLabel() else null
     private val fpsLabelContainer: Table? = fpsLabel?.let {
         Table().apply {
-            background = ImageGetter.getWhiteDotDrawable().tint(Color(0f, 0f, 0.4f, 1f))
+            try {
+                background = ImageGetter.getWhiteDotDrawable().tint(Color(0f, 0f, 0.4f, 1f))
+            } catch (_: Exception) {
+                // This can fail if the images aren't available; Happens in CrashScreen
+            }
             pad(4f)
             add(it)
         }
     }
 
     init {
-        val screenSize = game.settings.screenSize
-        val height = screenSize.virtualHeight
+        val height = game.settings.screenSize.getHeight()
 
         /** The ExtendViewport sets the _minimum_(!) world size - the actual world size will be larger, fitted to screen/window aspect ratio. */
         stage = UncivStage(ExtendViewport(height, height))
@@ -168,6 +172,19 @@ abstract class BaseScreen : Screen {
          *  Gets overwritten by SkinConfig.clearColor after starting Unciv */
         var clearColor = Color(0f, 0f, 0.2f, 1f)
 
+        /** Shared across all screens. GL-context bound, so must be recreated via [recreateBatch] when the context is recreated or the rendering type changes. */
+        lateinit var batch: Batch
+            private set
+
+        /** Creates a new [batch] according to current settings, replacing the old one.
+         *  The old one is NOT disposed - screens still showing may draw with it until replaced, so disposing risks "No buffer allocated!" crashes.
+         *  @return the previous batch, or `null` if there was none */
+        fun recreateBatch(): Batch? {
+            val old = if (::batch.isInitialized) batch else null
+            batch = UncivStage.getBatch()
+            return old
+        }
+
         /** Shared across all screens - wraps [Gdx.gl] to count draw calls etc. for [DebugUtils.SHOW_FPS]. */
         private val glProfiler by lazy { GLProfiler(Gdx.graphics) }
 
@@ -214,7 +231,7 @@ abstract class BaseScreen : Screen {
     fun isPortrait() = stage.viewport.screenHeight > stage.viewport.screenWidth
     /** @return `true` if the screen is higher than it is wide _and_ resolution is at most 1050x700 */
     fun isCrampedPortrait() = isPortrait() &&
-            game.settings.screenSize.virtualHeight <= 700
+            game.settings.screenSize.getHeight() <= 700
     /** @return `true` if the screen is narrower than 4:3 landscape */
     fun isNarrowerThan4to3() = stage.isNarrowerThan4to3()
 
@@ -247,7 +264,7 @@ abstract class BaseScreen : Screen {
      *  - Note: At the time of wrinting, this was the ***only*** CivilopediaScreen constructor call outside itself
      */
     fun openCivilopedia(ruleset: Ruleset, link: String = "") {
-        game.pushScreen{ CivilopediaScreen(ruleset, link = link) }
+        game.pushScreen { CivilopediaScreen(ruleset, link = link) }
     }
 }
 

@@ -127,7 +127,9 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
 
     /** Maps a civ to the civ they voted for - `null` on the value side means they abstained */
     var diplomaticVictoryVotesCast = HashMap<String, String?>()
-    // Set to false whenever the results still need te be processed
+    /** `true` once the results of the current vote have been processed by [processDiplomaticVictory].
+     *  Reset together with [diplomaticVictoryVotesCast] when the votes are cleared for the next round
+     *  (see `TurnManager.handleDiplomaticVictoryFlags`). Must be carried over by [clone]. */
     var diplomaticVictoryVotesProcessed = false
 
     /** The turn the replay history started recording.
@@ -265,6 +267,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         toReturn.gameParameters = gameParameters
         toReturn.gameId = gameId
         toReturn.diplomaticVictoryVotesCast.putAll(diplomaticVictoryVotesCast)
+        toReturn.diplomaticVictoryVotesProcessed = diplomaticVictoryVotesProcessed
         toReturn.oneMoreTurnMode = oneMoreTurnMode
         toReturn.customSaveLocation = customSaveLocation
         toReturn.victoryData = victoryData?.copy()
@@ -272,6 +275,8 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         toReturn.lastUnitId = lastUnitId
         toReturn.unitNamesTaken.addAll(unitNamesTaken)
         toReturn.playersFinishedThisTurn.addAll(playersFinishedThisTurn)
+        toReturn.nextSimultaneousOperationSequence = nextSimultaneousOperationSequence
+        for ((mod, storage) in modLuaStorage) toReturn.modLuaStorage[mod] = HashMap(storage)
         toReturn.variables = HashMap(variables)
 
         return toReturn
@@ -339,7 +344,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** @return Sequence of all cities in game, both major civilizations and city states */
     @Readonly fun getCities() = civilizations.asSequence().flatMap { it.cities }
     @Readonly fun getAliveCityStates() = civilizations.filter { it.isAlive() && it.isCityState }
-    @Readonly fun getAliveMajorCivs() = civilizations.filter { it.isAlive() && it.isMajorCiv() }
+    @Readonly fun getAliveMajorCivs() = civilizations.filter { it.isAlive() && it.isMajorCiv }
 
     /** Gets civilizations in their commonly used order - City-states last,
      *  otherwise alphabetically by culture and translation. [civToSortFirst] can be used to force
@@ -358,14 +363,14 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         return civilizations.asSequence()
             .filterNot {
                 it.isBarbarian ||
-                it.isSpectator() ||
+                it.isSpectator ||
                 !includeDefeated && it.isDefeated() ||
                 !includeCityStates && it.isCityState ||
                 additionalFilter?.invoke(it) == false
             }
             .sortedWith(
                 compareBy<Civilization> { it != civToSortFirst }
-                    .thenByDescending { it.isMajorCiv() }
+                    .thenByDescending { it.isMajorCiv }
                     .thenBy(collator) { it.civName.tr(hideIcons = true) }
             )
     }
@@ -373,7 +378,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     /** Returns the first spectator for a [playerId] or creates one if none found */
     fun getSpectator(playerId: String): Civilization {
         val gameSpectatorCiv = civilizations.firstOrNull {
-            it.isSpectator() && it.playerId == playerId
+            it.isSpectator && it.playerId == playerId
         }
         return gameSpectatorCiv ?: createTemporarySpectatorCiv(playerId)
 
@@ -430,7 +435,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     // Records the ranking stats of all major civs
     private fun recordRankingStats() {
         for (civ in civilizations) {
-            if (!civ.isMajorCiv() || !civ.isAlive()) continue
+            if (!civ.isMajorCiv || !civ.isAlive()) continue
             // Force uses a transient cache that is not invalidated on combat losses during other civs' turns
             civ.resetMilitaryMightCache()
             civ.statsHistory.recordRankingStats(civ)
@@ -490,7 +495,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         // If all players are defeated then let the first player control next turn
         @Readonly
         fun shouldAutoProcessOnlinePlayer(): Boolean =
-            isOnline && (player.isSpectator() || player.isDefeated() &&
+            isOnline && (player.isSpectator || player.isDefeated() &&
                 (civilizations.any { it.isHuman() && it.isAlive() }
                     || civilizations.first { it.isHuman() } != player))
 
@@ -509,7 +514,8 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
 
             val worldScreen = UncivGame.Current.worldScreen
             // Do we need to break if player won?
-            if (simulateUntilWin && (player.victoryManager.hasWon() || simulateMaxTurns in 1..turns)) {
+            if (simulateUntilWin && (player.victoryManager.hasWon() || simulateMaxTurns in 1..turns
+                    || getAliveMajorCivs().isEmpty())) {
                 simulateUntilWin = false
                 simulateMaxTurns = 0
                 worldScreen?.autoPlay?.stopAutoPlay()
@@ -539,7 +545,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         TurnManager(player).startTurn(progressBar)
 
         // No popups for spectators
-        if (currentPlayerCiv.isSpectator())
+        if (currentPlayerCiv.isSpectator)
             currentPlayerCiv.popupAlerts.clear()
 
         // Play some nice music TODO: measuring actual play time might be nicer
@@ -576,7 +582,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
         var playerIndex = 0
         while (playerIndex < civilizations.size) {
             val civ = civilizations[playerIndex]
-            if (civ.isAI() || civ.isDefeated() || civ.isSpectator()) {
+            if (civ.isAI() || civ.isDefeated() || civ.isSpectator) {
                 TurnManager(civ).startTurn(progressBar)
                 TurnManager(civ).automateTurn()
                 TurnManager(civ).endTurn(progressBar)
@@ -883,7 +889,7 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
 
         if (currentPlayer == "") {
             currentPlayerCiv =
-                if (gameParameters.isOnlineMultiplayer) civilizations.first { it.isHuman() && !it.isSpectator() } // For MP, spectator doesn't get a 'turn'
+                if (gameParameters.isOnlineMultiplayer) civilizations.first { it.isHuman() && !it.isSpectator } // For MP, spectator doesn't get a 'turn'
                 else civilizations.first { it.isHuman() } // for non-MP games, you can be a spectator of an AI-only match, and you *do* get a turn, sort of
             currentPlayer = currentPlayerCiv.civID
         } else currentPlayerCiv = getCivilization(currentPlayer)
@@ -915,9 +921,14 @@ class GameInfo : IsPartOfGameInfoSerialization, HasGameInfoSerializationVersion 
     }
 
     fun setGlobalTransients() {
-        difficultyObject = ruleset.difficulties[difficulty]!!
-
-        speed = ruleset.speeds[gameParameters.speed]!!
+        fun Difficulty.estimateDifficulty() = buildingCostModifier + policyCostModifier + researchCostModifier + unhappinessModifier -
+            aiBuildingCostModifier - aiUnitCostModifier - aiUnhappinessModifier
+        difficultyObject = ruleset.difficulties[difficulty]
+            ?: ruleset.difficulties.values.maxByOrNull { it.estimateDifficulty() }
+            ?: throw UncivShowableException("Invalid game: Specifies a ruleset with no entries for [Difficulty]")
+        speed = ruleset.speeds[gameParameters.speed]
+            ?: ruleset.speeds.values.maxByOrNull { it.modifier }
+            ?: throw UncivShowableException("Invalid game: Specifies a ruleset with no entries for [Speed]")
 
         combinedGlobalUniques = GlobalUniques.combine(ruleset.globalUniques, speed, difficultyObject)
     }

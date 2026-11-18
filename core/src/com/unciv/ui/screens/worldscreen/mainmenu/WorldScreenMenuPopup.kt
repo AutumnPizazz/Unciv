@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle
+import com.unciv.logic.multiplayer.getAliveHumanPlayerIds
 import com.unciv.ui.components.input.KeyboardBinding
 import com.unciv.ui.components.input.onLongPress
 import com.unciv.ui.popups.ConfirmPopup
@@ -61,7 +62,7 @@ class WorldScreenMenuPopup(
             }.nextColumn()
         addButton("Load game", KeyboardBinding.LoadGame) {
             close()
-            worldScreen.game.pushScreen{ LoadGameScreen() }
+            worldScreen.game.pushScreen { LoadGameScreen() }
         }.nextColumn()
         addButton("Start new game", KeyboardBinding.NewGame) {
             close()
@@ -81,7 +82,7 @@ class WorldScreenMenuPopup(
             }.nextColumn()
         addButton("Victory status", KeyboardBinding.VictoryScreen) {
             close()
-            worldScreen.game.pushScreen{ VictoryScreen(worldScreen) }
+            worldScreen.game.pushScreen { VictoryScreen(worldScreen) }
         }.nextColumn()
         val optionsCell = addButton("Options", KeyboardBinding.Options) {
             close()
@@ -133,9 +134,10 @@ class WorldScreenMenuPopup(
     private fun canStartRestartVote(): Boolean {
         val gameInfo = worldScreen.gameInfo
         if (!gameInfo.gameParameters.isOnlineMultiplayer) return false
-        if (worldScreen.selectedGameView.civView.getCiv().isSpectator()) return false
+        if (worldScreen.selectedGameView.civView.getCiv().isSpectator) return false
         val restartVoteTurn = gameInfo.gameParameters.restartVoteTurn
         if (restartVoteTurn <= 0 || gameInfo.turns != restartVoteTurn) return false
+        if (worldScreen.game.settings.multiplayer.getUserId() !in gameInfo.getAliveHumanPlayerIds()) return false
         return worldScreen.game.onlineMultiplayer.getCachedRestartVote(gameInfo.gameId) == null
     }
 

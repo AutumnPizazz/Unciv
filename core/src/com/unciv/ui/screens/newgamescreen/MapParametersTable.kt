@@ -13,6 +13,7 @@ import com.unciv.logic.scripting.LuaScriptManager
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.translations.tr
 import com.unciv.ui.components.extensions.*
 import com.unciv.ui.components.input.onChange
 import com.unciv.ui.components.input.onClick
@@ -273,6 +274,13 @@ class MapParametersTable(
         add(mapScriptSelectBox).fillX().row()
     }
 
+    /** For [MapGeneratedMainType.randomGenerated]: sets [mapParameters].type to a valid value
+     *  respecting the currently enabled map type checkboxes, since no checkbox is ticked on activation. */
+    fun activateRandomMapType() {
+        if (!::mapTypesOptionsValues.isInitialized) return
+        mapParameters.type = if (mapTypesOptionsValues.isEmpty()) MapType.allValues.random() else mapTypesOptionsValues.random()
+    }
+
     private fun addWorldSizeTable() {
         val rng = GameContext().stateBasedRandom("MapParametersTable.addWorldSizeTable", System.currentTimeMillis().toInt())
         if (mapGeneratedMainType == MapGeneratedMainType.randomGenerated) {
@@ -330,8 +338,8 @@ class MapParametersTable(
     private fun updateHexagonalWarnings() {
         val tiles = HexMath.getNumberOfTilesInHexagon(customMapSizeRadius.intValue ?: 0)
         hexWarningLabel.isVisible = tiles >= LARGE_MAP_TILES
-        if (tiles >= VERY_LARGE_MAP_TILES) hexWarningLabel.setText(VERY_LARGE_MAP_WARNING)
-        else hexWarningLabel.setText(LARGE_MAP_WARNING)
+        if (tiles >= VERY_LARGE_MAP_TILES) hexWarningLabel.setText(VERY_LARGE_MAP_WARNING.tr())
+        else hexWarningLabel.setText(LARGE_MAP_WARNING.tr())
     }
 
     private fun addRectangularSizeTable() {
@@ -365,8 +373,8 @@ class MapParametersTable(
     private fun updateRectangularWarnings() {
         val tiles = (customMapWidth.intValue ?: 0) * (customMapHeight.intValue ?: 0)
         rectWarningLabel.isVisible = tiles >= LARGE_MAP_TILES
-        if (tiles >= VERY_LARGE_MAP_TILES) rectWarningLabel.setText(VERY_LARGE_MAP_WARNING)
-        else rectWarningLabel.setText(LARGE_MAP_WARNING)
+        if (tiles >= VERY_LARGE_MAP_TILES) rectWarningLabel.setText(VERY_LARGE_MAP_WARNING.tr())
+        else rectWarningLabel.setText(LARGE_MAP_WARNING.tr())
     }
 
     private fun updateWorldSizeTable() {

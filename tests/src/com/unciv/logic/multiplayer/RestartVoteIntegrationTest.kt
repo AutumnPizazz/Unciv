@@ -12,6 +12,7 @@ import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.MapParameters
 import com.unciv.logic.map.MapSize
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
+import com.unciv.logic.multiplayer.storage.SimpleHttp
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.metadata.GameSetupInfo
 import com.unciv.models.metadata.Player
@@ -23,14 +24,21 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
+import java.io.File
 import java.net.InetSocketAddress
+import java.util.Base64
+import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -349,7 +357,7 @@ class RestartVoteIntegrationTest {
         // The vote file must be readable/writable by any player, not just the current-turn one
         multiplayer.startRestartVote(gameId, 10, 60)
         val raw = multiplayer.multiplayerServer.fileStorage()
-            .loadFileData(restartVoteFileName())
+            .loadFileData(restartVoteFileName()).bufferedReader().use { it.readText() }
         assertTrue(raw.isNotEmpty())
         asPlayer(playerB)
         multiplayer.castRestartVote(gameId, true)
@@ -364,6 +372,137 @@ class RestartVoteIntegrationTest {
         assertNull(multiplayer.fetchRestartMarker(gameId))
         assertNull(multiplayer.getCachedRestartVote(gameId))
         assertNull(multiplayer.castRestartVote(gameId, true))
+        assertNull(multiplayer.executeRestart(gameId))
+    }
+
+    private suspend fun connectToGo(timeoutMinutes: Int = 60): List<String> {
+        val dir = System.getProperty("playtest.sim.dir")
+        assumeTrue("Run playtest-sim/run.sh with the Go server", dir != null)
+        val config = Properties()
+        File(dir!!, "config.properties").inputStream().use { config.load(it) }
+        serverUrl = config.getProperty("server", "")
+        assumeTrue("Run playtest-sim/run.sh with the Go server", serverUrl.isNotEmpty())
+        val settings = UncivGame.Current.settings.multiplayer
+        settings.setServer(serverUrl)
+        settings.setCurrentServerPassword("playtest123")
+        val players = listOf(
+            "aaaaaaaa-1111-4111-8111-111111111111",
+            "bbbbbbbb-2222-4222-8222-222222222222",
+            "cccccccc-3333-4333-8333-333333333333",
+            "dddddddd-4444-4444-8444-444444444444",
+        )
+        for (player in players) {
+            asPlayer(player)
+            assertTrue(multiplayer.multiplayerServer.fileStorage().authenticate(player, "playtest123"))
+        }
+        asPlayer(players[0])
+        game = createOnlineGame(players.take(3)).apply {
+            gameParameters.restartVoteTimeoutMinutes = timeoutMinutes
+            turns = gameParameters.restartVoteTurn
+        }
+        UncivGame.Current.gameInfo = game
+        multiplayer.multiplayerServer.uploadGame(game, withPreview = true)
+        return players
+    }
+
+    private fun goRequest(player: String, method: String, file: String, data: String = ""): Int? {
+        val auth = Base64.getEncoder().encodeToString("$player:playtest123".toByteArray())
+        var status: Int? = null
+        SimpleHttp.sendRequest(method, "$serverUrl/files/$file", data, header = mapOf("Authorization" to "Basic $auth")) {
+            _, _, code -> status = code
+        }
+        return status
+    }
+
+    @Test
+    fun goServerMergesConcurrentVotesAndRestartsAfterReconnect() = runVoteTest {
+        val (a, b, c, outsider) = connectToGo()
+        assertNull(multiplayer.fetchRestartVote(gameId))
+        assertNull(multiplayer.fetchRestartMarker(gameId))
+        assertEquals(403, goRequest(outsider, "GET", restartVoteFileName()))
+        assertEquals(400, goRequest(a, "GET", "${gameId}_Preview_restartvote"))
+
+        val vote = multiplayer.startRestartVote(gameId, 10, 1)!!
+        assertEquals(RestartVoteStatus.OPEN, vote.status)
+        assertEquals(mapOf(a to true), vote.votes)
+        assertEquals(60, vote.timeoutMinutes)
+
+        fun ballot(player: String, agrees: Boolean): String {
+            val snapshot = json().fromJson(RestartVote::class.java, json().toJson(vote))
+            snapshot.votes[player] = agrees
+            return json().toJson(snapshot)
+        }
+        coroutineScope {
+            val ballotB = ballot(b, true)
+            val ballotC = ballot(c, false)
+            val requestB = async(Dispatchers.IO) { goRequest(b, "PUT", restartVoteFileName(), ballotB) }
+            val requestC = async(Dispatchers.IO) { goRequest(c, "PUT", restartVoteFileName(), ballotC) }
+            assertEquals(204, requestB.await())
+            assertEquals(204, requestC.await())
+        }
+
+        asPlayer(b)
+        multiplayer = Multiplayer().apply { multiplayerGameUpdater.cancel() }
+        assertNull(multiplayer.getCachedRestartVote(gameId))
+        multiplayer.refreshRestartVote(gameId) // Restores the cache and executes the passed restart.
+        val restored = multiplayer.getCachedRestartVote(gameId)!!
+        assertEquals(mapOf(a to true, b to true, c to false), restored.votes)
+        assertEquals(RestartVoteStatus.SETTLED, restored.status)
+        assertEquals(true, restored.result)
+        val finished = multiplayer.fetchRestartMarker(gameId)!!
+        assertEquals(RestartMarkerStatus.DONE, finished.status)
+        assertEquals(b, finished.executorPlayerId)
+
+        asPlayer(c)
+        assertEquals(finished.newGameId, multiplayer.executeRestart(gameId))
+        val restarted = multiplayer.multiplayerServer.downloadGame(finished.newGameId)
+        assertEquals(0, restarted.turns)
+        assertEquals(setOf(a, b, c), restarted.getAliveHumanPlayerIds())
+        assertEquals(game.tileMap.mapParameters.seed, restarted.tileMap.mapParameters.seed)
+    }
+
+    @Test
+    fun goServerRejectsRestartAfterNoVoteMajority() = runVoteTest {
+        val (a, b, c) = connectToGo()
+        assertEquals(RestartVoteStatus.OPEN, multiplayer.startRestartVote(gameId, 10, 60)!!.status)
+        asPlayer(b)
+        multiplayer = Multiplayer().apply { multiplayerGameUpdater.cancel() }
+        assertNull(multiplayer.getCachedRestartVote(gameId))
+        multiplayer.refreshRestartVote(gameId)
+        assertEquals(mapOf(a to true), multiplayer.getCachedRestartVote(gameId)!!.votes)
+        assertEquals(RestartVoteStatus.OPEN, multiplayer.castRestartVote(gameId, false)!!.status)
+        asPlayer(c)
+        assertEquals(false, multiplayer.castRestartVote(gameId, false)!!.result)
+        assertNull(multiplayer.executeRestart(gameId))
+        val claim = RestartMarker().apply {
+            executorPlayerId = a
+            startedAtMillis = System.currentTimeMillis()
+        }
+        assertEquals(409, goRequest(a, "PUT", restartMarkerFileName(), json().toJson(claim)))
+    }
+
+    @Test
+    fun goServerSettlesTimeoutAndArbitratesRestartClaims() = runVoteTest {
+        val (a, b) = connectToGo(timeoutMinutes = 0)
+        val vote = multiplayer.startRestartVote(gameId, 10, 60)!!
+        assertEquals(0, vote.timeoutMinutes)
+        assertEquals(mapOf(a to true), vote.votes)
+        assertEquals(RestartVoteStatus.SETTLED, vote.status)
+        assertEquals(true, vote.result)
+
+        fun claim(player: String): String = json().toJson(RestartMarker().apply {
+            executorPlayerId = player
+            startedAtMillis = System.currentTimeMillis()
+        })
+        coroutineScope {
+            val claimA = claim(a)
+            val claimB = claim(b)
+            val requestA = async(Dispatchers.IO) { goRequest(a, "PUT", restartMarkerFileName(), claimA) }
+            val requestB = async(Dispatchers.IO) { goRequest(b, "PUT", restartMarkerFileName(), claimB) }
+            assertEquals(setOf(204, 409), setOf(requestA.await(), requestB.await()))
+        }
+        val marker = multiplayer.fetchRestartMarker(gameId)!!
+        assertEquals(RestartMarkerStatus.RESTARTING, marker.status)
         assertNull(multiplayer.executeRestart(gameId))
     }
 

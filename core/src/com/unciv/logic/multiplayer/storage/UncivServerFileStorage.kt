@@ -5,6 +5,7 @@ import com.badlogic.gdx.utils.Base64Coder
 import com.badlogic.gdx.utils.JsonReader
 import com.unciv.logic.UncivShowableException
 import com.unciv.utils.debug
+import java.io.InputStream
 
 object UncivServerFileStorage : FileStorage {
     var authHeader: Map<String, String>? = null
@@ -18,28 +19,32 @@ object UncivServerFileStorage : FileStorage {
                 debug("Error from UncivServer during save: %s", result)
                 when (code) {
                     401 -> throw MultiplayerAuthException(Exception(result))
+                    409 -> if (fileName.endsWith("_restart")) throw FileStorageConflictException()
+                        else throw serverError(code, result)
                     else -> throw serverError(code, result)
                 }
             }
         }
     }
 
-    override fun loadFileData(fileName: String): String {
-        var fileData = ""
-        SimpleHttp.sendGetRequest(fileUrl(fileName), timeout=timeout, header=authHeader) {
-                success, result, code ->
-            if (!success) {
-                debug("Error from UncivServer during load: %s", result)
-                when (code) {
-                    404 -> throw MultiplayerFileNotFoundException(Exception(result))
-                    // 服务端可能给出更详细的说明（比如对局被冷归档、正在从网盘恢复），直接展示给玩家
-                    else -> throw serverError(code, result)
+    override fun loadFileData(fileName: String): InputStream {
+        try {
+            return SimpleHttp.openStream(Net.HttpMethods.GET, fileUrl(fileName), "", timeout, authHeader).body
+        } catch (ex: SimpleHttp.HttpStatusException) {
+            debug("Error from UncivServer during load: %s", ex.message)
+            when (ex.code) {
+                404 -> throw MultiplayerFileNotFoundException(ex)
+                400 -> {
+                    val error = serverError(ex.code, ex.message)
+                    // Older UncivSrv versions reject unsupported sidecar suffixes as invalid IDs.
+                    if (error.message == "无效的游戏ID格式" &&
+                        (fileName.endsWith(".ops") || fileName.endsWith("_restartvote") || fileName.endsWith("_restart")))
+                        throw MultiplayerFileNotFoundException(ex)
+                    throw error
                 }
-
+                else -> throw serverError(ex.code, ex.message.orEmpty())
             }
-            else fileData = result
         }
-        return fileData
     }
 
     override fun getFileMetaData(fileName: String): FileMetaData {

@@ -90,10 +90,102 @@ After building, the output .JAR file should be in `/desktop/build/libs/Unciv.jar
 
 For actual development, you'll probably need to download Android Studio and build it yourself - see above :)
 
+## Running via Docker
+### Installing prerequisites
+#### Docker
+
+- Ubuntu or other apt-based Linux distributions: `sudo apt install -y docker.io` (_Not_ the 'docker' package which is unrelated). Sufficient but will need buildx, below, unless you only want to run the prebuilt container.
+- For a more current and complete coverage, follow [instructions](https://docs.docker.com/engine/install/) to use Docker's own repositories. With those, you would `sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin` instead of 'docker.io' and also get buildx easier.
+- Windows: Since you'll need a Linux kernel first, starting at [the Docker desktop page](https://docs.docker.com/desktop/setup/install/windows-install/) is your best bet. Includes buildx. Or install WSL2, follow the Linux instructions, and pay attention to network routing issues between the desktop/wsl/docker layers.
+
+#### buildx
+
+This plugin is **required** to build (but not to run) the container. If you used the 'docker.io' package above, you must install manually:
+
+- Visit [buildx releases](https://github.com/docker/buildx/releases), fetch the latest release for your platform and architecture.
+- Rename to `docker-buildx`, make executable, and move to `~/.docker/cli-plugins`.
+- Verify with `docker buildx version`.
+
+#### VNC viewers
+
+Optional. Any compliant viewer should do. Look for open source to avoid malware.
+
+- [TigerVNC](https://tigervnc.org/) is a lean and solid option. `sudo apt install -y tigervnc-viewer` is good enough on Ubuntu-based distros. They also have a Windows portable binary available.
+
+### Building / getting the image
+
+Building is optional if you just want to run the prebuilt, public container, see below.
+From a terminal in your Unciv clone's root folder, with spare time (several minutes) and disk space (~10G):
+
+- If you have docker compose installed: run `docker compose build && docker compose up`
+- Otherwise: `docker build . -t unciv` and for a first start:
+    ```bash
+    docker run --name unciv -d -p 6901:6901 -p 5901:5901 \
+    -v unciv-data:/home/headless/.local/share/Unciv unciv
+    ```
+
+To use our already built one:
+  ```bash
+  docker run --name unciv -d -p 6901:6901 -p 5901:5901 \
+  -v unciv-data:/home/headless/.local/share/Unciv ghcr.io/yairm210/unciv
+  ```
+
+To update your image when the source has changed:
+
+- Run `docker rm -f unciv`. Removes the container (the updated image is a new one, and any container is bound to a specific image).
+- If you used the prebuilt image: `docker pull ghcr.io/yairm210/unciv`
+- Then repeat the above steps. Once it works, run `docker image prune` to clear outdated dangling images.
+
+### Running
+
+By following the above steps, you have made sure you have a container with the logical name "unciv",
+and from now on, you can run `docker stop unciv` and `docker start unciv` as needed.
+That single named container, via a docker-managed volume, also ensures you can keep settings, saves and mods.
+
+### Connecting
+
+- Open `http://localhost:6901/vnc.html?password=headless` in your browser.
+- **Or** use your VNC viewer, connect to localhost:5901, and use password `headless`.
+
+### Troubleshooting
+
+For moderately advanced users - in case you can't connect:
+
+- Try VNC instead of the web shim
+- A "deny-all" ufw setup can silently break Docker's port publishing: If connections time out or drop immediately, try with a temporary `sudo ufw disable` to confirm this.
+- `docker ps`: containers currently running
+- `docker port unciv`: confirm ports are as configured
+- `docker logs unciv`: top-level container output
+- `docker exec unciv ps aux`: verify Unciv, X11, VNC and noVNC processes are OK
+- `docker exec unciv cat /dockerstartup/vnc.log` VNC daemon's logs
+- `docker exec unciv cat /dockerstartup/novnc.log` web shim's logs
+
 ## Debugging on Android
 
 Sometimes, checking things out on the desktop version is not enough and you need to debug Unciv running on an Android device.
 For an introduction, see [Testing android builds](Testing-Android-Builds.md).
+
+## Testing packaged releases
+
+You can produce most of the files that get listed in [https://github.com/yairm210/Unciv/releases](https://github.com/yairm210/Unciv/releases) locally.
+
+All of the following will run commands from a terminal in the project's root directory:
+
+- 'Unciv.jar': run `./gradlew desktop:dist` and find the jar in 'desktop/build/libs'.
+- 'Unciv-Windows64.zip': run `./gradlew desktop:dist desktop:zipWindows64` - the result will appear in the 'deploy' folder.
+- 'Unciv-Linux64.zip': run `./gradlew desktop:dist desktop:zipLinux64` - the result will appear in the 'deploy' folder.
+- 'Unciv-MacOS.zip' (despite not being included in official releases due to preferring homebrew, it can be built - your mileage may vary): run `./gradlew desktop:dist desktop:zipMacOS`.
+- 'linuxFilesForJar.zip': run `./gradlew desktop:zipLinuxFilesForJar`
+- 'Unciv-signed.apk': Not possible, but you can build a debug-signed APK: run `./gradlew android:assembleDebug` and get 'Unciv-debug.apk' in 'android/build/outputs/apk/debug'.
+- `UncivCN.msi`: Requires the Windows x64 zip and .NET SDK. On Windows, use `major.minor.(patch * 100 + cnPatch)` for the MSI version. For example, `5.0.1.1` becomes `5.0.101`:
+    ```powershell
+    dotnet tool install --global wix --version 5.0.2
+    mkdir .github/workflows/wix-msi-files
+    tar -xf deploy/UncivCN-Windows64.zip -C .github/workflows/wix-msi-files
+    $env:UNCIV_VERSION="5.0.101"; & "$HOME\.dotnet\tools\wix.exe" build -arch x64 .github/workflows/unciv.wxs -o .github/workflows/UncivCN.msi
+    ```
+    The result appears as `.github/workflows/UncivCN.msi`.
+    Cross-building from Linux should be possible, but we won't test and document the details here.
 
 ## Next steps
 
@@ -157,32 +249,36 @@ The one-time setup procedure is as follows:
 From time to time, Unciv bumps the versions of major tools - mainly Gradle, the Android SDK Platform, and the Android SDK Build-Tools.
 The new versions and support files are automatically downloaded for you, but old versions are not cleaned up automatically, nor are intermediate build files specific to Gradle versions.
 This may leave a few gigabytes of dead files on your system. If these bother you, you can clean up as follows:
- 
+
 -   Remove obsolete Android SDK Platform and Build-Tools versions from SDK manager (remember all projects share these, so if you have other projects, keep their requirements too).
 -   With Android Studio closed (on Windows, you'll have to manually kill leftover Gradle daemons too):
     - Delete subfolders named after obsolete Gradle versions from Unciv/.gradle, ~/.gradle/caches (%HOME%\.gradle\caches on Windows) and ~/.gradle/daemon
     - For a thorough but more costly cleanup, clean out ~/.gradle/caches entirely except for the tag files.
       This will force the next gradle sync to re-download a large amount of support files, but this way you will also clean out remnants of superseded support libraries for kotlin, Gdx and so on.
+-   Clean Android Studio settings and cache folders for replaced versions:
+    - File->Manage IDE Settings->Import Settings will tell you the current configuration folder.
+    - Help->Show log in Files (or in Explorer) will tell you where the cache folder is.
+    Then, navigate with your file manager to the "Google" parents, and clear all folders named for outdated versions.
+-   Check `~/.gradle/wrapper/dists` for Gradle distributions you no longer use (over all your projects) and clean them - too much only costs bandwidth and time.
 
 Additionally, git prioritizes safety of your changes over efficiency to the extreme, leading to some bloat.
- `git gc` is automatically done for you, but sparingly, and running it manually won't hurt.
+`git gc` is automatically done for you, but sparingly, and running it manually won't hurt.
 For a more thorough cleanup, run `git gc --prune=now --aggressive` sporadically from Studio's terminal (or any shell within Unicv's project folder),
 making sure to clean up all your obsolete branches first, and that all remaining branches are in sync with the online branches they're backing
 or based on master if they're local only.
 
-### UncivSrv (TypeScript server)
+Building artifacts (running `./gradlew desktop:packrWindows64`, `./gradlew desktop:zipLinux64` or similar commands) will keep copies of downloaded packr jar and JRE archives in `desktop/.jre-cache`, which you can clean out at your leisure. A later run of these Gradle tasks will re-download as required.
 
-The feature-complete multiplayer server lives in the `server-ts/` submodule ([blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)) — WebSocket chat, web admin panel, SQLite storage with automatic migrations, login rate limiting, scheduled cleanup, and more. It requires Node.js 20+ and pnpm 10+:
+### UncivSrv (Go server)
+
+The multiplayer server lives in the `server-go/` submodule ([blyrin/unciv-srv](https://github.com/blyrin/unciv-srv)). Use the Go version specified in `server-go/go.mod`:
 
 ```bash
-cd server-ts
-pnpm install
-pnpm typecheck   # type check
-pnpm test        # run Vitest tests
-pnpm dev         # run with tsx
-pnpm build && pnpm start   # build & run the compiled output
+git submodule update --init server-go
+cd server-go
+go run .
 ```
 
-Configuration is read from a `.env` file — see `server-ts/example.env` for the available options.
+See `server-go/example.env` for configuration. Run `docker compose up -d --build` from `server-go/` to deploy with Docker; SQLite is persisted in `/data`.
 
-The submodule also ships `Dockerfile` / `docker-compose.yml` for containerized deployment — `docker compose up -d --build` in `server-ts/`, with the SQLite database persisted on a `/data` volume. See its README for details.
+Before upgrading a TypeScript deployment, back up its database and restore all cold-archived games using the old server. The Go server no longer reads cold archives.

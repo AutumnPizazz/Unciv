@@ -1,5 +1,7 @@
 package com.unciv.ui.screens.cityscreen
 
+import com.unciv.logic.automation.Automation
+import com.unciv.view.location
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
@@ -262,10 +264,10 @@ class CityScreen(
 
     private fun updateTileGroups() {
         fun isExistingImprovementValuable(tileView: TileView): Boolean {
-            val improvement = tileView.tileImprovement ?: return false
-            val statDiffForNewImprovement = cityView.getStatDiffForImprovement(tileView, improvement)
+            val improvement = tileView.improvement?.let { tileView.getRuleset().tileImprovements[it] } ?: return false
+            val statDiffForNewImprovement = tileView.getStatDiffForAlternative(setImprovement = improvement)
             // If stat diff for new improvement is negative/zero utility, current improvement is valuable
-            return cityView.rankStatsValue(statDiffForNewImprovement) <= 0
+            return Automation.rankStatsValue(statDiffForNewImprovement, cityView.owningCivView) <= 0
         }
 
         fun getPickImprovementColor(tileView: TileView): Pair<Color, Float> {
@@ -376,7 +378,7 @@ class CityScreen(
     private fun addTiles() {
         val viewRange = max(cityView.getExpandRange(), cityView.getWorkRange())
         val tileSetStrings = TileSetStrings(cityView.getRuleset(), game.settings)
-        val cityTileGroups = cityView.centerTile().getVisibleTilesInDistance(viewRange)
+        val cityTileGroups = cityView.getCenterTile().getExploredTilesInDistance(viewRange)
                 .filter { viewingCiv.hasExplored(it) }
                 .map { CityTileGroup(cityView, it, tileSetStrings, false, isSpying) }
 
@@ -392,8 +394,8 @@ class CityScreen(
 
         val tilesToUnwrap = mutableSetOf<CityTileGroup>()
         for (tileGroup in tileGroups) {
-            val xDifference = cityView.centerTile().position().x - tileGroup.tileView.position().x
-            val yDifference = cityView.centerTile().position().y - tileGroup.tileView.position().y
+            val xDifference = cityView.getCenterTile().position().x - tileGroup.tileView.position().x
+            val yDifference = cityView.getCenterTile().position().y - tileGroup.tileView.position().y
             //if difference is bigger than the expansion range the tileGroup we are looking for is on the other side of the map
             if (xDifference > viewRange || xDifference < -viewRange || yDifference > viewRange || yDifference < -viewRange) {
                 //so we want to unwrap its position
@@ -423,7 +425,7 @@ class CityScreen(
         if (tileGroup.tileState == CityTileState.WORKABLE) {
             if (!tileGroup.tileView.providesYield() && cityView.getFreePopulation() > 0) {
                 cityView.tryWorkTile(tileGroup.tileView)
-                if (cityView.city.autoLockTiles)
+                if (cityView.getCity().autoLockTiles)
                     cityView.tryAutoLockTile(tileGroup.tileView)
                 game.settings.addCompletedTutorialTask("Reassign worked tiles")
             } else {
@@ -481,7 +483,7 @@ class CityScreen(
             closeAllPopups()
     
             val tileDisplayName = getTileDisplayName(tile)
-            val prompt = "Claim [tileName] for [cityName]?".fillPlaceholders(tileDisplayName, cityView.city.name.tr())
+            val prompt = "Claim [tileName] for [cityName]?".fillPlaceholders(tileDisplayName, cityView.getCity().name.tr())
     
             ConfirmPopup(
                 this,
@@ -616,11 +618,13 @@ class CityScreen(
         if (numCities == 0) return
         val indexOfCity = viewableCities.indexOfFirst { it == cityView }
         val indexOfNextCity = (indexOfCity + delta + numCities) % numCities
-        game.replaceCurrentScreen {
-            val newCityScreen = CityScreen(viewableCities[indexOfNextCity], ambiencePlayer = passOnCityAmbiencePlayer())
-            newCityScreen.mapScrollPane.zoom(mapScrollPane.scaleX) // Retain zoom
-            newCityScreen.updateAsync()
-            newCityScreen
+        Concurrency.runOnGLThread { // Allow touch event to return immediately, avoid ANR
+            game.replaceCurrentScreen {
+                val newCityScreen = CityScreen(viewableCities[indexOfNextCity], ambiencePlayer = passOnCityAmbiencePlayer())
+                newCityScreen.mapScrollPane.zoom(mapScrollPane.scaleX) // Retain zoom
+                newCityScreen.updateAsync()
+                newCityScreen
+            }
         }
     }
 

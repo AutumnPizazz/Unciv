@@ -6,6 +6,7 @@ import com.unciv.view.TileView
 import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.ui.images.ImageGetter
 import com.unciv.ui.components.tilegroups.TileGroup
+import com.unciv.ui.components.tilegroups.mix
 import kotlin.math.atan2
 
 
@@ -27,7 +28,7 @@ class TileLayerFeatures(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
         val tileMapView = tileView.getTileMap()
         val isTileVisible = viewingCiv == null || viewingCiv.canSeeTile(tileView)
 
-        for (neighbor in tileView.getVisibleNeighbors()) {
+        for (neighbor in tileGroup.neighbors) {
             var roadImage = roadImages[neighbor]
             val currentStatus = roadImage?.roadStatus ?: RoadStatus.None
 
@@ -74,11 +75,27 @@ class TileLayerFeatures(tileGroup: TileGroup, size: Float) : TileLayer(tileGroup
 
     }
 
+    // Inputs of updateRoadImages: own + neighbors' road status and visibility, and which neighbors are explored
+    override fun getUpdateKey(viewingCiv: CivView?): Long {
+        val tileView = tileGroup.tileView
+        var key = 1L
+            .mix(tileGroup.isForMapEditorIcon)
+            .mix(viewingCiv?.civName)
+            .mix(viewingCiv == null || viewingCiv.canSeeTile(tileView))
+            .mix(tileView.roadStatus.ordinal)
+        for (neighbor in tileGroup.neighbors) {
+            key = key.mix(neighbor.position()).mix(neighbor.roadStatus.ordinal)
+                .mix(viewingCiv == null || viewingCiv.canSeeTile(neighbor))
+        }
+        return key
+    }
+
     override fun doUpdate(viewingCiv: CivView?) {
         updateRoadImages(viewingCiv)
     }
 
     fun dim() {
+        invalidate()
         forEachOwnedActor { it.color.a = 0.5f }
     }
 

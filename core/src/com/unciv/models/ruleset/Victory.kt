@@ -78,7 +78,7 @@ class Victory : RulesetObject() {
     override fun makeLink() = "Victory/$name"
 
     override fun getCivilopediaTextLines(ruleset: Ruleset): List<FormattedLine> {
-        @LocalState val lines = arrayListOf(
+        val lines = arrayListOf(
             FormattedLine(victoryScreenHeader),
             FormattedLine(extraImage="VictoryIllustrations/$name/Won", centered = true),
             FormattedLine(),
@@ -103,16 +103,16 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
 
     @Readonly
     private fun originalMajorCapitalsOwned(civInfo: Civilization): Int = civInfo.cities
-        .count { it.isOriginalCapital && it.foundingCivObject != null && it.foundingCivObject!!.isMajorCiv() }
+        .count { it.isOriginalCapital && it.foundingCivObject != null && it.foundingCivObject!!.isMajorCiv }
 
     @Readonly
     private fun civsWithPotentialCapitalsToOwn(gameInfo: GameInfo): Set<Civilization> {
         // Capitals that still exist, even if the civ is dead
         val civsWithCapitals = gameInfo.getCities().filter { it.isOriginalCapital }
             .map { it.foundingCivObject!! }
-            .filter { it.isMajorCiv() }.toSet()
+            .filter { it.isMajorCiv }.toSet()
         // If the civ is alive, they can still create a capital, so we need them as well
-        val livingCivs = gameInfo.civilizations.filter { it.isMajorCiv() && !it.isDefeated() }
+        val livingCivs = gameInfo.civilizations.filter { it.isMajorCiv && !it.isDefeated() }
         return civsWithCapitals.union(livingCivs)
     }
 
@@ -140,7 +140,7 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
      */
     @Readonly
     fun getMoreCountableThanOtherCivRelevant(civ: Civilization, otherCiv: Civilization): Boolean =
-        civ != otherCiv && otherCiv.isMajorCiv() && otherCiv.isAlive()
+        civ != otherCiv && otherCiv.isMajorCiv && otherCiv.isAlive()
 
     /** [MilestoneType.HaveCountable]: the amount the countable must reach */
     @Readonly
@@ -176,13 +176,13 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
             MilestoneType.WinDiplomaticVote -> civInfo.victoryManager.hasEverWonDiplomaticVote
             MilestoneType.ScoreAfterTimeOut -> {
                 civInfo.gameInfo.turns >= civInfo.gameInfo.gameParameters.maxTurns
-                && civInfo == civInfo.gameInfo.civilizations.maxByOrNull { it.calculateTotalScore() }
+                && civInfo == civInfo.gameInfo.getAliveMajorCivs().maxByOrNull { it.calculateTotalScore() }
             }
             MilestoneType.WorldReligion -> {
                 civInfo.gameInfo.isReligionEnabled()
                         && civInfo.religionManager.religion != null
                         && civInfo.gameInfo.civilizations
-                    .filter { it.isMajorCiv() && it.isAlive() }
+                    .filter { it.isMajorCiv && it.isAlive() }
                     .all {
                         it.religionManager.isMajorityReligionForCiv(civInfo.religionManager.religion!!)
                     }
@@ -229,7 +229,7 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
                     "{$uniqueDescription} (${amountDone.tr()}/${amountToDo.tr()})"
             }
             MilestoneType.DestroyAllPlayers -> {
-                val amountToDo = civInfo.gameInfo.civilizations.count { it.isMajorCiv() } - 1  // Don't count yourself
+                val amountToDo = civInfo.gameInfo.civilizations.count { it.isMajorCiv } - 1  // Don't count yourself
                 val amountDone =
                     if (completed) amountToDo
                     else amountToDo - (civInfo.gameInfo.getAliveMajorCivs().count { it != civInfo })
@@ -258,14 +258,14 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
                 "{$uniqueDescription} (${amountDone.tr()}/${amountToDo.tr()})"
             }
             MilestoneType.WorldReligion -> {
-                val amountToDo = civInfo.gameInfo.civilizations.count { it.isMajorCiv() && it.isAlive() } - 1  // Don't count yourself
+                val amountToDo = civInfo.gameInfo.civilizations.count { it.isMajorCiv && it.isAlive() } - 1  // Don't count yourself
                 val amountDone =
                     when {
                         completed -> amountToDo
                         civInfo.religionManager.religion == null -> 0
                         civInfo.religionManager.religion!!.isPantheon() -> 1
                         else -> civInfo.gameInfo.civilizations.count {
-                            it.isMajorCiv() && it.isAlive() &&
+                            it.isMajorCiv && it.isAlive() &&
                             it.religionManager.isMajorityReligionForCiv(civInfo.religionManager.religion!!)
                         }
                     }
@@ -311,7 +311,7 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
             MilestoneType.DestroyAllPlayers -> {
                 val hideCivCount = civInfo.shouldHideCivCount()
                 for (civ in civInfo.gameInfo.civilizations) {
-                    if (civ == civInfo || !civ.isMajorCiv()) continue
+                    if (civ == civInfo || !civ.isMajorCiv) continue
                     if (hideCivCount && !civInfo.knows(civ)) continue
                     val milestoneText =
                         if (civInfo.knows(civ) || civ.isDefeated()) "Destroy [${civ.civName}]"
@@ -323,7 +323,7 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
 
             MilestoneType.CaptureAllCapitals -> {
                 val hideCivCount = civInfo.shouldHideCivCount()
-                val majorCivs = civInfo.gameInfo.civilizations.filter { it.isMajorCiv() }
+                val majorCivs = civInfo.gameInfo.civilizations.filter { it.isMajorCiv }
                 val originalCapitals = civInfo.gameInfo.getCities().filter { it.isOriginalCapital }
                     .associateBy { it.foundingCivObject }
                 for (civ in majorCivs) {
@@ -369,7 +369,7 @@ class Milestone(val uniqueDescription: String, private val parentVictory: Victor
 
             MilestoneType.WorldReligion -> {
                 val hideCivCount = civInfo.shouldHideCivCount()
-                val majorCivs = civInfo.gameInfo.civilizations.filter { it.isMajorCiv() && it.isAlive() }
+                val majorCivs = civInfo.gameInfo.civilizations.filter { it.isMajorCiv && it.isAlive() }
                 val civReligion = civInfo.religionManager.religion
                 for (civ in majorCivs) {
                     if (hideCivCount && !civInfo.knows(civ)) continue

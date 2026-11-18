@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build test check run dist docs docs-site detekt bump ts-install ts-typecheck ts-test ts-lint clean
+.PHONY: help build test check run dist docs docs-site detekt bump server-build server-vet server-lint clean
 
 help: ## 显示本帮助
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
@@ -36,17 +36,14 @@ detekt: ## Detekt 静态检查（CLI，配置见 docs/zh/UncivCN/Coding-standard
 bump: ## 升版本（./gradlew bumpVersion；make bump newVersion=x 或 make bump bump=patch）
 	./gradlew bumpVersion $(if $(newVersion),-PnewVersion=$(newVersion)) $(if $(bump),-Pbump=$(bump))
 
-ts-install: ## 安装 server-ts 依赖（pnpm install）
-	cd server-ts && pnpm install
+server-build: ## 构建 Go 服务端
+	cd server-go && go build ./...
 
-ts-typecheck: ## server-ts 类型检查（pnpm typecheck）
-	cd server-ts && pnpm typecheck
+server-vet: ## 静态检查 Go 服务端
+	cd server-go && go vet ./...
 
-ts-test: ## server-ts 测试（pnpm test）
-	cd server-ts && pnpm test
-
-ts-lint: ## server-ts 代码检查（pnpm lint）
-	cd server-ts && pnpm lint
+server-lint: ## 代码检查 Go 服务端（golangci-lint）
+	cd server-go && golangci-lint run ./...
 
 clean: ## 清理构建产物（./gradlew clean）
 	./gradlew clean

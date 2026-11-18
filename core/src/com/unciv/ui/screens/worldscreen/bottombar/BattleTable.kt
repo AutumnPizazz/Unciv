@@ -1,5 +1,9 @@
 package com.unciv.ui.screens.worldscreen.bottombar
 
+import com.unciv.view.getNukeBlastRadius
+import com.unciv.view.isCivilian
+import com.unciv.view.isNuclearWeapon
+import com.unciv.view.isPreparingAirSweep
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.Touchable
@@ -81,7 +85,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
             } else {
                 val defender = tryGetDefender() ?: return hide()
                 // This seems inefficient as the tileToAttack is already known - but the method also calculates tileToAttackFrom
-                val tileToAttackFromView = attackerUnitView.getAttackableEnemies(attackerUnitView.getUnit().movement.getDistanceToTiles())
+                val tileToAttackFromView = attackerUnitView.getAttackableEnemies()
                     .firstOrNull { it.getTileToAttack() == defender.getTile() }?.getTileToAttackFrom()
                     ?: attackerUnitView.getTile()
                 simulateBattle(attacker, defender, tileToAttackFromView)
@@ -116,6 +120,8 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
     @Readonly
     private fun tryGetAttackerUnit(): MapUnitView? {
         val unit = worldScreen.bottomUnitTable.selectedUnit ?: return null
+        // A selected unit may have just changed owner (gifted, captured) - it is then no longer ours to attack with
+        if (unit.tryGetMapUnitView() == null) return null
         if (unit.isCivilian() || unit.hasUnique(UniqueType.CannotAttack)) return null
         return unit
     }
@@ -156,12 +162,15 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         add(modifierLabel).width(quarterScreen - upOrDownLabel.minWidth)
     }
 
-    private fun createModifiersScroll(modifiers: Iterable<Table>): ScrollPane {
+    private fun createModifiersScroll(modifiers: Iterable<Table>, leftAligned: Boolean = false): ScrollPane {
         val wrapper = Table()
         wrapper.defaults().pad(2.5f)
         wrapper.top()
-        for (modifier in modifiers)
-            wrapper.add(modifier).row()
+        for (modifier in modifiers) {
+            val cell = wrapper.add(modifier)
+            if (leftAligned) cell.left()
+            cell.row()
+        }
         return AutoScrollPane(wrapper, skin).apply {
             fadeScrollBars = false
             setScrollbarsVisible(true)
@@ -293,18 +302,14 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
                     is MapUnitCombatantView -> {
                         val unitView = attacker.getUnitView().tryGetMapUnitView()!!
                         attackableTileView = unitView
-                            .getAttackableEnemies(unitView.getUnit().movement.getDistanceToTiles())
+                            .getAttackableEnemies()
                             .firstOrNull { it.getTileToAttack() == defender.getTile() }
                     }
                     is CityCombatantView -> {
                         val cityView = attacker.getCityView()
                         val canBombard = cityView.getBombardableTiles().contains(defender.getTile())
                         if (canBombard) {
-                            val gameView = worldScreen.selectedGameView
-                            attackableTileView = attacker.buildBombardAttackableTile(
-                                defender.getTile(), defender,
-                                gameView.civView.getCiv(), gameView.spectatorMode, gameView
-                            )
+                            attackableTileView = attacker.buildBombardAttackableTile(defender.getTile(), defender)
                         }
                     }
                 }
@@ -387,15 +392,21 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
 
         val blastRadius = attackerView.getNukeBlastRadius()
 
-        val defenderNameWrapper = Table()
-        for (tileView in targetTileView.getVisibleTilesInDistance(blastRadius)) {
-            val defender = tryGetDefenderAtTile(tileView, true) ?: continue
-
-            val defenderLabel = defender.getCombatantName().toLabel(hideIcons = true)
-            defenderNameWrapper.add(getIcon(defender)).padRight(5f)
-            defenderNameWrapper.add(defenderLabel).row()
-        }
-        add(defenderNameWrapper).row()
+        // Scrollable, so a huge blast radius can't push the NUKE button off-screen
+        val defenderRows = targetTileView.getExploredTilesInDistance(blastRadius)
+            .mapNotNull { tryGetDefenderAtTile(it, true) }
+            .map { defender ->
+                Table().apply {
+                    add(getIcon(defender)).padRight(5f)
+                    add(defender.getCombatantName().toLabel(hideIcons = true))
+                }
+            }.toList()
+        val defendersScroll = createModifiersScroll(defenderRows, leftAligned = true)
+        // ScrollPane only counts its scrollbar in the preferred width once the bar is showing, which is decided
+        // after the height clamp in update() - too late, the bar then eats into the rows. So reserve its width up front.
+        val scrollbarWidth = max(defendersScroll.style.vScroll?.minWidth ?: 0f, defendersScroll.style.vScrollKnob?.minWidth ?: 0f)
+        val rowsWidth = (defenderRows.maxOfOrNull { it.prefWidth } ?: 0f) + 5f // the 2.5f padding either side from createModifiersScroll
+        add(defendersScroll).pad(0f).fillY().minWidth(rowsWidth + scrollbarWidth).row()
 
         addSeparator().pad(0f)
         row().pad(5f)

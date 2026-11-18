@@ -179,7 +179,7 @@ object DeclareWar {
         }
         
         // Defensive pact chains are not allowed now
-        if (diplomacyManager.civInfo.isMajorCiv()) {
+        if (diplomacyManager.civInfo.isMajorCiv) {
             if (!isOffensiveWar && warType != WarType.DefensivePactWar && !civAtWarWith.isCityState)
                 callInDefensivePactAllies(diplomacyManager)                
             callInCityStateAllies(diplomacyManager)
@@ -205,7 +205,7 @@ object DeclareWar {
         val otherCivDiplomacy = diplomacyManager.otherCivDiplomacy()
         val warType = declareWarReason.warType
 
-        otherCivDiplomacy.setModifier(DiplomaticModifiers.DeclaredWarOnUs, -20f)
+        otherCivDiplomacy.addDiminishingModifier(DiplomaticModifiers.DeclaredWarOnUs, -20f)
         otherCivDiplomacy.removeModifier(DiplomaticModifiers.ReturnedCapturedUnits)
 
         // Apply warmongering

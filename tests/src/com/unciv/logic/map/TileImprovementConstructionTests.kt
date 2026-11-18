@@ -9,6 +9,7 @@ import com.unciv.logic.city.City.Companion.pseudoRandomId
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.TurnManager
 import com.unciv.logic.map.HexCoord
+import com.unciv.logic.map.tile.ImprovementBuildingProblem
 import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.ruleset.Ruleset
@@ -480,6 +481,25 @@ class TileImprovementConstructionTests {
         Assert.assertEquals(goldBeforeTurn + predictedGoldDelta, civ.gold)
     }
 
+    /** #16013: maintenance uniques also apply to improvements that are not roads */
+    @Test
+    fun nonRoadImprovementMaintenanceIsCharged() {
+        val (game, civ, city) = roadMaintenanceGame()
+        val improvement = game.createTileImprovement(
+            UniqueType.ImprovementAllMaintenance.text.fillPlaceholders("1", "Gold"),
+            UniqueType.ImprovementMaintenance.text.fillPlaceholders("2", "Gold"),
+        )
+        val tile = ownedNonCenterTile(city)
+        Assert.assertEquals(RoadStatus.None, tile.roadStatus)
+        assertTransportationUpkeep(civ, 0f)
+
+        tile.setImprovement(improvement.name, civ)
+        assertTransportationUpkeep(civ, -3f)
+
+        tile.setPillaged()
+        assertTransportationUpkeep(civ, 0f)
+    }
+
     private data class RoadMaintenanceSetup(val game: TestGame, val civ: Civilization, val city: City)
 
     private fun roadMaintenanceGame(
@@ -528,5 +548,71 @@ class TileImprovementConstructionTests {
         for (civ in gameInfo.civilizations)
             civ.neutralRoads.clear()
         gameInfo.tileMap.setNeutralTransients()
+    }
+
+    @Test
+    fun stockpiledImprovementCostIsChargedOnlyWhenAffordable() {
+        val resource = testGame.createResource(UniqueType.Stockpiled.text)
+        val improvement = testGame.createTileImprovement("Costs [1] [${resource.name}]").apply {
+            terrainsCanBeBuiltOn = listOf("Land")
+        }
+        val tiles = city.getCenterTile().neighbors.toList()
+        val unpaidTile = tiles[0]
+        val exactTile = tiles[1]
+        val secondTile = tiles[2]
+        val paidTile = tiles[3]
+        val anotherCopy = tiles[4]
+        val worker = testGame.addUnit("Worker", civInfo, unpaidTile)
+        val state = GameContext(civInfo, unit = worker, tile = unpaidTile)
+
+        Assert.assertTrue(
+            ImprovementBuildingProblem.MissingResources in
+                unpaidTile.improvementFunctions.getImprovementBuildingProblems(improvement, state).toSet()
+        )
+        unpaidTile.startWorkingOnImprovement(improvement, civInfo, worker)
+        Assert.assertEquals(0, civInfo.getResourceAmount(resource.name))
+        Assert.assertNull(unpaidTile.improvementInProgress)
+
+        civInfo.gainStockpiledResource(resource, 1)
+        exactTile.startWorkingOnImprovement(improvement, civInfo, worker)
+        Assert.assertEquals(0, civInfo.getResourceAmount(resource.name))
+        Assert.assertEquals(improvement.name, exactTile.improvementInProgress)
+        secondTile.startWorkingOnImprovement(improvement, civInfo, worker)
+        Assert.assertEquals(0, civInfo.getResourceAmount(resource.name))
+        Assert.assertNull(secondTile.improvementInProgress)
+
+        civInfo.gainStockpiledResource(resource, 2)
+        paidTile.startWorkingOnImprovement(improvement, civInfo, worker)
+        Assert.assertEquals(1, civInfo.getResourceAmount(resource.name))
+        Assert.assertEquals(improvement.name, paidTile.improvementInProgress)
+        Assert.assertTrue(anotherCopy.improvementFunctions.canBuildImprovement(improvement, state))
+    }
+
+    @Test
+    fun nonStockpileImprovementCostsDoNotChargeTheStockpile() {
+        val stockpiled = testGame.createResource(UniqueType.Stockpiled.text)
+        val consumed = testGame.createResource()
+        civInfo.gainStockpiledResource(stockpiled, 3)
+        val consumesImprovement = testGame.createTileImprovement("Consumes [1] [${consumed.name}]").apply {
+            terrainsCanBeBuiltOn = listOf("Land")
+        }
+        val freeImprovement = testGame.createTileImprovement().apply {
+            terrainsCanBeBuiltOn = listOf("Land")
+        }
+        val tiles = city.getCenterTile().neighbors.toList()
+        val worker = testGame.addUnit("Worker", civInfo, tiles[0])
+        val state = GameContext(civInfo, unit = worker, tile = tiles[0])
+
+        Assert.assertTrue(
+            ImprovementBuildingProblem.MissingResources in
+                tiles[0].improvementFunctions.getImprovementBuildingProblems(consumesImprovement, state).toSet()
+        )
+        tiles[0].startWorkingOnImprovement(consumesImprovement, civInfo, worker)
+        Assert.assertEquals(3, civInfo.getResourceAmount(stockpiled.name))
+        Assert.assertEquals(consumesImprovement.name, tiles[0].improvementInProgress)
+
+        tiles[1].startWorkingOnImprovement(freeImprovement, civInfo, worker)
+        Assert.assertEquals(3, civInfo.getResourceAmount(stockpiled.name))
+        Assert.assertEquals(freeImprovement.name, tiles[1].improvementInProgress)
     }
 }

@@ -25,7 +25,7 @@ object VictoryScreenCSVExporter {
         onComplete: (message: String) -> Unit
     ) {
         val gameInfo = worldScreen.gameInfo
-        val majorCivs = gameInfo.civilizations.filter { it.isMajorCiv() }.sortedBy { it.civName }
+        val majorCivs = gameInfo.civilizations.filter { it.isMajorCiv }.sortedBy { it.civName }
 
         if (turns.isEmpty()) {
             onComplete("No turns to export".tr())

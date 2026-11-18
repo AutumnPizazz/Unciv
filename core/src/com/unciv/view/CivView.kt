@@ -6,6 +6,7 @@ import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.civilization.managers.ReligionState
 import com.unciv.logic.civilization.managers.VictoryManager
 import com.unciv.logic.map.tile.ImprovementBuildingProblem
+import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.models.Counter
 import com.unciv.models.Religion
 import com.unciv.models.ruleset.BeliefType
@@ -27,8 +28,7 @@ class CivView(civ: Civilization,
               gameView: GameView) : ForeignCivView(civ, viewer, spectatorMode, gameView) {
 
     // Navigation
-    @Readonly fun getCity(city: City): CityView = gameView.getCityView(city)
-    @Readonly override fun cities(): List<CityView> = civ.cities.map { getCity(it) }
+    @Readonly override fun cities(): List<CityView> = civ.cities.map { gameView.getCityView(it) }
     @Readonly fun getTradeView(otherCiv: ForeignCivView): TradeView = TradeView(civ, otherCiv.unwrap(), gameView)
 
     // Data retrieval
@@ -40,6 +40,8 @@ class CivView(civ: Civilization,
         tileView.unwrap().improvementFunctions.canBuildImprovement(improvement, civ.state)
     @Readonly fun getImprovementBuildingProblems(improvement: TileImprovement, tileView: TileView): Sequence<ImprovementBuildingProblem> =
         tileView.unwrap().improvementFunctions.getImprovementBuildingProblems(improvement, civ.state)
+    // TODO Compare with getCivResourcesByName for overlap/conflict
+    @Readonly fun getResourceAmount(resourceName: String): Int = civ.getResourceAmount(resourceName)
     @Readonly fun technologyByName(name: String?): Technology? = civ.gameInfo.ruleset.technologies[name]
 
     @Readonly fun hasUnique(type: UniqueType): Boolean = civ.hasUnique(type)
@@ -52,13 +54,15 @@ class CivView(civ: Civilization,
     @Readonly fun getPointsForNextGreatGeneralCounter(): Counter<String> = civ.greatPeople.pointsForNextGreatGeneralCounter
     @Readonly fun isCivConstructionDisabled(name: String): Boolean = name in civ.disabledCityConstructions
 
-    @Readonly fun isSpectator(): Boolean = civ.isSpectator()
+    @Readonly fun getCivResourcesByName(): HashMap<String, Int> = civ.getCivResourcesByName()
+    @Readonly fun isSpectator(): Boolean = civ.isSpectator
     /** `true` when this civ is a human player defeated in a singleplayer game - the map is fully revealed for them to watch the game play out. */
     @Readonly fun isMapRevealed(): Boolean = !civ.gameInfo.gameParameters.isOnlineMultiplayer && civ.isCurrentPlayer() && civ.isDefeated()
     @Readonly fun hasExplored(tileView: TileView): Boolean = civ.hasExplored(tileView.unwrap())
     @Readonly fun isCurrentPlayer(): Boolean = civ.isCurrentPlayer()
     @Readonly fun isHuman(): Boolean = civ.isHuman()
-    @Readonly fun hasMetAnyMajorCiv(): Boolean = civ.getKnownCivs().any { it != civ && !it.isBarbarian }
+    /** The best road type our researched techs allow us to build */
+    @Readonly fun getBestRoadAvailable(): RoadStatus = civ.tech.getBestRoadAvailable()
     @Readonly fun getKnownCivs(): List<ForeignCivView> = civ.getKnownCivs().map { gameView.getForeignCivView(it) }.toList()
     @Readonly fun getPersonalityValue(value: PersonalityValue): Float = civ.getPersonality()[value]
     @Readonly fun getHappiness(): Int = civ.getHappiness()
@@ -80,12 +84,16 @@ class CivView(civ: Civilization,
     @Readonly fun shouldShowMoveSpies(): Boolean = civ.espionageManager.shouldShowMoveSpies()
 
     // Religion
+    @Readonly fun mayFoundReligion(): Boolean = civ.religionManager.mayFoundReligionAtAll()
+    @Readonly fun mayEnhanceReligion(): Boolean = civ.religionManager.mayEnhanceReligionAtAll()
     @Readonly fun canFoundPantheon(): Boolean = civ.religionManager.religionState != ReligionState.Pantheon && civ.religionManager.canFoundOrExpandPantheon()
     @Readonly fun canExpandPantheon(): Boolean = civ.religionManager.religionState == ReligionState.Pantheon && civ.religionManager.canFoundOrExpandPantheon()
     @Readonly fun isFoundingReligion(): Boolean = civ.religionManager.religionState == ReligionState.FoundingReligion
     @Readonly fun isEnhancingReligion(): Boolean = civ.religionManager.religionState == ReligionState.EnhancingReligion
     @Readonly fun hasFreeBeliefs(): Boolean = civ.religionManager.hasFreeBeliefs()
-    @Readonly fun getYourReligion(): Religion? = civ.religionManager.religion
+    @Readonly fun getReligion(): Religion? = civ.religionManager.religion
+    /** The holy city of our religion, which may belong to another civ */
+    @Readonly fun getHolyCity(): ForeignCityView? = civ.religionManager.getHolyCity()?.let { gameView.getForeignCityView(it) }
     @Readonly fun getBeliefsToChooseAtFounding(): Counter<BeliefType> = civ.religionManager.getBeliefsToChooseAtFounding()
     @Readonly fun getBeliefsToChooseAtEnhancing(): Counter<BeliefType> = civ.religionManager.getBeliefsToChooseAtEnhancing()
     @Readonly fun freeBeliefsAsEnums(): Counter<BeliefType> = civ.religionManager.freeBeliefsAsEnums()
@@ -98,14 +106,7 @@ class CivView(civ: Civilization,
     @Readonly fun mayVoteForDiplomaticVictory(): Boolean = civ.mayVoteForDiplomaticVictory()
 
     // Units
-    @Readonly fun hasIdleUnits(): Boolean = civ.units.getIdleUnits().any()
-    @Readonly fun idleUnitsCount(due: Boolean): Int = civ.units.getIdleUnits().count { it.due == due }
-    @Readonly fun dueUnitsCount(): Int = civ.units.getDueUnits().count()
     @Readonly fun hasMovedAutomatedUnitsThisTurn(): Boolean = civ.hasMovedAutomatedUnits
-    @Readonly fun hasUnitsReadyToAutomate(): Boolean = civ.units.getCivUnits().any {
-        it.currentMovement > Constants.minimumMovementEpsilon
-            && (it.isAutomated() || it.isExploring() || it.isMoving())
-    }
     /** [civ]'s own units, wrapped for the viewer's own use (e.g. movement-plan arrows). */
     @Readonly fun getUnits(): List<MapUnitView> = civ.units.getCivUnits().map { gameView.getMapUnitView(it) }.toList()
 
@@ -138,4 +139,23 @@ class CivView(civ: Civilization,
     fun tryDismissMoveSpies(): Boolean { civ.espionageManager.dismissedShouldMoveSpies = true; return true }
     fun tryMarkMovedAutomatedUnits(): Boolean { civ.hasMovedAutomatedUnits = true; return true }
     fun tryAutomateAllUnits(): Boolean { civ.units.getCivUnits().forEach { it.doAction() }; return true }
+}
+
+// Helpers built on top of the view API, rather than being part of it
+// This is so we can separate the minimal API, from the helpful API.
+
+@Readonly fun CivView.hasResource(resource: TileResource): Boolean = getResourceAmount(resource.name) > 0
+@Readonly fun CivView.idleUnitsCount(due: Boolean): Int = getUnits().count { it.isIdle() && it.due == due }
+@Readonly fun CivView.dueUnitsCount(): Int = getUnits().count { it.due && it.isIdle() }
+
+/** `true` if we are at war with any known, non-defeated civ */
+@Readonly fun CivView.isAtWar(): Boolean = getKnownCivs().any { !it.isDefeated() && isAtWarWith(it) }
+
+/** Our capital city, or `null` if we have none */
+@Readonly fun CivView.getCapital(): CityView? = cities().firstOrNull { it.isCapital() }
+
+/** `true` if the holy city of our religion has been blocked by another religion's inquisitor, see [ForeignCityView.isBlockedHolyCity] */
+@Readonly fun CivView.isHolyCityBlocked(): Boolean {
+    val religionName = getReligion()?.name ?: return false
+    return cities().any { it.isBlockedHolyCity() && it.getReligionThisIsTheHolyCityOf() == religionName }
 }

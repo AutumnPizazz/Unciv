@@ -340,6 +340,9 @@ class NewGameScreen(
     
     // Should be run NOT on main thread because it contacts MP server and loads maps etc
     fun getErrorMessage(): String? {
+        if (gameSetupInfo.gameParameters.isOnlineMultiplayer && !UncivGame.Current.supportsOnlineMultiplayer)
+            return "Online multiplayer is unavailable in this browser preview."
+
         if (gameSetupInfo.gameParameters.isOnlineMultiplayer) {
             if (!checkConnectionToMultiplayerServer())
                 return if (Multiplayer.usesCustomServer()) "Couldn't connect to Multiplayer Server!"
@@ -499,7 +502,7 @@ class NewGameScreen(
                 // Now assign player types to explicit player Nation choices that exist in the game,
                 // remembering which are already "used".
                 // (at the moment NewGameScreen forbids such choices for scenarios, but let's support it here in case someone goes and does) 
-                val randomPool = gameInfo.civilizations.filter { it.isMajorCiv() }.map { it.civID }.toMutableSet()
+                val randomPool = gameInfo.civilizations.filter { it.isMajorCiv }.map { it.civID }.toMutableSet()
                 fun Civilization.assign(playerInfo: Player) {
                     playerType = playerInfo.playerType
                     randomPool.remove(civID)

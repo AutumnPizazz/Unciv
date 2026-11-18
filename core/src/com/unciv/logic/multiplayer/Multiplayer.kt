@@ -11,6 +11,7 @@ import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.event.EventBus
 import com.unciv.logic.multiplayer.chat.ChatStore
+import com.unciv.logic.multiplayer.storage.FileStorageConflictException
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
 import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
@@ -105,7 +106,7 @@ class Multiplayer {
          * B. MultiplayerTurnCheckWorker, which *as an Android worker* runs refreshes *even when the game is closed*.
          *    Only for Android, obviously
          */
-        multiplayerGameUpdater = flow<Unit> {
+        multiplayerGameUpdater = if (UncivGame.Current.supportsOnlineMultiplayer) flow<Unit> {
             while (true) {
                 delay(500)
                 if (!currentCoroutineContext().isActive) return@flow
@@ -134,7 +135,7 @@ class Multiplayer {
                 val doNotUpdate = if (currentGame == null) listOf() else listOf(currentGame)
                 throttle(lastAllGamesRefresh, multiplayerSettings.allGameRefreshDelay, {}, {}) { requestUpdate(doNotUpdate = doNotUpdate) }
             }
-        }.launchIn(CoroutineScope(Dispatcher.DAEMON))
+        }.launchIn(CoroutineScope(Dispatcher.DAEMON)) else Job().apply { cancel() }
     }
 
     @Readonly
@@ -221,6 +222,9 @@ class Multiplayer {
         //Set civ info to AI
         playerCiv.playerType = PlayerType.AI
         playerCiv.playerId = ""
+        
+        playerCiv.turnsPlayedAsHuman = 0
+        playerCiv.totalTurnTimeSeconds = 0
 
         //call next turn so turn gets simulated by AI
         if (gameInfo.currentPlayer == playerCivName) gameInfo.nextTurn()
@@ -311,7 +315,7 @@ class Multiplayer {
     suspend fun fetchRestartVote(gameId: String): RestartVote? {
         return try {
             val data = multiplayerServer.fileStorage().loadFileData(restartVoteFileName(gameId))
-            json().fromJson(RestartVote::class.java, data)
+            data.use { json().fromJson(RestartVote::class.java, it) }
         } catch (_: MultiplayerFileNotFoundException) {
             null
         }
@@ -325,7 +329,7 @@ class Multiplayer {
     suspend fun fetchRestartMarker(gameId: String): RestartMarker? {
         return try {
             val data = multiplayerServer.fileStorage().loadFileData(restartMarkerFileName(gameId))
-            json().fromJson(RestartMarker::class.java, data)
+            data.use { json().fromJson(RestartMarker::class.java, it) }
         } catch (_: MultiplayerFileNotFoundException) {
             null
         }
@@ -353,7 +357,7 @@ class Multiplayer {
     }
 
     private suspend fun refreshRestartVoteInternal(gameId: String) {
-        val vote = fetchRestartVote(gameId)
+        var vote = fetchRestartVote(gameId)
         val old = restartVoteCache[gameId]
         if (vote == null) {
             if (old != null) {
@@ -367,7 +371,9 @@ class Multiplayer {
         } else false
         if (settledNow) {
             saveRestartVote(gameId, vote)
-            broadcastRestartVoteSignal(gameId, "settled")
+            // UncivSrv can reject a locally timed-out vote if the server's deadline has not passed.
+            vote = fetchRestartVote(gameId) ?: return
+            if (vote.status == RestartVoteStatus.SETTLED) broadcastRestartVoteSignal(gameId, "settled")
         }
         if (old == null || old.status != vote.status || old.result != vote.result || old.votes != vote.votes) {
             restartVoteCache[gameId] = vote
@@ -404,7 +410,7 @@ class Multiplayer {
             votes[playerId] = true
         }
         saveRestartVote(gameId, vote)
-        // Re-read to detect a concurrent initiator: last write wins, only one vote survives
+        // Re-read the active vote, which may have been started concurrently by another player.
         val confirmed = fetchRestartVote(gameId) ?: vote
         restartVoteCache[gameId] = confirmed
         withContext(Dispatcher.GL) { EventBus.send(RestartVoteUpdated(gameId)) }
@@ -418,18 +424,19 @@ class Multiplayer {
      */
     suspend fun castRestartVote(gameId: String, voteValue: Boolean): RestartVote? {
         val playerId = UncivGame.Current.settings.multiplayer.getUserId()
-        var current = fetchRestartVote(gameId) ?: return null
+        val current = fetchRestartVote(gameId) ?: return null
         if (current.status != RestartVoteStatus.OPEN) return current
         current.votes[playerId] = voteValue
         val alivePlayerIds = getAliveHumanPlayerIdsFor(gameId)
-        val settledNow = current.trySettle(System.currentTimeMillis(), alivePlayerIds)
+        current.trySettle(System.currentTimeMillis(), alivePlayerIds)
         saveRestartVote(gameId, current)
         // Re-read and re-merge once to survive a concurrent write losing our vote
-        val confirmed = fetchRestartVote(gameId) ?: current
+        var confirmed = fetchRestartVote(gameId) ?: current
         if (confirmed.status == RestartVoteStatus.OPEN && confirmed.votes[playerId] != voteValue) {
             confirmed.votes[playerId] = voteValue
             confirmed.trySettle(System.currentTimeMillis(), alivePlayerIds)
             saveRestartVote(gameId, confirmed)
+            confirmed = fetchRestartVote(gameId) ?: confirmed
         }
         restartVoteCache[gameId] = confirmed
         withContext(Dispatcher.GL) { EventBus.send(RestartVoteUpdated(gameId)) }
@@ -454,15 +461,19 @@ class Multiplayer {
         if (existingMarker != null && existingMarker.status == RestartMarkerStatus.DONE) {
             return existingMarker.newGameId.ifEmpty { null }
         }
-        if (existingMarker != null && existingMarker.executorPlayerId != myPlayerId
-            && System.currentTimeMillis() - existingMarker.startedAtMillis < RESTART_TAKEOVER_TIMEOUT_MS
+        if (existingMarker != null &&
+            System.currentTimeMillis() - existingMarker.startedAtMillis < RESTART_TAKEOVER_TIMEOUT_MS
         ) return null // Someone else is executing
 
         val startedAt = System.currentTimeMillis()
-        saveRestartMarker(gameId, RestartMarker().apply {
-            executorPlayerId = myPlayerId
-            startedAtMillis = startedAt
-        })
+        try {
+            saveRestartMarker(gameId, RestartMarker().apply {
+                executorPlayerId = myPlayerId
+                startedAtMillis = startedAt
+            })
+        } catch (_: FileStorageConflictException) {
+            return null // The server granted the claim to another request.
+        }
 
         val newGame = try {
             GameStarter.startNewGame(GameSetupInfo(gameInfo))
@@ -472,16 +483,21 @@ class Multiplayer {
         }
         // Double-check ownership after the slow generation: a takeover may have happened
         val currentMarker = fetchRestartMarker(gameId)
-        if (currentMarker == null || (currentMarker.executorPlayerId != myPlayerId
-                && currentMarker.status == RestartMarkerStatus.RESTARTING)) return null
+        if (currentMarker == null) return null
+        if (currentMarker.status == RestartMarkerStatus.DONE) return currentMarker.newGameId.ifEmpty { null }
+        if (currentMarker.executorPlayerId != myPlayerId || currentMarker.startedAtMillis != startedAt) return null
 
         multiplayerServer.uploadGame(newGame, withPreview = true)
-        saveRestartMarker(gameId, RestartMarker().apply {
-            status = RestartMarkerStatus.DONE
-            executorPlayerId = myPlayerId
-            startedAtMillis = startedAt
-            newGameId = newGame.gameId
-        })
+        try {
+            saveRestartMarker(gameId, RestartMarker().apply {
+                status = RestartMarkerStatus.DONE
+                executorPlayerId = myPlayerId
+                startedAtMillis = startedAt
+                newGameId = newGame.gameId
+            })
+        } catch (_: FileStorageConflictException) {
+            return null // The claim was taken over while the new save was uploading.
+        }
         broadcastRestartVoteSignal(gameId, "restarted")
         return newGame.gameId
     }
@@ -610,6 +626,7 @@ class Multiplayer {
     @Readonly
     private fun hasNewerGameState(preview1: GameInfoPreview, preview2: GameInfoPreview): Boolean {
         return preview1.turns > preview2.turns
+                || preview1.turns == preview2.turns && preview1.currentPlayer != preview2.currentPlayer
     }
 
     companion object {

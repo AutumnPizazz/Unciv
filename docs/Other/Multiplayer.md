@@ -11,6 +11,7 @@ Multiplayer in Unciv is based on simple save file up/download, which is why it i
 0. The game ID will be automatically put in your clipboard. (If you lost it, you can get it again from `Main Menu -> Multiplayer -> Copy game ID`). Send this game ID to the other players.
 0. The other players need to go to `Main Menu -> Multiplayer -> Add multiplayer game` and enter the game ID you just sent them. They can then join the game from this multiplayer screen.
 
+When the host enables restart voting, a surviving player can start a vote from the in-game menu on the configured turn. The vote ends when all surviving players have voted or the deadline passes. Players who miss the deadline count as agreeing; a tie also passes. UncivSrv keeps the vote across reconnects and server restarts. A passed vote creates a new game with the same setup.
 
 ## Hosting a Multiplayer server
 
@@ -24,20 +25,21 @@ If you're proficient in server hosting, there's another how-to for you at the en
 
 ### How To
 
-Before starting, you must have [Node.js 20+](https://nodejs.org/) and [pnpm 10+](https://pnpm.io/) installed, or [Docker](https://www.docker.com/). The server is provided by the TypeScript [UncivSrv](https://github.com/blyrin/unciv-srv), available as the `server-ts/` submodule of this repository.
+Install [Go](https://go.dev/) at the version specified in `server-go/go.mod`, or install [Docker](https://www.docker.com/). The [UncivSrv](https://github.com/blyrin/unciv-srv) server is in this repository's `server-go/` submodule.
 
 From the repository root, open a terminal, enter the submodule and start it:
 
 ```bash
-cd server-ts
-pnpm install
-pnpm build && pnpm start
+git submodule update --init server-go
+cd server-go
+go run .
 ```
 
 If you use Docker instead:
 
 ```bash
-cd server-ts
+git submodule update --init server-go
+cd server-go
 docker compose up -d --build
 ```
 
@@ -57,17 +59,14 @@ Please note:
 
 ### How To for people with hosting experience
 
-* Have Node.js 20+ and pnpm 10+ installed (or use Docker)
-* Get the [UncivSrv](https://github.com/blyrin/unciv-srv) sources (the `server-ts/` submodule of this repository is a snapshot of it)
-* Configure it with a `.env` file — see `server-ts/example.env` for the available options
-    * Listen address/port, database path, registration mode (`open`/`approval`/`closed`), chat toggle, etc. are all set in `.env`.
-* Run it: `pnpm build && pnpm start` (use `pnpm dev` while developing)
+* Configure the port, database path, registration mode (`open`/`approval`/`closed`) and chat in `.env`; see `server-go/example.env`.
+* Build it with `go build -o unciv-srv .`, then run `./unciv-srv`.
     * Storage is SQLite with automatic database migrations.
     * Player passwords are stored as scrypt hashes rather than a plaintext file.
 
 ## Third-party (unofficial) software for hosting your own Unciv server
 
-* [https://github.com/blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) (TypeScript, the `server-ts/` submodule of this repository; most feature-complete)
+* [https://github.com/blyrin/unciv-srv](https://github.com/blyrin/unciv-srv) (Go, the `server-go/` submodule of this repository)
 * [https://github.com/Mape6/Unciv_server](https://github.com/Mape6/Unciv_server) (Python)
 * [https://gitlab.com/azzurite/unciv-server](https://gitlab.com/azzurite/unciv-server) (NodeJS)
 * [https://github.com/oynqr/rust_unciv_server](https://github.com/oynqr/rust_unciv_server) (Rust)

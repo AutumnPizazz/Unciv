@@ -20,7 +20,6 @@ import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSettings
 import com.unciv.models.metadata.GameSettings.PlayerRegion
 import com.unciv.models.metadata.GameSettings.ScreenSize
-import com.unciv.models.metadata.ModCategories
 import com.unciv.models.ruleset.RulesetCache
 import com.unciv.models.translations.TranslationFileWriter
 import com.unciv.models.translations.tr
@@ -35,7 +34,6 @@ import com.unciv.ui.components.extensions.toLabel
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.fonts.FontFamilyData
 import com.unciv.ui.components.fonts.Fonts
-import com.unciv.ui.components.fonts.ModFonts
 import com.unciv.ui.components.input.ActivationTypes
 import com.unciv.ui.components.input.ActorAttachments
 import com.unciv.ui.components.input.keyShortcuts
@@ -101,7 +99,6 @@ internal class AdvancedTab(
         addSetUserId()
 
         addTranslationGeneration()
-        addUpdateModCategories()
         addScreenhotGeneration()
 
         super.lateInitialize()
@@ -234,7 +231,7 @@ internal class AdvancedTab(
             emit(FontFamilyData.default)
             // List mod fonts
             if (Gdx.app.type != Application.ApplicationType.Android || Gdx.app.version >= 26)
-                emitAll(ModFonts.scan(UncivGame.Current.files.getModsFolder()))
+                emitAll(Fonts.fontImplementation.getModFonts(UncivGame.Current.files.getModsFolder()))
             // Add system fonts
             for (font in Fonts.getSystemFonts())
                 emit(font)
@@ -298,6 +295,9 @@ internal class AdvancedTab(
         val modSelect = TranslatedSelectBox(entries, "All mods")
 
         val backupCheckBox = "backup".toCheckBox()
+        modSelect.onChange {
+            backupCheckBox.isDisabled = modSelect.selected.value == BaseRuleset.Civ_V_GnK.fullName
+        }
 
         addWrapped {
             defaults().space(10f)
@@ -307,6 +307,14 @@ internal class AdvancedTab(
         }
         val resultCell = add().colspan(2)
         row()
+
+        if (entries.size == 1) {
+            // nothing to do - neither builtin translations nor mods
+            generateTranslationsButton.disable()
+            modSelect.isDisabled = true
+            backupCheckBox.isDisabled = true
+            return
+        }
 
         generateTranslationsButton.onActivation {
             resultCell.setActor(null)
@@ -324,21 +332,6 @@ internal class AdvancedTab(
                 }
             }
         }
-    }
-
-    private fun addUpdateModCategories() {
-        val updateModCategoriesButton = "Update Mod categories".toTextButton()
-        updateModCategoriesButton.onActivation {
-            updateModCategoriesButton.setText(Constants.working.tr())
-            Concurrency.run("GithubTopicQuery") {
-                val result = ModCategories.mergeOnline()
-                launchOnGLThread {
-                    updateModCategoriesButton.setText(result)
-                }
-            }
-        }
-        add(updateModCategoriesButton).colspan(2).row()
-
     }
 
     private fun addScreenhotGeneration() {

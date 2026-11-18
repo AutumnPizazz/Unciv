@@ -275,13 +275,8 @@ class Ruleset {
             }
         }
 
+        beliefs.selectiveRemove(ruleset.modOptions.beliefsToRemove) { matchesFilter(it) }
         mergeOrPutAll("Beliefs.json", beliefs, ruleset.beliefs, Array<Belief>::class.java)
-        ruleset.modOptions.beliefsToRemove
-            .flatMap { beliefsToRemove ->
-                beliefs.filter { it.value.matchesFilter(beliefsToRemove) }.keys
-            }.toSet().forEach {
-                beliefs.remove(it)
-            }
 
         ruleset.modOptions.buildingsToRemove
             .flatMap { buildingToRemove ->
@@ -291,8 +286,10 @@ class Ruleset {
             }
         mergeOrPutAll("Buildings.json", buildings, ruleset.buildings, Array<Building>::class.java)
 
+        difficulties.selectiveRemove(ruleset.modOptions.difficultiesToRemove)
         mergeOrPutAll("Difficulties.json", difficulties, ruleset.difficulties, Array<Difficulty>::class.java)
         mergeOrPutAll("Eras.json", eras, ruleset.eras, Array<Era>::class.java)
+        speeds.selectiveRemove(ruleset.modOptions.speedsToRemove)
         mergeOrPutAll("Speeds.json", speeds, ruleset.speeds, Array<Speed>::class.java)
 
         globalUniques = GlobalUniques.combine(globalUniques, ruleset.globalUniques)
@@ -344,6 +341,7 @@ class Ruleset {
 
         // Quests and Specialists do not implement IRulesetObject (no `_mergeAction` field /
         // UniqueTarget), so field-level merge cannot apply to them - keep the plain putAll.
+        quests.selectiveRemove(ruleset.modOptions.questsToRemove)
         quests.putAll(ruleset.quests)
 
         // Remove associated Religions, including when they're favored by Nations
@@ -352,52 +350,27 @@ class Ruleset {
         nations.filter { it.value.favoredReligion in ruleset.modOptions.religionsToRemove }
             .forEach { it.value.favoredReligion = null }
 
+        ruinRewards.selectiveRemove(ruleset.modOptions.ruinRewardsToRemove)
         mergeOrPutAll("Ruins.json", ruinRewards, ruleset.ruinRewards, Array<RuinReward>::class.java)
+        specialists.selectiveRemove(ruleset.modOptions.specialistsToRemove)
         specialists.putAll(ruleset.specialists)
 
-        ruleset.modOptions.techsToRemove
-            .flatMap { techToRemove ->
-                technologies.filter { it.value.matchesFilter(techToRemove) }.keys
-            }.toSet().forEach {
-                technologies.remove(it)
-            }
-        // Techs.json is an array of TechColumns, each nesting its Techs, so it cannot go through
-        // mergeOrPutAll's flat String→IRulesetObject map. Route each nested tech here instead;
-        // without this a TRY_INJECT tech would replace the real tech with a partial object.
-        val techRawJson = ruleset.rawJsonArrays["Techs.json"]
-        if (techRawJson == null) {
-            technologies.putAll(ruleset.technologies)
-            techColumns.addAll(ruleset.techColumns)
-        } else {
-            val resolvedTechList = resolveConditionals(techRawJson, mergeContext)
-            val columns: Array<TechColumn> = deserializeResolvedArray(resolvedTechList, Array<TechColumn>::class.java)
-            for (column in columns) {
-                for (tech in column.techs) {
-                    tech.column = column
-                    tech.originRuleset = ruleset.name
-                    processObjects(technologies, listOf(tech))
-                }
-            }
-            applyRemoveFieldNulls(resolvedTechList) { technologies[it] }
-            // Apply the column's fallback cost only after merging: doing it before would turn an
-            // absent JSON cost into a non-default value and make TRY_INJECT overwrite the base
-            // tech's own cost with the column default.
-            for (column in columns) {
-                for (tech in column.techs) {
-                    val stored = technologies[tech.name] ?: continue
-                    if (stored.cost == 0) stored.cost = column.techCost
-                }
-            }
-            techColumns.addAll(columns)
-        }
+        mergeTechnologies(ruleset, mergeContext)
 
+        terrains.selectiveRemove(ruleset.modOptions.terrainsToRemove) { matchesFilter(it) }
         mergeOrPutAll("Terrains.json", terrains, ruleset.terrains, Array<Terrain>::class.java)
+        tileImprovements.selectiveRemove(ruleset.modOptions.improvementsToRemove) { matchesFilter(it) }
         mergeOrPutAll("TileImprovements.json", tileImprovements, ruleset.tileImprovements, Array<TileImprovement>::class.java)
+        tileResources.selectiveRemove(ruleset.modOptions.resourcesToRemove) { matchesFilter(it) }
         mergeOrPutAll("TileResources.json", tileResources, ruleset.tileResources, Array<TileResource>::class.java)
         mergeOrPutAll("Variables.json", variables, ruleset.variables, Array<Variable>::class.java)
+        tutorials.selectiveRemove(ruleset.modOptions.tutorialsToRemove)
         mergeOrPutAll("Tutorials.json", tutorials, ruleset.tutorials, Array<Tutorial>::class.java)
+        unitTypes.selectiveRemove(ruleset.modOptions.unitTypesToRemove)
         mergeOrPutAll("UnitTypes.json", unitTypes, ruleset.unitTypes, Array<UnitType>::class.java)
+        victories.selectiveRemove(ruleset.modOptions.victoriesToRemove)
         mergeOrPutAll("VictoryTypes.json", victories, ruleset.victories, Array<Victory>::class.java)
+        cityStateTypes.selectiveRemove(ruleset.modOptions.cityStateTypesToRemove)
         mergeOrPutAll("CityStateTypes.json", cityStateTypes, ruleset.cityStateTypes, Array<CityStateType>::class.java)
 
         if (ruleset.modOptions.unitsToRemove.isNotEmpty()) {
@@ -411,16 +384,113 @@ class Ruleset {
         }
         mergeOrPutAll("Units.json", units, ruleset.units, Array<BaseUnit>::class.java)
 
+        personalities.selectiveRemove(ruleset.modOptions.personalitiesToRemove)
         mergeOrPutAll("Personalities.json", personalities, ruleset.personalities, Array<Personality>::class.java)
+        events.selectiveRemove(ruleset.modOptions.eventsToRemove)
         mergeOrPutAll("Events.json", events, ruleset.events, Array<Event>::class.java)
 
         modOptions.uniques.addAll(ruleset.modOptions.uniques)
         modOptions.constants.merge(ruleset.modOptions.constants)
 
+        unitPromotions.selectiveRemove(ruleset.modOptions.unitPromotionsToRemove)
         mergeOrPutAll("UnitPromotions.json", unitPromotions, ruleset.unitPromotions, Array<Promotion>::class.java)
+        unitNameGroups.selectiveRemove(ruleset.modOptions.unitNameGroupsToRemove)
         mergeOrPutAll("UnitNameGroups.json", unitNameGroups, ruleset.unitNameGroups, Array<UnitNameGroup>::class.java)
 
         mods += ruleset.mods
+    }
+
+    /** Helper for the "ToRemove" lists of ModOptions */
+    private fun <T: INamed> MutableMap<String, T>.selectiveRemove(
+        removals: Set<String>,
+        filter: T.(String) -> Boolean = { it in Constants.all || name == it }
+    ) {
+        if (removals.isEmpty()) return
+        removals.flatMap { item ->
+            filter { it.value.filter(item) }.keys
+        }.toSet().forEach {
+            remove(it)
+        }
+    }
+
+    private fun mergeTechnologies(ruleset: Ruleset, mergeContext: MergeContext) {
+        val raw = ruleset.rawJsonArrays["Techs.json"]
+        val removals = ruleset.modOptions.techsToRemove
+        if (raw == null && removals.isEmpty() && ruleset.technologies.isEmpty()) return
+        check(folderLocation == null)
+
+        fun Technology.copyForMerge() = Technology().also {
+            it.name = name
+            it.originRuleset = originRuleset
+            it.uniques.addAll(uniques)
+            it.civilopediaText = civilopediaText
+            it.cost = cost
+            it.prerequisites.addAll(prerequisites)
+            it.row = row
+            it.quote = quote
+            it.column = column
+        }
+
+        technologies.selectiveRemove(removals) { matchesFilter(it) }
+        val existingColumns = techColumns.toList()
+        val incomingColumns: List<TechColumn>
+        if (raw == null) {
+            incomingColumns = ruleset.techColumns
+            technologies.putAll(ruleset.technologies)
+        } else {
+            val nodes = resolveConditionals(raw, mergeContext)
+            incomingColumns = deserializeResolvedArray<TechColumn>(nodes, Array<TechColumn>::class.java).asList()
+            // Field actions modify the target in place. Detach it before merging cached rulesets.
+            technologies.replaceAll { _, technology -> technology.copyForMerge() }
+            for (column in incomingColumns) {
+                for (tech in column.techs) {
+                    tech.originRuleset = ruleset.name
+                    val action = tech._mergeAction?.action
+                    if (action == null || action == "CREATE_OR_REPLACE") tech.column = column
+                    processObjects(technologies, listOf(tech))
+                }
+            }
+            applyRemoveFieldNulls(nodes) { technologies[it] }
+        }
+
+        // Group only surviving technologies by their effective column. Field-only actions retain
+        // the original column; normal additions and replacements use the incoming column.
+        val byColumn = technologies.values.groupBy { checkNotNull(it.column) }
+        val numberedColumns = sortedMapOf<Int, MutableList<TechColumn>>()
+        for (column in (existingColumns + incomingColumns).distinct()) {
+            if (column !in byColumn) continue
+            numberedColumns.getOrPut(column.columnNumber) { ArrayList() }.add(column)
+        }
+        check(numberedColumns.values.sumOf { columns -> columns.sumOf { byColumn.getValue(it).size } } == technologies.size)
+        techColumns.clear()
+        for (columns in numberedColumns.values) {
+            val props = columns.last()
+            val survivingTechs = byColumn.getValue(props)
+            if (columns.size == 1 && props.columnNumber == techColumns.size &&
+                props.techs.size == survivingTechs.size &&
+                props.techs.all { technologies[it.name] === it && it.cost != 0 }
+            ) {
+                techColumns.add(props)
+                continue
+            }
+            val merged = TechColumn().apply {
+                columnNumber = techColumns.size
+                era = props.era
+                techCost = props.techCost
+                buildingCost = props.buildingCost
+                wonderCost = props.wonderCost
+            }
+            for (source in columns) {
+                for (tech in byColumn.getValue(source)) {
+                    val newTech = tech.copyForMerge()
+                    if (newTech.cost == 0) newTech.cost = source.techCost
+                    newTech.column = merged
+                    merged.techs.add(newTech)
+                    technologies[newTech.name] = newTech
+                }
+            }
+            techColumns.add(merged)
+        }
     }
 
     //region MergeAction processing
@@ -1076,7 +1146,7 @@ class Ruleset {
                 modOptions = json().fromJsonFile(ModOptions::class.java, modOptionsFile)
                 modOptions.updateDeprecations()
             } catch (ex: Exception) {
-                Log.error("Failed to get modOptions from json file; Mod name: {$folderHandle.file}", ex)
+                Log.error("Failed to get modOptions from json file; Mod name: $name, folder: ${folderHandle.path()}", ex)
             }
         }
 

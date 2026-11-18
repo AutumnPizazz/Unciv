@@ -562,6 +562,14 @@ title: Unique 能力列表
 适用范围：UnitTriggerable
 
 :::
+::: details [unitTriggerTarget] takes over the City-State owning the tile it's standing on
+Only allows taking over City-States not at war with the unit's root nation. Does not require a friendship or an alliance with the target City-State.
+
+示例："[This Unit] takes over the City-State owning the tile it's standing on"
+
+适用范围：UnitTriggerable
+
+:::
 ::: details [unitTriggerTarget] gets a name from the [unitNameGroup] group
 示例："[This Unit] gets a name from the [Scientist] group"
 
@@ -809,6 +817,18 @@ title: Unique 能力列表
 
 :::
 ::: details City-State Influence recovers at twice the normal rate
+适用范围：Global
+
+:::
+::: details Gain [positiveAmount] Influence per turn with City-States you could demand tribute from
+示例："Gain [3] Influence per turn with City-States you could demand tribute from"
+
+适用范围：Global
+
+:::
+::: details Units are [relativeAmount]% more effective at intimidating City-States
+示例："Units are [+20]% more effective at intimidating City-States"
+
 适用范围：Global
 
 :::
@@ -1338,6 +1358,18 @@ title: Unique 能力列表
 适用范围：Global
 
 :::
+::: details [relativeAmount]% counterintelligence effectiveness [cityFilter]
+示例："[+20]% counterintelligence effectiveness [in all cities]"
+
+适用范围：Global
+
+:::
+::: details [relativeAmount]% enemy counterintelligence effectiveness [cityFilter]
+示例："[+20]% enemy counterintelligence effectiveness [in all cities]"
+
+适用范围：Global
+
+:::
 ::: details New spies start with [amount] level(s)
 示例："New spies start with [3] level(s)"
 
@@ -1563,6 +1595,8 @@ title: Unique 能力列表
 
 :::
 ::: details All healing effects doubled
+Does not stack
+
 适用范围：Global，Unit
 
 :::
@@ -1613,6 +1647,8 @@ title: Unique 能力列表
 
 :::
 ::: details Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 示例："Earn [3]% of killed [Wounded] unit's [Cost] as [Mana]"
 
 适用范围：Global，Unit
@@ -2216,6 +2252,8 @@ title: Unique 能力列表
 
 :::
 ::: details Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 示例："Earn [3]% of [Wounded] unit's [Cost] as [Mana] when killed within 4 tiles of a city following this religion"
 
 适用范围：FollowerBelief
@@ -2273,7 +2311,7 @@ title: Unique 能力列表
 
 :::
 ::: details Unbuildable
-阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买
+禁止建造与默认的金币购买（可受条件限制）。有 Unique 明确允许购买时，仍会在菜单中显示并可购买
 
 适用范围：Building，Unit，Improvement
 
@@ -2615,7 +2653,7 @@ title: Unique 能力列表
 
 :::
 ::: details Unbuildable
-阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买
+禁止建造与默认的金币购买（可受条件限制）。有 Unique 明确允许购买时，仍会在菜单中显示并可购买
 
 适用范围：Building，Unit，Improvement
 
@@ -3037,6 +3075,8 @@ title: Unique 能力列表
 
 :::
 ::: details All healing effects doubled
+Does not stack
+
 适用范围：Global，Unit
 
 :::
@@ -3159,12 +3199,16 @@ title: Unique 能力列表
 
 :::
 ::: details Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 示例："Earn [3]% of killed [Wounded] unit's [Cost] as [Mana]"
 
 适用范围：Global，Unit
 
 :::
 ::: details May capture killed [mapUnitFilter] units
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 示例："May capture killed [Wounded] units"
 
 适用范围：Unit
@@ -3819,7 +3863,7 @@ title: Unique 能力列表
 
 :::
 ::: details Unbuildable
-阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买
+禁止建造与默认的金币购买（可受条件限制）。有 Unique 明确允许购买时，仍会在菜单中显示并可购买
 
 适用范围：Building，Unit，Improvement
 
@@ -4465,6 +4509,12 @@ title: Unique 能力列表
 
 :::
 ## Event uniques（事件词条）
+::: details Only the first available choice is offered
+When triggered, only the first choice (in declaration order) whose conditionals apply is offered. This makes the event equivalent to a `when`/`case` statement.
+
+适用范围：Event
+
+:::
 ::: details Only available
 用于与条件配合，如 "Only available &lt;after adopting [policy]&gt; &lt;while the empire is happy&gt;"。只有满足**全部**条件时才允许建造。也会阻止升级（Upgrade）和转换（Transform）行动。另见 CanOnlyBeBuiltWhen
 
@@ -5433,6 +5483,8 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 
 :::
 ::: details &lt;upon defeating a [mapUnitFilter] unit&gt;
+不适用于被核爆摧毁的单位，核爆不计为战斗击败
+
 示例："upon defeating a [Wounded] unit"
 
 适用范围：UnitTriggerCondition
@@ -5467,6 +5519,8 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 
 :::
 ::: details &lt;upon being defeated&gt;
+Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats.
+
 适用范围：UnitTriggerCondition
 
 :::

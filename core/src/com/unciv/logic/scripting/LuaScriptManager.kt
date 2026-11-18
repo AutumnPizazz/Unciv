@@ -12,10 +12,16 @@ import com.unciv.utils.Log
 import org.luaj.vm2.Globals
 import org.luaj.vm2.LuaError
 import org.luaj.vm2.LuaFunction
+import org.luaj.vm2.LuaTable
 import org.luaj.vm2.LuaValue
 import org.luaj.vm2.Varargs
+import org.luaj.vm2.compiler.LuaC
+import org.luaj.vm2.lib.BaseLib
+import org.luaj.vm2.lib.Bit32Lib
 import org.luaj.vm2.lib.DebugLib
-import org.luaj.vm2.lib.jse.JsePlatform
+import org.luaj.vm2.lib.StringLib
+import org.luaj.vm2.lib.TableLib
+import org.luaj.vm2.lib.jse.JseMathLib
 
 fun luaFunction(block: (Varargs) -> LuaValue): LuaFunction {
     return object : LuaFunction() {
@@ -445,7 +451,15 @@ object LuaScriptManager {
     }
 
     private fun createSandboxedGlobals(modName: String): Globals {
-        val globals = JsePlatform.standardGlobals()
+        val globals = Globals()
+        globals.load(BaseLib())
+        // These libraries register themselves in package.loaded. No package loader is installed.
+        globals.set("package", LuaTable().apply { set("loaded", LuaTable()) })
+        globals.load(Bit32Lib())
+        globals.load(TableLib())
+        globals.load(StringLib())
+        globals.load(JseMathLib())
+        LuaC.install(globals)
 
         // Remove dangerous standard libraries and functions
         for (dangerous in listOf(
@@ -455,10 +469,6 @@ object LuaScriptManager {
             "rawget", "rawset", "rawequal", "rawlen",
             "setmetatable", "getmetatable", "newproxy",
             "debug", "coroutine",
-            // The package library must go entirely: its `package.loaded` table keeps full
-            // references to `io`, `os`, `luajava` and `coroutine` even after the globals above
-            // are set to nil, giving mod scripts complete sandbox escape (arbitrary file
-            // read/write, process execution and Java reflection via luajava).
             "package"
         )) {
             globals.set(dangerous, LuaValue.NIL)
@@ -467,7 +477,7 @@ object LuaScriptManager {
         // Remove string.dump for sandbox safety (prevents bytecode exfiltration), and cap
         // string.rep so a single call cannot exhaust memory (see MAX_LUA_STRING_REP_LENGTH).
         val stringLib = globals.get("string")
-        if (stringLib is org.luaj.vm2.LuaTable) {
+        if (stringLib is LuaTable) {
             stringLib.set("dump", LuaValue.NIL)
             val originalRep = stringLib.get("rep")
             if (!originalRep.isnil()) {

@@ -1,5 +1,8 @@
 package com.unciv.ui.screens.cityscreen
 
+import com.unciv.view.currentConstructionName
+import com.unciv.view.isGrowing
+import com.unciv.view.isStarving
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Cell
@@ -197,7 +200,7 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         }
 
         if (resourceTable.cells.notEmpty())
-            tableWithIcons.add(resourceTable)
+            tableWithIcons.add(resourceTable).row()
 
         val (wltkIcon: Actor?, wltkLabel: Label?) = when {
             cityView.isWeLoveTheKingDayActive() ->
@@ -258,7 +261,7 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         val otherBuildings = mutableListOf<Building>()
 
         for (building in cityView.getBuiltBuildings().distinct()) {
-            if (building.hasUnique(UniqueType.HiddenFromCityScreen, cityView.city.state))
+            if (building.hasUnique(UniqueType.HiddenFromCityScreen, cityView.getCity().state))
                 continue
             when {
                 building.isAnyWonder() -> wonders.add(building)
@@ -304,6 +307,10 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         }
     }
 
+    /**
+     * Lists a building's yields and available specialist slots so players can inspect what it provides
+     * without mistaking city-wide specialist assignments for occupancy in this particular building.
+     */
     private fun addBuildingButton(building: Building, destinationTable: Table) {
 
         val button = Table()
@@ -313,7 +320,7 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
 
         val icon = ImageGetter.getConstructionPortrait(building.name, 50f)
         val isFree = cityScreen.hasFreeBuilding(building)
-        val count = cityView.city.cityConstructions.getBuildingCount(building.name)
+        val count = cityView.getCity().cityConstructions.getBuildingCount(building.name)
         val displayName = when {
             isFree -> "{${building.name}} ({Free})"
             count > 1 -> "${building.name.tr()} x$count"
@@ -328,19 +335,12 @@ class CityStatsTable(private val cityScreen: CityScreen) : Table() {
         statsAndSpecialists.add(stats.toLabel(fontSize = Constants.defaultFontSize)).right()
 
         if (building.newSpecialists().any()) {
-            val assignedSpec = cityView.getNewSpecialists().clone()
             val specialistIcons = Table()
             for ((specialistName, amount) in building.newSpecialists()) {
                 val specialist = cityView.getRuleset().specialists[specialistName]
                     ?: continue // probably a mod that doesn't have the specialist defined yet
                 repeat(amount) {
-                    if (assignedSpec[specialistName] > 0) {
-                        specialistIcons.add(ImageGetter.getSpecialistIcon(specialist.colorObject))
-                            .size(20f)
-                        assignedSpec.add(specialistName, -1)
-                    } else {
-                        specialistIcons.add(ImageGetter.getSpecialistIcon(Color.GRAY)).size(20f)
-                    }
+                    specialistIcons.add(ImageGetter.getSpecialistIcon(specialist.colorObject)).size(20f)
                 }
             }
             statsAndSpecialists.add(specialistIcons).right()

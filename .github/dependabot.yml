@@ -29,22 +29,6 @@ updates:
           - "minor"
           - "patch"
 
-  # TypeScript 服务端（server-ts）
-  - package-ecosystem: "npm"
-    directory: "/server-ts"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      server-ts-minor-patch:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
   # VitePress 文档站
   - package-ecosystem: "npm"
     directory: "/docs-vitepress"

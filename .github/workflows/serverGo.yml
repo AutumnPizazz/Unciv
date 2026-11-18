@@ -1,0 +1,39 @@
+name: Go server checks
+
+on:
+  push:
+    paths:
+      - 'server-go'
+      - '.gitmodules'
+      - '.github/workflows/serverGo.yml'
+  pull_request:
+    paths:
+      - 'server-go'
+      - '.gitmodules'
+      - '.github/workflows/serverGo.yml'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: git submodule update --init server-go
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: server-go/go.mod
+          cache-dependency-path: server-go/go.sum
+      - run: go build ./...
+        working-directory: server-go
+      - run: go vet ./...
+        working-directory: server-go

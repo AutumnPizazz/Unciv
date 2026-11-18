@@ -17,6 +17,7 @@ private const val ADDITIVE_BONUS_EXPLANATION = "Multiple bonuses stack additivel
 private const val ADDITIVE_BONUS_EXPLANATION_ZH = "多个加成按加法叠加：+50% + +50% = +100%"
 private const val MULTIPLICATIVE_BONUS_EXPLANATION = "Multiple bonuses stack multiplicatively: +50% + +50% = x1.5 * x1.5 = +125%"
 private const val MULTIPLICATIVE_BONUS_EXPLANATION_ZH = "多个加成按乘法叠加：+50% + +50% = x1.5 * x1.5 = +125%"
+private const val NUCLEAR_EXCLUSION_EXPLANATION = "Does not apply to units destroyed by nuclear explosions, which do not count as combat defeats."
 private val CHOOSE_MUSIC_DOCSTRING get() = (
     """Parameters are unchecked, strings not matching existing tracks or flags are ignored.
     |See [Context-sensitive music](Images-and-Audio.md#context-sensitive-music-overview)
@@ -118,7 +119,8 @@ enum class UniqueType(
     CityStateResources("[relativeAmount]% resources gifted by City-States",  UniqueTarget.Global),
     CityStateLuxuryHappiness("[relativeAmount]% Happiness from luxury resources gifted by City-States", UniqueTarget.Global),
     CityStateInfluenceRecoversTwiceNormalRate("City-State Influence recovers at twice the normal rate", UniqueTarget.Global),
-
+    CityStateInfluenceGainWhenAfraid("Gain [positiveAmount] Influence per turn with City-States you could demand tribute from", UniqueTarget.Global),
+    CityStateEasilyIntimidatedByForce("Units are [relativeAmount]% more effective at intimidating City-States", UniqueTarget.Global),
     // endregion
 
     /////// region Other global uniques
@@ -293,6 +295,8 @@ enum class UniqueType(
     /// Espionage
     SpyEffectiveness("[relativeAmount]% spy effectiveness [cityFilter]", UniqueTarget.Global),
     EnemySpyEffectiveness("[relativeAmount]% enemy spy effectiveness [cityFilter]", UniqueTarget.Global),
+    CounterIntelligenceEffectiveness("[relativeAmount]% counterintelligence effectiveness [cityFilter]", UniqueTarget.Global),
+    EnemyCounterEffectiveness("[relativeAmount]% enemy counterintelligence effectiveness [cityFilter]", UniqueTarget.Global),
     SpyStartingLevel("New spies start with [amount] level(s)", UniqueTarget.Global),
     CounterIntelligenceSpyRankBonus("Spies in [cityFilter] cities act as though they have [relativeAmount] levels for [spyAction]", UniqueTarget.Global,
         docDescription = "Temporary effective rank change ([relativeAmount] added to rank, e.g. +1) for spies doing the given action in a matching city. " +
@@ -330,6 +334,9 @@ enum class UniqueType(
 
     SpawnRebels("Rebel units may spawn", UniqueTarget.Global),
 
+    OnlyFirstAvailableChoiceIsChosen("Only the first available choice is offered", UniqueTarget.Event,
+        docDescription = "When triggered, only the first choice (in declaration order) whose conditionals apply is offered. This makes the event equivalent to a `when`/`case` statement."),
+
     // endregion Other global uniques
 
     // endregion 01 Global uniques
@@ -338,7 +345,8 @@ enum class UniqueType(
     ///////////////////////////////////////// region 02 CONSTRUCTION UNIQUES /////////////////////////////////////////
 
     Unbuildable("Unbuildable", UniqueTarget.Building, UniqueTarget.Unit, UniqueTarget.Improvement,
-        docDescription = "Blocks from being built, possibly by conditional. However it can still appear in the menu and be bought with other means such as Gold or Faith", docDescriptionZh = "阻止被建造（可能由条件决定）。但仍会出现在菜单中，且可通过金币或信仰等其他方式购买"),
+        docDescription = "Blocks from being built and from the default Gold purchase, possibly by conditional. It is then hidden from the menu, unless a unique allows buying it, such as \"Can be purchased with [stat] [cityFilter]\" on the object or a civ's \"May buy [buildingFilter] buildings with [stat] [cityFilter]\"; in that case it is shown and can be bought",
+        docDescriptionZh = "禁止建造与默认的金币购买（可受条件限制）。有 Unique 明确允许购买时，仍会在菜单中显示并可购买"),
     CannotBePurchased("Cannot be purchased", UniqueTarget.Building, UniqueTarget.Unit),
     CanBePurchasedWithStat("Can be purchased with [stat/variableName] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
     CanBePurchasedForAmountStat("Can be purchased for [amount] [stat/variableName] [cityFilter]", UniqueTarget.Building, UniqueTarget.Unit),
@@ -547,7 +555,8 @@ enum class UniqueType(
 
     // Healing
     HealsOutsideFriendlyTerritory("May heal outside of friendly territory", UniqueTarget.Unit, UniqueTarget.Global),
-    HealingEffectsDoubled("All healing effects doubled", UniqueTarget.Unit, UniqueTarget.Global),
+    HealingEffectsDoubled("All healing effects doubled", UniqueTarget.Unit, UniqueTarget.Global,
+        docDescription = "Does not stack"),
     HealsAfterKilling("Heals [amount] damage if it kills a unit", UniqueTarget.Unit, UniqueTarget.Global),
     HealOnlyByPillaging("Can only heal by pillaging", UniqueTarget.Unit, UniqueTarget.Global),
     HealsEvenAfterAction("Unit will heal every turn, even if it performs an action", UniqueTarget.Unit),
@@ -589,9 +598,12 @@ enum class UniqueType(
     // Gains from battle
     DamageUnitsPlunder("Earn [amount]% of the damage done to [combatantFilter] units as [stockpile]", UniqueTarget.Unit, UniqueTarget.Global),
     CaptureCityPlunder("Upon capturing a city, receive [amount] times its [stat] production as [stockpile] immediately", UniqueTarget.Unit, UniqueTarget.Global),
-    KillUnitPlunder("Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]", UniqueTarget.Unit, UniqueTarget.Global),
-    KillUnitPlunderNearCity("Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion", UniqueTarget.FollowerBelief),
-    KillUnitCapture("May capture killed [mapUnitFilter] units", UniqueTarget.Unit),
+    KillUnitPlunder("Earn [amount]% of killed [mapUnitFilter] unit's [costOrStrength] as [stockpile]", UniqueTarget.Unit, UniqueTarget.Global,
+        docDescription = NUCLEAR_EXCLUSION_EXPLANATION),
+    KillUnitPlunderNearCity("Earn [amount]% of [mapUnitFilter] unit's [costOrStrength] as [stockpile] when killed within 4 tiles of a city following this religion", UniqueTarget.FollowerBelief,
+        docDescription = NUCLEAR_EXCLUSION_EXPLANATION),
+    KillUnitCapture("May capture killed [mapUnitFilter] units", UniqueTarget.Unit,
+        docDescription = NUCLEAR_EXCLUSION_EXPLANATION),
 
     // XP
     FlatXPGain("[amount] XP gained from combat", UniqueTarget.Unit, UniqueTarget.Global),
@@ -1101,6 +1113,8 @@ enum class UniqueType(
                 "Turns left on the status decrease at the *start of turn*, so bonuses applied for 1 turn are stll applied during other civ's turns.", docDescriptionZh = "状态是临时晋升。它们不叠加，重新应用特定状态会取最大值——在 1 回合状态上重新应用 3 回合状态会变成 3，但反过来则无效。状态的剩余回合数在*回合开始时*减少，所以持续 1 回合的加成在其他文明的回合中仍然生效。"),
     OneTimeUnitLoseStatus("[unitTriggerTarget] loses the [promotion] status", UniqueTarget.UnitTriggerable),
     OneTimeUnitDestroyed("[unitTriggerTarget] is destroyed", UniqueTarget.UnitTriggerable),
+    OneTimeUnitTakeOverCityState("[unitTriggerTarget] takes over the City-State owning the tile it's standing on", UniqueTarget.UnitTriggerable,
+        docDescription = "Only allows taking over City-States not at war with the unit's root nation. Does not require a friendship or an alliance with the target City-State."),
     OneTimeUnitGetsName("[unitTriggerTarget] gets a name from the [unitNameGroup] group", UniqueTarget.UnitTriggerable),
     //endregion
 
@@ -1153,7 +1167,9 @@ enum class UniqueType(
     TriggerUponBeingAttacked("upon being attacked", UniqueTarget.UnitTriggerCondition),
     TriggerUponDamagingUnit("upon damaging a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition,
         docDescription = "Can apply triggers to to damaged unit by setting the first parameter to 'Target Unit'", docDescriptionZh = "将第一个参数设为 'Target Unit' 即可对受损单位应用触发效果"),
-    TriggerUponDefeatingUnit("upon defeating a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition),
+    TriggerUponDefeatingUnit("upon defeating a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition,
+        docDescription = NUCLEAR_EXCLUSION_EXPLANATION,
+        docDescriptionZh = "不适用于被核爆摧毁的单位，核爆不计为战斗击败"),
     TriggerUponCapturingUnit("upon capturing a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition),
     TriggerUponBeingCaptured("upon being captured", UniqueTarget.UnitTriggerCondition),
     TriggerUponInterceptingUnit("upon intercepting a [mapUnitFilter] unit", UniqueTarget.UnitTriggerCondition),
@@ -1161,7 +1177,8 @@ enum class UniqueType(
     TriggerUponBeingBombarded("upon being bombarded", UniqueTarget.UnitTriggerCondition),
     TriggerUponWithdrawing("upon withdrawing from melee combat", UniqueTarget.UnitTriggerCondition),
     TriggerUponExpendingUnit("upon expending a [mapUnitFilter] unit", UniqueTarget.TriggerCondition),
-    TriggerUponDefeat("upon being defeated", UniqueTarget.UnitTriggerCondition),
+    TriggerUponDefeat("upon being defeated", UniqueTarget.UnitTriggerCondition,
+        docDescription = NUCLEAR_EXCLUSION_EXPLANATION),
     TriggerUponPromotion("upon being promoted", UniqueTarget.UnitTriggerCondition),
     TriggerUponPromotionGain("upon gaining the [promotion] promotion", UniqueTarget.UnitTriggerCondition),
     TriggerUponPromotionLoss("upon losing the [promotion] promotion", UniqueTarget.UnitTriggerCondition),

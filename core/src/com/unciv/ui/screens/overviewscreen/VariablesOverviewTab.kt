@@ -29,7 +29,7 @@ class VariablesOverviewTab(
 
     private fun visibleCivs(): List<Civilization> {
         val civs = sequenceOf(viewer) + viewer.getKnownCivs()
-        return civs.filter { !it.isDefeated() && !it.isSpectator() }.distinct().toList()
+        return civs.filter { !it.isDefeated() && !it.isSpectator }.distinct().toList()
     }
 
     private fun visibleCities(): List<City> = visibleCivs().flatMap { civ ->

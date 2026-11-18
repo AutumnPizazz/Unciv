@@ -236,7 +236,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
             return
 
         @Suppress("DEPRECATION") // We want a Sequence
-        val majorCivs = civ.getKnownCivs().filter { it.isMajorCiv() && !it.isAtWarWith(civ) } // A Sequence - fine because the count below can be different for each Quest
+        val majorCivs = civ.getKnownCivs().filter { it.isMajorCiv && !it.isAtWarWith(civ) } // A Sequence - fine because the count below can be different for each Quest
         @Readonly fun Quest.isAssignable() = majorCivs.count { civ -> isQuestValid(this, civ) } >= minimumCivs
         val assignableQuests = getQuests {
             it.isGlobal() && it.isAssignable()
@@ -278,7 +278,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
             && civ.cityStateFunctions.getNumThreateningBarbarians() >= 2) {
 
             civ.forEachKnownCiv {
-                if (!it.isMajorCiv()
+                if (!it.isMajorCiv
                     || !it.isAlive()
                     || it.isAtWarWith(civ)
                     || it.getProximity(civ) > Proximity.Far
@@ -338,7 +338,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
         return false
     }
 
-    private fun assignNewQuest(quest: Quest, assignees: Iterable<Civilization>) {
+    fun assignNewQuest(quest: Quest, assignees: Iterable<Civilization>) {
         val turn = civ.gameInfo.turns
 
         for (assignee in assignees) {
@@ -364,8 +364,8 @@ class QuestManager : IsPartOfGameInfoSerialization {
 
     /** Returns true if [civ] can assign a quest to [challenger] */
     @Readonly
-    private fun canAssignAQuestTo(challenger: Civilization): Boolean {
-        return !challenger.isDefeated() && challenger.isMajorCiv() &&
+    fun canAssignAQuestTo(challenger: Civilization): Boolean {
+        return !challenger.isDefeated() && challenger.isMajorCiv &&
                 civ.knows(challenger) && !civ.isAtWarWith(challenger)
     }
 
@@ -565,7 +565,7 @@ class QuestManager : IsPartOfGameInfoSerialization {
         // Ask for assistance
         val location = civ.getCapital(firstCityIfNoCapital = true)?.location
         civ.forEachKnownCiv { thirdCiv ->
-            if (!thirdCiv.isMajorCiv() || thirdCiv.isDefeated() || thirdCiv.isAtWarWith(civ))
+            if (!thirdCiv.isMajorCiv || thirdCiv.isDefeated() || thirdCiv.isAtWarWith(civ))
                 return@forEachKnownCiv
             notifyAskForAssistance(thirdCiv, attacker.civID, unitsToKill, location?.toHexCoord())
         }

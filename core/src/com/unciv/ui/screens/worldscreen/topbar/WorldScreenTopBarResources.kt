@@ -60,7 +60,7 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
                 val gameInfo = worldScreen.selectedCiv.gameInfo
                 MayaCalendar.openPopup(worldScreen, worldScreen.selectedCiv, gameInfo.getYear())
             } else {
-                worldScreen.game.pushScreen{ VictoryScreen(worldScreen) }
+                worldScreen.game.pushScreen { VictoryScreen(worldScreen) }
             }
         }
         resourcesWrapper.onClick {
@@ -170,7 +170,7 @@ internal class WorldScreenTopBarResources(topbar: WorldScreenTopBar) : ScalingTa
             resourcesWrapper.add(label).padTop(resourceAmountDescentTweak)
         }
 
-        scaleTo(worldScreen.stage.width)
+        scaleToWidth(worldScreen.stage.width)
     }
 
     private fun getVariablePerTurn(civInfo: Civilization, variable: Variable): Int {

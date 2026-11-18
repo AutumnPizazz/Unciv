@@ -59,6 +59,23 @@ class CivInfoTransientCache(val civInfo: Civilization) {
         val ruleset = civInfo.gameInfo.ruleset
 
         val state = civInfo.state
+
+        for (building in ruleset.buildings.values) {
+            if (building.uniqueTo != null && civInfo.matchesFilter(building.uniqueTo!!)) {
+                uniqueBuildings.add(building)
+            }
+        }
+
+        for (improvement in ruleset.tileImprovements.values)
+            if (improvement.uniqueTo != null && civInfo.matchesFilter(improvement.uniqueTo!!))
+                uniqueImprovements.add(improvement)
+
+        for (unit in ruleset.units.values) {
+            if (unit.uniqueTo != null && civInfo.matchesFilter(unit.uniqueTo!!)) {
+                uniqueUnits.add(unit)
+            }
+        }
+
         val buildingsToRequiredResources = ruleset.buildings.values
                 .filter { civInfo.getEquivalentBuilding(it) == it }
                 .associateWith { it.requiredResources(state) }
@@ -78,22 +95,6 @@ class CivInfoTransientCache(val civInfo: Civilization) {
                 lastEraResourceUsedForBuilding[resource] = lastEraForBuilding
             if (lastEraForUnit != null)
                 lastEraResourceUsedForUnit[resource] = lastEraForUnit
-        }
-
-        for (building in ruleset.buildings.values) {
-            if (building.uniqueTo != null && civInfo.matchesFilter(building.uniqueTo!!)) {
-                uniqueBuildings.add(building)
-            }
-        }
-
-        for (improvement in ruleset.tileImprovements.values)
-            if (improvement.uniqueTo != null && civInfo.matchesFilter(improvement.uniqueTo!!))
-                uniqueImprovements.add(improvement)
-
-        for (unit in ruleset.units.values) {
-            if (unit.uniqueTo != null && civInfo.matchesFilter(unit.uniqueTo!!)) {
-                uniqueUnits.add(unit)
-            }
         }
     }
 
@@ -134,7 +135,7 @@ class CivInfoTransientCache(val civInfo: Civilization) {
                 val metCiv = entry.key
                 if (metCiv == civInfo || metCiv.isBarbarian || civInfo.diplomacy.containsKey(metCiv.civID)) continue
                 civInfo.diplomacyFunctions.makeCivilizationsMeet(metCiv)
-                if(!civInfo.isSpectator())
+                if(!civInfo.isSpectator)
                     civInfo.addNotification("We have encountered [${metCiv.civName}]!",
                         entry.value.position,
                         NotificationCategory.Diplomacy, metCiv.civName,
@@ -232,14 +233,14 @@ class CivInfoTransientCache(val civInfo: Civilization) {
             if (civInfo.naturalWonders.contains(tile.naturalWonder))
                 continue
             civInfo.naturalWonders.add(tile.naturalWonder!!)
-            if (civInfo.isSpectator()) continue // don't trigger anything
+            if (civInfo.isSpectator) continue // don't trigger anything
 
             civInfo.addNotification("We have discovered [${tile.naturalWonder}]!",
                 tile.position, NotificationCategory.General, "StatIcons/Happiness")
 
             val statsGained = Stats()
 
-            val discoveredNaturalWonders = civInfo.gameInfo.civilizations.filter { it != civInfo && it.isMajorCiv() }
+            val discoveredNaturalWonders = civInfo.gameInfo.civilizations.filter { it != civInfo && it.isMajorCiv }
                     .flatMap { it.naturalWonders }
             if (tile.terrainHasUnique(UniqueType.GrantsStatsToFirstToDiscover)
                     && !discoveredNaturalWonders.contains(tile.naturalWonder!!)) {
@@ -268,7 +269,7 @@ class CivInfoTransientCache(val civInfo: Civilization) {
 
             if (!statsGained.isEmpty() && naturalWonder != null) {
                 civInfo.addStats(statsGained)
-                civInfo.addNotification("We have received [${statsGained}] for discovering [${naturalWonder}]",
+                civInfo.addNotification("We have received [${statsGained.toStringForNotifications()}] for discovering [${naturalWonder}]",
                     Notification.NotificationCategory.General, statsGained.toString()
                     )
             }
@@ -386,7 +387,7 @@ class CivInfoTransientCache(val civInfo: Civilization) {
         val newResourceUniqueMap = UniqueMap()
         for (resource in summarizedResourceSupply)
             if (resource.amount > 0)
-                newResourceUniqueMap.addUniques(resource.resource.uniqueObjects)
+                newResourceUniqueMap.addUniques(resource.resource.uniqueObjects.filterNot { it.isLocalEffect })
         
         civInfo.detailedCivResources = newDetailedCivResources
         civInfo.summarizedCivResourceSupply = summarizedResourceSupply

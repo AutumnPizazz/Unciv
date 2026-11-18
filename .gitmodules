@@ -1,6 +1,6 @@
 [submodule "android/assets/mods/CoeHarMod"]
 	path = android/assets/mods/CoeHarMod
 	url = https://github.com/AutumnPizazz/CoeHarMod.git
-[submodule "server-ts"]
-	path = server-ts
+[submodule "server-go"]
+	path = server-go
 	url = https://github.com/blyrin/unciv-srv.git

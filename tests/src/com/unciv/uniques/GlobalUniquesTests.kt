@@ -6,6 +6,8 @@ import com.unciv.logic.battle.Battle
 import com.unciv.logic.battle.MapUnitCombatant
 import com.unciv.logic.civilization.Civilization
 import com.unciv.logic.city.managers.CityTurnManager
+import com.unciv.logic.civilization.diplomacy.CityStateFunctions
+import com.unciv.logic.civilization.diplomacy.DiplomacyTurnManager.nextTurn
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.tile.RoadStatus
 import com.unciv.logic.map.tile.Tile
@@ -17,7 +19,7 @@ import com.unciv.models.ruleset.unique.UniqueTriggerActivation
 import com.unciv.models.stats.Stats
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
-import com.unciv.ui.screens.worldscreen.unit.actions.UnitActionsPillage
+import com.unciv.logic.map.mapunit.actions.UnitActionsPillage
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -636,6 +638,21 @@ class GlobalUniquesTests {
         Assert.assertTrue(abs(city.cityStats.happinessList["Population"]!! - -1f) < epsilon)
     }
 
+    /** #16025: a percent Happiness bonus scales the city's happiness sources, not its unhappiness */
+    @Test
+    fun statPercentBonusAppliesToCityHappiness() {
+        val civInfo = game.addCiv()
+        val city = game.addCity(civInfo, game.getTile(HexCoord.Zero), true)
+        city.cityConstructions.addBuilding(game.createBuilding("[+2 Happiness]"))
+        city.cityStats.update()
+        val citiesUnhappiness = city.cityStats.happinessList["Cities"]!!
+        Assert.assertEquals(2f, city.cityStats.happinessList["Buildings"]!!, epsilon.toFloat())
+
+        city.cityConstructions.addBuilding(game.createBuilding("[+100]% [Happiness]"))
+        city.cityStats.update()
+        Assert.assertEquals(4f, city.cityStats.happinessList["Buildings"]!!, epsilon.toFloat())
+        Assert.assertEquals(citiesUnhappiness, city.cityStats.happinessList["Cities"]!!, epsilon.toFloat())
+    }
 
     // endregion happiness
 
@@ -699,7 +716,7 @@ class GlobalUniquesTests {
         val tests = listOf(
             "<if no Civilization has adopted [Oligarchy]>" to 1,
             "<if no Civilization has adopted [Tradition]>" to 0,
-            "<if no Civilization has adopted [God of Craftsman]>" to 1,
+            "<if no Civilization has adopted [God of Craftsmen]>" to 1,
             "<if no Civilization has adopted [Not A Policy]>" to 1,
             "<if no Civilization has adopted [Ancestor Worship]>" to 0,
             "<if no Civilization has adopted [Not A Belief]>" to 1,
@@ -1327,6 +1344,62 @@ class GlobalUniquesTests {
     }
 
     // endregion
+    
+    // region City-State uniques
+    @Test
+    fun cityStateBNWGunboatDiplomacyInfluenceGainTest() {
+        // when
+        game.makeHexagonalMap(5)
+        val cityState = game.addCiv(cityStateType = "Cultured")
+        val cityStateCapitalTile = game.getTile(HexCoord.Zero)
+        game.addCity(cityState, cityStateCapitalTile)
+        
+        val normalCiv = game.addCiv()
+        val bullyCiv = game.addCiv(
+            "Gain [5] Influence per turn with City-States you could demand tribute from"
+        )
+
+        game.addUnit("Giant Death Robot", normalCiv, game.getTile(-2, 0))
+        game.addUnit("Giant Death Robot", bullyCiv, game.getTile(2, 0))
+
+        val normalDM = cityState.getDiplomacyManager(normalCiv)
+        val bullyDM = cityState.getDiplomacyManager(bullyCiv)
+        normalDM!!.nextTurn()
+        bullyDM!!.nextTurn()
+        
+        // then
+        Assert.assertTrue(bullyDM.getInfluence() > normalDM.getInfluence())
+        Assert.assertTrue(bullyDM.getInfluence() >= 5)
+    }
+
+    @Test
+    fun cityStateBNWGunboatDiplomacyDreadfulTributeTest() {
+        // when
+        game.makeHexagonalMap(5)
+        val cityState = game.addCiv(cityStateType = "Cultured")
+        val cityStateCapitalTile = game.getTile(HexCoord.Zero)
+        game.addCity(cityState, cityStateCapitalTile)
+
+        val bullyCiv = game.addCiv(
+            "Units are [+25]% more effective at intimidating City-States"
+        )
+
+        game.addUnit("Pikeman", bullyCiv, game.getTile(2, 0))
+
+        val bullyTributeRank = CityStateFunctions(cityState)
+            .getTributeModifiers(bullyCiv, false)["Military Rank"]
+        val bullyTributeForce = CityStateFunctions(cityState)
+            .getTributeModifiers(bullyCiv, false)["Military near City-State"]
+        val bullyTributeExtra = CityStateFunctions(cityState)
+            .getTributeModifiers(bullyCiv, false)["From Uniques"]
+        
+        // then
+        Assert.assertTrue(bullyTributeRank != null
+            && bullyTributeForce != null
+            && bullyTributeExtra != null
+            && (bullyTributeExtra!!.toFloat() / (bullyTributeRank!! + bullyTributeForce!!).toFloat()) == 0.25f
+        )
+    }
 
     // endregion
 

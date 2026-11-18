@@ -1,5 +1,6 @@
 package com.unciv.ui.screens.cityscreen
 
+import com.unciv.view.getCurrentConstruction
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.unciv.Constants
@@ -54,13 +55,13 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
     /** Buy buttons for constructions purchasable with a mod-defined variable in any scope. */
     private fun getVariableBuyButtons(construction: INonPerpetualConstruction): List<TextButton> {
         val cityView = cityScreen.cityView
-        return cityView.city.getRuleset().variables.values
+        return cityView.getCity().getRuleset().variables.values
             .mapNotNull { getVariableBuyButton(construction, it) }
     }
 
     private fun getVariableBuyButton(construction: INonPerpetualConstruction, variable: Variable): TextButton? {
         val cityView = cityScreen.cityView
-        if (!construction.canBePurchasedWithVariable(cityView.city, variable.name)) return null
+        if (!construction.canBePurchasedWithVariable(cityView.getCity(), variable.name)) return null
         val constructionBuyCost = cityView.constructions.getVariableBuyCost(construction, variable.name) ?: return null
 
         val button = "".toTextButton()
@@ -167,7 +168,7 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
             val cityView = cityScreen.cityView
             val balance = cityView.getStatReserve(stat)
             val majorityReligion = cityView.getMajorityReligion()
-            val yourReligion = cityView.viewingCiv().getYourReligion()
+            val yourReligion = cityView.viewingCiv().getReligion()
             val isBuyingWithFaithForForeignReligion = construction.hasUnique(UniqueType.ReligiousUnit)
                 && !construction.hasUnique(UniqueType.TakeReligionOverBirthCity)
                 && majorityReligion != yourReligion
@@ -288,8 +289,9 @@ class BuyButtonFactory(val cityScreen: CityScreen) {
                     cityScreen.selectedQueueEntry = -1
                     cityScreen.clearSelection()
 
-                    if (cityView.constructions.currentConstructionName().isNotEmpty()) {
-                        val newConstruction = cityView.constructions.getCurrentConstruction()
+                    val newName = cityView.constructions.currentConstructionName() // Once: the queue can change between two reads
+                    if (newName.isNotEmpty()) {
+                        val newConstruction = cityView.constructions.getConstruction(newName)
                         if (newConstruction is INonPerpetualConstruction)
                             cityScreen.selectConstruction(newConstruction)
                     }

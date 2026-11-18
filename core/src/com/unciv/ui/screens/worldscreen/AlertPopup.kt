@@ -269,7 +269,7 @@ class AlertPopup(
         addGoodSizedLabel(
                 if (otherciv.nation.declaringFriendship.isNotEmpty()) otherciv.nation.declaringFriendship else "My friend, shall we declare our friendship to the world?"
         ).row()
-        addCloseButton("Declare Friendship ([30] turns)", KeyboardBinding.Confirm) {
+        addCloseButton("Declare Friendship ([${viewingCiv.gameInfo.speed.dealDuration}] turns)", KeyboardBinding.Confirm) {
             runSimultaneousPopupChange { playerDiploManager.signDeclarationOfFriendship() }
         }.row()
         addCloseButton("We are not interested.", KeyboardBinding.Cancel) {
@@ -416,7 +416,7 @@ class AlertPopup(
     private fun addGameHasBeenWon() {
         val victoryData = gameInfo.victoryData!!
         addGoodSizedLabel("[${victoryData.winningCivObject.civName}] has won a [${victoryData.victoryType}] Victory!").row()
-        addButton("Victory status") { close(); worldScreen.game.pushScreen{ VictoryScreen(worldScreen) } }.row()
+        addButton("Victory status") { close(); worldScreen.game.pushScreen { VictoryScreen(worldScreen) } }.row()
         addCloseButton()
     }
 
@@ -450,13 +450,19 @@ class AlertPopup(
             val closestCity = originalOwner.cities.minByOrNull { it.getCenterTile().aerialDistanceTo(tile) }
             runSimultaneousPopupChange {
                 capturedUnit.destroy()
-                if (closestCity != null)
+
+                if (closestCity != null) {
+                    // Attempt to place the unit near their nearest city
                     originalOwner.units.placeUnitNearTile(closestCity.location.toHexCoord(), unitName)
-                if (originalOwner.isCityState)
+                }
+
+                if (originalOwner.isCityState) {
                     originalOwner.getDiplomacyManagerOrMeet(captor).addInfluence(45f)
-                else if (originalOwner.isMajorCiv())
+                } else if (originalOwner.isMajorCiv) {
+                    // No extra bonus from doing it several times
                     originalOwner.getDiplomacyManagerOrMeet(captor)
                         .setModifier(DiplomaticModifiers.ReturnedCapturedUnits, 20f)
+                }
             }
             val notificationSequence = sequence {
                 yield(LocationAction(tile.position))

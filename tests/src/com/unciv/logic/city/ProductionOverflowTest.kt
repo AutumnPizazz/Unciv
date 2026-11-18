@@ -191,7 +191,7 @@ class ProductionOverflowTest {
         // Simulate a queue change that bypassed setCurrentConstruction (defensive fallback path,
         // e.g. moveEntryToTop), then let endTurn apply the pool with the new construction's bonuses
         val b2 = testBuilding(40)
-        city.cityConstructions.constructionQueue.add(b2.name)
+        city.cityConstructions.editQueue { add(b2.name) }
         city.cityStats.update()
         city.cityConstructions.endTurn(city.cityStats.currentCityStats)
 

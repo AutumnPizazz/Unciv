@@ -1,5 +1,6 @@
 package com.unciv.ui.screens.overviewscreen
 
+import com.unciv.view.currentConstructionName
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.Align
@@ -49,7 +50,7 @@ enum class CityOverviewTabColumn : ISortableGridContentProvider<City, EmpireOver
         override fun getEntryActor(item: City, iconSize: Float, actionContext: EmpireOverviewScreen) =
                 item.name.toTextButton(hideIcons = true)
                 .onClick {
-                    actionContext.game.pushScreen{ CityScreen(GUI.getWorldScreen().selectedGameView.getCityView(item)) }
+                    actionContext.game.pushScreen { CityScreen(GUI.getWorldScreen().selectedGameView.getCityView(item)) }
                 }
         override fun getTotalsActor(items: Iterable<City>) = "{Total} ${items.count()}".toLabel()
     },

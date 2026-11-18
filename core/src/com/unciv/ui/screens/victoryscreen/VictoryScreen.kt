@@ -52,7 +52,7 @@ class VictoryScreen(
     ) {
         OurStatus('O', caption = "Our status") {
             override fun getContent(parent: VictoryScreen) = VictoryScreenOurVictory(parent.worldScreen)
-            override fun isHidden(playerCiv: Civilization) = playerCiv.isSpectator()
+            override fun isHidden(playerCiv: Civilization) = playerCiv.isSpectator
         },
         Global('G', caption = "Global status") {
             override fun getContent(parent: VictoryScreen) = VictoryScreenGlobalVictory(parent.worldScreen)
@@ -64,21 +64,21 @@ class VictoryScreen(
         Demographics('D', allowAsSecret = true) {
             override fun getContent(parent: VictoryScreen) = VictoryScreenDemographics(parent.worldScreen)
             override fun isHidden(playerCiv: Civilization) =
-                !playerCiv.isSpectator()
+                !playerCiv.isSpectator
                     && !(playerCiv.gameInfo.gameParameters.showCivilizationStats == true && playerCiv.gameInfo.gameParameters.showDemographics)
                     && playerCiv.gameInfo.victoryData == null
         },
         Rankings('R', allowAsSecret = true) {
             override fun getContent(parent: VictoryScreen) = VictoryScreenCivRankings(parent.worldScreen)
             override fun isHidden(playerCiv: Civilization) =
-                !playerCiv.isSpectator()
+                !playerCiv.isSpectator
                     && !(playerCiv.gameInfo.gameParameters.showCivilizationStats == true && playerCiv.gameInfo.gameParameters.showRankings)
                     && playerCiv.gameInfo.victoryData == null
         },
         Charts('C') {
             override fun getContent(parent: VictoryScreen) = VictoryScreenCharts(parent.worldScreen)
             override fun isHidden(playerCiv: Civilization) =
-                if (playerCiv.isSpectator())
+                if (playerCiv.isSpectator)
                     playerCiv.gameInfo.civilizations.all { it.statsHistory.size < 2 }
                 else
                     (playerCiv.statsHistory.size < 2
@@ -88,7 +88,7 @@ class VictoryScreen(
         Replay('P', allowAsSecret = true) {
             override fun getContent(parent: VictoryScreen) = VictoryScreenReplay(parent.worldScreen)
             override fun isHidden(playerCiv: Civilization) =
-                !playerCiv.isSpectator()
+                !playerCiv.isSpectator
                     && playerCiv.gameInfo.victoryData == null
                     && playerCiv.isAlive()
                     // We show the replay after 5 turns. This is to ensure that the replay
@@ -122,7 +122,7 @@ class VictoryScreen(
         tabs.selectPage(pageNumber)
 
         //**************** Add export data button ****************
-        val shouldShowExportButton = playerCiv.gameInfo.gameParameters.showCivilizationStats == true || playerCiv.isSpectator()
+        val shouldShowExportButton = playerCiv.gameInfo.gameParameters.showCivilizationStats == true || playerCiv.isSpectator
         if (shouldShowExportButton) {
             val exportButton = "Export data".tr().toTextButton()
             exportButton.onClick {
@@ -204,7 +204,7 @@ class VictoryScreen(
         rightSideButton.onClick {
             val newGameSetupInfo = GameSetupInfo(gameInfo)
             newGameSetupInfo.mapParameters.reseed()
-            game.pushScreen{ NewGameScreen(newGameSetupInfo) }
+            game.pushScreen { NewGameScreen(newGameSetupInfo) }
         }
 
         closeButton.setText("One more turn...!".tr())
@@ -233,7 +233,7 @@ class VictoryScreen(
             viewingCiv: Civilization,
             viewedCiv: Civilization
         ): Boolean = gameInfo.victoryData != null
-            || viewingCiv.isSpectator()
+            || viewingCiv.isSpectator
             || !gameInfo.gameParameters.hideOtherCivilizationStats
             || viewedCiv == viewingCiv
     }
