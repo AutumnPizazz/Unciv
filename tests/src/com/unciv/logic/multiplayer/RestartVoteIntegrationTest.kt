@@ -431,7 +431,9 @@ class RestartVoteIntegrationTest {
 
     @Test
     fun goServerMergesConcurrentVotesAndRestartsAfterReconnect() = runVoteTest {
-        val (a, b, c, outsider) = connectToGo()
+        val players = connectToGo()
+        val (a, b, c) = players
+        val outsider = players[3]
         assertNull(multiplayer.fetchRestartVote(gameId))
         assertNull(multiplayer.fetchRestartMarker(gameId))
         assertEquals(403, goRequest(outsider, "GET", restartVoteFileName()))
