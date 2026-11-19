@@ -11,6 +11,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.luaj.vm2.LuaValue
 import java.nio.file.Files
 import kotlin.io.path.writeText
 
@@ -93,6 +94,27 @@ class LuaApiRobustnessTests {
         LuaScriptManager.callFunction(func, ctx, civ, "testNested", onSuccess = { result = it }, modName = foundMod)
         Assert.assertTrue("nested call as argument should work", result)
         Assert.assertEquals("1", civ.gameInfo.modLuaStorage["nestedMod"]?.get("key"))
+    }
+
+    @Test
+    fun randomSequenceIsIndependentOfOtherLuaContexts() {
+        testGame.gameInfo.gameParameters.isOnlineMultiplayer = true
+        val civ = testGame.addCiv(isPlayer = true)
+        val gameContext = GameContext(civ)
+
+        fun sampleSequence(): List<Double> {
+            val ctx = LuaAPI.buildContext(civ, null, null, null, "", gameContext, "rngMod")
+            val random = ctx.checktable().get("random").checkfunction()
+            val randomInt = ctx.checktable().get("randomInt").checkfunction()
+            return listOf(
+                random.call().todouble(),
+                randomInt.call(LuaValue.valueOf(1), LuaValue.valueOf(100)).todouble(),
+                random.call().todouble()
+            )
+        }
+
+        Assert.assertEquals("Equivalent Lua contexts must not share process-global RNG state",
+            sampleSequence(), sampleSequence())
     }
 
     //region Static checker & API catalog

@@ -53,14 +53,6 @@ object LuaAPI {
      */
     val knownApiMethods = java.util.concurrent.ConcurrentHashMap<String, MutableSet<String>>()
 
-    /**
-     * Counter feeding the seed of [ctx.random]/[ctx.randomInt]. Combined with the game's
-     * state-based RNG this makes Lua randomness deterministic across online-multiplayer
-     * clients (same call sequence on the same game state yields the same numbers), while
-     * still producing fresh values on every call.
-     */
-    private val luaRandomCounter = java.util.concurrent.atomic.AtomicLong()
-
     private fun LuaTable.registerApi(owner: String, name: String, value: LuaValue): LuaTable {
         if (name !in apiCatalog[owner].orEmpty())
             com.unciv.utils.Log.error("LuaAPI: '$name' (owner '$owner') is missing from apiCatalog - the CLI mod checker will not know it")
@@ -112,6 +104,8 @@ object LuaAPI {
         tileStats: LuaValue? = null
     ): LuaValue {
         val ctx = LuaValue.tableOf()
+        // Keep unrelated Lua contexts from advancing this context's deterministic sequence.
+        var luaRandomCounter = 0L
         ctx.registerApi("ctx", "parameter", LuaValue.valueOf(resolvedParam))
         ctx.registerApi("ctx", "value", if (value != null) LuaValue.valueOf(value) else LuaValue.NIL)
         ctx.registerApi("ctx", "modifier", if (modifier != null) LuaValue.valueOf(modifier) else LuaValue.NIL)
@@ -174,14 +168,16 @@ object LuaAPI {
 
         // Deterministic random helpers (seeded from game state, so online-multiplayer safe)
         ctx.registerApi("ctx", "random", luaFunction {
-            val rng = gameContext.stateBasedRandom("LuaAPI.random", (luaRandomCounter.incrementAndGet() and 0x7FFFFFFF).toInt())
+            luaRandomCounter++
+            val rng = gameContext.stateBasedRandom("LuaAPI.random", (luaRandomCounter and 0x7FFFFFFF).toInt())
             LuaValue.valueOf(rng.nextDouble())
         })
         ctx.registerApi("ctx", "randomInt", luaFunction { args ->
             val min = args.arg(1).safeToInt()
             val max = args.arg(2).safeToInt()
             if (max < min) return@luaFunction LuaValue.valueOf(min)
-            val rng = gameContext.stateBasedRandom("LuaAPI.randomInt", (luaRandomCounter.incrementAndGet() and 0x7FFFFFFF).toInt())
+            luaRandomCounter++
+            val rng = gameContext.stateBasedRandom("LuaAPI.randomInt", (luaRandomCounter and 0x7FFFFFFF).toInt())
             // max - min + 1 overflows Int for extreme ranges (e.g. 0..Int.MAX_VALUE); compute the
             // span as a Long. normal ranges still go through nextInt so the RNG stream - and thus
             // multiplayer determinism - is unchanged.

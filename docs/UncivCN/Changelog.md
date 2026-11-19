@@ -20,6 +20,10 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - The terms and privacy policy no longer list downloads as a community service.
 - Simultaneous turns now resolve concurrent unit purchases without ID conflicts and keep a zero gold balance.
 
+### Mod author-facing
+
+- Lua random sequences no longer depend on unrelated contexts, improving online multiplayer consistency ([guide](/Modders/Lua-Modding)).
+
 ## 5.0.1.1 (build 1267)
 
 ### Player-facing
