@@ -13,11 +13,8 @@ on:
       - 'gradle/libs.versions.toml'
       - 'android/build.gradle.kts'
       - '.github/workflows/androidBuild.yml'
-  # 安全说明：pull_request_target 在 base 分支上下文中运行，默认的 actions/checkout
-  # 检出的是 base 分支代码（而非 PR head 提交），因此不会执行来自不可信 fork 的代码。
-  # 本工作流未显式 checkout PR head（无 ref: github.event.pull_request.head.sha 之类），
-  # 故在此使用 pull_request_target 是安全的。
-  pull_request_target:
+  # pull_request runs the merge commit with a read-only token; Gradle executes PR code.
+  pull_request:
     paths:
       - 'build.gradle.kts'
       - 'gradle-wrapper.properties'
@@ -27,6 +24,9 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
 
 jobs:
   android-build:

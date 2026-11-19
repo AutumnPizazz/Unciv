@@ -12,14 +12,14 @@ on:
       - '**/*.md'
       - '.github/**'
       - 'changelog.md'
-  # 安全说明：pull_request_target 在 base 分支上下文中运行，默认的 actions/checkout
-  # 检出的是 base 分支代码（而非 PR head 提交），因此不会执行来自不可信 fork 的代码。
-  # 本工作流未显式 checkout PR head（无 ref: github.event.pull_request.head.sha 之类），
-  # 故在此使用 pull_request_target 是安全的。
-  pull_request_target:
+  # pull_request runs the merge commit with a read-only token; Gradle executes PR code.
+  pull_request:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
 
 # 同一分支的连续推送只保留最新一个 run：新提交会取消上一提交仍在跑的测试（同一 commit 的
 # 重复 run 自然也去重），既避免重复 run 互相抢占 runner CPU 导致性能冒烟测试间歇失败，
@@ -78,7 +78,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Comment test failures on PR
-        if: steps.run_checks.outputs.check_exit_code != '0' && github.event_name == 'pull_request'
+        if: steps.run_checks.outputs.check_exit_code != '0' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.ACTIONS_ACCESS_TOKEN }}
@@ -108,4 +108,3 @@ jobs:
       - name: Fail workflow if checks failed
         if: steps.run_checks.outputs.check_exit_code != '0'
         run: exit 1
-
