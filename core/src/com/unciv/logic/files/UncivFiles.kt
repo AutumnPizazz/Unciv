@@ -558,7 +558,14 @@ class UncivFiles(
 
 class Autosaves(val files: UncivFiles) {
 
+    private companion object {
+        // Even after recreating the game, its previous writer can still use the same save directory.
+        val writeLock = Any()
+    }
+
+    @Volatile
     var autoSaveJob: Job? = null
+        private set
 
     /**
      * Auto-saves a snapshot of the [gameInfo] in a new thread.
@@ -573,19 +580,24 @@ class Autosaves(val files: UncivFiles) {
     /**
      * In a new thread, auto-saves the [gameInfo] directly - only use this with [GameInfo] objects that are guaranteed not to be changed while the autosave is in progress!
      */
+    @Synchronized
     fun requestAutoSaveUnCloned(gameInfo: GameInfo, nextTurn: Boolean = false): Job {
+        // Keep snapshots in request order. Joining the latest job also waits for earlier requests.
+        val previousJob = autoSaveJob
         val job = Concurrency.run("autoSaveUnCloned") {
+            previousJob?.join()
             autoSave(gameInfo, nextTurn)
         }
         autoSaveJob = job
         return job
     }
 
-    fun autoSave(gameInfo: GameInfo, nextTurn: Boolean = false) {
+    // Include the synchronous console writer and keep the lock through backup and cleanup.
+    fun autoSave(gameInfo: GameInfo, nextTurn: Boolean = false) = synchronized(writeLock) {
         // "Forbid reload": never write a local copy of an online multiplayer game to the autosave
         // slot - loading such a copy would bypass the local-snapshot mechanism and allow redoing the turn.
         // The local snapshot (LocalSnapshotHandler) covers crash recovery instead.
-        if (gameInfo.gameParameters.isOnlineMultiplayer && gameInfo.gameParameters.forbidReload) return
+        if (gameInfo.gameParameters.isOnlineMultiplayer && gameInfo.gameParameters.forbidReload) return@synchronized
         // get GameSettings to check the maxAutosavesStored in the autoSave function
         val settings = files.getGeneralSettings()
 
@@ -599,10 +611,10 @@ class Autosaves(val files: UncivFiles) {
         } catch (oom: OutOfMemoryError) {
             Log.error("Ran out of memory during autosave", oom)
             tempFile.delete()
-            return  // not much we can do here
+            return@synchronized  // not much we can do here
         }
 
-        if (!nextTurn) return
+        if (!nextTurn) return@synchronized
 
         // keep auto-saves for the last `settings.maxAutosavesStored` turns
         val newAutosaveFile = files.pathToFileHandle(SAVE_FILES_FOLDER)

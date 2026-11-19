@@ -11,6 +11,7 @@ outline: [2, 2]
 
 - The terms and privacy policy no longer list downloads as a community service.
 - In simultaneous turns, players can buy units at the same time without conflicts. Spending all your gold leaves a zero balance.
+- Fixed a crash when automatic saves overlap.
 
 ### Mod author-facing
 
