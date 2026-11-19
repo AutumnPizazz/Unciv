@@ -172,22 +172,16 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
 
 ## 八、更新日志与发版流程
 
-- **微小更新也记日志**：任何非发版改动（功能 / 修复 / CI / 文档站）合入分支时，
-  必须在同一提交里同步在中英两份更新日志
-  （`docs/UncivCN/Changelog.md` 与 `docs/zh/UncivCN/Changelog.md`）
-  顶部的「未发布（Unreleased）」小节各加一行；条目只积累，发版前不删除。
+- 玩家或模组作者能感知的变化，在同一提交中同步记入
+  `docs/UncivCN/Changelog.md` 与 `docs/zh/UncivCN/Changelog.md` 的「未发布」小节。
+  日志页只放版本标题、受众或主题分组，以及对应的变更条目。
 - **发版整合**：发版时把「未发布」小节整体移入新版本条目
   （`## X.Y.Z.N（build NNNN）`），措辞保持不变，然后清空「未发布」小节。
 - **更新日志写作规范**：条目一行一条、短句要点（学习上游 `changelog.md` 风格），
   不写长篇解释、不留空话；需要署名时按 `- By 作者` 格式。
 - **字数上限（30 字）**：中文按汉字数、英文按单词数计，标点与文档链接不计；
   重要改动拆成多条小点，每条独立一行、各自 ≤30 字。
-- **面向玩家、不写实现细节**：条目描述玩家能感知的变化（功能、修复、行为变更），
-  禁止出现类名/函数名/内部机制/重构与测试细节；纯测试与行为不变的重构
-  可不记（至多一句「已补充测试加固」）。落笔前自查：这条改动玩家能感知到什么？
-  感知不到就不记，能感知就按玩家语言表达。
-- **略写底层改动与优化**：重构、优化、合并上游等玩家不可感知的改动一句带过
-  （如「合并上游修复」），纯内部改动可不记。
+- 条目写功能、修复、行为或兼容性变化。合并上游时记录具体影响。内部 CI、测试、重构和实现细节留在开发文档或提交记录里。
 - **模组条目**：模组/Lua 功能面向模组作者，允许记录，但只写一句「新增了
   什么能力」（如「新增 XX 类 uniques」「Lua 现可接管 XX」），并附对应文档
   链接（`[uniques](/zh/Modders/uniques)`、`[Lua Modding](/zh/Modders/Lua-Modding)` 等）
@@ -202,9 +196,7 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   禁止手工改该区域。
 - **发版标签**：MSI 安装包版本号取自 git tag（`github.ref_name`，
   4 段式如 `4.21.5.3`）；每次发版必须推送与版本号一致的 tag 触发 Deploy 工作流。
-- **上游更新日志**：文档站不再镜像上游 `changelog.md`；上游官方版本记录通过
-  CN 更新日志页（`docs/UncivCN/Changelog.md` / `docs/zh/UncivCN/Changelog.md`）
-  顶部的链接查看。
+- 上游仓库维护原版更新日志。[查看上游更新日志](https://github.com/yairm210/Unciv/blob/master/changelog.md)
 
 ### 子仓库模组（CoeHarMod）更新日志
 
@@ -212,18 +204,10 @@ vsix 随每个 GitHub Release 附带）每次编辑器启动从云端拉取到 `
   AutumnPizazz/CoeHarMod），**实际工作分支是 `workspace`**（`main` 是 GitHub Action
   按标签同步核心文件生成的发布分支）；模组版本号在 `jsons/ModOptions.json` 的
   `modVersion`，适配的游戏版本在 `recommendedGameVersion`
-- **每次改动模组（功能/修复/CI/文档）时，必须在同一批改动中同步更新文档站**
-  模组板块更新日志 `docs/Community/Mods/CoeHarMod/changelog/index.md` 与
-  `docs/zh/Community/Mods/CoeHarMod/更新日志/index.md`（中英两份）：顶部
-  「未发布 / Unreleased」小节各加一条（EN 用英文、ZH 用中文）
-- 条目风格：一行一条、短句要点；同一版本内按类别用 emoji 分组小节
-  （`### ⚖️ 快乐系统优化`、`### 🔧 开发工具` 等；EN 版章节标题用英文，如
-  `### ⚖️ Maintenance system rework`），参照现有日志；条目同样面向模组玩家，
-  只写用户可见变化，不写实现细节，**每条 ≤30 字（链接不计），重要改动拆多条**。
-- 发版整合：更新顶部 `::: tip 最新版本 / Latest version` 提示块
-  （`**vX.Y.Z** - 适配 Unciv A.B.C.D`，EN 版为 `- for A.B.C.D`），把「未发布」
-  小节整体移入 `## vX.Y.Z - 适配 A.B.C.D` 版本条目（EN 版为 `## vX.Y.Z - for A.B.C.D`，
-  措辞不变），然后清空未发布小节
+- 模组有玩家可感知的变化或版本兼容性变化时，同步记入 `docs/Community/Mods/CoeHarMod/changelog/index.md`
+  与 `docs/zh/Community/Mods/CoeHarMod/更新日志/index.md` 的「未发布」小节。
+- 条目用短句，可按主题分组，如 `### ⚖️ 单位维护费`，英文版对应 `### ⚖️ Unit upkeep`。字数上限同上，重要改动拆成多条。
+- 发版时把「未发布」条目原样移入 `## vX.Y.Z - 适配 A.B.C.D`（英文版为 `## vX.Y.Z - for A.B.C.D`），然后清空「未发布」小节。
 - 提交流程：模组改动先在 CoeHarMod 子模块（workspace 分支）目录内提交，
   再在主仓库提交更新 submodule 指针；更新日志与模组改动在主仓库同一提交中完成
 - 模组依赖主仓库的 Modding 能力（unique/字段/常量），合并上游后如模组受影响，

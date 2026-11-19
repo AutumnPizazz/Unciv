@@ -5,20 +5,12 @@ outline: [2, 2]
 
 # UncivCN Changelog
 
-Version rule: upstream version + CN sub-version (`.1`, `.2`, `.3`…; the same upstream version can have multiple CN sub-versions, e.g. 4.20.8.1 → 4.20.8.4; restarts at `.1` after merging a new upstream, e.g. 4.21.5 → 4.21.5.1).
-
-Each release is grouped by audience: **Player-facing** for changes players notice in game, and **Mod author-facing** for behaviour that mods and Lua scripts rely on. Purely internal changes are not listed; older releases predate this split.
-
-::: tip
-Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/yairm210/Unciv/blob/master/changelog.md)
-:::
-
 ## Unreleased
 
 ### Player-facing
 
 - The terms and privacy policy no longer list downloads as a community service.
-- Simultaneous turns now resolve concurrent unit purchases without ID conflicts and keep a zero gold balance.
+- In simultaneous turns, players can buy units at the same time without conflicts. Spending all your gold leaves a zero balance.
 
 ### Mod author-facing
 
@@ -28,43 +20,30 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ### Player-facing
 
-- All players check for updates through their selected download source, without choosing a region.
-- New version installers use your selected GitHub download source.
-- Online multiplayer now connects only to the community Go server.
-- UncivCN no longer publishes Go server Docker images or GitHub Release downloads.
+- Update checks and installer downloads both use the selected download source.
+- Update checks no longer ask you to choose a region.
+- Online multiplayer supports only the community server.
 - Added Simplified Chinese translations for new menus, multiplayer messages, and rules.
-- Polling and simultaneous turns now require your restart vote before you can mark the turn done.
+- In polling and simultaneous turn games, cast your vote before ending the turn when a restart vote is open.
 - Loading a save reports missing difficulty or speed instead of silently changing its rules.
-- Fixed selecting and restoring [Lua maps](/Modders/Lua-Modding) in the new game screen.
+- Fixed selecting and importing [Lua maps](/Modders/Lua-Modding) in the new game screen.
 - Unit upgrades made from the popup now survive simultaneous turn settlement.
 - Multiplayer turns no longer apply another player's automatic promotion preference.
 - Added save search and fixes from Unciv 5.0.1.
-- UncivSrv now runs on Go. [See the upgrade guide.](../Developers/Building-Locally.md#uncivsrv-go-server)
-- Multiplayer restart votes now work on UncivSrv and survive reconnects.
-- Fix: the settlement report after a simultaneous turn now says how many actions could not be applied, and lists each of them with its reason in a section you can expand or collapse
-- Fix: when a simultaneous turn cannot apply a unit order, the notification now names it ("Move unit", "Attack", "Swap units", or the unit's action such as "Guard") instead of the internal operation type
-- Fix: the "target already claimed" warning in a simultaneous turn no longer depends on the server, which now only relays messages - the clients work out the claims from the actions themselves, so the warning and the map marks appear on every server
-- Fix: when a simultaneous turn cannot apply one of your actions, the notification now also says why it was refused (the unit is gone, the world had already changed, or the operation could not be read)
-- Added: when another player has already claimed a target this turn, the move button on that tile is grayed out and names the claimant, so the order is refused before you give it
-- Added: in a simultaneous turn, tiles another player already claimed are marked on the map, so a target that would refuse your order is visible before you give it
-- Fix: when a simultaneous turn cannot apply one of your actions, the notification now names the action (for example "Trade") instead of the internal operation type, and each lost action is reported on its own
-- Fix: when a simultaneous turn's actions cannot be uploaded, the player is now told and can retry, instead of losing them silently
-- Fix: when a simultaneous turn cannot apply an action, the player who issued it is now told, instead of only the player who settled the turn
-- Fix: an escorted swap in a simultaneous turn is now settled from its recorded result instead of being re-derived, so it can no longer turn into a different move
-- Fix: a simultaneous turn now tells you when it could not record part of your turn, instead of silently working around it
-- Fix: a simultaneous turn now also refuses an attack on a target another player already claimed this turn
-- Fix: a simultaneous turn now refuses an order whose target another player already claimed this turn, instead of silently dropping it at settlement
-- Fix: two clients can no longer settle the same simultaneous turn and advance it twice
-- Fix: a simultaneous turn now uploads only the values that changed, not whole civilizations
-- Change: enabling simultaneous turns now disables the game options that conflict with them
-- Fix: trade offers you send, retract or decline are no longer at risk of being lost in a simultaneous turn
-- Fix: locking a tile, claiming a tile and toggling auto-lock no longer risk being lost in a simultaneous turn
-- Fix: actions a simultaneous-turn settlement could not apply are now listed instead of being lost silently
-- Fix: a simultaneous turn no longer stalls forever when a player quits; the host sets how long to wait
-- Change: the keyboard-bindings tutorial now links to the UncivCN repository
-- Fix: actions are no longer silently dropped when a simultaneous-turn upload is too large
-- Fix: simultaneous-turn settlement no longer re-rolls random on-enter events, and a recorded move is no longer dropped when a state snapshot already applied it
-- Fix: actions that simultaneous turns cannot replay yet are now refused with a visible message instead of being lost silently
+- Players can resume voting on a restart after reconnecting.
+- The map marks targets another player has already claimed in the simultaneous turn.
+- Move and attack orders targeting claimed tiles are blocked before submission.
+- The simultaneous-turn report shows each player which of their orders failed and why.
+- Simultaneous turns report actions that could not be recorded or are not yet supported.
+- Players are notified when a simultaneous-turn upload fails and can retry it.
+- Fixed escorted units moving to the wrong tiles when swapping during simultaneous turns.
+- Fixed the game advancing twice when two players settled the same turn.
+- Enabling simultaneous turns disables conflicting game options.
+- Simultaneous-turn settlement preserves sent, withdrawn, and declined trade offers.
+- Simultaneous-turn settlement preserves tile locking, tile claims, and auto-lock.
+- The host can set how long simultaneous turns wait for disconnected players.
+- Simultaneous-turn settlement preserves unit moves and random event outcomes.
+- The keyboard-bindings tutorial now links to the UncivCN repository.
 
 ### Mod author-facing
 
@@ -81,7 +60,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: unit moves and attacks are no longer dropped at simultaneous-turn settlement
 - Change: the simultaneous-turns option is available again, now labeled beta
 - Fix: simultaneous turns now also replay city attacks and catch any state change that was not recorded
-- Fix: a long simultaneous-turn settlement keeps its settlement lock alive instead of being taken over midway
+- Fixed long simultaneous-turn settlements being interrupted.
 - Fix: an action that both moves a unit and changes other state is now replayed completely in simultaneous turns
 - Fix: a unit that leaves a tile is no longer left behind there during simultaneous-turn replay
 - Fix: a conflict between two players in one simultaneous turn no longer discards their other changes
@@ -91,9 +70,6 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: stopping a unit's automation sticks in simultaneous turns
 - Fix: exploring new tiles in a simultaneous turn no longer changes other clients' state and drops their actions
 - Fix: recording a simultaneous-turn state change no longer crashes while reading the previous state
-- Fix: simultaneous turns no longer record a redundant catch-all state snapshot on every turn
-
-### Mod author-facing
 
 ## 4.22.4.3 (build 1265)
 
@@ -130,15 +106,13 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Multiplayer server moved to a new HTTPS address; update the client
 - New terms of service and a rewritten privacy policy; the community services are volunteer-run and not official
 - Community multiplayer servers can now use approved registration, and chat can be turned off
-- Multiplayer server: cold saves are archived to encrypted storage when space runs out, and restored when someone opens them
+- Opening an archived multiplayer save displays a recovery message
 - Update checks and installer downloads now go through the community mirror link, which is faster
-- Merged upstream 4.22.4 (262 commits)
 - Invisible units are no longer invisible to their own civilization
 - New "Known Civilizations" countable
 - Victories can now carry uniques
 - Notable rendering-lag and screen-switching freeze improvements
 - Many spectator and UI crash fixes
-- CN-specific features are unaffected and keep working
 - Completed Chinese translations and Chinese modding docs for the 4.22 additions
 - Multiplayer: the server now accepts save files up to 32MB
 
@@ -151,23 +125,20 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.10.6 (build 1261)
 
-- Release: synchronize generated Lua API documentation
+- Updated the [Lua API reference](/Modders/Lua-API-Reference)
 - Multiplayer: simultaneous-turn submissions accept omitted default fields
 - Multiplayer: fixed clients incorrectly falling back after successful operation uploads
-- Multiplayer: added HTTP polling fallback when operation signals are missed
+- Multiplayer turns can still advance after a notification is missed
 - Fix: in-game update checks now verify CN download server synchronization
 - Multiplayer: simultaneous turns now advance after all players submit
-- Multiplayer: simultaneous-turn submissions now use the dedicated atomic operation store
 
 ## 4.21.10.3 (build 1258)
 
-- Multiplayer: added the experimental simultaneous-turn operation protocol
-- Multiplayer: simultaneous-turn operation files are deduplicated by player and sequence
+- Added experimental simultaneous turns for multiplayer
 - Multiplayer: simultaneous turns now replay unit orders without rerolling combat
 - Multiplayer: fortify, sleep and skip orders are included in simultaneous turns
-- Multiplayer: simultaneous-turn settlement now uses an atomic server lock
-- Multiplayer: expanded simultaneous-turn snapshots to diplomacy popups, events and special unit UI
-- Multiplayer: automated, Lua and triggered unit effects are replayed from result snapshots
+- Simultaneous turns preserve diplomacy popups, events, and special unit actions
+- Simultaneous turns preserve automation, Lua, and triggered unit effects
 - Multiplayer: simultaneous turns now record city production, technology and policy choices
 - Multiplayer: complex unit actions now replay modded state changes
 - Modding: unit-scope variables - attach integer counters to individual units (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
@@ -179,10 +150,6 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Fix: variable purchases charge exact cost, values survive reloads, no AI crashes
 - Modding: variables work in all countable positions and Set triggerables (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
 - Merged upstream: fixed repair with only a pillaged road left, and an ANR when opening the Civilopedia
-- Merged upstream: CN features adapted to the new architecture, behavior unchanged
-- Docs: CoeHarMod changelog moved to the mods section (see [changelog](/Community/Mods/CoeHarMod/changelog/))
-- Docs: upstream changelog replaced by a link at the top of this page
-- Docs: changelog entries limited to 30 words; big changes may be split into multiple entries
 
 ## 4.21.10.2 (build 1257)
 
@@ -221,7 +188,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - Main menu bottom-right buttons: Discord entry replaced by a QQ group link, Baidu Tieba button added, GitHub button points to the CN fork; About page links updated
 - Docs site links adapt to the client language (Chinese clients get the /zh/ section)
 - In-game wiki links point to the CN docs site
-- Code cleanup & bugfixes from a full-project review (dead code removed, city/filter bugs fixed)
+- Fixed issues with city behavior and filters
 
 ## 4.21.7.2 (build 1252)
 
@@ -255,7 +222,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.6.3 (build 1247)
 
-- Fixed Docker build copying stale Unciv.jar name; fixed MSI missing from releases
+- Added the missing Windows MSI installer to the release
 
 ## 4.21.6.2 (build 1246)
 
@@ -270,13 +237,11 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 ## 4.21.5.3 (build 1244)
 
-- Fixed CI test failures (translation template spaces, test mods tracked in repo); deployment notifications cleaned up
-
 ## 4.21.5.2 (build 1243)
 
 - Official VitePress docs site (Chinese full-text search, EN/CN switch)
 - Unique documentation descriptions now available in Chinese
-- Local APK signing, UncivCN artifact names
+- Installers now use the UncivCN name
 
 ## 4.21.5.1 (build 1242)
 
@@ -298,8 +263,6 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 - New: unit/map pins; radius parity restriction lifted; save version isolation; no more starvation when training settlers
 
 ## 4.20.17.1 (2026-07-04)
-
-- Followed a month of upstream updates
 
 ## 4.20.8.4 (2026-05-26)
 
@@ -349,7 +312,6 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 
 **Released**: 2026-05-16
 
-- Synced two months of upstream updates
 - Random-result variability folded into a settings toggle
 
 ## 4.19.16.2

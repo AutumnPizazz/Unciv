@@ -1,45 +1,18 @@
 # CoeHarMod Changelog
 
-## 📌 Version history
-
-::: tip Latest version
-**v3.3.11** - adapted for Unciv 4.21.8.2
-:::
-
 ## Unreleased
 
-- Declared all Variables.json entries as civilization-scope, gameplay unchanged
-- Migrated 8 resource-faked counters (Governor Titles, Diplomatic Favor, Influence, Monk count, etc.) to official variables (see [Variables.json](/Modders/Mod-file-structure/5-Miscellaneous-JSON-files#variables-json))
-- Top-bar variable display is now configurable per variable
-- Adapted recommended game version to 4.21.10.2
+- Top-bar counters can now be configured individually.
+- Updated the recommended game version to 4.21.10.2.
 
 ## v3.3.12 - for 4.21.8.2
 
 - Enabled immediate production overflow: applies on the same turn, finished units can move instantly
-- Cleaned up all green mod-checker entries (166 unused tag declarations removed)
-- Fixed all 38 mod-checker warnings
 
 ## v3.3.11 - for 4.21.8.2
 
-### ⚖️ Maintenance system rework
-
-- Migrated to Civ6-style unit maintenance: fixed upkeep, no inflation
-- Cleaned up redundant Comments and orphan translations left over from the migration
-
-### 📜 National mobilization optimization
-
-- National mobilization subsidy: 80 per-unit repeated uniques merged into one Countable expression + a unit tag, greatly simplifying the ruleset
-
-### 🤖 Lua system rework
-
-- General/admiral auras and era-based AI civics now run on Lua
-- Resource data converted to tables; Lua functions renamed to PascalCase, eliminating LuaLS diagnostics
-
-### 🧹 Cleanup & tooling
-
-- Removed commented-out old rule definitions, 1700+ lines in total
-- GitHub Action no longer publishes Releases: any tag now syncs core files to main
-- Removed the outdated project-memory doc and the python helper tools; gitignore now ignores LuaLS local files
+- Unit upkeep is fixed and no longer rises as the game progresses.
+- New mod versions are no longer distributed through GitHub Releases.
 
 ## v3.3.10 - for 4.19.15
 
@@ -68,52 +41,54 @@
 - Rebel trigger: may spawn rebels when average happiness is below -9 (≤ -10)
 - Fixed negative values in the happiness system not working
 
-### 🔧 Dev tooling
-
-- Improved the GitHub Actions workflow so main only contains core files
-- Added a core-file definition module (whitelist mechanism)
-- Added automatic Release publishing and a local packaging tool
-- Updated release.yml
-- Migrated the docs project, with math formula support
-
 ## v3.3.8 - for 4.19.11
 
-### 🎨 Docs site restructure
-
-- [x] Reorganized the docs directory into original-game section, CoeHarMod section, and other-mods section
+- Added downloadable mod packages on GitHub Releases.
 
 ## v3.3.7 - for 4.19.11
 
-*(Buildings, units and balance adjustments — see the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/) for details.)*
+- Any one governor prerequisite now unlocks the next promotion tier.
+- Stables now cost 80 production, down from 110.
+- Siege units gain 70% combat strength against embarked units.
 
 ## v3.3.6 - for 4.19.10
 
-- *(Balance and bug-fix batch — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- Water mills can be built away from rivers and grant farms in their city +1 production.
+- Fixed the Ancient Districts economic policy applying to the wrong targets.
+- Added an online changelog.
 
 ## v3.3.5 - for 4.19.9
 
-- *(Balance and bug-fix batch — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- On multiplayer speed, research costs 90% of standard and culture costs return to 100%.
+- Luxuries grant 2 base happiness plus 2 per city, up to 8 total.
 
 ## v3.3.4 - for 4.19.9
 
-- *(Balance and bug-fix batch — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- Fixed an issue with Amani's governor buildings.
+- Updated the artwork for most buildings and wonders.
 
 ## v3.3.3 - for 4.19.9
 
-- *(Balance and bug-fix batch — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- On multiplayer speed, science and culture costs are reduced to 80%.
+- Vampires can only be purchased in the capital and have reduced movement and combat strength for three turns after purchase.
 
 ## v3.3.2 - for 4.19.9
 
-- *(Balance and bug-fix batch — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- The Golden Dawn is available only when Secret Societies mode is enabled.
+- Fixed an issue that prevented purchasing governor buildings.
 
 ## v3.3.1 - for 4.19.9
 
-- *(Major update: new content and rebalance — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- Governor promotions are now selected on the policy screen.
+- Korea gains 8% science in cities with a governor and loses 15% in cities without one.
 
 ## v3.3.0 - for 4.19.9
 
-- *(Major update — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- Secret Societies moved from capital buildings to the policy screen.
+- Fixed Jesuit Education charging a fixed price for buildings.
 
 ## v3.2.x series (for 4.19.8/4.19.9)
 
-- *(Balance and bug-fix batches — details in the [Chinese changelog](/zh/Community/Mods/CoeHarMod/更新日志/).)*
+- v3.2.10 increased base city health from 200 to 400.
+- v3.2.7 fixed traders failing to use a trade route slot.
+- v3.2.6 fixed missing housing, district, and trade route capacity indicators.
