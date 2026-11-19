@@ -7,6 +7,8 @@ outline: [2, 2]
 
 ## Unreleased
 
+## 5.0.1.2 (build 1268)
+
 ### Player-facing
 
 - The terms and privacy policy no longer list downloads as a community service.
