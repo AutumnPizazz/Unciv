@@ -38,16 +38,17 @@ import java.util.concurrent.Executors
  * `WorldScreen.finishSimultaneousTurn` does (download ops -> replay -> `nextTurnPolling` -> upload
  * the new save). Both clients then re-download and must see identical state.
  *
- * Everything the run produces is written under a single directory (default `playtest-sim/`), so it
- * can be inspected, reused, or deleted as one unit:
+ * A direct test run writes to `playtest-sim/` by default; `playtest-sim/run.sh` redirects output to a
+ * temporary `.local/playtest-sim.*` directory:
  *   playtest-sim/
- *     server/           in-process server dump (files/, operations/)
+ *     server/           embedded server dump, or Go server data and logs in real mode
  *     clients/clientA/  uploaded ops, downloaded saves and state dumps per turn
  *     clients/clientB/
  *     logs/report.md    human-readable transcript of the whole run
  *     logs/simulation.log
  *
- * Run it with `playtest-sim/run.sh` (which also boots the real Node server), or directly:
+ * Run it with `playtest-sim/run.sh` (embedded HTTP server by default; `real` mode requires an
+ * authorized local `server-go/` copy), or directly:
  * `./gradlew :tests:test --tests "com.unciv.logic.multiplayer.SimultaneousTurnPlaytestSimulation"`.
  * Without `playtest-sim/config.properties` (or `-Dplaytest.sim.enabled=true`) the test is skipped so
  * it never slows down the normal suite.

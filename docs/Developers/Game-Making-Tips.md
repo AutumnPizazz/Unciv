@@ -72,7 +72,7 @@ Same think with new players - getting the game up and running should be AS SIMPL
 
 This includes:
 
--   Source-To-Executable automation - I use Travis
+-   CI automation for building and testing
 -   Play stores and the like
 -   Internal game tutorials - your players will NEVER BE SATISFIED with this last point, but at least do what you candidate
 

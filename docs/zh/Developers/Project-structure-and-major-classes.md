@@ -37,4 +37,6 @@ Android 端配置、权限、启动器。
 
 ## 核心类
 
-详见 [Unciv 项目文档](https://yairm210.github.io/Unciv/Developers/Project-structure-and-major-classes/)。
+序列化状态以 `GameInfo` 为根，包含玩家 `Civilization`、城市 `City` 和地图 `TileMap`（地块实体为 `Tile`）；`Ruleset` 从资源文件加载，不属于存档状态。主要界面是 `WorldScreen` 和 `CityScreen`。
+
+详见[项目结构与主要类](../../Developers/Project-structure-and-major-classes.md)。

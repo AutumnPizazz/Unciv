@@ -10,7 +10,7 @@ The process has two major parts, one is "Getting your code in the main repositor
 
 -   First off, push your changes with Git to your own branch at https://github.com/YourUsername/Unciv.git. I hope you've been doing this during development too, but that's none of my business \*sips tea\*
 -   Issue a pull request from https://github.com/YourUsername/Unciv - from the Pull Requests is the simplest
--   The Travis build will check that your proposed change builds properly and passes all tests
+-   GitHub Actions will check that your proposed change builds properly and passes all tests
 -   I'll go over your pull request and will ask questions and request changes - this is not only for code quality and standard, it's mostly so you can learn how the repo works for the next change you make =)
 -   When everything looks good, I'll merge your code in and it'll enter the next release!
 

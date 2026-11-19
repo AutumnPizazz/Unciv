@@ -30,7 +30,7 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 
 | 模块 | 职责 |
 |---|---|
-| `core/` | 99% 的游戏代码：逻辑、模型、UI、序列化、规则集。纯 Kotlin，不依赖平台 |
+| `core/` | 游戏代码主体：逻辑、模型、UI、序列化、规则集。纯 Kotlin，不依赖平台 |
 | `desktop/` | 桌面启动器与平台功能（JNA 通知、Discord RPC） |
 | `android/` | Android 启动器；`android/assets/` 为各平台共享资源（图片、JSON、翻译） |
 | `tests/` | JUnit 4 + Mockito 单元测试 |
@@ -40,14 +40,14 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 | 包 | 用途 |
 |---|---|
 | `models/ruleset/` | 规则集类：Nation、Building、BaseUnit、Technology、Policy 等 |
-| `logic/civilization/` | CivilizationInfo 及各管理器（科技/政策/外交） |
-| `logic/city/` | CityInfo、城市建造/产出/人口 |
-| `logic/map/` | TileMap、TileInfo、寻路（BFS、AStar） |
+| `logic/civilization/` | Civilization 及各管理器（科技/政策/外交） |
+| `logic/city/` | City、城市建造/产出/人口 |
+| `logic/map/` | TileMap、Tile、寻路（BFS、AStar） |
 | `logic/map/mapunit/` | 地图上的单位实例 |
 | `logic/battle/` | 战斗结算 |
 | `logic/automation/` | AI 与自动化逻辑（工人自动化、下一回合流程） |
 | `logic/trade/` | 贸易路线与交易 |
-| `ui/screens/wordlscreen/` | 主游戏界面（大部分游玩时间所在） |
+| `ui/screens/worldscreen/` | 主游戏界面（大部分游玩时间所在） |
 | `ui/screens/cityscreen/` | 城市管理界面 |
 | `ui/screens/pickerscreens/` | 科技/政策/晋升选择界面 |
 | `ui/popups/` | 模态弹窗 |
@@ -57,9 +57,9 @@ java -jar detekt-cli.jar --parallel --report html:detekt/reports.html \
 
 ## 三、游戏状态与回合流程
 
-`GameInfo` 是序列化根节点：内含 `List<CivilizationInfo>`（玩家，各有 `List<CityInfo>`）、`TileMap`（`List<TileInfo>`，可含 `MapUnit`）、`RuleSet`（**不序列化**，从 `android/assets/jsons/` 加载）。每个状态对象持有 `@Transient` 父引用，树可双向遍历。
+`GameInfo` 是序列化根节点：内含 `List<Civilization>`（玩家，各有 `City` 列表）、`TileMap`（含 `Tile` 与 `MapUnit`）和 `Ruleset`（**不序列化**，从 `android/assets/jsons/` 加载）。许多状态对象通过 `@Transient` 引用关联对象，加载或克隆后会恢复这些引用。
 
-每回合**先克隆 GameInfo 再在新副本上处理**——保证 UI 线程安全与多人联机确定性（整包收发状态）。
+顺序和轮询回合由 `WorldScreen` 克隆 `GameInfo`，再在后台线程处理新状态，使界面仍可读取当前状态。同时回合则从回合起点存档重放已记录操作；克隆本身不保证联机确定性。
 
 序列化细节见 [Saved-games-and-transients](../Developers/Saved-games-and-transients)。
 
@@ -84,9 +84,7 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 3. **同名参数编号化**：unique 标题中重复参数按 `[amount] [amount]` → `[amount]-[amount2]`
    编号显示（与翻译模板 `getTranslatable()` 一致），读者可区分；示例行仍用原始文本
    （可直接复制进模组 JSON）。
-4. **自动生成文档只许改生成器源码**：改完运行 `./gradlew desktop:generateDocs`，
-   严禁人工编辑产物。
-5. **参数表多行说明**：docDescription 含换行时会撑破 markdown 表格，生成器已将其
+4. **参数表多行说明**：docDescription 含换行时会撑破 markdown 表格，生成器已将其
    替换为 `<br>`，手工维护表格时同样处理。
 
 ## 五、自动生成文档清单

@@ -2,11 +2,11 @@
 
 Since LibGDX, and therefore Unciv, are built for multi-platform support, the project structure is built accordingly.
 
-99% of the code is in the [core](https://github.com/yairm210/Unciv/tree/master/core) project, which contains all the platform-independent code.
+Most game logic is in the [core](https://github.com/yairm210/Unciv/tree/master/core) project, which contains platform-independent code.
 
 The [desktop](https://github.com/yairm210/Unciv/tree/master/desktop) and [android](https://github.com/yairm210/Unciv/tree/master/android) folders contain platform-specific things, and the Android folder also contains the game Images and the all-important Assets, which are required for running from Desktop as well, so we bundle them up into the .jar file when releasing.
 
-The [tests](https://github.com/yairm210/Unciv/tree/master/tests) folder contains tests that can be run manually via gradle with `./gradlew tests:test`, and are run automatically by Travis for every push.
+The [tests](https://github.com/yairm210/Unciv/tree/master/tests) folder contains tests that can be run with `./gradlew :tests:test`; GitHub Actions runs the build and tests for pushes and pull requests.
 
 The Go multiplayer server is maintained separately as a closed-source project.
 
@@ -21,17 +21,17 @@ Civ, and therefore Unciv, is a game with endless interconnectivity - everything 
 
 In order to have some semblance of order, we'll go over the main classes in the order in which they are serialized.
 
-So yes, you can - for instance - get the center tile of a city, a TileInfo, directly from CityInfo. But delving into all the connections would only harm the point of this overview, that's what the actual code is for ;)
+So yes, you can - for instance - get the center tile of a city, a `Tile`, directly from `City`. But delving into all the connections would only harm the point of this overview; that's what the actual code is for ;)
 
 The Game State:
 
 -   GameInfo
-    -   CivilizationInfo
-        -   CityInfo
+    -   Civilization
+        -   City
     -   TileMap
-        -   TileInfo
+        -   Tile
             -   MapUnit
-    -   RuleSet (unique in that it is not part of the game state)
+    -   Ruleset (unique in that it is not part of the game state)
 
 The UI:
 
@@ -52,40 +52,40 @@ That is, The Game is the *currently played* game, not *Unciv*.
 
 The game contains three major parts:
 
--   The list of the players, or civilizations - `List<CivilizationInfo>`
+-   The list of the players, or civilizations - `List<Civilization>`
 -   The map upon which the game is played - `TileMap`
--   The ruleset by which the game is played - `RuleSet`. This includes what technologies, buildings, units etc. are available, and IS NOT serialized and deserialized, but comes straight from the game files - more on that later.
+-   The ruleset by which the game is played - `Ruleset`. This includes what technologies, buildings, units etc. are available, and IS NOT serialized and deserialized, but comes straight from the game files - more on that later.
 -   Parameters unique to this game - difficulty, game speed, victory conditions, etc.
 
 When we save the game, or load the game, we're actually serializing and deserializing this class, which means that the this class is the root of the entire game state.
 
-Most objects in the "state tree" have a transient reference to their parent, meaning the tree can be traversed in-code in all directions, and frequently is.
+Many objects in the state tree have transient references to their owning objects. These links are rebuilt after loading or cloning and let code navigate between related game objects.
 
-### A Civilization - `CivilizationInfo`
+### A Civilization - `Civilization`
 
 This represents one of the players of the game, and NOT a specific nation - meaning, not France, but rather "Player X who is France in this game". In another game, there will be another France.
 
 As one of the focal points of the game, it contains a lot of important information, the most important of which are:
 
--   The list of cities the civilization has - `List<CityInfo>`
+-   The list of cities the civilization has - `List<City>`
 -   Which nation this is - references a certain Nation (part of the ruleset)
--   Various Managers for the different aspects of the civilization - `PolicyManager`, `GoldenAgeManager`, `GreatPersonManager`, `TechManager`, `VictoryManager`, `DiplomacyManager`
+-   Managers for the different aspects of the civilization - `policies`, `goldenAges`, `greatPeople`, `tech`, `victoryManager`, and the `diplomacy` map
 
-### A City - `CityInfo`
+### A City - `City`
 
 This contains the information about a specific city.
 
 Beyond basic information like name, location on map etc, the most important classes it contains are:
 
 -   Calculating the yield of the city - `CityStats`
--   Managers for the various aspects - `PopulationManager`, `CityConstructions`, `CityExpansionManager`
--   The tiles controlled and worked by the city - only their locations are permanently saved in the CityInfo, the actual information is in the TileInfo in the TileMap
+-   Managers for the various aspects - `CityPopulationManager`, `CityConstructions`, `CityExpansionManager`
+-   The tiles controlled and worked by the city - only their coordinates are saved in `City`; the tile data itself is in `TileMap`
 
 ### The map - `TileMap`
 
 This contains mostly helper functions and acts as a wrapper for the list of tiles it contains
 
-### A tile - `TileInfo`
+### A tile - `Tile`
 
 Each tile is comprised of several layers, and so has information for each.
 
@@ -119,15 +119,15 @@ Each class in the game state that saves one of these will reference it by name, 
 
 The various objects are:
 
--   `Technology` - referenced mainly in `CivilizationInfo.TechManager`
--   `Nations` - referenced mainly in `CivilizationInfo`
--   `Policy` - referenced mainly in `CivilizationInfo.PolicyManager` (seeing a pattern here?)
--   `Building` - referenced mainly in `CityInfo.ConstructionManager`
+-   `Technology` - referenced mainly in `Civilization.tech`
+-   `Nations` - referenced mainly in `Civilization`
+-   `Policy` - referenced mainly in `Civilization.policies` (seeing a pattern here?)
+-   `Building` - referenced mainly in `City.cityConstructions`
 -   `BaseUnit` - referenced mainly in `MapUnit`
 -   `Promotion` - referenced mainly in `MapUnit`
--   `Terrain` - referenced mainly in `TileInfo`
--   `TileResource` - referenced mainly in `TileInfo`
--   `TileImprovement` - referenced mainly in `TileInfo`
+-   `Terrain` - referenced mainly in `Tile`
+-   `TileResource` - referenced mainly in `Tile`
+-   `TileImprovement` - referenced mainly in `Tile`
 
 There are also Translations in the Ruleset, but they technically have nothing to do with the game state but rather with the UI display.
 
@@ -159,7 +159,7 @@ This is the main hub of the game, with all other screens being opened from it, a
 
 Most notable are:
 
--   The map itself - a `TileMapHolder` - with each of the rendered tiles being a `TileGroup`
+-   The map itself - a `WorldMapHolder` - with each of the rendered tiles being a `TileGroup`
 -   The information panels - `WorldScreenTopBar` for stats and resources, `UnitTable` for the currently selected unit, `TileInfoTable` or the currently selected tile, `BattleTable` for battle simulation, and `NotificationsScroll` for the notifications
 -   The minimap - `MinimapHolder`
 -   Buttons linking to other screens - to the `TechPickerScreen`, `EmpireOverviewScreen`, and `PolicyPickerScreen`
@@ -171,18 +171,10 @@ The second-most important screen.
 
 Notable parts:
 
--   the City Stats table - should definitely be its own class come to think of it
--   The construction list and current construction (bottom left) - `ConstructionsTable`
--   Existing buildings, specialists and stats drilldown - `CityInfoTable`
+-   The city stats table - `CityStatsTable`
+-   The construction list and current construction (bottom left) - `CityConstructionsTable`
+-   Existing buildings, specialists and stats drilldown - `ConstructionInfoTable` and related city tables
 
 ## Others
 
-A few words need to be said about the NextTurn process, but there isn't really a good place for it so I'll put it here.
-
-We clone the GameInfo and use a "new" GameInfo for each turn because of 2 reasons.
-
-The first is multithreading and thread safety, and the second is multiplayer reproducibility.
-
-The first point is pretty basic. The NextTurn needs to happen in a separate thread so that the user can still have a responsive game when it's off doing stuff. Stuff in the GameInfo changes on NextTurn, so if you're rendering that same GameInfo, this could cause conflicts. Also, after NextTurn we generally autosave, and if stuff changes in the state while we're trying to serialize it to put it in the save file, that's Not Fun. A single clone solves both of these problems at once.
-
-The second point is less obvious. If we use our mutable state, changing stuff in place, then what happens when we're playing in Multiplayer? Multiplayer is based upon the fact that you can receive an entire game state and go from there, and in fact the move to multiplayer was what made the whole "clone" thing necessary (on the way it also solved the aforementioned threading problems)
+The `WorldScreen` clones `GameInfo` before processing sequential and polling turns on a background thread, so the UI can continue displaying the current state while the next state is computed. Polling multiplayer uploads the resulting save. Simultaneous multiplayer follows a different flow: clients submit recorded operations, and settlement replays them on the turn-start save. Cloning alone does not guarantee thread safety or deterministic results; transient links must be restored, and simultaneous actions must be replayable.

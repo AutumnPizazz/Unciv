@@ -26,7 +26,7 @@ For a from-scratch setup (environment, IDE configuration) see [Building-Locally]
 
 | Module | Responsibility |
 |---|---|
-| `core/` | 99% of the game code: logic, models, UI, serialization, ruleset. Pure Kotlin, no platform dependencies |
+| `core/` | Most game code: logic, models, UI, serialization, ruleset. Pure Kotlin, no platform dependencies |
 | `desktop/` | Desktop launcher and platform features (JNA notifications, Discord RPC) |
 | `android/` | Android launcher; `android/assets/` holds the shared assets for all platforms (images, JSON, translations) |
 | `tests/` | JUnit 4 + Mockito unit tests |
@@ -36,14 +36,14 @@ Key packages (`core/src/com/unciv/`):
 | Package | Purpose |
 |---|---|
 | `models/ruleset/` | Ruleset classes: Nation, Building, BaseUnit, Technology, Policy, etc. |
-| `logic/civilization/` | CivilizationInfo and its managers (tech / policy / diplomacy) |
-| `logic/city/` | CityInfo, city production / yields / population |
-| `logic/map/` | TileMap, TileInfo, pathfinding (BFS, AStar) |
+| `logic/civilization/` | Civilization and its managers (tech / policy / diplomacy) |
+| `logic/city/` | City, city production / yields / population |
+| `logic/map/` | TileMap, Tile, pathfinding (BFS, AStar) |
 | `logic/map/mapunit/` | Unit instances on the map |
 | `logic/battle/` | Combat resolution |
 | `logic/automation/` | AI and automation logic (worker automation, next-turn flow) |
 | `logic/trade/` | Trade routes and trade deals |
-| `ui/screens/wordlscreen/` | Main game screen (where most play time is spent) |
+| `ui/screens/worldscreen/` | Main game screen (where most play time is spent) |
 | `ui/screens/cityscreen/` | City management screen |
 | `ui/screens/pickerscreens/` | Tech / policy / promotion picker screens |
 | `ui/popups/` | Modal popups |
@@ -53,9 +53,9 @@ For a detailed class overview see [Project-structure-and-major-classes](../Devel
 
 ## 3. Game state & turn flow
 
-`GameInfo` is the serialization root: it contains `List<CivilizationInfo>` (players, each with a `List<CityInfo>`), a `TileMap` (`List<TileInfo>`, which may hold `MapUnit`s) and a `RuleSet` (**not serialized** — loaded from `android/assets/jsons/`). Every state object holds a `@Transient` parent reference, so the tree is traversable in both directions.
+`GameInfo` is the serialization root: it contains `List<Civilization>` (players, each with a list of `City`s), a `TileMap` (containing `Tile`s and `MapUnit`s) and a `Ruleset` (**not serialized** — loaded from `android/assets/jsons/`). Many state objects hold `@Transient` references to related objects; these are restored after loading or cloning.
 
-Every turn the `GameInfo` is **cloned first and processed on the new copy** — this guarantees UI-thread safety and deterministic multiplayer (state is sent and received as whole packages).
+For sequential and polling turns, `WorldScreen` clones `GameInfo` before processing the new state on a background thread, leaving the displayed state available to the UI. Simultaneous turns instead replay recorded operations on the turn-start save; cloning alone does not guarantee deterministic multiplayer.
 
 Serialization details: see [Saved-games-and-transients](../Developers/Saved-games-and-transients).
 
@@ -75,8 +75,7 @@ The UncivCN doc site (`docs-vitepress/`) uses VitePress (mkdocs was dropped: no 
 1. **Never indent container content**: 4 spaces / tabs inside a VitePress container are parsed as a code block (`<pre>`), which does not wrap and pushes long paragraphs off-screen. Applies to generator output and hand-written docs alike.
 2. **Never translate JSON literals**: unique texts, parameter names, Countables texts/examples must stay in English — the game matches them verbatim against `UniqueType.uniqueTypeMap`; a translated literal simply won't work, and modders copying from the docs would be misled.
 3. **Number repeated parameters**: in unique headings, repeated parameters are shown numbered (`[amount] [amount]` → `[amount]-[amount2]`, matching the translation template's `getTranslatable()`), so readers can tell them apart; example lines still use the raw text (directly copyable into mod JSON).
-4. **Auto-generated docs are edited only through generator source**: change the generator, then run `./gradlew desktop:generateDocs`; never hand-edit its output.
-5. **Multi-line table cells**: docDescriptions containing newlines break markdown tables; the generator replaces them with `<br>` — do the same when maintaining tables by hand.
+4. **Multi-line table cells**: docDescriptions containing newlines break markdown tables; the generator replaces them with `<br>` — do the same when maintaining tables by hand.
 
 ## 5. Auto-generated documents
 
