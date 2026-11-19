@@ -557,3 +557,74 @@ html {
 .vp-doc summary {
   user-select: text;
 }
+
+/* Unique 参考页的版本号和卡片角标 */
+.vp-doc .unique-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 3px solid var(--vp-c-brand-1);
+}
+
+.vp-doc .unique-page-header h1 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  letter-spacing: 0;
+}
+
+.unique-page-version {
+  order: 1;
+  padding-top: 2px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 550px) {
+  .vp-doc .unique-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .unique-page-version {
+    order: -1;
+    align-self: flex-end;
+  }
+}
+
+.vp-doc .unique-page-header + h2 {
+  margin-top: 24px;
+}
+
+.vp-doc .cn-unique {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.vp-doc .cn-unique > details {
+  margin: 0;
+}
+
+.cn-unique-marker {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 10px;
+  z-index: 1;
+  color: var(--vp-c-brand-2);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 12px;
+  user-select: none;
+}
+
+.dark .cn-unique-marker {
+  color: var(--vp-c-brand-1);
+}

@@ -1,7 +1,6 @@
+::: unique-page-header Current version: 5.0.1.2
 # Uniques
-An overview of uniques can be found [here](../Developers/Uniques.md)
-
-Simple unique parameters are explained by mouseover. Complex parameters are explained in [Unique parameter types](Unique-parameters.md)
+:::
 
 ## Triggerable uniques
 ::: note
@@ -73,7 +72,7 @@ Example: "Empire enters a [3]-turn Golden Age"
 Applicable to: Triggerable
 
 :::
-::: details End a golden age
+::: details-cn End a golden age
 Applicable to: Triggerable
 
 :::
@@ -175,19 +174,19 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [cityVariableName] [cityFilter]
+::: details-cn Instantly provides [positiveAmount] [cityVariableName] [cityFilter]
 Example: "Instantly provides [3] [Loyalty] [in all cities]"
 
 Applicable to: Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [cityVariableName] [cityFilter]
+::: details-cn Instantly consumes [positiveAmount] [cityVariableName] [cityFilter]
 Example: "Instantly consumes [3] [Loyalty] [in all cities]"
 
 Applicable to: Triggerable
 
 :::
-::: details Set [cityVariableName] to [countable] [cityFilter]
+::: details-cn Set [cityVariableName] to [countable] [cityFilter]
 Example: "Set [Loyalty] to [1000] [in all cities]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -195,7 +194,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly gain [amount] [cityVariableName] [cityFilter]
+::: details-cn Instantly gain [amount] [cityVariableName] [cityFilter]
 Example: "Instantly gain [3] [Loyalty] [in all cities]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -203,19 +202,19 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]
+::: details-cn Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]
 Example: "Instantly provides [3] [Mana] on [Wounded]"
 
 Applicable to: Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]
+::: details-cn Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]
 Example: "Instantly consumes [3] [Mana] on [Wounded]"
 
 Applicable to: Triggerable
 
 :::
-::: details Set [unitVariableName] to [countable] on [mapUnitFilter]
+::: details-cn Set [unitVariableName] to [countable] on [mapUnitFilter]
 Example: "Set [Mana] to [1000] on [Wounded]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -223,7 +222,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly gain [amount] [unitVariableName] on [mapUnitFilter]
+::: details-cn Instantly gain [amount] [unitVariableName] on [mapUnitFilter]
 Example: "Instantly gain [3] [Mana] on [Wounded]"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -231,19 +230,19 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [globalVariableName] globally
+::: details-cn Instantly provides [positiveAmount] [globalVariableName] globally
 Example: "Instantly provides [3] [WorldTension] globally"
 
 Applicable to: Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [globalVariableName] globally
+::: details-cn Instantly consumes [positiveAmount] [globalVariableName] globally
 Example: "Instantly consumes [3] [WorldTension] globally"
 
 Applicable to: Triggerable
 
 :::
-::: details Set [globalVariableName] to [countable] globally
+::: details-cn Set [globalVariableName] to [countable] globally
 Example: "Set [WorldTension] to [1000] globally"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -251,7 +250,7 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Triggerable
 
 :::
-::: details Instantly gain [amount] [globalVariableName] globally
+::: details-cn Instantly gain [amount] [globalVariableName] globally
 Example: "Instantly gain [3] [WorldTension] globally"
 
 This unique's effect can be modified with &lt;(modified by game speed)&gt;
@@ -297,7 +296,7 @@ Example: "Gain control over [Farm] tiles in a [3]-tile radius"
 Applicable to: Triggerable
 
 :::
-::: details Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
+::: details-cn Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
 The affected tiles must belong to the triggering civilization; city centers are never affected
 
 Example: "Lose control over [Farm] tiles in a [3]-tile radius"
@@ -311,7 +310,7 @@ Example: "Gain control over [3] tiles [in all cities]"
 Applicable to: Triggerable
 
 :::
-::: details Lose control over [positiveAmount] tiles [cityFilter]
+::: details-cn Lose control over [positiveAmount] tiles [cityFilter]
 The affected tiles must belong to the triggering civilization; city centers can never be lost. Tiles are lost in reverse order of acquisition, so the most recently acquired tiles go first
 
 Example: "Lose control over [3] tiles [in all cities]"
@@ -325,7 +324,7 @@ Example: "Reveal up to [3] [Farm] within a [3] tile radius"
 Applicable to: Triggerable
 
 :::
-::: details Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
+::: details-cn Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
 Un-explores the affected tiles. Tiles currently visible to the triggering civilization (e.g. in the sight range of its units or cities) become visible again on the next update, so hiding only persists for tiles that are out of sight
 
 Example: "Hide up to [3] [Farm] within a [3] tile radius"
@@ -355,7 +354,7 @@ Applicable to: Triggerable
 Applicable to: Triggerable
 
 :::
-::: details Lose a spy
+::: details-cn Lose a spy
 Removes one spy, preferring one that is not currently on a mission
 
 Applicable to: Triggerable
@@ -411,7 +410,7 @@ Example: "Triggers a [Inspiration] event"
 Applicable to: Triggerable
 
 :::
-::: details Trigger the function [luaFunction] with [comment]
+::: details-cn Trigger the function [luaFunction] with [comment]
 Example: "Trigger the function [myMod:myFunction] with [comment]"
 
 Applicable to: Triggerable
@@ -1451,7 +1450,7 @@ Example: "[+20] Strength"
 Applicable to: Global, Unit
 
 :::
-::: details [relativeAmount] Max HP
+::: details-cn [relativeAmount] Max HP
 Negative amounts are allowed; a resulting Max HP of 0 or less is reset to 1. Only plain or "for [mapUnitFilter] units"-conditional uniques count: other conditionals are ignored so that Max HP stays constant.
 
 Example: "[+20] Max HP"
@@ -1473,7 +1472,7 @@ Example: "[+20]% to Flank Attack bonuses"
 Applicable to: Global, Unit
 
 :::
-::: details Combat strength is modified by [luaFunction]
+::: details-cn Combat strength is modified by [luaFunction]
 The [luaFunction] receives the current combat strength via `ctx.value` and must return the new value (returning nil leaves it unchanged). Runs as a pure query on the combat hot path - keep it fast and side-effect-free.
 
 Example: "Combat strength is modified by [myMod:myFunction]"
@@ -1481,7 +1480,7 @@ Example: "Combat strength is modified by [myMod:myFunction]"
 Applicable to: Global, Unit
 
 :::
-::: details Combat damage dealt is modified by [luaFunction]
+::: details-cn Combat damage dealt is modified by [luaFunction]
 The [luaFunction] receives the current damage via `ctx.value` and must return the new value (returning nil leaves it unchanged).
 
 Example: "Combat damage dealt is modified by [myMod:myFunction]"
@@ -1489,7 +1488,7 @@ Example: "Combat damage dealt is modified by [myMod:myFunction]"
 Applicable to: Global, Unit
 
 :::
-::: details Combat damage received is modified by [luaFunction]
+::: details-cn Combat damage received is modified by [luaFunction]
 The [luaFunction] receives the current incoming damage via `ctx.value` and must return the new value (returning nil leaves it unchanged). Applied after the attacker's damage modifier.
 
 Example: "Combat damage received is modified by [myMod:myFunction]"
@@ -1497,7 +1496,7 @@ Example: "Combat damage received is modified by [myMod:myFunction]"
 Applicable to: Global, Unit
 
 :::
-::: details Tile yield is modified by [luaFunction]
+::: details-cn Tile yield is modified by [luaFunction]
 The [luaFunction] receives the engine-computed tile yield as `ctx.tileStats` (a table like `{food=2, production=1, gold=1}`) and may return a table with the new yields - stats present in the returned table override the engine values, stats absent keep them. Returning nil leaves the yield unchanged. Runs on every tile yield calculation - keep it fast and side-effect-free.
 
 Example: "Tile yield is modified by [myMod:myFunction]"
@@ -1611,7 +1610,7 @@ Example: "[+20]% maintenance costs"
 Applicable to: Global, Unit
 
 :::
-::: details Reduces unit maintenance by [amount] Gold
+::: details-cn Reduces unit maintenance by [amount] Gold
 Flat per-unit gold reduction, applied after percentage discounts. Only takes effect in the Civilization 6 style maintenance system (see 'Uses the Civilization 6 style unit maintenance system'). Combine with unit filters like &lt;for [Military] units&gt; to discount only certain units.
 
 Example: "Reduces unit maintenance by [3] Gold"
@@ -2479,7 +2478,7 @@ This unique does not support conditionals.
 Applicable to: Building
 
 :::
-::: details Hidden from city screen
+::: details-cn Hidden from city screen
 This building is hidden from the city details screen after construction. All stats continue to apply normally.
 
 This unique is automatically hidden from users.
@@ -2487,7 +2486,7 @@ This unique is automatically hidden from users.
 Applicable to: Building
 
 :::
-::: details Can be built [amount] times in each city
+::: details-cn Can be built [amount] times in each city
 Allows this building to be constructed multiple times in the same city. Using -1 allows unlimited times.
 
 Example: "Can be built [3] times in each city"
@@ -2805,7 +2804,7 @@ Example: "[+20] Strength"
 Applicable to: Global, Unit
 
 :::
-::: details [relativeAmount] Max HP
+::: details-cn [relativeAmount] Max HP
 Negative amounts are allowed; a resulting Max HP of 0 or less is reset to 1. Only plain or "for [mapUnitFilter] units"-conditional uniques count: other conditionals are ignored so that Max HP stays constant.
 
 Example: "[+20] Max HP"
@@ -2839,7 +2838,7 @@ Example: "[+20]% Strength bonus for [Wounded] units within [3] tiles"
 Applicable to: Unit
 
 :::
-::: details Combat strength is modified by [luaFunction]
+::: details-cn Combat strength is modified by [luaFunction]
 The [luaFunction] receives the current combat strength via `ctx.value` and must return the new value (returning nil leaves it unchanged). Runs as a pure query on the combat hot path - keep it fast and side-effect-free.
 
 Example: "Combat strength is modified by [myMod:myFunction]"
@@ -2847,7 +2846,7 @@ Example: "Combat strength is modified by [myMod:myFunction]"
 Applicable to: Global, Unit
 
 :::
-::: details Combat damage dealt is modified by [luaFunction]
+::: details-cn Combat damage dealt is modified by [luaFunction]
 The [luaFunction] receives the current damage via `ctx.value` and must return the new value (returning nil leaves it unchanged).
 
 Example: "Combat damage dealt is modified by [myMod:myFunction]"
@@ -2855,7 +2854,7 @@ Example: "Combat damage dealt is modified by [myMod:myFunction]"
 Applicable to: Global, Unit
 
 :::
-::: details Combat damage received is modified by [luaFunction]
+::: details-cn Combat damage received is modified by [luaFunction]
 The [luaFunction] receives the current incoming damage via `ctx.value` and must return the new value (returning nil leaves it unchanged). Applied after the attacker's damage modifier.
 
 Example: "Combat damage received is modified by [myMod:myFunction]"
@@ -2971,7 +2970,7 @@ Example: "Nuclear weapon of Strength [3]"
 Applicable to: Unit
 
 :::
-::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles
+::: details-cn Attacks also target [mapUnitFilter] units within [positiveAmount] tiles
 Performs an attack against every unit that matches the filter inside the radius including allied units or own units if not filtered out, dealing equal damage. Status effects and on-hit abilities apply to all affected units.
 
 If both this and decreasing area attacks are present, only decreasing area attacks will be used.
@@ -2981,7 +2980,7 @@ Example: "Attacks also target [Wounded] units within [3] tiles"
 Applicable to: Unit
 
 :::
-::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance
+::: details-cn Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance
 Performs an attack against every unit that matches the filter inside the radius with the damage decreasing with distance from the main target. Status effects and on-hit abilities apply.
 
 If both this and equal area attacks are present, only this will be used, also affects counter damage and damage from own area attacks.
@@ -2993,7 +2992,7 @@ Example: "Attacks also target [Wounded] units within [3] tiles, with damage decr
 Applicable to: Unit
 
 :::
-::: details Takes [relativeAmount]% damage from own area attacks
+::: details-cn Takes [relativeAmount]% damage from own area attacks
 This unit takes damage from its own area attacks when it is in range, 100 = 100% damage.
 
 Example: "Takes [+20]% damage from own area attacks"
@@ -3001,7 +3000,7 @@ Example: "Takes [+20]% damage from own area attacks"
 Applicable to: Unit
 
 :::
-::: details Takes [relativeAmount]% counter damage from each unit hit by its area attacks
+::: details-cn Takes [relativeAmount]% counter damage from each unit hit by its area attacks
 Only works for melee units, 100 = 100% damage, negative values work but are taken as positive.
 
 Example: "Takes [+20]% counter damage from each unit hit by its area attacks"
@@ -3387,13 +3386,13 @@ Example: "Is part of Great Person group [comment]"
 Applicable to: Unit
 
 :::
-::: details [amount] [unitVariableName] per turn
+::: details-cn [amount] [unitVariableName] per turn
 Example: "[3] [Mana] per turn"
 
 Applicable to: Unit
 
 :::
-::: details [relativeAmount]% [unitVariableName] per turn
+::: details-cn [relativeAmount]% [unitVariableName] per turn
 Example: "[+20]% [Mana] per turn"
 
 Applicable to: Unit
@@ -3508,7 +3507,7 @@ Example: "[+1 Gold, +2 Production]"
 Applicable to: Global, Terrain, Improvement
 
 :::
-::: details Tile yield is modified by [luaFunction]
+::: details-cn Tile yield is modified by [luaFunction]
 The [luaFunction] receives the engine-computed tile yield as `ctx.tileStats` (a table like `{food=2, production=1, gold=1}`) and may return a table with the new yields - stats present in the returned table override the engine values, stats absent keep them. Returning nil leaves the yield unchanged. Runs on every tile yield calculation - keep it fast and side-effect-free.
 
 Example: "Tile yield is modified by [myMod:myFunction]"
@@ -4357,7 +4356,7 @@ Applicable to: Nation, CityState
 
 :::
 ## ModOptions uniques
-::: details Uses the Civilization 6 style unit maintenance system
+::: details-cn Uses the Civilization 6 style unit maintenance system
 Opt-in for rulesets (put it in ModOptions.json uniques). Enables per-unit fixed maintenance costs from the Units.json 'maintenanceCost' field, the configurable 'unitMaintenanceBaseCost' constant, flat Gold reductions (see 'Reduces unit maintenance by [amount] Gold'), and removes the game-progress maintenance inflation and the 3 default free units.
 
 This unique does not support conditionals.
@@ -4417,13 +4416,13 @@ This unique does not support conditionals.
 Applicable to: ModOptions
 
 :::
-::: details Allow cities to claim tiles
+::: details-cn Allow cities to claim tiles
 This unique does not support conditionals.
 
 Applicable to: ModOptions
 
 :::
-::: details Production overflow applies immediately to the next construction
+::: details-cn Production overflow applies immediately to the next construction
 Production overflow is not capped, does not receive the completed construction's production bonuses, is applied to the next construction in the queue on the same turn (receiving that construction's production bonuses, chaining through the queue as needed), and units completed through such immediate overflow can move immediately.
 
 This unique does not support conditionals.
@@ -4895,55 +4894,55 @@ This unique's effect can be modified with &lt;(modified by game speed)&gt;
 Applicable to: Conditional
 
 :::
-::: details &lt;when above [amount] [cityVariableName] [cityFilter]&gt;
+::: details-cn &lt;when above [amount] [cityVariableName] [cityFilter]&gt;
 Example: "when above [3] [Loyalty] [in all cities]"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when below [amount] [cityVariableName] [cityFilter]&gt;
+::: details-cn &lt;when below [amount] [cityVariableName] [cityFilter]&gt;
 Example: "when below [3] [Loyalty] [in all cities]"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [cityVariableName] [cityFilter]&gt;
+::: details-cn &lt;when between [amount] and [amount2] [cityVariableName] [cityFilter]&gt;
 Example: "when between [3] and [3] [Loyalty] [in all cities]"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when above [amount] [globalVariableName] globally&gt;
+::: details-cn &lt;when above [amount] [globalVariableName] globally&gt;
 Example: "when above [3] [WorldTension] globally"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when below [amount] [globalVariableName] globally&gt;
+::: details-cn &lt;when below [amount] [globalVariableName] globally&gt;
 Example: "when below [3] [WorldTension] globally"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [globalVariableName] globally&gt;
+::: details-cn &lt;when between [amount] and [amount2] [globalVariableName] globally&gt;
 Example: "when between [3] and [3] [WorldTension] globally"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when above [amount] [unitVariableName] on [mapUnitFilter]&gt;
+::: details-cn &lt;when above [amount] [unitVariableName] on [mapUnitFilter]&gt;
 Example: "when above [3] [Mana] on [Wounded]"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when below [amount] [unitVariableName] on [mapUnitFilter]&gt;
+::: details-cn &lt;when below [amount] [unitVariableName] on [mapUnitFilter]&gt;
 Example: "when below [3] [Mana] on [Wounded]"
 
 Applicable to: Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [unitVariableName] on [mapUnitFilter]&gt;
+::: details-cn &lt;when between [amount] and [amount2] [unitVariableName] on [mapUnitFilter]&gt;
 Example: "when between [3] and [3] [Mana] on [Wounded]"
 
 Applicable to: Conditional
@@ -5029,7 +5028,7 @@ Applicable to: Conditional
 Applicable to: Conditional
 
 :::
-::: details &lt;if this city is being razed&gt;
+::: details-cn &lt;if this city is being razed&gt;
 Applicable to: Conditional
 
 :::
@@ -5061,11 +5060,11 @@ Example: "for units without [Shock I]"
 Applicable to: Conditional
 
 :::
-::: details &lt;if unit is fortified&gt;
+::: details-cn &lt;if unit is fortified&gt;
 Applicable to: Conditional
 
 :::
-::: details &lt;if unit is embarked&gt;
+::: details-cn &lt;if unit is embarked&gt;
 Applicable to: Conditional
 
 :::
@@ -5255,7 +5254,7 @@ Example: "if [DeCiv Redux] is not enabled"
 Applicable to: Conditional
 
 :::
-::: details &lt;if [luaFunction] returns true&gt;
+::: details-cn &lt;if [luaFunction] returns true&gt;
 Evaluates a Lua function from a loaded mod as a condition; the function receives the usual ctx table (civ/city/unit/tile/game/parameter...) and must return true for the condition to apply. The function should be a pure query - conditionals are evaluated very frequently, so keep it cheap and side-effect-free. Missing functions are reported by the mod checker.
 
 Example: "if [myMod:myFunction] returns true"
@@ -5315,7 +5314,7 @@ Example: "upon signing a peace treaty with [City-States] Civilizations"
 Applicable to: TriggerCondition
 
 :::
-::: details &lt;upon completing a trade with [civFilter] Civilizations&gt;
+::: details-cn &lt;upon completing a trade with [civFilter] Civilizations&gt;
 Triggers when this civ completes a trade (accepted by either side) with a matching civilization. Note: this fires on every accepted trade, including AI auto-accepted ones and open-borders deals made during conquest.
 
 Example: "upon completing a trade with [City-States] Civilizations"
@@ -5347,7 +5346,7 @@ Applicable to: TriggerCondition, UnitTriggerCondition
 Applicable to: TriggerCondition
 
 :::
-::: details &lt;upon bombarding&gt;
+::: details-cn &lt;upon bombarding&gt;
 Applicable to: TriggerCondition
 
 :::
@@ -5361,13 +5360,13 @@ Example: "upon building a [All Road] improvement"
 Applicable to: TriggerCondition, UnitTriggerCondition
 
 :::
-::: details &lt;upon pillaging a [tileFilter] tile&gt;
+::: details-cn &lt;upon pillaging a [tileFilter] tile&gt;
 Example: "upon pillaging a [Farm] tile"
 
 Applicable to: TriggerCondition, UnitTriggerCondition
 
 :::
-::: details &lt;upon finishing razing a city&gt;
+::: details-cn &lt;upon finishing razing a city&gt;
 Applicable to: TriggerCondition
 
 :::
@@ -5441,7 +5440,7 @@ Example: "upon building a [All Road] improvement"
 Applicable to: TriggerCondition, UnitTriggerCondition
 
 :::
-::: details &lt;upon pillaging a [tileFilter] tile&gt;
+::: details-cn &lt;upon pillaging a [tileFilter] tile&gt;
 Example: "upon pillaging a [Farm] tile"
 
 Applicable to: TriggerCondition, UnitTriggerCondition
@@ -5459,11 +5458,11 @@ Applicable to: TriggerCondition, UnitTriggerCondition
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon attacking&gt;
+::: details-cn &lt;upon attacking&gt;
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon being attacked&gt;
+::: details-cn &lt;upon being attacked&gt;
 Applicable to: UnitTriggerCondition
 
 :::
@@ -5483,31 +5482,31 @@ Example: "upon defeating a [Wounded] unit"
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon capturing a [mapUnitFilter] unit&gt;
+::: details-cn &lt;upon capturing a [mapUnitFilter] unit&gt;
 Example: "upon capturing a [Wounded] unit"
 
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon being captured&gt;
+::: details-cn &lt;upon being captured&gt;
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon intercepting a [mapUnitFilter] unit&gt;
+::: details-cn &lt;upon intercepting a [mapUnitFilter] unit&gt;
 Example: "upon intercepting a [Wounded] unit"
 
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon being intercepted&gt;
+::: details-cn &lt;upon being intercepted&gt;
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon being bombarded&gt;
+::: details-cn &lt;upon being bombarded&gt;
 Applicable to: UnitTriggerCondition
 
 :::
-::: details &lt;upon withdrawing from melee combat&gt;
+::: details-cn &lt;upon withdrawing from melee combat&gt;
 Applicable to: UnitTriggerCondition
 
 :::
@@ -5745,6 +5744,8 @@ Applicable to: Triggerable, Terrain, Speed, ModOptions, MetaModifier
 :::
 
 ## Unique parameter types
+
+[Uniques overview](../Developers/Uniques.md) · [Complex parameter types](Unique-parameters.md)
 
 | Parameter | Description |
 |---|---|

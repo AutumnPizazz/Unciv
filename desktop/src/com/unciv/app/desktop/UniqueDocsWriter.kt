@@ -1,5 +1,6 @@
 package com.unciv.app.desktop
 
+import com.unciv.UncivGame
 import com.unciv.logic.map.mapunit.MapUnitCache
 import com.unciv.models.ruleset.unique.Countables
 import com.unciv.models.ruleset.unique.UniqueFlag
@@ -8,6 +9,7 @@ import com.unciv.models.ruleset.unique.UniqueTarget
 import com.unciv.models.ruleset.unique.UniqueType
 import com.unciv.models.translations.fillPlaceholders
 import com.unciv.models.translations.getPlaceholderParameters
+import com.unciv.models.translations.getPlaceholderText
 import com.unciv.utils.Log
 import java.io.File
 
@@ -41,6 +43,13 @@ class UniqueDocsWriter : DocsWriter() {
 
         /** Switch **on** the display of _inherited_ UniqueTargets in "Applicable to:" */
         private const val showInheritedTargets = false
+
+        private val upstreamUniqueKeys: Set<String> by lazy {
+            val snapshot = checkNotNull(UniqueDocsWriter::class.java.getResourceAsStream("/upstream-unique-templates.txt"))
+            snapshot.bufferedReader().useLines { lines ->
+                lines.drop(1).filter { it.isNotEmpty() }.map { it.getPlaceholderText() }.toSet()
+            }.also { check(it.isNotEmpty()) }
+        }
 
         private fun UniqueTarget.allTargets(): Sequence<UniqueTarget> = sequence {
             if (showInheritedTargets && inheritsFrom != null) yieldAll(inheritsFrom!!.allTargets())
@@ -183,23 +192,18 @@ class UniqueDocsWriter : DocsWriter() {
 
         val capacity = 25 + targetTypesToUniques.size + UniqueType.entries.size * (if (showUniqueOnOneTarget) 3 else 16)
         val lines = ArrayList<String>(capacity)
-        if (language == null) {
-            lines += "# Uniques"
-            lines += "An overview of uniques can be found [here](../Developers/Uniques.md)"
-            lines += "\nSimple unique parameters are explained by mouseover. Complex parameters are explained in [Unique parameter types](Unique-parameters.md)"
-        } else {
+        if (language != null) {
             lines += "---"
             lines += "title: Unique 能力列表"
             lines += "---"
             lines += ""
             lines += "<!-- 本文件由 desktop/src/com/unciv/app/desktop/UniqueDocsWriter.kt 自动生成，请勿手动编辑 -->"
             lines += ""
-            lines += "# Unique 能力列表"
-            lines += ""
-            lines += "> 本列表由游戏代码自动生成，随版本保持最新。"
-            lines += "> Uniques 概述可以在[这里](../Developers/Uniques.md)找到。"
-            lines += "> 简单的 Unique 参数见文末参数表，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。"
         }
+        val versionLabel = if (language == null) "Current version: " else "当前版本号："
+        lines += "::: unique-page-header $versionLabel${UncivGame.VERSION.text}"
+        lines += if (language == null) "# Uniques" else "# Unique 能力列表"
+        lines += ":::"
         lines += ""
 
         for ((targetType, uniqueTypes) in targetTypesToUniques) {
@@ -227,7 +231,8 @@ class UniqueDocsWriter : DocsWriter() {
                 // VitePress collapsable container (was mkdocs `??? example "..."`).
                 // 注意：容器内容**不能缩进**（4 空格/tab 会被 markdown 当作代码块渲染为 pre），
                 // 与 mkdocs admonition 的缩进要求相反。
-                lines += "::: details " + uniqueText
+                val details = if (uniqueType.placeholderText in upstreamUniqueKeys) "details" else "details-cn"
+                lines += "::: $details $uniqueText"
                 // These blocks join the following lines; an empty line separates paragraphs.
                 // The `escapeHtml` helper doubles newlines found in docDescription:
                 if (uniqueType.docDescription != null || uniqueType.docDescriptionZh != null) {
@@ -267,9 +272,13 @@ class UniqueDocsWriter : DocsWriter() {
         if (language == null) {
             lines += "## Unique parameter types"
             lines += ""
+            lines += "[Uniques overview](../Developers/Uniques.md) · [Complex parameter types](Unique-parameters.md)"
+            lines += ""
             lines += "| Parameter | Description |"
         } else {
             lines += "## Unique 参数类型"
+            lines += ""
+            lines += "[Unique 概述](../Developers/Uniques.md) · [复杂参数类型](Unique-parameters.md)"
             lines += ""
             lines += "| 参数 | 说明 |"
         }

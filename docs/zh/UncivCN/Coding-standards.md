@@ -110,6 +110,8 @@ UncivCN 分支的文档站（`docs-vitepress/`）使用 VitePress（弃 mkdocs�
 **严禁人工编辑产物**。生成器内置的中文翻译（`docsSentence` / `countablesTranslate`）
 同样随源码维护。
 
+**Unique 兼容性**：`CN` 角标表示该匹配键不存在于已合入的上游发布版。共有词条的参数或适用范围扩展不标记。升级上游时，用已合入的发布标签或提交运行 `node docs-vitepress/scripts/snapshot-upstream-uniques.mjs <upstream-release-ref>`，再重新生成文档。日常生成使用仓库内的快照和 `UncivGame.VERSION`。
+
 **新增 Lua API 的流程**：在 `LuaAPI.apiCatalog` 与 `LuaApiDocs`（签名、中英说明、类别）中
 各登记一条，再运行 `./gradlew desktop:generateDocs` —— `lua-api.lua` 与两份
 `Lua-API-Reference.md` 会一起重新生成；地图脚本 API 同理走

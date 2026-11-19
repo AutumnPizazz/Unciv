@@ -7,6 +7,10 @@ outline: [2, 2]
 
 ## Unreleased
 
+### Mod author-facing
+
+- The [Unique reference](/Modders/uniques) shows the current version and marks UncivCN-only entries.
+
 ## 5.0.1.2 (build 1268)
 
 ### Player-facing

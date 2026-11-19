@@ -98,6 +98,8 @@ The UncivCN doc site (`docs-vitepress/`) uses VitePress (mkdocs was dropped: no 
 
 **Rule**: generated docs are maintained exclusively by "change the generator source + run `./gradlew desktop:generateDocs`"; **never hand-edit the output**. The Chinese translations embedded in generators (`docsSentence` / `countablesTranslate`) are maintained with the source.
 
+**Unique compatibility**: `CN` means the matching key is absent from the imported upstream release. Parameter and target extensions to shared keys are not marked. When upgrading upstream, run `node docs-vitepress/scripts/snapshot-upstream-uniques.mjs <upstream-release-ref>` with the imported release tag or commit, then regenerate the docs. Normal generation uses the checked-in snapshot and `UncivGame.VERSION`.
+
 **Adding a Lua API**: register it in both `LuaAPI.apiCatalog` and `LuaApiDocs` (signature, EN/ZH descriptions, category), then run `./gradlew desktop:generateDocs` — `lua-api.lua` and both `Lua-API-Reference.md` files regenerate together. Map-script APIs follow the same flow with `LuaMapGenAPI.mapGenApiCatalog` / `LuaMapGenApiDocs` (`lua-map-api.lua` + both `Lua-Map-API-Reference.md`). `LuaApiDocsTests` / `LuaMapGenApiDocsTests` fail the build if they drift. The Lua doc generators share the `DocsWriter` base class (pure `generate()` + write-to-disk), also used by `UniqueDocsWriter`.
 
 **No Python**: the CN branch's docs toolchain needs only JDK + Node (VitePress + Node scripts under `docs-vitepress/scripts/`, e.g. `check-docs-links.mjs` for CI link checks). Upstream's `mkdocs.yml` / `mkdocs` workflow are removed on this branch — re-remove them when merging upstream if they reappear.

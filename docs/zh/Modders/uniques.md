@@ -4,11 +4,9 @@ title: Unique 能力列表
 
 <!-- 本文件由 desktop/src/com/unciv/app/desktop/UniqueDocsWriter.kt 自动生成，请勿手动编辑 -->
 
+::: unique-page-header 当前版本号：5.0.1.2
 # Unique 能力列表
-
-> 本列表由游戏代码自动生成，随版本保持最新。
-> Uniques 概述可以在[这里](../Developers/Uniques.md)找到。
-> 简单的 Unique 参数见文末参数表，复杂的参数在 [Unique 参数类型](Unique-parameters.md) 中说明。
+:::
 
 ## Triggerable uniques（触发型词条）
 ::: note
@@ -80,7 +78,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details End a golden age
+::: details-cn End a golden age
 适用范围：Triggerable
 
 :::
@@ -182,19 +180,19 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [cityVariableName] [cityFilter]
+::: details-cn Instantly provides [positiveAmount] [cityVariableName] [cityFilter]
 示例："Instantly provides [3] [Loyalty] [in all cities]"
 
 适用范围：Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [cityVariableName] [cityFilter]
+::: details-cn Instantly consumes [positiveAmount] [cityVariableName] [cityFilter]
 示例："Instantly consumes [3] [Loyalty] [in all cities]"
 
 适用范围：Triggerable
 
 :::
-::: details Set [cityVariableName] to [countable] [cityFilter]
+::: details-cn Set [cityVariableName] to [countable] [cityFilter]
 示例："Set [Loyalty] to [1000] [in all cities]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -202,7 +200,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly gain [amount] [cityVariableName] [cityFilter]
+::: details-cn Instantly gain [amount] [cityVariableName] [cityFilter]
 示例："Instantly gain [3] [Loyalty] [in all cities]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -210,19 +208,19 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]
+::: details-cn Instantly provides [positiveAmount] [unitVariableName] on [mapUnitFilter]
 示例："Instantly provides [3] [Mana] on [Wounded]"
 
 适用范围：Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]
+::: details-cn Instantly consumes [positiveAmount] [unitVariableName] on [mapUnitFilter]
 示例："Instantly consumes [3] [Mana] on [Wounded]"
 
 适用范围：Triggerable
 
 :::
-::: details Set [unitVariableName] to [countable] on [mapUnitFilter]
+::: details-cn Set [unitVariableName] to [countable] on [mapUnitFilter]
 示例："Set [Mana] to [1000] on [Wounded]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -230,7 +228,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly gain [amount] [unitVariableName] on [mapUnitFilter]
+::: details-cn Instantly gain [amount] [unitVariableName] on [mapUnitFilter]
 示例："Instantly gain [3] [Mana] on [Wounded]"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -238,19 +236,19 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly provides [positiveAmount] [globalVariableName] globally
+::: details-cn Instantly provides [positiveAmount] [globalVariableName] globally
 示例："Instantly provides [3] [WorldTension] globally"
 
 适用范围：Triggerable
 
 :::
-::: details Instantly consumes [positiveAmount] [globalVariableName] globally
+::: details-cn Instantly consumes [positiveAmount] [globalVariableName] globally
 示例："Instantly consumes [3] [WorldTension] globally"
 
 适用范围：Triggerable
 
 :::
-::: details Set [globalVariableName] to [countable] globally
+::: details-cn Set [globalVariableName] to [countable] globally
 示例："Set [WorldTension] to [1000] globally"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -258,7 +256,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Instantly gain [amount] [globalVariableName] globally
+::: details-cn Instantly gain [amount] [globalVariableName] globally
 示例："Instantly gain [3] [WorldTension] globally"
 
 此词条的效果可被 &lt;(modified by game speed)&gt;
@@ -304,7 +302,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
+::: details-cn Lose control over [tileFilter] tiles in a [nonNegativeAmount]-tile radius
 受影响的地块必须属于触发文明；城市中心永远不会受影响
 
 示例："Lose control over [Farm] tiles in a [3]-tile radius"
@@ -318,7 +316,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Lose control over [positiveAmount] tiles [cityFilter]
+::: details-cn Lose control over [positiveAmount] tiles [cityFilter]
 受影响的地块必须属于触发文明；城市中心永远不会丢失。按获得顺序的倒序失去地块——最近获得的最先失去
 
 示例："Lose control over [3] tiles [in all cities]"
@@ -332,7 +330,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
+::: details-cn Hide up to [positiveAmount/'all'] [tileFilter] within a [positiveAmount] tile radius
 取消受影响地块的已探索状态。当前处于触发文明视野内的地块（如单位/城市视野范围）会在下次更新时重新可见，因此隐藏只对视野之外的地块持续生效
 
 示例："Hide up to [3] [Farm] within a [3] tile radius"
@@ -362,7 +360,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Lose a spy
+::: details-cn Lose a spy
 移除一名间谍，优先移除当前未执行任务的间谍
 
 适用范围：Triggerable
@@ -418,7 +416,7 @@ title: Unique 能力列表
 适用范围：Triggerable
 
 :::
-::: details Trigger the function [luaFunction] with [comment]
+::: details-cn Trigger the function [luaFunction] with [comment]
 示例："Trigger the function [myMod:myFunction] with [comment]"
 
 适用范围：Triggerable
@@ -1458,7 +1456,7 @@ Only allows taking over City-States not at war with the unit's root nation. Does
 适用范围：Global，Unit
 
 :::
-::: details [relativeAmount] Max HP
+::: details-cn [relativeAmount] Max HP
 允许负值倒扣；结果不大于 0 时重置为 1。只有无条件或带「for [mapUnitFilter] units」修饰的 unique 才生效：其余条件会被忽略以保证最大生命恒定。
 
 示例："[+20] Max HP"
@@ -1480,7 +1478,7 @@ Only allows taking over City-States not at war with the unit's root nation. Does
 适用范围：Global，Unit
 
 :::
-::: details Combat strength is modified by [luaFunction]
+::: details-cn Combat strength is modified by [luaFunction]
 [luaFunction] 通过 `ctx.value` 接收当前战斗力并须返回新值（返回 nil 则保持不变）。作为战斗热路径上的纯查询运行——请保持轻量、无副作用。
 
 示例："Combat strength is modified by [myMod:myFunction]"
@@ -1488,7 +1486,7 @@ Only allows taking over City-States not at war with the unit's root nation. Does
 适用范围：Global，Unit
 
 :::
-::: details Combat damage dealt is modified by [luaFunction]
+::: details-cn Combat damage dealt is modified by [luaFunction]
 [luaFunction] 通过 `ctx.value` 接收当前伤害并须返回新值（返回 nil 则保持不变）。
 
 示例："Combat damage dealt is modified by [myMod:myFunction]"
@@ -1496,7 +1494,7 @@ Only allows taking over City-States not at war with the unit's root nation. Does
 适用范围：Global，Unit
 
 :::
-::: details Combat damage received is modified by [luaFunction]
+::: details-cn Combat damage received is modified by [luaFunction]
 [luaFunction] 通过 `ctx.value` 接收当前受到的伤害并须返回新值（返回 nil 则保持不变）。在攻击方伤害修正之后应用。
 
 示例："Combat damage received is modified by [myMod:myFunction]"
@@ -1504,7 +1502,7 @@ Only allows taking over City-States not at war with the unit's root nation. Does
 适用范围：Global，Unit
 
 :::
-::: details Tile yield is modified by [luaFunction]
+::: details-cn Tile yield is modified by [luaFunction]
 [luaFunction] 通过 `ctx.tileStats` 接收引擎计算的地块产出（形如 `{food=2, production=1, gold=1}` 的表），可返回包含新产出的表——返回表中出现的属性覆盖引擎值，未出现的保持原值；返回 nil 则产出不变。每次计算地块产出时都会运行——请保持轻量、无副作用。
 
 示例："Tile yield is modified by [myMod:myFunction]"
@@ -1618,7 +1616,7 @@ Does not stack
 适用范围：Global，Unit
 
 :::
-::: details Reduces unit maintenance by [amount] Gold
+::: details-cn Reduces unit maintenance by [amount] Gold
 每单位固定金币减免，在百分比折扣之后应用。仅在文明6式维护费体系（见「Uses the Civilization 6 style unit maintenance system」）中生效。可与 &lt;for [Military] units&gt; 等单位过滤器组合，只减免特定单位。
 
 示例："Reduces unit maintenance by [3] Gold"
@@ -2486,7 +2484,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Building
 
 :::
-::: details Hidden from city screen
+::: details-cn Hidden from city screen
 建造后，此建筑从城市详情界面隐藏。所有产出照常生效。
 
 此词条自动对用户隐藏。
@@ -2494,7 +2492,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Building
 
 :::
-::: details Can be built [amount] times in each city
+::: details-cn Can be built [amount] times in each city
 允许此建筑在同一城市重复建造。使用 -1 表示不限次数。
 
 示例："Can be built [3] times in each city"
@@ -2812,7 +2810,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Global，Unit
 
 :::
-::: details [relativeAmount] Max HP
+::: details-cn [relativeAmount] Max HP
 允许负值倒扣；结果不大于 0 时重置为 1。只有无条件或带「for [mapUnitFilter] units」修饰的 unique 才生效：其余条件会被忽略以保证最大生命恒定。
 
 示例："[+20] Max HP"
@@ -2846,7 +2844,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Unit
 
 :::
-::: details Combat strength is modified by [luaFunction]
+::: details-cn Combat strength is modified by [luaFunction]
 [luaFunction] 通过 `ctx.value` 接收当前战斗力并须返回新值（返回 nil 则保持不变）。作为战斗热路径上的纯查询运行——请保持轻量、无副作用。
 
 示例："Combat strength is modified by [myMod:myFunction]"
@@ -2854,7 +2852,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Global，Unit
 
 :::
-::: details Combat damage dealt is modified by [luaFunction]
+::: details-cn Combat damage dealt is modified by [luaFunction]
 [luaFunction] 通过 `ctx.value` 接收当前伤害并须返回新值（返回 nil 则保持不变）。
 
 示例："Combat damage dealt is modified by [myMod:myFunction]"
@@ -2862,7 +2860,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Global，Unit
 
 :::
-::: details Combat damage received is modified by [luaFunction]
+::: details-cn Combat damage received is modified by [luaFunction]
 [luaFunction] 通过 `ctx.value` 接收当前受到的伤害并须返回新值（返回 nil 则保持不变）。在攻击方伤害修正之后应用。
 
 示例："Combat damage received is modified by [myMod:myFunction]"
@@ -2978,7 +2976,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Unit
 
 :::
-::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles
+::: details-cn Attacks also target [mapUnitFilter] units within [positiveAmount] tiles
 对半径内匹配过滤器的所有单位发动攻击（包括未被过滤掉的盟军或己方单位），伤害均等。状态效果和命中能力作用于所有受影响单位。
 
 如果同时存在本效果和递减范围攻击，则只使用递减范围攻击。
@@ -2988,7 +2986,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Unit
 
 :::
-::: details Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance
+::: details-cn Attacks also target [mapUnitFilter] units within [positiveAmount] tiles, with damage decreasing by distance
 对半径内匹配过滤器的所有单位发动攻击，伤害随与主目标的距离递减。状态效果和命中能力生效。
 
 如果同时存在本效果和均等范围攻击，则只使用本效果；也影响反击伤害和自身范围攻击的伤害。
@@ -3000,7 +2998,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Unit
 
 :::
-::: details Takes [relativeAmount]% damage from own area attacks
+::: details-cn Takes [relativeAmount]% damage from own area attacks
 此单位在范围内时承受自身范围攻击的伤害，100 = 100% 伤害。
 
 示例："Takes [+20]% damage from own area attacks"
@@ -3008,7 +3006,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Unit
 
 :::
-::: details Takes [relativeAmount]% counter damage from each unit hit by its area attacks
+::: details-cn Takes [relativeAmount]% counter damage from each unit hit by its area attacks
 仅对近战单位生效，100 = 100% 伤害，负值可用但按正值处理。
 
 示例："Takes [+20]% counter damage from each unit hit by its area attacks"
@@ -3394,13 +3392,13 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Unit
 
 :::
-::: details [amount] [unitVariableName] per turn
+::: details-cn [amount] [unitVariableName] per turn
 示例："[3] [Mana] per turn"
 
 适用范围：Unit
 
 :::
-::: details [relativeAmount]% [unitVariableName] per turn
+::: details-cn [relativeAmount]% [unitVariableName] per turn
 示例："[+20]% [Mana] per turn"
 
 适用范围：Unit
@@ -3515,7 +3513,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：Global，Terrain，Improvement
 
 :::
-::: details Tile yield is modified by [luaFunction]
+::: details-cn Tile yield is modified by [luaFunction]
 [luaFunction] 通过 `ctx.tileStats` 接收引擎计算的地块产出（形如 `{food=2, production=1, gold=1}` 的表），可返回包含新产出的表——返回表中出现的属性覆盖引擎值，未出现的保持原值；返回 nil 则产出不变。每次计算地块产出时都会运行——请保持轻量、无副作用。
 
 示例："Tile yield is modified by [myMod:myFunction]"
@@ -4364,7 +4362,7 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 
 :::
 ## ModOptions uniques（模组选项词条）
-::: details Uses the Civilization 6 style unit maintenance system
+::: details-cn Uses the Civilization 6 style unit maintenance system
 规则集可选用（放在 ModOptions.json 的 uniques 中）。启用 Units.json 的 maintenanceCost 字段（按单位固定维护费）、可配置的 unitMaintenanceBaseCost 常量、固定金币减免（见「Reduces unit maintenance by [amount] Gold」），并移除随游戏进度增长的维护费膨胀与默认 3 个免费单位。
 
 此词条不支持条件。
@@ -4424,13 +4422,13 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 适用范围：ModOptions
 
 :::
-::: details Allow cities to claim tiles
+::: details-cn Allow cities to claim tiles
 此词条不支持条件。
 
 适用范围：ModOptions
 
 :::
-::: details Production overflow applies immediately to the next construction
+::: details-cn Production overflow applies immediately to the next construction
 产能溢出无上限，不受已完成项目产能加成的影响，并在当回合立即作用于建造队列中的下一个项目（享受该项目的产能加成，必要时沿队列连锁推进），依靠此类即时溢出完成的单位可立即移动。
 
 此词条不支持条件。
@@ -4902,55 +4900,55 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
-::: details &lt;when above [amount] [cityVariableName] [cityFilter]&gt;
+::: details-cn &lt;when above [amount] [cityVariableName] [cityFilter]&gt;
 示例："when above [3] [Loyalty] [in all cities]"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when below [amount] [cityVariableName] [cityFilter]&gt;
+::: details-cn &lt;when below [amount] [cityVariableName] [cityFilter]&gt;
 示例："when below [3] [Loyalty] [in all cities]"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [cityVariableName] [cityFilter]&gt;
+::: details-cn &lt;when between [amount] and [amount2] [cityVariableName] [cityFilter]&gt;
 示例："when between [3] and [3] [Loyalty] [in all cities]"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when above [amount] [globalVariableName] globally&gt;
+::: details-cn &lt;when above [amount] [globalVariableName] globally&gt;
 示例："when above [3] [WorldTension] globally"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when below [amount] [globalVariableName] globally&gt;
+::: details-cn &lt;when below [amount] [globalVariableName] globally&gt;
 示例："when below [3] [WorldTension] globally"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [globalVariableName] globally&gt;
+::: details-cn &lt;when between [amount] and [amount2] [globalVariableName] globally&gt;
 示例："when between [3] and [3] [WorldTension] globally"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when above [amount] [unitVariableName] on [mapUnitFilter]&gt;
+::: details-cn &lt;when above [amount] [unitVariableName] on [mapUnitFilter]&gt;
 示例："when above [3] [Mana] on [Wounded]"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when below [amount] [unitVariableName] on [mapUnitFilter]&gt;
+::: details-cn &lt;when below [amount] [unitVariableName] on [mapUnitFilter]&gt;
 示例："when below [3] [Mana] on [Wounded]"
 
 适用范围：Conditional
 
 :::
-::: details &lt;when between [amount] and [amount2] [unitVariableName] on [mapUnitFilter]&gt;
+::: details-cn &lt;when between [amount] and [amount2] [unitVariableName] on [mapUnitFilter]&gt;
 示例："when between [3] and [3] [Mana] on [Wounded]"
 
 适用范围：Conditional
@@ -5036,7 +5034,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
-::: details &lt;if this city is being razed&gt;
+::: details-cn &lt;if this city is being razed&gt;
 适用范围：Conditional
 
 :::
@@ -5068,11 +5066,11 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
-::: details &lt;if unit is fortified&gt;
+::: details-cn &lt;if unit is fortified&gt;
 适用范围：Conditional
 
 :::
-::: details &lt;if unit is embarked&gt;
+::: details-cn &lt;if unit is embarked&gt;
 适用范围：Conditional
 
 :::
@@ -5262,7 +5260,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：Conditional
 
 :::
-::: details &lt;if [luaFunction] returns true&gt;
+::: details-cn &lt;if [luaFunction] returns true&gt;
 将已加载模组中的 Lua 函数作为条件求值；函数收到常规 ctx 表（civ/city/unit/tile/game/parameter…），返回 true 时条件成立。函数应为纯查询——条件会被频繁求值，请保持廉价且无副作用。缺失函数由模组检查器报告。
 
 示例："if [myMod:myFunction] returns true"
@@ -5322,7 +5320,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition
 
 :::
-::: details &lt;upon completing a trade with [civFilter] Civilizations&gt;
+::: details-cn &lt;upon completing a trade with [civFilter] Civilizations&gt;
 当本文明与匹配的文明完成一笔交易（任意一方接受）时触发。注意：所有被接受的交易都会触发，包括 AI 自动接受与征服时签订的开放边界协议。
 
 示例："upon completing a trade with [City-States] Civilizations"
@@ -5354,7 +5352,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition
 
 :::
-::: details &lt;upon bombarding&gt;
+::: details-cn &lt;upon bombarding&gt;
 适用范围：TriggerCondition
 
 :::
@@ -5368,13 +5366,13 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;upon pillaging a [tileFilter] tile&gt;
+::: details-cn &lt;upon pillaging a [tileFilter] tile&gt;
 示例："upon pillaging a [Farm] tile"
 
 适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;upon finishing razing a city&gt;
+::: details-cn &lt;upon finishing razing a city&gt;
 适用范围：TriggerCondition
 
 :::
@@ -5448,7 +5446,7 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：TriggerCondition，UnitTriggerCondition
 
 :::
-::: details &lt;upon pillaging a [tileFilter] tile&gt;
+::: details-cn &lt;upon pillaging a [tileFilter] tile&gt;
 示例："upon pillaging a [Farm] tile"
 
 适用范围：TriggerCondition，UnitTriggerCondition
@@ -5466,11 +5464,11 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon attacking&gt;
+::: details-cn &lt;upon attacking&gt;
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon being attacked&gt;
+::: details-cn &lt;upon being attacked&gt;
 适用范围：UnitTriggerCondition
 
 :::
@@ -5490,31 +5488,31 @@ Stats 指累积产出，而非每回合产出。因此不支持笑脸。'Between
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon capturing a [mapUnitFilter] unit&gt;
+::: details-cn &lt;upon capturing a [mapUnitFilter] unit&gt;
 示例："upon capturing a [Wounded] unit"
 
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon being captured&gt;
+::: details-cn &lt;upon being captured&gt;
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon intercepting a [mapUnitFilter] unit&gt;
+::: details-cn &lt;upon intercepting a [mapUnitFilter] unit&gt;
 示例："upon intercepting a [Wounded] unit"
 
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon being intercepted&gt;
+::: details-cn &lt;upon being intercepted&gt;
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon being bombarded&gt;
+::: details-cn &lt;upon being bombarded&gt;
 适用范围：UnitTriggerCondition
 
 :::
-::: details &lt;upon withdrawing from melee combat&gt;
+::: details-cn &lt;upon withdrawing from melee combat&gt;
 适用范围：UnitTriggerCondition
 
 :::
@@ -5752,6 +5750,8 @@ Does not apply to units destroyed by nuclear explosions, which do not count as c
 :::
 
 ## Unique 参数类型
+
+[Unique 概述](../Developers/Uniques.md) · [复杂参数类型](Unique-parameters.md)
 
 | 参数 | 说明 |
 |---|---|

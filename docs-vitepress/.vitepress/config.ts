@@ -74,22 +74,29 @@ export default defineConfig({
           return '</div>\n'
         },
       })
-      // 覆盖内置 details 容器：summary 中注入 CopyButton 组件（一键复制标题文本，
-      // 模组作者需要复制 unique 语句；VitePress 默认 summary 不可选中）。
-      md.use(container, 'details', {
+      md.use(container, 'unique-page-header', {
         render(tokens, idx) {
-          const title = tokens[idx].info.trim().replace(/^details\s*/, '')
-          if (tokens[idx].nesting === 1) {
-            const escaped = title
-              .replace(/&/g, '&amp;')
-              .replace(/"/g, '&quot;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-            return `<details class="details custom-block"><summary>${title}<CopyButton text="${escaped}" /></summary>\n`
-          }
-          return '</details>\n'
+          if (tokens[idx].nesting !== 1) return '</div>\n'
+          const version = md.utils.escapeHtml(tokens[idx].info.trim().slice('unique-page-header'.length).trim())
+          return `<div class="unique-page-header"><span class="unique-page-version">${version}</span>\n`
         },
       })
+
+      // 两种折叠容器共用复制逻辑，CN 角标不进入标题和剪贴板。
+      for (const name of ['details', 'details-cn']) {
+        const cnOnly = name === 'details-cn'
+        md.use(container, name, {
+          render(tokens, idx, _options, env) {
+            if (tokens[idx].nesting !== 1) return cnOnly ? '</details></div>\n' : '</details>\n'
+            const title = tokens[idx].info.trim().slice(name.length).trim()
+            const escaped = md.utils.escapeHtml(title.replace(/^&lt;(.+)&gt;$/, '<$1>'))
+            const details = `<details class="details custom-block"><summary>${title}<CopyButton text="${escaped}" /></summary>\n`
+            if (!cnOnly) return details
+            const label = /^zh[\\/]/.test(env.relativePath ?? '') ? 'UncivCN 专属' : 'UncivCN only'
+            return `<div class="cn-unique"><span class="cn-unique-marker" role="img" aria-label="${label}" title="${label}">CN</span>${details}`
+          },
+        })
+      }
     }
   },
 
