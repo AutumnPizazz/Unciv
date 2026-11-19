@@ -10,6 +10,7 @@ import com.unciv.logic.scripting.LuaAPI
 import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.GameParameters
 import com.unciv.models.ruleset.unique.GameContext
+import com.unciv.models.stats.Stat
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import com.unciv.view.GameView
@@ -130,6 +131,117 @@ class SimultaneousTurnOperationsTest {
             assertEquals(civ.gold, replayedCiv.gold)
             assertEquals(List(upgradeCount) { upgradedUnit.name }, replayedCiv.units.getCivUnits().map { it.name }.toList())
         }
+    }
+
+    @Test
+    fun upgradeThatSpendsAllGoldReplaysZeroBalance() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+        testGame.addCity(civ, testGame.getTile(0, 0))
+        civ.tech.addTechnology("Construction", false)
+        val unit = testGame.addUnit("Archer", civ, testGame.getTile(0, 0))
+        val upgrade = testGame.ruleset.units.getValue("Composite Bowman")
+        val upgradeCost = unit.upgrade.getCostOfUpgrade(upgrade)
+        civ.addGold(upgradeCost)
+        testGame.gameInfo.setTransients()
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+
+        val view = GameView(testGame.gameInfo, civ)
+        assertTrue(view.getMapUnitView(unit).tryUpgradeTo(upgrade))
+        assertEquals(0, civ.gold)
+
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.Upgrade, before, testGame.gameInfo
+        )!!
+        val operations = SimultaneousTurnOperations.splitGameStateResult(result).mapIndexed { index, part ->
+            SimultaneousTurnOperation(
+                sequence = index.toLong(),
+                type = SimultaneousTurnOperations.stateOperationType(UnitActionType.Upgrade.name),
+                payload = json().toJson(part)
+            )
+        }
+        before.setTransients()
+        assertEquals(emptyList<SimultaneousTurnFailedOperation>(), SimultaneousTurnReplay.replayOrExplain(before, operations))
+        assertEquals(0, before.getCivilization(civ.civName).gold)
+    }
+
+    @Test
+    fun simultaneousUnitPurchasesReceiveUniqueIds() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(5)
+        val civA = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+        val civB = testGame.addCiv(testGame.ruleset.nations.getValue("Egypt"), isPlayer = true)
+        val cityA = testGame.addCity(civA, testGame.getTile(0, 0))
+        val cityB = testGame.addCity(civB, testGame.getTile(4, 0))
+        civA.addGold(1000)
+        civB.addGold(1000)
+        testGame.gameInfo.setTransients()
+        val turnStart = testGame.gameInfo.clone()
+        turnStart.setTransients()
+
+        fun purchaseUnit(civName: String, cityPosition: HexCoord, playerId: String): List<SimultaneousTurnOperation> {
+            val client = turnStart.clone()
+            client.setTransients()
+            val civ = client.getCivilization(civName)
+            val city = civ.cities.first { it.location == cityPosition }
+            val unit = client.ruleset.units.getValue("Warrior")
+            repeat(2) {
+                assertTrue(city.cityConstructions.purchaseConstruction(unit.name, -1, false, Stat.Gold))
+            }
+            val result = SimultaneousTurnOperations.captureGameStateChange(
+                UnitActionType.ConstructImprovement, turnStart, client
+            )!!
+            return SimultaneousTurnOperations.splitGameStateResult(result).mapIndexed { index, part ->
+                SimultaneousTurnOperation(
+                    playerId = playerId,
+                    sequence = index.toLong(),
+                    type = SimultaneousTurnOperations.stateOperationType(UnitActionType.ConstructImprovement.name),
+                    payload = json().toJson(part)
+                )
+            }
+        }
+
+        val operations = purchaseUnit(civA.civName, cityA.location, "player-a") +
+            purchaseUnit(civB.civName, cityB.location, "player-b")
+        assertEquals(emptyList<SimultaneousTurnFailedOperation>(), SimultaneousTurnReplay.replayOrExplain(turnStart, operations))
+
+        val units = turnStart.civilizations.flatMap { it.units.getCivUnits().toList() }
+        assertEquals(4, units.size)
+        assertEquals(4, units.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun fieldLevelTileSnapshotPreservesUnchangedUnits() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val civ = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+        val unit = testGame.addUnit("Warrior", civ, testGame.getTile(0, 0))
+        testGame.gameInfo.setTransients()
+        val before = testGame.gameInfo.clone()
+        before.setTransients()
+        val after = testGame.gameInfo.clone()
+        after.setTransients()
+        after.tileMap[0, 0].improvementIsPillaged = true
+
+        val result = SimultaneousTurnOperations.captureGameStateChange(
+            UnitActionType.Repair, before, after
+        )!!
+        val tileSnapshot = SimultaneousTurnComponentSnapshot(
+            "0,0", "{\"improvementIsPillaged\":false}", "{\"improvementIsPillaged\":true}",
+            arrayListOf("improvementIsPillaged")
+        )
+        val partialResult = result.copy(tiles = arrayListOf(tileSnapshot))
+        val operation = SimultaneousTurnOperation(
+            type = SimultaneousTurnOperations.stateOperationType(UnitActionType.Repair.name),
+            payload = json().toJson(partialResult)
+        )
+
+        assertTrue(SimultaneousTurnReplay.apply(before, operation))
+        val replayedUnit = before.getCivilization(civ.civName).units.getUnitById(unit.id)
+        assertNotNull(replayedUnit)
+        assertTrue(before.tileMap[0, 0].improvementIsPillaged)
     }
 
     @Test

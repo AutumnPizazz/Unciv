@@ -355,6 +355,7 @@ class WorldMapHolder(
                         "unit.attack",
                         SimultaneousTurnAttackResult(
                             attackerId = unitView.id,
+                            attackerOwner = unitView.owner().civName,
                             targetId = target.id,
                             targetOwner = target.owner,
                             attackerHp = unitView.health,

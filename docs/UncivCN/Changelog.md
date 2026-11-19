@@ -18,6 +18,7 @@ Upstream (vanilla) release notes: [official Unciv changelog](https://github.com/
 ### Player-facing
 
 - The terms and privacy policy no longer list downloads as a community service.
+- Simultaneous turns now resolve concurrent unit purchases without ID conflicts and keep a zero gold balance.
 
 ## 5.0.1.1 (build 1267)
 

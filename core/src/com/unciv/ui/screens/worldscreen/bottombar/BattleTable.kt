@@ -366,6 +366,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
                 "unit.attack",
                 SimultaneousTurnAttackResult(
                     attackerId = attackerUnit.id,
+                    attackerOwner = attackerUnit.owner,
                     targetId = defenderUnit.id,
                     targetOwner = defenderUnit.owner,
                     attackerHp = attackerUnit.health,
