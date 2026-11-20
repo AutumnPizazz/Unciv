@@ -13,6 +13,7 @@ import com.unciv.logic.GameInfo
 import com.unciv.logic.civilization.PlayerType
 import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.HexCoord
+import com.unciv.logic.multiplayer.storage.MultiplayerTurnActionConflictException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.Player
@@ -35,10 +36,9 @@ import java.util.concurrent.Executors
 /**
  * Local, reproducible "two clients play a simultaneous-turn game" simulation.
  *
- * Two independent [GameInfo] clients (A and B) each own a save, act on their own clone, upload
- * their operations over the real HTTP contract, then one of them settles the turn exactly the way
- * `WorldScreen.finishSimultaneousTurn` does (download ops -> replay -> `nextTurnPolling` -> upload
- * the new save). Both clients then re-download and must see identical state.
+ * Two independent [GameInfo] clients (A and B) each own a save, upload actions and ready markers over
+ * the real HTTP contract, then one settles the authoritative ordered feed and atomically uploads the
+ * new save. Both clients then re-download and must see identical state.
  *
  * A direct test run writes to `playtest-sim/` by default; `playtest-sim/run.sh` redirects output to a
  * temporary `.local/playtest-sim.*` directory:
@@ -95,8 +95,19 @@ class SimultaneousTurnPlaytestSimulation {
         val server: MultiplayerServer
     ) {
         val operations = ArrayList<SimultaneousTurnOperation>()
+        val rejectedOperations = ArrayList<SimultaneousTurnOperation>()
         private val uploader = SimultaneousTurnOperationUploadQueue(
-            upload = { batch -> server.uploadSimultaneousTurnOperations(GAME_ID, batch) }
+            upload = { batch ->
+                for (operation in batch) {
+                    try {
+                        val accepted = server.appendRealtimeTurnAction(GAME_ID, RealtimeTurnActions.requestFor(operation))
+                        check(accepted != null) { "The server does not support real-time turn actions" }
+                    } catch (ex: MultiplayerTurnActionConflictException) {
+                        throw SimultaneousTurnOperationRejectedException(operation, ex)
+                    }
+                }
+            },
+            onRejected = { operation, _ -> rejectedOperations.add(operation) }
         )
 
         fun record(operation: SimultaneousTurnOperation) {
@@ -105,9 +116,6 @@ class SimultaneousTurnPlaytestSimulation {
         }
 
         suspend fun flushOperations() = uploader.flushPending()
-
-        suspend fun submitOperations(batch: List<SimultaneousTurnOperation>) =
-            uploader.uploadForSubmission(batch)
     }
 
     @Test
@@ -179,10 +187,31 @@ class SimultaneousTurnPlaytestSimulation {
             }
             moveUnit(b, gameB, civBName, unitBId, 1, -1)
             changeState(b, gameB, UnitActionType.ConstructImprovement) {
+                it.getCivilization(civAName).variables["contested"] = 1
+            }
+            changeState(b, gameB, UnitActionType.ConstructImprovement) {
                 it.tileMap[-3, 1].improvement = "Farm"
             }
             submit(a, gameA)
-            submit(b, gameB)
+            b.flushOperations()
+            assertEquals("first accepted civilization claim rejects the later state change", listOf(1L), b.rejectedOperations.map { it.sequence })
+            note("clientB rejected a conflicting state action and rebuilt from the accepted feed")
+            val restoredB = cloneGame(turnStart)
+            val acceptedByA = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
+                .actions.filter { it.kind == "action" }.flatMap { it.operations }
+            val restoreFailures = SimultaneousTurnReplay.replay(restoredB, acceptedByA)
+            assertTrue("conflict recovery must restore from the server feed: $restoreFailures", restoreFailures.isEmpty())
+            assertUnitAt(restoredB, civBName, unitBId, 1, -1, "accepted move survives conflict recovery")
+            restoredB.nextSimultaneousOperationSequence = maxOf(
+                restoredB.nextSimultaneousOperationSequence,
+                (acceptedByA.filter { it.playerId == b.playerId }.maxOfOrNull { it.sequence } ?: -1L) + 1
+            )
+            b.operations.clear()
+            changeState(b, restoredB, UnitActionType.ConstructImprovement) {
+                it.tileMap[-3, 1].improvement = "Farm"
+            }
+            b.rejectedOperations.clear()
+            submit(b, restoredB)
 
             val settled = settle(a, turnStart, previousSettler = b)
             assertUnitAt(settled, civAName, unitAId, -1, 1, "turn 1 A move")
@@ -206,8 +235,9 @@ class SimultaneousTurnPlaytestSimulation {
             }
             a.flushOperations()
             val staleSequence = a.operations.maxOf { it.sequence }
-            val persistedBeforeReload = a.server.downloadSimultaneousTurnOperations(GAME_ID)
-                .filter { it.turn == turnStart.turns && it.playerId == a.playerId && it.type != "done" }
+            val persistedBeforeReload = a.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0)!!
+                .actions.filter { it.kind == "action" }.flatMap { it.operations }
+                .filter { it.playerId == a.playerId }
             assertEquals(
                 "A's actions must be durable before submitting done",
                 a.operations.map { it.copy(createdAtMillis = 0) }.toSet(),
@@ -223,19 +253,21 @@ class SimultaneousTurnPlaytestSimulation {
             SimultaneousTurnOutbox(journalDirectory, gameA1.turns, gameA1.currentTurnStartTime, a.playerId)
                 .record(a.operations)
             val recovered = SimultaneousTurnOutbox(journalDirectory, gameA2.turns, gameA2.currentTurnStartTime, a.playerId)
-                .recover(a.server.downloadSimultaneousTurnOperations(GAME_ID)) { missing ->
+                .recover(
+                    a.server.downloadRealtimeTurnActions(GAME_ID, gameA2.turns, 0)!!
+                        .actions.filter { it.kind == "action" }.flatMap { it.operations }
+                ) { missing ->
                     assertEquals("Only the unacknowledged action needs upload", listOf(a.operations.last()), missing)
-                    a.server.uploadSimultaneousTurnOperations(GAME_ID, missing)
+                    for (operation in missing)
+                        a.server.appendRealtimeTurnAction(GAME_ID, RealtimeTurnActions.requestFor(operation))
                 }
             val replayFailures = SimultaneousTurnReplay.replay(gameA2, recovered.operations)
             assertTrue("A's journaled actions must replay after reload: $replayFailures", replayFailures.isEmpty())
             assertEquals(1, gameA2.getCivilization(civAName).variables["pendingAcrossReload"])
-            gameA2.nextSimultaneousOperationSequence =
-                maxOf(
-                    gameA2.nextSimultaneousOperationSequence,
-                    System.currentTimeMillis(),
-                    recovered.operations.maxOf { it.sequence } + 1
-                )
+            gameA2.nextSimultaneousOperationSequence = maxOf(
+                gameA2.nextSimultaneousOperationSequence,
+                recovered.operations.maxOf { it.sequence } + 1
+            )
             a.operations.clear()
             a.operations.addAll(recovered.operations)
             moveUnit(a, gameA2, civAName, unitAId, -2, 2)
@@ -371,7 +403,7 @@ class SimultaneousTurnPlaytestSimulation {
         )
     }
 
-    /** Mirrors `WorldScreen.recordSimultaneousGameStateChange`: snapshot, mutate, split into components. */
+    /** Mirrors `WorldScreen.recordSimultaneousGameStateChange`: keep each user action atomic. */
     private fun changeState(
         client: PlaytestClient, game: GameInfo, action: UnitActionType, mutate: (GameInfo) -> Unit
     ) {
@@ -381,32 +413,23 @@ class SimultaneousTurnPlaytestSimulation {
         val before = game.clone()
         mutate(game)
         val result = SimultaneousTurnOperations.captureGameStateChange(action, before, game) ?: return
-        for (part in SimultaneousTurnOperations.splitGameStateResult(result)) {
-            client.record(
-                SimultaneousTurnOperation(
-                    turn = game.turns,
-                    playerId = client.playerId,
-                    sequence = game.nextSimultaneousOperationSequence++,
-                    type = "game.state",
-                    payload = json().toJson(part)
-                )
+        client.record(
+            SimultaneousTurnOperation(
+                turn = game.turns,
+                playerId = client.playerId,
+                sequence = game.nextSimultaneousOperationSequence++,
+                type = SimultaneousTurnOperations.stateOperationType(action.name),
+                payload = json().toJson(result)
             )
-        }
+        )
     }
 
     private suspend fun submit(client: PlaytestClient, game: GameInfo) {
-        val done = SimultaneousTurnOperation(
-            turn = game.turns,
-            playerId = client.playerId,
-            sequence = game.nextSimultaneousOperationSequence++,
-            type = "done",
-            payload = "{}"
-        )
-        val ops = ArrayList(client.operations)
-        ops.add(done)
-        client.submitOperations(ops)
-        writeClientOps(client, "turn-${game.turns}-submitted", ops)
-        note("${client.label} submitted ${ops.size} op(s) for turn ${game.turns}")
+        client.flushOperations()
+        val ready = client.server.markRealtimeTurnReady(GAME_ID, game.turns, game.nextSimultaneousOperationSequence++)
+        check(ready != null) { "The server does not support real-time turn ready markers" }
+        writeClientOps(client, "turn-${game.turns}-submitted", client.operations)
+        note("${client.label} submitted ${client.operations.size} action(s) and is ready for turn ${game.turns}")
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -414,15 +437,13 @@ class SimultaneousTurnPlaytestSimulation {
     // ---------------------------------------------------------------------------------------------
 
     private suspend fun settle(settler: PlaytestClient, turnStart: GameInfo, previousSettler: PlaytestClient? = null): GameInfo {
-        val allOps = settler.server.downloadSimultaneousTurnOperations(GAME_ID)
-        val donePlayers = allOps
-            .filter { it.turn == turnStart.turns && it.type == "done" }
-            .map { it.playerId }
-            .toSet()
+        val feed = checkNotNull(settler.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
+        val donePlayers = (feed.readyPlayerIds + feed.timedOutPlayerIds).toSet()
         assertEquals(
-            "every human player must submit 'done' before settlement",
+            "every living human player must be ready before settlement",
             setOf(PLAYER_A, PLAYER_B), donePlayers
         )
+        assertTrue("the server must report all players ready", feed.allPlayersReady)
 
         val previousLease = previousSettler?.server?.acquireSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns)
         if (previousSettler != null) {
@@ -433,23 +454,17 @@ class SimultaneousTurnPlaytestSimulation {
         val lease = checkNotNull(settler.server.acquireSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns))
         try {
             val base = settler.server.tryDownloadGame(GAME_ID)
-            val turnOps = settler.server.downloadSimultaneousTurnOperations(GAME_ID)
-                .filter { it.turn == base.turns && it.type != "done" }
+            val settlementFeed = checkNotNull(settler.server.downloadRealtimeTurnActions(GAME_ID, base.turns, 0))
+            assertTrue("settlement feed must remain ready", settlementFeed.allPlayersReady)
+            val turnOps = settlementFeed.actions.filter { it.kind == "action" }.flatMap { it.operations }
             note("${settler.label} settles turn ${base.turns} from ${turnOps.size} operation(s)")
             note("op order: " + turnOps.joinToString { "${it.playerId.take(1)}/${it.sequence}/${it.type}" })
 
             val hardFailures = ArrayList<String>()
             for (op in turnOps) {
                 if (SimultaneousTurnReplay.apply(base, op)) continue
-                // A "game.state" operation is redundant when another player's replayed operation
-                // already produced its "after" state. Production only debug-logs unapplied operations;
-                // a component matching neither "before" nor "after" right now is a genuine conflict.
-                if (op.type == "game.state" && isRedundantStateOperation(base, op)) {
-                    note("superseded op ${op.playerId}/${op.sequence}/${op.type} (its effect was already applied)")
-                } else {
-                    note("FAILED op ${op.playerId}/${op.sequence}/${op.type}")
-                    hardFailures.add("${op.playerId}/${op.sequence}/${op.type}")
-                }
+                note("FAILED op ${op.playerId}/${op.sequence}/${op.type}")
+                hardFailures.add("${op.playerId}/${op.sequence}/${op.type}")
             }
             assertTrue("operations failed to replay: $hardFailures", hardFailures.isEmpty())
             val unrecorded = SimultaneousTurnOperations.diffUnrecordedState(turnStart, base, turnOps)
@@ -491,43 +506,6 @@ class SimultaneousTurnPlaytestSimulation {
         for (field in afterValue) keys.add(field.name)
         return keys.filter { beforeValue.get(it)?.toString() != afterValue.get(it)?.toString() }
             .joinToString(", ")
-    }
-
-    /**
-     * True when a rejected `game.state` operation is merely redundant: every component it carries
-     * already equals the operation's "after" value on [base] (another player's replayed operation
-     * produced the same effect), or still equals its "before" value. A component that matches neither
-     * is a real conflict, so this returns false and the caller fails the simulation.
-     */
-    private fun isRedundantStateOperation(base: GameInfo, operation: SimultaneousTurnOperation): Boolean {
-        val result = json().fromJson(SimultaneousTurnGameStateResult::class.java, operation.payload)
-        if (result.religions.isNotEmpty()) return false
-        var alreadyApplied = false
-        for (component in result.civilizations) {
-            val current = base.getCivilizationOrNull(component.key)
-            val currentJson = if (current == null) "null" else json().toJson(current)
-            when (currentJson) {
-                component.after -> alreadyApplied = true
-                component.before -> {}
-                else -> {
-                    note("  civ=${component.key} matches neither before nor after")
-                    note("  BEFORE=${component.before}")
-                    note("  AFTER=${component.after}")
-                    note("  CURRENT=${currentJson}")
-                    return false
-                }
-            }
-        }
-        for (component in result.tiles) {
-            val (x, y) = component.key.split(',').map { it.toInt() }
-            val currentJson = json().toJson(base.tileMap[x, y])
-            when (currentJson) {
-                component.after -> alreadyApplied = true
-                component.before -> {}
-                else -> return false
-            }
-        }
-        return alreadyApplied
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -655,8 +633,7 @@ class SimultaneousTurnPlaytestSimulation {
     private class LocalPlaytestServer(private val root: File) {
         private val httpServer: HttpServer
         private val filesDir = File(root, "files").apply { mkdirs() }
-        private val opsDir = File(root, "operations").apply { mkdirs() }
-        private val operations = ConcurrentHashMap<String, MutableList<SimultaneousTurnOperation>>()
+        private val actions = ConcurrentHashMap<String, MutableList<RealtimeTurnActionEntry>>()
         private val locks = ConcurrentHashMap<String, String>()
         private val saves = mutableMapOf<String, Pair<String, String>>()
         val url: String
@@ -666,7 +643,8 @@ class SimultaneousTurnPlaytestSimulation {
             httpServer.createContext("/isalive") { respond(it, 200, "ok") }
             httpServer.createContext("/auth") { respond(it, 200, "ok") }
             httpServer.createContext("/files/") { handleFile(it) }
-            httpServer.createContext("/simultaneous-turn-operations/") { handleOps(it) }
+            httpServer.createContext("/simultaneous-turn-actions/") { handleRealtimeActions(it) }
+            httpServer.createContext("/simultaneous-turn-ready/") { handleReady(it) }
             httpServer.createContext("/simultaneous-turn-lock/") { handleLock(it) }
             httpServer.createContext("/simultaneous-turn-saves/") { handleSave(it) }
             httpServer.executor = Executors.newCachedThreadPool()
@@ -681,11 +659,11 @@ class SimultaneousTurnPlaytestSimulation {
                 storageFile(id).writeText(pair.first)
                 storageFile("${id}_Preview").writeText(pair.second)
             }
-            for ((id, list) in operations) {
-                File(opsDir, "$id.json").writeText(SimultaneousTurnOperations.encode(list))
+            for ((id, list) in actions) {
+                File(root, "$id-actions.json").writeText(json().toJson(list))
             }
             File(root, "server-state.txt").writeText(
-                "files=${filesDir.list()?.sorted()}\noperations=${operations.mapValues { it.value.size }}\nlocks=${locks.keys}\n"
+                "files=${filesDir.list()?.sorted()}\nactions=${actions.mapValues { it.value.size }}\nlocks=${locks.keys}\n"
             )
         }
 
@@ -734,36 +712,124 @@ class SimultaneousTurnPlaytestSimulation {
             }
         }
 
-        private fun handleOps(exchange: HttpExchange) {
+        private fun handleRealtimeActions(exchange: HttpExchange) {
             try {
-                val id = exchange.requestURI.path.removePrefix("/simultaneous-turn-operations/")
+                val id = exchange.requestURI.path.removePrefix("/simultaneous-turn-actions/")
                 when (exchange.requestMethod) {
                     "POST" -> {
-                        val incoming = SimultaneousTurnOperations.decode(
+                        val request = json().fromJson(
+                            RealtimeTurnActionRequest::class.java,
                             exchange.requestBody.readBytes().toString(Charsets.UTF_8)
                         )
-                        synchronized(operations) {
-                            val list = operations.getOrPut(id) { ArrayList() }
-                            val existing = list.map { Triple(it.turn, it.playerId, it.sequence) }.toSet()
-                            list += incoming.filterNot { Triple(it.turn, it.playerId, it.sequence) in existing }
+                        val operation = request.operations.singleOrNull()
+                        if (operation == null) {
+                            exchange.sendResponseHeaders(400, -1)
+                            return
                         }
-                        exchange.sendResponseHeaders(200, -1)
+                        if (authenticatedPlayerID(exchange) != operation.playerId) {
+                            exchange.sendResponseHeaders(403, -1)
+                            return
+                        }
+                        var response: RealtimeTurnActionEntry? = null
+                        var conflict = false
+                        synchronized(actions) {
+                            val list = actions.getOrPut(id) { ArrayList() }
+                            response = list.firstOrNull {
+                                it.turn == request.turn && it.playerId == operation.playerId &&
+                                    it.clientSequence == request.clientSequence
+                            }
+                            if (response == null && list.any {
+                                    it.turn == request.turn && it.playerId == operation.playerId && it.kind == "ready"
+                                }) {
+                                conflict = true
+                            }
+                            if (response == null && !conflict && list.any { accepted ->
+                                    accepted.turn == request.turn && accepted.kind == "action" &&
+                                        accepted.playerId != operation.playerId &&
+                                        accepted.conflictKeys.any { it in request.conflictKeys }
+                                }) {
+                                conflict = true
+                            }
+                            if (response == null && !conflict) {
+                                response = RealtimeTurnActionEntry(
+                                    turn = request.turn,
+                                    sequence = (list.filter { it.turn == request.turn }.maxOfOrNull { it.sequence } ?: 0) + 1,
+                                    playerId = operation.playerId,
+                                    clientSequence = request.clientSequence,
+                                    kind = "action",
+                                    conflictKeys = request.conflictKeys,
+                                    operations = request.operations,
+                                    createdAt = System.currentTimeMillis()
+                                ).also { list.add(it) }
+                            }
+                        }
+                        if (conflict) respond(exchange, 409, "conflict")
+                        else respond(exchange, 200, json().toJson(response))
                     }
                     "GET" -> {
-                        val list = synchronized(operations) { operations[id]?.toList() }
-                        if (list.isNullOrEmpty()) {
-                            exchange.sendResponseHeaders(404, -1)
-                        } else {
-                            val body = SimultaneousTurnOperations.encode(
-                                list.sortedWith(compareBy({ it.turn }, { it.playerId }, { it.sequence }))
+                        val query = exchange.requestURI.rawQuery.orEmpty().split('&')
+                            .mapNotNull { part -> part.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] } }
+                            .toMap()
+                        val turn = query["turn"]?.toIntOrNull() ?: 0
+                        val after = query["after"]?.toLongOrNull() ?: 0L
+                        val feed = synchronized(actions) {
+                            val turnActions = actions[id].orEmpty().filter { it.turn == turn }.sortedBy { it.sequence }
+                            val readyIDs = turnActions.filter { it.kind == "ready" }.map { it.playerId }.distinct()
+                            RealtimeTurnActionFeed(
+                                turn = turn,
+                                after = after,
+                                latestSequence = turnActions.maxOfOrNull { it.sequence } ?: 0L,
+                                actions = ArrayList(turnActions.filter { it.sequence > after }),
+                                readyPlayerIds = ArrayList(readyIDs),
+                                allPlayersReady = readyIDs.toSet() == setOf(PLAYER_A, PLAYER_B)
                             )
-                            val bytes = body.toByteArray(Charsets.UTF_8)
-                            exchange.sendResponseHeaders(200, bytes.size.toLong())
-                            exchange.responseBody.write(bytes)
                         }
+                        respond(exchange, 200, json().toJson(feed))
                     }
                     else -> exchange.sendResponseHeaders(405, -1)
                 }
+            } finally {
+                exchange.close()
+            }
+        }
+
+        private fun handleReady(exchange: HttpExchange) {
+            try {
+                check(exchange.requestMethod == "POST")
+                val id = exchange.requestURI.path.removePrefix("/simultaneous-turn-ready/")
+                val request = JsonReader().parse(exchange.requestBody.reader(Charsets.UTF_8))
+                val turn = request.getInt("turn", 0)
+                val clientSequence = request.getLong("clientSequence", 0L)
+                val playerId = authenticatedPlayerID(exchange)
+                if (playerId !in setOf(PLAYER_A, PLAYER_B)) {
+                    exchange.sendResponseHeaders(403, -1)
+                    return
+                }
+                var response: RealtimeTurnActionEntry? = null
+                var conflict = false
+                synchronized(actions) {
+                    val list = actions.getOrPut(id) { ArrayList() }
+                    response = list.firstOrNull {
+                        it.turn == turn && it.playerId == playerId && it.clientSequence == clientSequence
+                    }
+                    if (response == null && list.any { it.turn == turn && it.playerId == playerId && it.kind == "ready" })
+                        conflict = true
+                    if (response == null && !conflict) {
+                        response = RealtimeTurnActionEntry(
+                            turn = turn,
+                            sequence = (list.filter { it.turn == turn }.maxOfOrNull { it.sequence } ?: 0) + 1,
+                            playerId = playerId,
+                            clientSequence = clientSequence,
+                            kind = "ready",
+                            createdAt = System.currentTimeMillis()
+                        ).also { list.add(it) }
+                    }
+                }
+                if (conflict) respond(exchange, 409, "already ready")
+                else respond(exchange, 200, json().toJson(response))
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                respond(exchange, 500, ex.toString())
             } finally {
                 exchange.close()
             }
@@ -782,7 +848,11 @@ class SimultaneousTurnPlaytestSimulation {
                             if (locks[id] == body) exchange.sendResponseHeaders(204, -1)
                             else exchange.sendResponseHeaders(409, -1)
                         } else {
-                            check(body.toInt() >= 0)
+                            val turn = body.toInt()
+                            if (!allPlayersReady(id, turn)) {
+                                exchange.sendResponseHeaders(409, -1)
+                                return
+                            }
                             val token = UUID.randomUUID().toString()
                             val existing = locks.putIfAbsent(id, token)
                             if (existing == null) respond(exchange, 201, token)
@@ -797,6 +867,21 @@ class SimultaneousTurnPlaytestSimulation {
                 }
             } finally {
                 exchange.close()
+            }
+        }
+
+        private fun allPlayersReady(id: String, turn: Int): Boolean = synchronized(actions) {
+            actions[id].orEmpty().filter { it.turn == turn && it.kind == "ready" }
+                .map { it.playerId }.toSet() == setOf(PLAYER_A, PLAYER_B)
+        }
+
+        private fun authenticatedPlayerID(exchange: HttpExchange): String {
+            val header = exchange.requestHeaders.getFirst("Authorization") ?: return ""
+            if (!header.startsWith("Basic ")) return ""
+            return try {
+                Base64Coder.decodeString(header.removePrefix("Basic ")).substringBefore(':')
+            } catch (_: Exception) {
+                ""
             }
         }
 

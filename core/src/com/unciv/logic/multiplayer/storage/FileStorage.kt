@@ -6,6 +6,7 @@ import java.io.FileNotFoundException  // Kdoc only
 import java.io.InputStream
 
 class FileStorageConflictException : Exception()
+class MultiplayerTurnActionConflictException(val serverMessage: String) : Exception(serverMessage)
 class FileStorageRateLimitReached(val limitRemainingSeconds: Int) : UncivShowableException("Server limit reached! Please wait for [${limitRemainingSeconds}] seconds")
 class MultiplayerFileNotFoundException(cause: Throwable?) : UncivShowableException("File could not be found on the multiplayer server", cause)
 class MultiplayerAuthException(cause: Throwable?) : UncivShowableException("Authentication failed", cause)
@@ -59,5 +60,11 @@ interface FileStorage {
     fun appendSimultaneousTurnOperations(gameId: String, operations: String): Boolean = false
     /** Loads the atomically stored simultaneous-turn operations, or null if unsupported. */
     fun loadSimultaneousTurnOperations(gameId: String): String? = null
+    /** Submits one client-computed real-time action batch; returns the server-assigned sequence. */
+    fun appendRealtimeTurnAction(gameId: String, request: String): String? = null
+    /** Loads the real-time action log after the supplied server sequence. */
+    fun loadRealtimeTurnActions(gameId: String, turn: Int, after: Long): String? = null
+    /** Marks the authenticated player ready for the next turn. */
+    fun markRealtimeTurnReady(gameId: String, request: String): String? = null
     fun checkAuthStatus(userId: String, password: String): AuthStatus
 }

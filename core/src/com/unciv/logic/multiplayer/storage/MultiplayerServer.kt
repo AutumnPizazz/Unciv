@@ -10,6 +10,10 @@ import com.unciv.logic.GameInfoPreview
 import com.unciv.logic.UncivKtor
 import com.unciv.logic.files.FileConversions
 import com.unciv.logic.files.UncivFiles
+import com.unciv.logic.multiplayer.RealtimeTurnActionEntry
+import com.unciv.logic.multiplayer.RealtimeTurnActionFeed
+import com.unciv.logic.multiplayer.RealtimeTurnActionRequest
+import com.unciv.logic.multiplayer.RealtimeTurnReadyRequest
 import com.unciv.logic.multiplayer.ServerFeatureSet
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -174,6 +178,25 @@ class MultiplayerServer private constructor(
         gameId: String
     ): List<com.unciv.logic.multiplayer.SimultaneousTurnOperation> =
         com.unciv.logic.multiplayer.SimultaneousTurnOperations.download(this, gameId)
+
+    suspend fun appendRealtimeTurnAction(
+        gameId: String,
+        request: RealtimeTurnActionRequest
+    ): RealtimeTurnActionEntry? {
+        val response = fileStorage().appendRealtimeTurnAction(gameId, json().toJson(request)) ?: return null
+        return json().fromJson(RealtimeTurnActionEntry::class.java, response)
+    }
+
+    suspend fun downloadRealtimeTurnActions(gameId: String, turn: Int, after: Long): RealtimeTurnActionFeed? {
+        val response = fileStorage().loadRealtimeTurnActions(gameId, turn, after) ?: return null
+        return json().fromJson(RealtimeTurnActionFeed::class.java, response)
+    }
+
+    suspend fun markRealtimeTurnReady(gameId: String, turn: Int, clientSequence: Long): RealtimeTurnActionEntry? {
+        val request = json().toJson(RealtimeTurnReadyRequest(turn, clientSequence))
+        val response = fileStorage().markRealtimeTurnReady(gameId, request) ?: return null
+        return json().fromJson(RealtimeTurnActionEntry::class.java, response)
+    }
 
     suspend fun appendSimultaneousTurnOperations(gameId: String, operations: String): Boolean =
         fileStorage().appendSimultaneousTurnOperations(gameId, operations)

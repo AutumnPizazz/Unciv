@@ -53,6 +53,10 @@ outline: [2, 2]
 - The simultaneous-turn report shows each player which of their orders failed and why.
 - Simultaneous turns report actions that could not be recorded or are not yet supported.
 - Players are notified when a simultaneous-turn upload fails and can retry it.
+- Simultaneous turns now sync actions live and wait for every living player before advancing.
+- Rejected conflicting actions restore the server state instead of being silently lost.
+- Timed-out players are skipped using the host's turn timeout.
+- City production can be changed by each player in simultaneous turns.
 - Fixed escorted units moving to the wrong tiles when swapping during simultaneous turns.
 - Fixed the game advancing twice when two players settled the same turn.
 - Enabling simultaneous turns disables conflicting game options.

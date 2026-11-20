@@ -37,20 +37,23 @@ class SimultaneousTurnOperationUploadQueueTest {
     }
 
     @Test
-    fun submissionUploadsTheWholeTurnLogAndDoneMarkerTogether() = runBlocking {
-        val action = SimultaneousTurnOperation(1, "player", 1, "unit.move", "{}")
-        val done = SimultaneousTurnOperation(1, "player", 2, "done", "{}")
-        val uploaded = ArrayList<List<SimultaneousTurnOperation>>()
+    fun permanentlyRejectedActionAlsoDiscardsLaterDependentActions() = runBlocking {
+        val rejected = SimultaneousTurnOperation(1, "player", 1, "unit.move", "{}")
+        val accepted = SimultaneousTurnOperation(1, "player", 2, "unit.action", "{}")
+        val uploaded = ArrayList<SimultaneousTurnOperation>()
+        val rejectedOperations = ArrayList<SimultaneousTurnOperation>()
         val queue = SimultaneousTurnOperationUploadQueue(
-            upload = { batch -> uploaded.add(ArrayList(batch)) }
+            upload = { batch ->
+                if (batch.first() == rejected)
+                    throw SimultaneousTurnOperationRejectedException(rejected, IOException("conflict"))
+                uploaded.addAll(batch)
+            },
+            onRejected = { operation, _ -> rejectedOperations += operation }
         )
-        queue.enqueueBatch(listOf(action))
+        queue.enqueueBatch(listOf(rejected, accepted))
         queue.flushPending()
 
-        queue.uploadForSubmission(listOf(action, done))
-
-        assertEquals(2, uploaded.size)
-        assertEquals(listOf(action), uploaded[0])
-        assertEquals(listOf(action, done), uploaded[1])
+        assertEquals(listOf(rejected), rejectedOperations)
+        assertTrue("later actions must not upload from a stale local state", uploaded.isEmpty())
     }
 }

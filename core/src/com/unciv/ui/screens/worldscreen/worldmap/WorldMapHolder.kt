@@ -19,11 +19,8 @@ import com.badlogic.gdx.scenes.scene2d.*
 import com.unciv.UncivGame
 import com.unciv.logic.map.*
 import com.unciv.logic.map.mapunit.movement.UnitMovement
-import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
-import com.unciv.logic.multiplayer.SimultaneousTurnMoveResult
 import com.unciv.logic.multiplayer.SimultaneousTurnClaims
 import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
-import com.unciv.logic.multiplayer.SimultaneousTurnSwapResult
 import com.unciv.logic.map.tile.Tile
 import com.unciv.models.UncivSound
 import com.unciv.view.ForeignCityView
@@ -345,25 +342,8 @@ class WorldMapHolder(
                     val defenderCombatant = attackableTile.getCombatant()
                     if (defenderCombatant != null)
                         worldScreen.battleAnimationDeferred(attackerCombatant, damageToAttacker, defenderCombatant, damageToDefender)
-                    // CN: record the full state diff *before* the granular attack op below, so replay applies
-                    // it to a clean state instead of rejecting it after the granular op mutated the units.
                     if (gameInfoBefore != null)
                         worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat, gameInfoBefore)
-                    // CN: record the attack for simultaneous-turn replay
-                    val target = (defenderCombatant as? MapUnitCombatantView)?.getUnitView()?.getUnit()
-                    if (target != null) worldScreen.recordSimultaneousTurnOperation(
-                        "unit.attack",
-                        SimultaneousTurnAttackResult(
-                            attackerId = unitView.id,
-                            attackerOwner = unitView.owner().civName,
-                            targetId = target.id,
-                            targetOwner = target.owner,
-                            attackerHp = unitView.health,
-                            targetHp = target.health,
-                            targetX = target.currentTile.position.x,
-                            targetY = target.currentTile.position.y
-                        )
-                    )
                     localShouldUpdate = true
                     // CN: a deferred body runs after this screen's handler already wrote shouldUpdate below
                     worldScreen.shouldUpdate = true
@@ -442,10 +422,7 @@ class WorldMapHolder(
                     // but until it reaches the headTowards the board has changed and so the headTowards fails.
                     // I can't think of any way to avoid this,
                     // but it's so rare and edge-case-y that ignoring its failure is actually acceptable, hence the empty catch
-                    // CN needs the model unit for simultaneous-turn recording
-                    val selectedUnit = selectedUnitView.getUnit()
                     val previousTileView = selectedUnitView.getTile()
-                    val previousPosition = selectedUnit.currentTile.position
                     val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
                         worldScreen.gameInfo.clone()
                     else null
@@ -462,23 +439,8 @@ class WorldMapHolder(
                     SoundPlayer.play(UncivSound.Whoosh)
                     if (selectedUnitView.getTile() != targetTileView)
                         selectedUnitView.trySetMoveToAction(targetTileView)
-                    // CN: record the full state diff *before* the granular move op below, so replay applies
-                    // it to a clean state instead of rejecting it after the granular op mutated the unit.
                     if (gameInfoBefore != null)
                         worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Move, gameInfoBefore)
-                    worldScreen.recordSimultaneousTurnOperation(
-                        "unit.move",
-                        SimultaneousTurnMoveResult(
-                            unitId = selectedUnit.id,
-                            owner = selectedUnit.owner,
-                            fromX = previousPosition.x,
-                            fromY = previousPosition.y,
-                            toX = selectedUnit.currentTile.position.x,
-                            toY = selectedUnit.currentTile.position.y,
-                            hp = selectedUnit.health,
-                            movement = selectedUnit.currentMovement
-                        )
-                    )
                     if (selectedUnitView.hasMovement()) worldScreen.bottomUnitTable.selectUnit(selectedUnitView)
 
                     worldScreen.shouldUpdate = true
@@ -549,8 +511,6 @@ class WorldMapHolder(
     }
 
     internal fun swapMoveUnitToTargetTile(selectedUnitView: MapUnitView, targetTileView: TileView) {
-        val selectedUnit = selectedUnitView.getUnit()
-        val previousPosition = selectedUnit.currentTile.position
         // An escorted swap moves a pair of units, so its result cannot be re-derived from the recorded
         // swap alone - replaying the movement rules could turn the swap into a plain move or move only
         // half of the pair. Record the resulting state first, exactly like a normal move does.
@@ -570,19 +530,6 @@ class WorldMapHolder(
 
         if (gameInfoBefore != null)
             worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Swap, gameInfoBefore)
-        worldScreen.recordSimultaneousTurnOperation(
-            "unit.swap",
-            SimultaneousTurnSwapResult(
-                unitId = selectedUnit.id,
-                owner = selectedUnit.owner,
-                fromX = previousPosition.x,
-                fromY = previousPosition.y,
-                toX = selectedUnit.currentTile.position.x,
-                toY = selectedUnit.currentTile.position.y,
-                health = selectedUnit.health,
-                movement = selectedUnit.currentMovement
-            )
-        )
         worldScreen.shouldUpdate = true
     }
 

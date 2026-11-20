@@ -70,6 +70,7 @@ sealed class Message {
     data class OpSignal(
         val gameId: String, val turn: Int, val playerId: String, val sequence: Long
     ) : Message()
+
 }
 
 // used when receiving a message
@@ -114,6 +115,12 @@ sealed class Response {
     @Serializable
     @SerialName("opSignal")
     data class OpSignal(
+        val gameId: String, val turn: Int, val playerId: String, val sequence: Long
+    ) : Response()
+
+    @Serializable
+    @SerialName("turnAction")
+    data class TurnAction(
         val gameId: String, val turn: Int, val playerId: String, val sequence: Long
     ) : Response()
 }
@@ -282,6 +289,11 @@ object ChatWebSocket {
                         }
                         is Response.OpSignal -> EventBus.send(
                             com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived(
+                                response.gameId, response.turn, response.playerId, response.sequence
+                            )
+                        )
+                        is Response.TurnAction -> EventBus.send(
+                            com.unciv.logic.multiplayer.RealtimeTurnActionReceived(
                                 response.gameId, response.turn, response.playerId, response.sequence
                             )
                         )

@@ -74,3 +74,10 @@ class SimultaneousTurnOperationReceived(
     val playerId: String,
     val sequence: Long
 ) : Event
+
+class RealtimeTurnActionReceived(
+    val gameId: String,
+    val turn: Int,
+    val playerId: String,
+    val sequence: Long
+) : Event

@@ -52,6 +52,28 @@ class SimultaneousTurnOutboxTest {
     }
 
     @Test
+    fun realtimeReadyPreventsRecoveryOfUnacknowledgedActions() = runBlocking {
+        val directory = FileHandle(temporaryFolder.root)
+        val outbox = SimultaneousTurnOutbox(directory, 1, 100, "player")
+        outbox.record(listOf(first, second))
+
+        val recovered = outbox.recover(listOf(first), serverReady = true) {
+            fail("A ready player cannot append actions")
+        }
+
+        assertTrue(recovered.hasConflicts)
+        assertEquals(
+            listOf(second.copy(createdAtMillis = 0)),
+            recovered.rejectedOperations.map { it.copy(createdAtMillis = 0) }
+        )
+        outbox.discardRejectedOperations(recovered.rejectedOperations.mapTo(HashSet()) { it.sequence })
+        val reopened = SimultaneousTurnOutbox(directory, 1, 100, "player")
+        assertFalse(reopened.recover(listOf(first), serverReady = true) {
+            fail("Discarded actions must not be retried after reload")
+        }.hasConflicts)
+    }
+
+    @Test
     fun pendingActionsAreScopedToThePlayerAndTurnStartArchive() = runBlocking {
         val directory = FileHandle(temporaryFolder.root)
         SimultaneousTurnOutbox(directory, 1, 100, "player").record(listOf(first))

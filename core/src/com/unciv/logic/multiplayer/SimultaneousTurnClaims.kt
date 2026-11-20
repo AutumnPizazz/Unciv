@@ -87,6 +87,15 @@ object SimultaneousTurnClaims {
         return claims
     }
 
+    fun claimsByOthers(actions: List<RealtimeTurnActionEntry>, playerId: String): Map<String, String> {
+        val claims = LinkedHashMap<String, String>()
+        for (action in actions) {
+            if (action.kind != "action" || action.playerId.isEmpty() || action.playerId == playerId) continue
+            for (key in action.conflictKeys) claims.putIfAbsent(key, action.playerId)
+        }
+        return claims
+    }
+
     /** The tiles other players already gave an order for in [turn], with the player who ordered it. */
     fun tileClaimsByOthers(
         operations: List<SimultaneousTurnOperation>,

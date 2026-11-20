@@ -148,7 +148,13 @@ class CityView(city: City,
     @Readonly fun getTile(tileView: TileView): Tile = tileView.unwrap()
 
     // ACTIONS
-    private fun canChangeState() = city.civ === viewer && viewer.isCurrentPlayer()
+    private fun canChangeState(): Boolean {
+        if (city.civ !== viewer) return false
+        val worldScreen = UncivGame.Current.worldScreen
+        if (viewer.gameInfo.isSimultaneousTurnsMode() && worldScreen?.gameInfo === viewer.gameInfo)
+            return worldScreen.canChangeState
+        return viewer.isCurrentPlayer()
+    }
 
     fun tryLockTile(tileView: TileView): Boolean {
         if (!canChangeState()) return false

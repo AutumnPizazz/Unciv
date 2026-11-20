@@ -672,7 +672,7 @@ class CityConstructionsTable(private val cityScreen: CityScreen) {
 
         SoundPlayer.play(getConstructionSound(construction))
 
-        cityView.tryAddToQueue(construction.name)
+        if (!cityView.tryAddToQueue(construction.name)) return
         if (!cityView.constructions.shouldBeDisplayed(construction)) // For buildings - unlike units which can be queued multiple times
             cityScreen.clearSelection()
         if (cityView.constructions.constructionQueue.first() == construction.name)

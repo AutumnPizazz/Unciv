@@ -15,6 +15,7 @@ internal class UncivServerFileStorage(
 ) : FileStorage {
     private val timeout = 30000
     private val turnOperationsHeaders = authHeader + ("X-Unciv-Turn-Protocol" to "1")
+    private val realtimeTurnHeaders = authHeader + ("X-Unciv-Turn-Protocol" to "2")
 
     override fun saveFileData(fileName: String, data: String) {
         SimpleHttp.sendRequest(Net.HttpMethods.PUT, fileUrl(fileName), content=data, timeout=timeout, header=authHeader) {
@@ -77,6 +78,55 @@ internal class UncivServerFileStorage(
         return data
     }
 
+    override fun appendRealtimeTurnAction(gameId: String, request: String): String {
+        var response: String? = null
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-actions/$gameId",
+            content = request,
+            timeout = timeout,
+            header = realtimeTurnHeaders
+        ) { success, result, code ->
+            if (success && code == 200) response = result
+            else if (code == 401) throw MultiplayerAuthException(Exception(result))
+            else if (code == 409) throw MultiplayerTurnActionConflictException(result)
+            else throw serverError(code, result)
+        }
+        return response ?: throw Exception("Real-time turn action response was empty")
+    }
+
+    override fun loadRealtimeTurnActions(gameId: String, turn: Int, after: Long): String {
+        var response: String? = null
+        SimpleHttp.sendGetRequest(
+            "$serverUrl/simultaneous-turn-actions/$gameId?turn=$turn&after=$after",
+            timeout,
+            realtimeTurnHeaders
+        ) { success, result, code ->
+            if (success && code == 200) response = result
+            else if (code == 401) throw MultiplayerAuthException(Exception(result))
+            else if (code == 409) throw MultiplayerTurnActionConflictException(result)
+            else throw serverError(code, result)
+        }
+        return response ?: throw Exception("Real-time turn action feed was empty")
+    }
+
+    override fun markRealtimeTurnReady(gameId: String, request: String): String {
+        var response: String? = null
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-ready/$gameId",
+            content = request,
+            timeout = timeout,
+            header = realtimeTurnHeaders
+        ) { success, result, code ->
+            if (success && code == 200) response = result
+            else if (code == 401) throw MultiplayerAuthException(Exception(result))
+            else if (code == 409) throw MultiplayerTurnActionConflictException(result)
+            else throw serverError(code, result)
+        }
+        return response ?: throw Exception("Real-time turn ready response was empty")
+    }
+
     fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int): String? {
         var lease: String? = null
         SimpleHttp.sendRequest(
@@ -84,7 +134,7 @@ internal class UncivServerFileStorage(
             "$serverUrl/simultaneous-turn-lock/$gameId",
             content = turn.toString(),
             timeout = timeout,
-            header = authHeader
+            header = realtimeTurnHeaders
         ) { success, result, code ->
             if (success && code == 201 && result.isNotBlank()) lease = result
             else if (code != 409) throw serverError(code, result)
@@ -99,7 +149,7 @@ internal class UncivServerFileStorage(
             "$serverUrl/simultaneous-turn-lock/$gameId/renew",
             content = lease,
             timeout = timeout,
-            header = authHeader
+            header = realtimeTurnHeaders
         ) { success, _, code ->
             renewed = success && code == 204
         }
@@ -112,7 +162,7 @@ internal class UncivServerFileStorage(
             "$serverUrl/simultaneous-turn-lock/$gameId",
             content = lease,
             timeout = timeout,
-            header = authHeader
+            header = realtimeTurnHeaders
         ) { _, _, _ -> }
     }
 
@@ -128,7 +178,7 @@ internal class UncivServerFileStorage(
             "$serverUrl/simultaneous-turn-saves/$gameId",
             content = request.toJson(JsonWriter.OutputType.json),
             timeout = timeout,
-            header = authHeader
+            header = realtimeTurnHeaders
         ) { success, result, code ->
             if (success && code == 204) saved = true
             else if (code == 401) throw MultiplayerAuthException(Exception(result))

@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
-import com.unciv.logic.multiplayer.SimultaneousTurnAttackResult
 import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.UncivSound
 import com.unciv.models.ruleset.unique.UniqueType
@@ -353,28 +352,7 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         }
 
         worldScreen.battleAnimationDeferred(attacker, damageToAttacker, defender, damageToDefender)
-        // CN simultaneous-turn bookkeeping: record the full state diff *before* the granular attack op
-        // below. Replay applies operations in recorded order, and the snapshot is only accepted when every
-        // component still matches one side of it; recording the granular op first would mutate the units
-        // so the snapshot matches neither side and gets rejected, silently dropping XP/kill/capture effects.
         worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat, gameInfoBefore)
-        // Views don't expose unit identity, so resolve the model units
-        val attackerUnit = (attacker as? MapUnitCombatantView)?.getUnitView()?.getUnit()
-        val defenderUnit = (defender as? MapUnitCombatantView)?.getUnitView()?.getUnit()
-        if (attackerUnit != null && defenderUnit != null)
-            worldScreen.recordSimultaneousTurnOperation(
-                "unit.attack",
-                SimultaneousTurnAttackResult(
-                    attackerId = attackerUnit.id,
-                    attackerOwner = attackerUnit.owner,
-                    targetId = defenderUnit.id,
-                    targetOwner = defenderUnit.owner,
-                    attackerHp = attackerUnit.health,
-                    targetHp = defenderUnit.health,
-                    targetX = defenderUnit.currentTile.position.x,
-                    targetY = defenderUnit.currentTile.position.y
-                )
-            )
         if (!attacker.canAttack()) hide()
     }
 
