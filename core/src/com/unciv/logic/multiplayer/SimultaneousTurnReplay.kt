@@ -326,6 +326,16 @@ object SimultaneousTurnReplay {
         val firstValue = if (first == null || first.isNull) null else first
         val secondValue = if (second == null || second.isNull) null else second
         if (firstValue == null || secondValue == null) return firstValue == null && secondValue == null
+        if (firstValue.type() != secondValue.type()) return false
+        if (firstValue.isObject) {
+            if (firstValue.size != secondValue.size) return false
+            val byName = secondValue.associateBy { it.name }
+            return firstValue.all { it.name in byName && jsonValueEquals(it, byName[it.name]) }
+        }
+        if (firstValue.isArray) {
+            if (firstValue.size != secondValue.size) return false
+            return firstValue.zip(secondValue).all { (a, b) -> jsonValueEquals(a, b) }
+        }
         return firstValue.toJson(JsonWriter.OutputType.json) == secondValue.toJson(JsonWriter.OutputType.json)
     }
 

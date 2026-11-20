@@ -13,6 +13,7 @@ outline: [2, 2]
 - Simultaneous-turn actions now sync during a turn and restore after a reload.
 - Reopening a simultaneous turn retries pending actions saved on this device.
 - Simultaneous turns no longer wait for spectators to finish.
+- Reloading a save no longer rejects actions merely because variable keys changed order.
 
 ### Mod author-facing
 

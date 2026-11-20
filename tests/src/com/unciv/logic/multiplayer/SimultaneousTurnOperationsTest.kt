@@ -1236,6 +1236,31 @@ class SimultaneousTurnOperationsTest {
     }
 
     @Test
+    fun reorderingObjectKeysDoesNotMakeAnActionConflict() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(2)
+        val civ = testGame.addCiv(testGame.ruleset.nations.values.first(), isPlayer = true)
+        testGame.gameInfo.setTransients()
+        civ.variables = hashMapOf("a" to 1, "b" to 2)
+        assertTrue(json().toJson(civ).contains(""""variables":{"a":1,"b":2}"""))
+        val global = json().toJson(SimultaneousTurnOperations.currentGlobalState(testGame.gameInfo))
+        val action = SimultaneousTurnGameStateResult(
+            globalBefore = global,
+            globalAfter = global,
+            civilizations = arrayListOf(SimultaneousTurnComponentSnapshot(
+                key = civ.civName,
+                before = """{"variables":{"b":2,"a":1}}""",
+                after = """{"variables":{"b":2,"a":3}}""",
+                changedFields = arrayListOf("variables")
+            ))
+        )
+        assertTrue(SimultaneousTurnReplay.apply(testGame.gameInfo, SimultaneousTurnOperation(
+            type = "game.state", payload = json().toJson(action)
+        )))
+        assertEquals(mapOf("a" to 3, "b" to 2), testGame.gameInfo.getCivilization(civ.civName).variables)
+    }
+
+    @Test
     fun aFieldLevelSnapshotMergesInsteadOfRejectingAnUnrelatedField() {
         // The old whole-object check rejected the operation as soon as anything in the component
         // moved, even a field this operation never touched. Per-field checking keeps the conflict
