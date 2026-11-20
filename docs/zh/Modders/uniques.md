@@ -4,7 +4,7 @@ title: Unique 能力列表
 
 <!-- 本文件由 desktop/src/com/unciv/app/desktop/UniqueDocsWriter.kt 自动生成，请勿手动编辑 -->
 
-::: unique-page-header 当前版本号：5.0.1.2
+::: unique-page-header 当前版本号：5.0.1.3
 # Unique 能力列表
 :::
 

@@ -7,6 +7,8 @@ outline: [2, 2]
 
 ## Unreleased
 
+## 5.0.1.3 (build 1269)
+
 ### Player-facing
 
 - Fixed a crash when multiple game loads overlap.
