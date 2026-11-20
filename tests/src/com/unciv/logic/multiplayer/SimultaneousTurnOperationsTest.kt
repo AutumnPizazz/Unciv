@@ -1,5 +1,6 @@
 package com.unciv.logic.multiplayer
 
+import com.unciv.Constants
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
 import com.unciv.logic.civilization.Civilization
@@ -958,6 +959,24 @@ class SimultaneousTurnOperationsTest {
             "a stop-automation action must be replayed, otherwise the unit keeps automating",
             unit.automated
         )
+    }
+
+    @Test
+    fun aSpectatorIsNeverRequiredToSubmitATurn() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(3)
+        val player = testGame.addCiv(isPlayer = true).apply { playerId = "player" }
+        testGame.addUnit("Warrior", player, testGame.getTile(0, 0))
+        val spectator = testGame.addCiv(testGame.ruleset.nations.getValue(Constants.spectator), isPlayer = true)
+        spectator.playerId = "spectator"
+        val game = testGame.gameInfo
+        game.turns = 3
+        val previousDone = SimultaneousTurnOperation(turn = 2, playerId = player.playerId, type = "done")
+        val currentDone = previousDone.copy(turn = 3)
+
+        assertTrue(spectator.isSpectator && spectator.isHuman() && spectator.isAlive())
+        assertEquals(setOf(player.playerId), SimultaneousTurnOperations.getUnsubmittedPlayerIds(game, listOf(previousDone)))
+        assertTrue(SimultaneousTurnOperations.getUnsubmittedPlayerIds(game, listOf(previousDone, currentDone)).isEmpty())
     }
 
     @Test

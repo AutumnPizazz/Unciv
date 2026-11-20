@@ -1181,24 +1181,16 @@ class WorldScreen(
                 } catch (_: MultiplayerFileNotFoundException) {
                     emptyList()
                 }
-                val expectedPlayerIds = gameInfo.civilizations
-                    .filter { it.isHuman() && it.isAlive() }
-                    .map { it.playerId }
-                    .toSet()
-                val submittedPlayerIds = allOperations
-                    .filter { it.turn == submittedTurn && it.type == "done" }
-                    .map { it.playerId }
-                    .toSet()
-                if (simultaneousTurnPendingPlayerIds(allOperations).isNotEmpty()) {
+                val unsubmittedPlayerIds = SimultaneousTurnOperations.getUnsubmittedPlayerIds(gameInfo, allOperations)
+                if (isWaitingForSimultaneousTurnPlayers(allOperations, unsubmittedPlayerIds)) {
                     progressBar.increment()
                     launchOnGLThread { nextTurnButton.update() }
                     return@runOnNonDaemonThreadPool
                 }
-                val skippedPlayerIds = expectedPlayerIds - submittedPlayerIds
-                if (skippedPlayerIds.isNotEmpty() && simultaneousTurnTimeoutReportedForTurn != submittedTurn) {
+                if (unsubmittedPlayerIds.isNotEmpty() && simultaneousTurnTimeoutReportedForTurn != submittedTurn) {
                     simultaneousTurnTimeoutReportedForTurn = submittedTurn
                     val skippedNames = gameInfo.civilizations
-                        .filter { it.playerId in skippedPlayerIds }
+                        .filter { it.playerId in unsubmittedPlayerIds && !it.isSpectator }
                         .joinToString(", ") { it.civName }
                     launchOnGLThread {
                         ToastPopup(
@@ -1384,40 +1376,31 @@ class WorldScreen(
     }
 
     /**
-     * Human players this client is still legitimately waiting for. A player who submitted "done" is
-     * never included, and a player silent for `simultaneousTurnTimeoutMinutes` is dropped so a client
-     * that quit can no longer freeze the turn for everyone else.
+     * Wait for unsubmitted players, unless all of them have timed out.
      */
-    private fun simultaneousTurnPendingPlayerIds(
-        allOperations: List<SimultaneousTurnOperation>
-    ): Set<String> {
-        val humanPlayerIds = gameInfo.civilizations
-            .filter { it.isHuman() && it.isAlive() }
-            .map { it.playerId }
-            .toSet()
-        val finishedPlayerIds = allOperations
-            .filter { it.turn == gameInfo.turns && it.type == "done" }
-            .map { it.playerId }
-            .toSet()
-        val pendingPlayerIds = humanPlayerIds - finishedPlayerIds
+    private fun isWaitingForSimultaneousTurnPlayers(
+        allOperations: List<SimultaneousTurnOperation>,
+        unsubmittedPlayerIds: Set<String>
+    ): Boolean {
+        if (unsubmittedPlayerIds.isEmpty()) return false
         val timeoutMinutes = gameInfo.gameParameters.simultaneousTurnTimeoutMinutes
-        if (pendingPlayerIds.isEmpty() || timeoutMinutes <= 0) return pendingPlayerIds
+        if (timeoutMinutes <= 0) return true
         if (simultaneousTurnWaitStartedForTurn != gameInfo.turns) {
             simultaneousTurnWaitStartedForTurn = gameInfo.turns
             simultaneousTurnWaitStartedAt = System.currentTimeMillis()
         }
         val now = System.currentTimeMillis()
-        return pendingPlayerIds.filterNot { playerId ->
+        return unsubmittedPlayerIds.any { playerId ->
             val lastActivity = allOperations
                 .filter { it.turn == gameInfo.turns && it.playerId == playerId }
                 .maxOfOrNull { it.createdAtMillis } ?: 0L
-            SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
+            !SimultaneousTurnOperations.hasSimultaneousTurnTimedOut(
                 lastActivityMillis = lastActivity,
                 waitStartedAtMillis = simultaneousTurnWaitStartedAt,
                 nowMillis = now,
                 timeoutMinutes = timeoutMinutes
             )
-        }.toSet()
+        }
     }
 
     /** Periodically checks completion markers as a fallback for unavailable WebSocket signals. */
@@ -1431,7 +1414,8 @@ class WorldScreen(
                 try {
                     val operations = game.onlineMultiplayer.multiplayerServer
                         .downloadSimultaneousTurnOperations(gameInfo.gameId)
-                    if (simultaneousTurnPendingPlayerIds(operations).isEmpty()) {
+                    val unsubmittedPlayerIds = SimultaneousTurnOperations.getUnsubmittedPlayerIds(gameInfo, operations)
+                    if (!isWaitingForSimultaneousTurnPlayers(operations, unsubmittedPlayerIds)) {
                         launchOnGLThread {
                             if (gameInfo.isSimultaneousTurnsMode() && !isPlayersTurn && !isNextTurnUpdateRunning())
                                 finishSimultaneousTurn()

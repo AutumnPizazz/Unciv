@@ -240,6 +240,12 @@ object SimultaneousTurnOperations {
         return action?.takeIf { it.isNotEmpty() }
     }
 
+    fun getUnsubmittedPlayerIds(gameInfo: GameInfo, operations: List<SimultaneousTurnOperation>): Set<String> {
+        val submitted = operations.filter { it.turn == gameInfo.turns && it.type == "done" }
+            .mapTo(HashSet()) { it.playerId }
+        return gameInfo.getAliveHumanPlayerIds() - submitted
+    }
+
     /**
      * True when a simultaneous turn has waited longer than [timeoutMinutes] for a player whose last
      * recorded activity was [lastActivityMillis]. Settlement uses this to continue without a player

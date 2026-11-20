@@ -12,6 +12,7 @@ outline: [2, 2]
 - Fixed a crash when multiple game loads overlap.
 - Simultaneous-turn actions now sync during a turn and restore after a reload.
 - Reopening a simultaneous turn retries pending actions saved on this device.
+- Simultaneous turns no longer wait for spectators to finish.
 
 ### Mod author-facing
 
