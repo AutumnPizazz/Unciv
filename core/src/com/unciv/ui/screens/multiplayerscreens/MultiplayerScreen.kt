@@ -446,9 +446,10 @@ class MultiplayerScreen : PickerScreen() {
         }
 
         // is it our turn?
-        resignButton.isEnabled = preview?.getCurrentPlayerCiv()?.playerId == game.settings.multiplayer.getUserId()
+        val simultaneous = preview?.gameParameters?.simultaneousTurns == true
+        resignButton.isEnabled = !simultaneous && preview?.getCurrentPlayerCiv()?.playerId == game.settings.multiplayer.getUserId()
         
-        if (resignButton.isEnabled || preview == null){
+        if (simultaneous || resignButton.isEnabled || preview == null){
             skipTurnButton.isVisible = false
             forceResignButton.isVisible = false
         } else {

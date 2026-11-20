@@ -28,6 +28,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import java.io.File
 import java.net.InetSocketAddress
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -183,7 +184,7 @@ class SimultaneousTurnPlaytestSimulation {
             submit(a, gameA)
             submit(b, gameB)
 
-            val settled = settle(a, turnStart)
+            val settled = settle(a, turnStart, previousSettler = b)
             assertUnitAt(settled, civAName, unitAId, -1, 1, "turn 1 A move")
             assertUnitAt(settled, civBName, unitBId, 1, -1, "turn 1 B move")
             assertEquals("turn 1 A state change", 1, settled.getCivilization(civAName).variables["playA"])
@@ -412,7 +413,7 @@ class SimultaneousTurnPlaytestSimulation {
     // Settlement, mirroring WorldScreen.finishSimultaneousTurn
     // ---------------------------------------------------------------------------------------------
 
-    private suspend fun settle(settler: PlaytestClient, turnStart: GameInfo): GameInfo {
+    private suspend fun settle(settler: PlaytestClient, turnStart: GameInfo, previousSettler: PlaytestClient? = null): GameInfo {
         val allOps = settler.server.downloadSimultaneousTurnOperations(GAME_ID)
         val donePlayers = allOps
             .filter { it.turn == turnStart.turns && it.type == "done" }
@@ -423,13 +424,17 @@ class SimultaneousTurnPlaytestSimulation {
             setOf(PLAYER_A, PLAYER_B), donePlayers
         )
 
-        assertTrue(
-            "settlement lock for turn ${turnStart.turns}",
-            settler.server.acquireSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns, settler.playerId)
-        )
+        val previousLease = previousSettler?.server?.acquireSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns)
+        if (previousSettler != null) {
+            checkNotNull(previousLease)
+            assertEquals(null, settler.server.acquireSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns))
+            previousSettler.server.releaseSimultaneousTurnSettlementLock(GAME_ID, previousLease)
+        }
+        val lease = checkNotNull(settler.server.acquireSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns))
         try {
-            val base = cloneGame(turnStart)
-            val turnOps = allOps.filter { it.turn == base.turns && it.type != "done" }
+            val base = settler.server.tryDownloadGame(GAME_ID)
+            val turnOps = settler.server.downloadSimultaneousTurnOperations(GAME_ID)
+                .filter { it.turn == base.turns && it.type != "done" }
             note("${settler.label} settles turn ${base.turns} from ${turnOps.size} operation(s)")
             note("op order: " + turnOps.joinToString { "${it.playerId.take(1)}/${it.sequence}/${it.type}" })
 
@@ -461,11 +466,18 @@ class SimultaneousTurnPlaytestSimulation {
             }
 
             base.nextTurnPolling()
-            settler.server.uploadGame(base, withPreview = true)
+            if (previousSettler != null && previousLease != null) {
+                assertEquals(false, previousSettler.server.commitSimultaneousTurn(base, previousLease))
+                assertEquals(turnStart.turns, settler.server.tryDownloadGamePreview(GAME_ID).turns)
+                assertEquals(turnStart.turns, settler.server.downloadGame(GAME_ID).turns)
+            }
+            assertTrue(settler.server.commitSimultaneousTurn(base, lease))
+            assertEquals(base.turns, settler.server.tryDownloadGamePreview(GAME_ID).turns)
+            assertEquals("retry must not commit twice", false, settler.server.commitSimultaneousTurn(base, lease))
             note("${settler.label} uploaded the settled save (now turns=${base.turns})")
             return base
         } finally {
-            settler.server.releaseSimultaneousTurnSettlementLock(GAME_ID, turnStart.turns, settler.playerId)
+            settler.server.releaseSimultaneousTurnSettlementLock(GAME_ID, lease)
         }
     }
 
@@ -646,6 +658,7 @@ class SimultaneousTurnPlaytestSimulation {
         private val opsDir = File(root, "operations").apply { mkdirs() }
         private val operations = ConcurrentHashMap<String, MutableList<SimultaneousTurnOperation>>()
         private val locks = ConcurrentHashMap<String, String>()
+        private val saves = mutableMapOf<String, Pair<String, String>>()
         val url: String
 
         init {
@@ -655,6 +668,7 @@ class SimultaneousTurnPlaytestSimulation {
             httpServer.createContext("/files/") { handleFile(it) }
             httpServer.createContext("/simultaneous-turn-operations/") { handleOps(it) }
             httpServer.createContext("/simultaneous-turn-lock/") { handleLock(it) }
+            httpServer.createContext("/simultaneous-turn-saves/") { handleSave(it) }
             httpServer.executor = Executors.newCachedThreadPool()
             httpServer.start()
             url = "http://127.0.0.1:${httpServer.address.port}"
@@ -663,6 +677,10 @@ class SimultaneousTurnPlaytestSimulation {
         fun stop() = httpServer.stop(0)
 
         fun dump() {
+            for ((id, pair) in saves) {
+                storageFile(id).writeText(pair.first)
+                storageFile("${id}_Preview").writeText(pair.second)
+            }
             for ((id, list) in operations) {
                 File(opsDir, "$id.json").writeText(SimultaneousTurnOperations.encode(list))
             }
@@ -692,8 +710,12 @@ class SimultaneousTurnPlaytestSimulation {
                         exchange.sendResponseHeaders(200, -1)
                     }
                     "GET" -> {
+                        val pair = synchronized(saves) { saves[name.removeSuffix("_Preview")] }
+                        val saved = if (name.endsWith("_Preview")) pair?.second else pair?.first
                         val file = storageFile(name)
-                        if (!file.exists()) {
+                        if (saved != null) {
+                            respond(exchange, 200, saved)
+                        } else if (!file.exists()) {
                             exchange.sendResponseHeaders(404, -1)
                         } else {
                             val bytes = file.readBytes()
@@ -760,17 +782,37 @@ class SimultaneousTurnPlaytestSimulation {
                             if (locks[id] == body) exchange.sendResponseHeaders(204, -1)
                             else exchange.sendResponseHeaders(409, -1)
                         } else {
-                            val existing = locks.putIfAbsent(id, body)
-                            if (existing == null || existing == body) exchange.sendResponseHeaders(201, -1)
+                            check(body.toInt() >= 0)
+                            val token = UUID.randomUUID().toString()
+                            val existing = locks.putIfAbsent(id, token)
+                            if (existing == null) respond(exchange, 201, token)
                             else exchange.sendResponseHeaders(409, -1)
                         }
                     }
                     "DELETE" -> {
-                        if (locks[id] == body) locks.remove(id)
-                        exchange.sendResponseHeaders(200, -1)
+                        locks.remove(id, body)
+                        exchange.sendResponseHeaders(204, -1)
                     }
                     else -> exchange.sendResponseHeaders(405, -1)
                 }
+            } finally {
+                exchange.close()
+            }
+        }
+
+        private fun handleSave(exchange: HttpExchange) {
+            try {
+                check(exchange.requestMethod == "POST")
+                val id = exchange.requestURI.path.removePrefix("/simultaneous-turn-saves/")
+                val request = JsonReader().parse(exchange.requestBody.reader(Charsets.UTF_8))
+                val lease = request.getString("lease")
+                val content = request.getString("content") to request.getString("preview")
+                val saved = synchronized(saves) {
+                    val accepted = if (lease.isEmpty()) id !in saves else locks.remove(id, lease)
+                    if (accepted) saves[id] = content
+                    accepted
+                }
+                exchange.sendResponseHeaders(if (saved) 204 else 409, -1)
             } finally {
                 exchange.close()
             }

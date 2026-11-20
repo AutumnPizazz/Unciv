@@ -33,7 +33,6 @@ import com.unciv.logic.multiplayer.SimultaneousTurnClaims
 import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.logic.multiplayer.chat.ChatWebSocket
 import com.unciv.logic.multiplayer.getAliveHumanPlayerIds
-import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
 import com.unciv.logic.multiplayer.storage.MultiplayerAuthException
 import com.unciv.logic.trade.TradeEvaluation
@@ -1176,46 +1175,33 @@ class WorldScreen(
                     submitted = true
                 }
 
-                val allOperations = try {
-                    game.onlineMultiplayer.multiplayerServer.downloadSimultaneousTurnOperations(gameInfo.gameId)
-                } catch (_: MultiplayerFileNotFoundException) {
-                    emptyList()
-                }
-                val unsubmittedPlayerIds = SimultaneousTurnOperations.getUnsubmittedPlayerIds(gameInfo, allOperations)
-                if (isWaitingForSimultaneousTurnPlayers(allOperations, unsubmittedPlayerIds)) {
+                val server = game.onlineMultiplayer.multiplayerServer
+                val allOperations = server.downloadSimultaneousTurnOperations(gameInfo.gameId)
+                val pending = SimultaneousTurnOperations.getUnsubmittedPlayerIds(gameInfo, allOperations)
+                if (isWaitingForSimultaneousTurnPlayers(allOperations, pending)) {
                     progressBar.increment()
                     launchOnGLThread { nextTurnButton.update() }
                     return@runOnNonDaemonThreadPool
                 }
-                if (unsubmittedPlayerIds.isNotEmpty() && simultaneousTurnTimeoutReportedForTurn != submittedTurn) {
-                    simultaneousTurnTimeoutReportedForTurn = submittedTurn
-                    val skippedNames = gameInfo.civilizations
-                        .filter { it.playerId in unsubmittedPlayerIds && !it.isSpectator }
-                        .joinToString(", ") { it.civName }
-                    launchOnGLThread {
-                        ToastPopup(
-                            "Timed out waiting for [$skippedNames] - their turn was skipped".tr(),
-                            this@WorldScreen, 4000
-                        )
+                val lease = server.acquireSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn)
+                if (lease == null) {
+                    // A lost response or missed update signal must not leave this client waiting
+                    // indefinitely on a round that already committed.
+                    val preview = server.tryDownloadGamePreview(gameInfo.gameId)
+                    if (preview.turns > submittedTurn && game.gameInfo == gameInfo) {
+                        val latest = server.downloadGame(gameInfo.gameId)
+                        if (latest.turns > submittedTurn && game.gameInfo == gameInfo)
+                            launchOnGLThread { startNewScreenJob(latest, autoPlay) }
                     }
-                }
-
-                val lockAcquired = game.onlineMultiplayer.multiplayerServer
-                    .acquireSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)
-                if (!lockAcquired) {
-                    // Another client is settling this turn. Keep waiting and let the watcher/signal
-                    // retry: re-enabling isPlayersTurn here stranded every non-settler on the previous
-                    // turn, because the only full-game reload path is guarded by
-                    // isNextTurnUpdateRunning/isPlayersTurn.
                     launchOnGLThread { nextTurnButton.update() }
                     return@runOnNonDaemonThreadPool
                 }
 
                 // Keep the lock alive: rebuilding and advancing a large turn can exceed the server's
                 // staleness window, and another client must not take settlement over midway.
-                val lockRenewalJob = startSimultaneousTurnLockRenewal(gameInfo.gameId, submittedTurn, playerId)
+                val lockRenewalJob = startSimultaneousTurnLockRenewal(gameInfo.gameId, lease)
                 try {
-                    val turnStart = game.onlineMultiplayer.multiplayerServer.tryDownloadGame(gameInfo.gameId)
+                    val turnStart = server.downloadGame(gameInfo.gameId)
                     if (turnStart.turns != submittedTurn) {
                         // Someone else settled while the lock was being acquired. Never run
                         // nextTurnPolling on an already-advanced save - that would skip a whole turn.
@@ -1223,7 +1209,13 @@ class WorldScreen(
                             launchOnGLThread { startNewScreenJob(turnStart, autoPlay) }
                         return@runOnNonDaemonThreadPool
                     }
-                    val turnOperations = allOperations.filter { it.turn == turnStart.turns && it.type != "done" }
+                    // Only replay data read after acquiring the lease. The server rejects the save if
+                    // the operation log changed since acquisition, including during replay.
+                    val settlementOperations = server.downloadSimultaneousTurnOperations(gameInfo.gameId)
+                    val unsubmitted = SimultaneousTurnOperations.getUnsubmittedPlayerIds(turnStart, settlementOperations)
+                    if (isWaitingForSimultaneousTurnPlayers(settlementOperations, unsubmitted))
+                        return@runOnNonDaemonThreadPool
+                    val turnOperations = settlementOperations.filter { it.turn == submittedTurn && it.type != "done" }
                     val failedOperations = SimultaneousTurnReplay.replayOrExplain(turnStart, turnOperations)
                     if (failedOperations.isNotEmpty()) {
                         // An un-replayable operation must not lock the game forever, but it must not
@@ -1238,28 +1230,25 @@ class WorldScreen(
                             }
                         )
                     }
-                    if (!stillOwnsSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)) {
-                        // Another client took the settlement over while this save was downloaded.
-                        // Advancing it here would settle the same turn twice; leave it to the new owner.
-                        debug(
-                            "Simultaneous turn settlement aborted: the lock for game %s turn %d is no longer ours",
-                            gameInfo.gameId, submittedTurn
-                        )
-                        return@runOnNonDaemonThreadPool
-                    }
+                    if (!server.renewSimultaneousTurnSettlementLock(gameInfo.gameId, lease))
+                        return@runOnNonDaemonThreadPool // Avoid running AI for a settlement that has already lost its lease.
                     turnStart.nextTurnPolling(progressBar)
-                    if (!stillOwnsSimultaneousTurnSettlementLock(gameInfo.gameId, submittedTurn, playerId)) {
-                        // nextTurnPolling can take a while. Uploading a turn that the new owner already
-                        // settled would overwrite its result with a differently replayed one.
-                        debug(
-                            "Simultaneous turn upload aborted: the lock for game %s turn %d is no longer ours",
-                            gameInfo.gameId, submittedTurn
-                        )
-                        return@runOnNonDaemonThreadPool
-                    }
                     // Tell the players whose actions were skipped, not just the one settling the turn.
                     SimultaneousTurnOperations.notifyPlayersOfFailedOperations(turnStart, failedOperations)
-                    game.onlineMultiplayer.updateGame(turnStart)
+                    if (!game.onlineMultiplayer.commitSimultaneousTurn(turnStart, lease))
+                        return@runOnNonDaemonThreadPool
+                    if (unsubmitted.isNotEmpty() && simultaneousTurnTimeoutReportedForTurn != submittedTurn) {
+                        simultaneousTurnTimeoutReportedForTurn = submittedTurn
+                        val skippedNames = gameInfo.civilizations
+                            .filter { it.playerId in unsubmitted && !it.isSpectator }
+                            .joinToString(", ") { it.civName }
+                        launchOnGLThread {
+                            ToastPopup(
+                                "Timed out waiting for [$skippedNames] - their turn was skipped".tr(),
+                                this@WorldScreen, 4000
+                            )
+                        }
+                    }
                     turnStart.isUpToDate = true
                     if (game.gameInfo == gameInfo)
                         launchOnGLThread {
@@ -1270,9 +1259,7 @@ class WorldScreen(
                         }
                 } finally {
                     lockRenewalJob.cancel()
-                    game.onlineMultiplayer.multiplayerServer.releaseSimultaneousTurnSettlementLock(
-                        gameInfo.gameId, submittedTurn, playerId
-                    )
+                    server.releaseSimultaneousTurnSettlementLock(gameInfo.gameId, lease)
                 }
             } catch (ex: Exception) {
                 // If the "done" marker never reached the server the player must be able to press
@@ -1309,26 +1296,6 @@ class WorldScreen(
     }
 
     /**
-     * True while this client still owns the settlement lock for [turn]. Renewal is the only server
-     * call that tells "still mine" apart from "taken over", so it is also the ownership check used
-     * right before a settlement advances the game.
-     *
-     * The server hands a stale lock to the next client, so a settlement that lost its lock must stop
-     * instead of uploading a turn that the new owner is already settling: two clients advancing the
-     * same turn from the same turn-start save would replay the same operations differently and
-     * overwrite each other.
-     */
-    private suspend fun stillOwnsSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
-        return try {
-            game.onlineMultiplayer.multiplayerServer
-                .renewSimultaneousTurnSettlementLock(gameId, turn, owner)
-        } catch (ex: Exception) {
-            debug("Could not verify the settlement lock (game %s, turn %d): %s", gameId, turn, ex)
-            false
-        }
-    }
-
-    /**
      * Returns a message naming the player whose order already touches one of [keys] this turn, or
      * null when the action may proceed.
      *
@@ -1360,17 +1327,14 @@ class WorldScreen(
     /**
      * Keeps the settlement lock alive while a long turn is being rebuilt and advanced, so that
      * another client does not take the settlement over midway. A renewal that fails means the lock is
-     * gone (or unreachable) and ends the loop - [stillOwnsSimultaneousTurnSettlementLock] is what
-     * actually stops the settlement before it advances the game.
+     * gone (or unreachable) and ends the loop. The final write checks the lease again on the server.
      */
-    private fun startSimultaneousTurnLockRenewal(gameId: String, turn: Int, owner: String): Job {
+    private fun startSimultaneousTurnLockRenewal(gameId: String, lease: String): Job {
         return Concurrency.run("SimultaneousTurnLockRenewal") {
             while (isActive) {
                 delay(30_000)
-                if (!stillOwnsSimultaneousTurnSettlementLock(gameId, turn, owner)) {
-                    debug("The settlement lock for game %s turn %d is no longer ours", gameId, turn)
+                if (!game.onlineMultiplayer.multiplayerServer.renewSimultaneousTurnSettlementLock(gameId, lease))
                     return@run
-                }
             }
         }
     }

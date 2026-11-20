@@ -207,6 +207,7 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
         val preview = game.preview ?: throw game.error!!
         // download to work with the latest game state
         val gameInfo = multiplayerServer.tryDownloadGame(preview.gameId)
+        if (gameInfo.isSimultaneousTurnsMode()) return "Resignation is unavailable in simultaneous turns"
 
         if (gameInfo.currentPlayer != preview.currentPlayer) {
             game.updatePreview(gameInfo.asPreview())
@@ -596,6 +597,16 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
     suspend fun updateGame(gameInfo: GameInfo) {
         debug("Updating remote game %s", gameInfo.gameId)
         multiplayerServer.uploadGame(gameInfo, withPreview = true)
+        updateLocalGamePreview(gameInfo)
+    }
+
+    suspend fun commitSimultaneousTurn(gameInfo: GameInfo, lease: String): Boolean {
+        if (!multiplayerServer.commitSimultaneousTurn(gameInfo, lease)) return false
+        updateLocalGamePreview(gameInfo)
+        return true
+    }
+
+    private suspend fun updateLocalGamePreview(gameInfo: GameInfo) {
         val game = multiplayerFiles.getGameByGameId(gameInfo.gameId)
         debug("Existing OnlineMultiplayerGame: %s", game)
         if (game == null) {

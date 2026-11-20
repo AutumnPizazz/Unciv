@@ -3,6 +3,8 @@ package com.unciv.logic.multiplayer.storage
 import com.badlogic.gdx.Net
 import com.badlogic.gdx.utils.Base64Coder
 import com.badlogic.gdx.utils.JsonReader
+import com.badlogic.gdx.utils.JsonValue
+import com.badlogic.gdx.utils.JsonWriter
 import com.unciv.logic.UncivShowableException
 import com.unciv.utils.debug
 import java.io.InputStream
@@ -12,6 +14,7 @@ internal class UncivServerFileStorage(
     private val authHeader: Map<String, String>
 ) : FileStorage {
     private val timeout = 30000
+    private val turnOperationsHeaders = authHeader + ("X-Unciv-Turn-Protocol" to "1")
 
     override fun saveFileData(fileName: String, data: String) {
         SimpleHttp.sendRequest(Net.HttpMethods.PUT, fileUrl(fileName), content=data, timeout=timeout, header=authHeader) {
@@ -39,7 +42,7 @@ internal class UncivServerFileStorage(
                     val error = serverError(ex.code, ex.message)
                     // Older UncivSrv versions reject unsupported sidecar suffixes as invalid IDs.
                     if (error.message == "无效的游戏ID格式" &&
-                        (fileName.endsWith(".ops") || fileName.endsWith("_restartvote") || fileName.endsWith("_restart")))
+                        (fileName.endsWith("_restartvote") || fileName.endsWith("_restart")))
                         throw MultiplayerFileNotFoundException(ex)
                     throw error
                 }
@@ -59,7 +62,7 @@ internal class UncivServerFileStorage(
             "$serverUrl/simultaneous-turn-operations/$gameId",
             content = operations,
             timeout = timeout,
-            header = authHeader
+            header = turnOperationsHeaders
         ) { success, _, code ->
             appended = success && (code == 200 || code == 204)
         }
@@ -68,32 +71,33 @@ internal class UncivServerFileStorage(
 
     override fun loadSimultaneousTurnOperations(gameId: String): String? {
         var data: String? = null
-        SimpleHttp.sendGetRequest("$serverUrl/simultaneous-turn-operations/$gameId", timeout, authHeader) { success, result, code ->
+        SimpleHttp.sendGetRequest("$serverUrl/simultaneous-turn-operations/$gameId", timeout, turnOperationsHeaders) { success, result, code ->
             if (success) data = result else if (code != 404) throw serverError(code, result)
         }
         return data
     }
 
-    override fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
-        var acquired = false
+    fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int): String? {
+        var lease: String? = null
         SimpleHttp.sendRequest(
             Net.HttpMethods.POST,
             "$serverUrl/simultaneous-turn-lock/$gameId",
-            content = "$turn:$owner",
+            content = turn.toString(),
             timeout = timeout,
             header = authHeader
-        ) { success, _, code ->
-            acquired = success && code == 201
+        ) { success, result, code ->
+            if (success && code == 201 && result.isNotBlank()) lease = result
+            else if (code != 409) throw serverError(code, result)
         }
-        return acquired
+        return lease
     }
 
-    override fun renewSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean {
+    fun renewSimultaneousTurnSettlementLock(gameId: String, lease: String): Boolean {
         var renewed = false
         SimpleHttp.sendRequest(
             Net.HttpMethods.POST,
             "$serverUrl/simultaneous-turn-lock/$gameId/renew",
-            content = "$turn:$owner",
+            content = lease,
             timeout = timeout,
             header = authHeader
         ) { success, _, code ->
@@ -102,14 +106,35 @@ internal class UncivServerFileStorage(
         return renewed
     }
 
-    override fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {
+    fun releaseSimultaneousTurnSettlementLock(gameId: String, lease: String) {
         SimpleHttp.sendRequest(
             Net.HttpMethods.DELETE,
             "$serverUrl/simultaneous-turn-lock/$gameId",
-            content = "$turn:$owner",
+            content = lease,
             timeout = timeout,
             header = authHeader
         ) { _, _, _ -> }
+    }
+
+    fun saveSimultaneousTurn(gameId: String, content: String, preview: String, lease: String?): Boolean {
+        val request = JsonValue(JsonValue.ValueType.`object`).apply {
+            addChild("content", JsonValue(content))
+            addChild("preview", JsonValue(preview))
+            addChild("lease", JsonValue(lease.orEmpty()))
+        }
+        var saved = false
+        SimpleHttp.sendRequest(
+            Net.HttpMethods.POST,
+            "$serverUrl/simultaneous-turn-saves/$gameId",
+            content = request.toJson(JsonWriter.OutputType.json),
+            timeout = timeout,
+            header = authHeader
+        ) { success, result, code ->
+            if (success && code == 204) saved = true
+            else if (code == 401) throw MultiplayerAuthException(Exception(result))
+            else if (code != 409) throw serverError(code, result)
+        }
+        return saved
     }
 
     override fun deleteFile(fileName: String) {

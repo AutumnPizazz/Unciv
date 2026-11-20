@@ -49,7 +49,9 @@ class MultiplayerServer private constructor(
 
     fun getServerUrl() = serverUrl
 
-    fun fileStorage(): FileStorage {
+    fun fileStorage(): FileStorage = serverStorage()
+
+    private fun serverStorage(): UncivServerFileStorage {
         val authHeader = if (authenticationHeader != null) authenticationHeader else {
             val settings = UncivGame.Current.settings.multiplayer
             mapOf("Authorization" to settings.getAuthHeader())
@@ -121,6 +123,12 @@ class MultiplayerServer private constructor(
      * @throws MultiplayerAuthException if the authentication failed
      */
     suspend fun uploadGame(gameInfo: GameInfo, withPreview: Boolean) {
+        if (gameInfo.isSimultaneousTurnsMode()) {
+            check(withPreview)
+            if (!saveSimultaneousTurn(gameInfo, lease = null))
+                throw FileStorageConflictException()
+            return
+        }
         val zippedGameInfo = UncivFiles.gameInfoToString(gameInfo, forceZip = true, updateChecksum = true)
         fileStorage().saveFileData(gameInfo.gameId, zippedGameInfo)
 
@@ -173,15 +181,24 @@ class MultiplayerServer private constructor(
     suspend fun loadSimultaneousTurnOperations(gameId: String): String? =
         fileStorage().loadSimultaneousTurnOperations(gameId)
 
-    suspend fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
-        fileStorage().acquireSimultaneousTurnSettlementLock(gameId, turn, owner)
+    suspend fun acquireSimultaneousTurnSettlementLock(gameId: String, turn: Int): String? =
+        serverStorage().acquireSimultaneousTurnSettlementLock(gameId, turn)
 
-    suspend fun renewSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String): Boolean =
-        fileStorage().renewSimultaneousTurnSettlementLock(gameId, turn, owner)
+    suspend fun renewSimultaneousTurnSettlementLock(gameId: String, lease: String): Boolean =
+        serverStorage().renewSimultaneousTurnSettlementLock(gameId, lease)
 
-    suspend fun releaseSimultaneousTurnSettlementLock(gameId: String, turn: Int, owner: String) {
-        fileStorage().releaseSimultaneousTurnSettlementLock(gameId, turn, owner)
+    suspend fun releaseSimultaneousTurnSettlementLock(gameId: String, lease: String) {
+        serverStorage().releaseSimultaneousTurnSettlementLock(gameId, lease)
     }
+
+    private fun saveSimultaneousTurn(gameInfo: GameInfo, lease: String?): Boolean = serverStorage().saveSimultaneousTurn(
+        gameInfo.gameId,
+        UncivFiles.gameInfoToString(gameInfo, forceZip = true, updateChecksum = true),
+        UncivFiles.gameInfoToString(gameInfo.asPreview()),
+        lease
+    )
+
+    suspend fun commitSimultaneousTurn(gameInfo: GameInfo, lease: String): Boolean = saveSimultaneousTurn(gameInfo, lease)
 
     suspend fun tryDownloadGame(gameId: String): GameInfo {
         val gameInfo = UncivFiles.gameInfoFromStream { fileStorage().loadFileData(gameId) }

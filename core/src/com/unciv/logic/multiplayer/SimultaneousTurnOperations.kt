@@ -7,11 +7,9 @@ import com.unciv.json.json
 import com.unciv.logic.GameInfo
 import com.unciv.logic.civilization.NotificationCategory
 import com.unciv.logic.civilization.PlayerType
-import com.unciv.logic.multiplayer.storage.MultiplayerFileNotFoundException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
 import com.unciv.models.UnitActionType
 import com.unciv.models.translations.tr
-import com.unciv.utils.Log
 import java.io.StringWriter
 
 /** A client-produced operation for a simultaneous multiplayer turn. */
@@ -585,7 +583,6 @@ object SimultaneousTurnOperations {
 
     private fun captureGlobalState(gameInfo: GameInfo) = currentGlobalState(gameInfo)
 
-    private fun fileName(gameId: String) = "${gameId}.ops"
 
     fun merge(existing: List<SimultaneousTurnOperation>, incoming: List<SimultaneousTurnOperation>): List<SimultaneousTurnOperation> =
         (existing + incoming)
@@ -603,41 +600,12 @@ object SimultaneousTurnOperations {
         operations: List<SimultaneousTurnOperation>
     ) {
         if (operations.isEmpty()) return
-        if (server.appendSimultaneousTurnOperations(gameId, encode(operations))) return
-        // The server has no atomic append, so fall back to a whole-file read-modify-write. That is not
-        // atomic: another client uploading at the same time can overwrite us. After each attempt,
-        // verify our operations survived and merge again if they did not.
-        val keys = operations.map { Triple(it.turn, it.playerId, it.sequence) }.toSet()
-        repeat(3) {
-            val old = loadLegacyOperations(server, gameId)
-            server.fileStorage().saveFileData(fileName(gameId), encode(merge(old, operations)))
-            val saved = loadLegacyOperations(server, gameId)
-            if (saved.map { Triple(it.turn, it.playerId, it.sequence) }.containsAll(keys)) return
-            Log.debug(
-                "Simultaneous-turn legacy upload raced with another client (game %s), retrying",
-                gameId
-            )
-        }
-        // Falling through here means the operations are not on the server. Returning normally would
-        // report a successful upload, so the turn would settle without this player's actions and they
-        // would never learn they were lost. Report it instead - the caller retries and tells the player.
-        throw SimultaneousTurnOperationUploadException()
+        if (!server.appendSimultaneousTurnOperations(gameId, encode(operations)))
+            throw SimultaneousTurnOperationUploadException()
     }
 
-    private suspend fun loadLegacyOperations(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> =
-        try {
-            server.fileStorage().loadFileData(fileName(gameId)).bufferedReader().use { decode(it.readText()) }
-        } catch (_: MultiplayerFileNotFoundException) {
-            emptyList()
-        }
-
     suspend fun download(server: MultiplayerServer, gameId: String): List<SimultaneousTurnOperation> {
-        // Both stores must be read, not just the atomic one. Upload falls back to the legacy
-        // whole-file store when the atomic append is rejected - a late-game turn can exceed the
-        // server's per-request limit (413) - and reading only the atomic store once it had any row
-        // made those operations invisible to everyone, so settlement silently dropped them.
         val atomicData = server.loadSimultaneousTurnOperations(gameId)
-        val atomic = if (atomicData == null) emptyList() else decode(atomicData)
-        return merge(atomic, loadLegacyOperations(server, gameId))
+        return if (atomicData == null) emptyList() else merge(emptyList(), decode(atomicData))
     }
 }

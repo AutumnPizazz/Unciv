@@ -18,6 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import java.net.InetSocketAddress
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -36,13 +37,9 @@ class SimultaneousTurnServerIntegrationTest {
     private lateinit var server: MultiplayerServer
     private val storedFiles = ConcurrentHashMap<String, String>()
     private val storedOperations = ConcurrentHashMap<String, MutableList<SimultaneousTurnOperation>>()
-    private val locks = ConcurrentHashMap<String, String>()
+    private val locks = ConcurrentHashMap<String, Pair<String, String>>()
     private val gameId = "simultaneous-e2e"
-    private var atomicOpsSupported = true
     private var atomicAppendRejected = false
-    private var rejectsLegacyOpsFileName = false
-    /** Simulates a legacy whole-file write that answers 200 without keeping the data. */
-    private var legacyOpsWritesDropped = false
 
     companion object {
         /** Same headless adjustment the other multiplayer integration test needs. */
@@ -105,20 +102,17 @@ class SimultaneousTurnServerIntegrationTest {
     }
 
     @Test
-    fun downloadFallsBackToTheLegacyOperationsFile() {
-        // A fixed createdAtMillis, not the time-based default: libgdx's usePrototypes omits any field
-        // equal to the no-arg prototype's value, so a real timestamp can silently round-trip to a new one.
+    fun downloadIgnoresLegacyOperationsOutsideTheSettlementLog() {
         val op = SimultaneousTurnOperation(2, "playerA", 5, "unit.move", "{}", 123)
         runBlocking {
             server.fileStorage().saveFileData("$gameId.ops", SimultaneousTurnOperations.encode(listOf(op)))
-            assertEquals(listOf(op), SimultaneousTurnOperations.download(server, gameId))
+            assertTrue(SimultaneousTurnOperations.download(server, gameId).isEmpty())
         }
     }
 
     @Test
-    fun downloadFromAtomicOnlyServerIgnoresUnsupportedLegacyFileName() {
+    fun operationsRoundTripThroughTheSettlementLog() {
         val op = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}", 123)
-        rejectsLegacyOpsFileName = true
         runBlocking {
             assertTrue(SimultaneousTurnOperations.download(server, gameId).isEmpty())
             SimultaneousTurnOperations.upload(server, gameId, listOf(op))
@@ -127,58 +121,35 @@ class SimultaneousTurnServerIntegrationTest {
     }
 
     @Test
-    fun operationsRejectedByTheAtomicAppendAreStillSeenByDownload() {
-        // Regression: a turn whose upload exceeds the server's per-request limit (413) falls back to
-        // the legacy whole-file store. Download used to return the atomic store as soon as it had any
-        // row, so those fallback operations were invisible to everyone and silently dropped.
+    fun aRejectedAppendIsReportedWithoutWritingOutsideTheSettlementLog() {
         val atomicOp = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}", 123)
         val rejectedOp = SimultaneousTurnOperation(1, "playerB", 2, "unit.move", "{}", 456)
         runBlocking {
             assertTrue(server.appendSimultaneousTurnOperations(gameId, SimultaneousTurnOperations.encode(listOf(atomicOp))))
             atomicAppendRejected = true
-            SimultaneousTurnOperations.upload(server, gameId, listOf(rejectedOp))
-            assertEquals(
-                setOf("playerA", "playerB"),
-                SimultaneousTurnOperations.download(server, gameId).map { it.playerId }.toSet()
-            )
-        }
-    }
-
-    @Test
-    fun anUploadLostByBothStoresIsReportedInsteadOfSilentlyDropped() {
-        // Regression: after three failed whole-file attempts the upload returned normally. The caller
-        // then believed the turn was submitted, so it settled without this player's actions and the
-        // player kept playing as if they had been recorded.
-        val op = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}", 123)
-        atomicAppendRejected = true
-        legacyOpsWritesDropped = true
-        assertThrows(SimultaneousTurnOperationUploadException::class.java) {
-            runBlocking { SimultaneousTurnOperations.upload(server, gameId, listOf(op)) }
-        }
-    }
-
-    @Test
-    fun legacyUploadFallsBackAndKeepsBothClientsOperations() {
-        atomicOpsSupported = false
-        val a = SimultaneousTurnOperation(1, "playerA", 1, "unit.move", "{}")
-        val b = SimultaneousTurnOperation(1, "playerB", 1, "unit.move", "{}")
-        runBlocking {
-            SimultaneousTurnOperations.upload(server, gameId, listOf(a))
-            SimultaneousTurnOperations.upload(server, gameId, listOf(b))
-            val ops = SimultaneousTurnOperations.decode(storedFiles["$gameId.ops"]!!)
-            assertEquals(setOf("playerA", "playerB"), ops.map { it.playerId }.toSet())
+            assertThrows(SimultaneousTurnOperationUploadException::class.java) {
+                runBlocking { SimultaneousTurnOperations.upload(server, gameId, listOf(rejectedOp)) }
+            }
+            assertEquals(listOf(atomicOp), SimultaneousTurnOperations.download(server, gameId))
+            assertTrue(storedFiles.isEmpty())
         }
     }
 
     @Test
     fun settlementLockIsExclusiveAndRenewableThroughTheServerApi() {
         runBlocking {
-            assertTrue(server.acquireSimultaneousTurnSettlementLock(gameId, 1, "playerA"))
-            assertFalse("a second player must not take the settlement lock", server.acquireSimultaneousTurnSettlementLock(gameId, 1, "playerB"))
-            assertTrue(server.renewSimultaneousTurnSettlementLock(gameId, 1, "playerA"))
-            assertFalse("a non-owner must not renew the settlement lock", server.renewSimultaneousTurnSettlementLock(gameId, 1, "playerB"))
-            server.releaseSimultaneousTurnSettlementLock(gameId, 1, "playerA")
-            assertTrue("the lock is free after release", server.acquireSimultaneousTurnSettlementLock(gameId, 1, "playerB"))
+            val a = playerServer("playerA")
+            val b = playerServer("playerB")
+            val lease = checkNotNull(a.acquireSimultaneousTurnSettlementLock(gameId, 1))
+            assertEquals(null, a.acquireSimultaneousTurnSettlementLock(gameId, 1))
+            assertEquals(null, b.acquireSimultaneousTurnSettlementLock(gameId, 1))
+            assertTrue(a.renewSimultaneousTurnSettlementLock(gameId, lease))
+            assertFalse("a non-owner must not renew the settlement lock", b.renewSimultaneousTurnSettlementLock(gameId, lease))
+            a.releaseSimultaneousTurnSettlementLock(gameId, lease)
+            val replacement = checkNotNull(a.acquireSimultaneousTurnSettlementLock(gameId, 1))
+            a.releaseSimultaneousTurnSettlementLock(gameId, lease)
+            assertFalse(a.renewSimultaneousTurnSettlementLock(gameId, lease))
+            assertTrue(a.renewSimultaneousTurnSettlementLock(gameId, replacement))
         }
     }
 
@@ -191,18 +162,10 @@ class SimultaneousTurnServerIntegrationTest {
     private fun handleFileRequest(exchange: HttpExchange) {
         try {
             val name = exchange.requestURI.path.removePrefix("/files/")
-            if (rejectsLegacyOpsFileName && name.endsWith(".ops")) {
-                val failure = """{"type":"error","message":"无效的游戏ID格式"}""".toByteArray()
-                exchange.sendResponseHeaders(400, failure.size.toLong())
-                exchange.responseBody.write(failure)
-                return
-            }
             when (exchange.requestMethod) {
                 "PUT" -> {
                     val body = exchange.requestBody.readBytes().toString(Charsets.UTF_8)
-                    // A dropped write still answers 200, so the client cannot tell from the response.
-                    if (legacyOpsWritesDropped && name.endsWith(".ops")) storedFiles.remove(name)
-                    else storedFiles[name] = body
+                    storedFiles[name] = body
                     exchange.sendResponseHeaders(200, -1)
                 }
                 "GET" -> {
@@ -227,13 +190,10 @@ class SimultaneousTurnServerIntegrationTest {
 
     private fun handleOperationsRequest(exchange: HttpExchange) {
         try {
+            check(exchange.requestHeaders.getFirst("X-Unciv-Turn-Protocol") == "1")
             val id = exchange.requestURI.path.removePrefix("/simultaneous-turn-operations/")
             when (exchange.requestMethod) {
                 "POST" -> {
-                    if (!atomicOpsSupported) {
-                        exchange.sendResponseHeaders(404, -1)
-                        return
-                    }
                     if (atomicAppendRejected) {
                         // Model a server rejecting an over-limit payload with HTTP 413.
                         exchange.sendResponseHeaders(413, -1)
@@ -251,7 +211,7 @@ class SimultaneousTurnServerIntegrationTest {
                 }
                 "GET" -> {
                     val list = synchronized(storedOperations) { storedOperations[id]?.toList() }
-                    if (!atomicOpsSupported || list.isNullOrEmpty()) {
+                    if (list.isNullOrEmpty()) {
                         exchange.sendResponseHeaders(404, -1)
                         return
                     }
@@ -283,20 +243,23 @@ class SimultaneousTurnServerIntegrationTest {
                 .removePrefix("/simultaneous-turn-lock/")
                 .removeSuffix("/renew")
             val body = exchange.requestBody.readBytes().toString(Charsets.UTF_8)
+            val player = exchange.requestHeaders.getFirst("Authorization")
             when (exchange.requestMethod) {
                 "POST" -> {
                     if (renew) {
-                        if (locks[id] == body) exchange.sendResponseHeaders(204, -1)
+                        if (locks[id] == (player to body)) exchange.sendResponseHeaders(204, -1)
                         else exchange.sendResponseHeaders(409, -1)
                     } else {
-                        val existing = locks.putIfAbsent(id, body)
-                        if (existing == null || existing == body) exchange.sendResponseHeaders(201, -1)
+                        check(body.toInt() == 1)
+                        val token = UUID.randomUUID().toString()
+                        val existing = locks.putIfAbsent(id, player to token)
+                        if (existing == null) respond(exchange, 201, token)
                         else exchange.sendResponseHeaders(409, -1)
                     }
                 }
                 "DELETE" -> {
-                    if (locks[id] == body) locks.remove(id)
-                    exchange.sendResponseHeaders(200, -1)
+                    locks.remove(id, player to body)
+                    exchange.sendResponseHeaders(204, -1)
                 }
                 else -> exchange.sendResponseHeaders(405, -1)
             }
