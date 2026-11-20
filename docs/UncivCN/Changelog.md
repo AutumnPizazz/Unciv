@@ -10,6 +10,7 @@ outline: [2, 2]
 ### Player-facing
 
 - Fixed a crash when multiple game loads overlap.
+- Simultaneous-turn actions now sync during a turn and restore after a reload.
 
 ### Mod author-facing
 

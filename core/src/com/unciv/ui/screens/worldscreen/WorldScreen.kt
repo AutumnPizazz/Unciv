@@ -25,6 +25,7 @@ import com.unciv.logic.multiplayer.RestartVoteUpdated
 import com.unciv.logic.multiplayer.SimultaneousTurnFailedOperation
 import com.unciv.logic.multiplayer.SimultaneousTurnGameStateResult
 import com.unciv.logic.multiplayer.SimultaneousTurnOperation
+import com.unciv.logic.multiplayer.SimultaneousTurnOperationUploadQueue
 import com.unciv.logic.multiplayer.SimultaneousTurnOperationReceived
 import com.unciv.logic.multiplayer.SimultaneousTurnOperations
 import com.unciv.logic.multiplayer.SimultaneousTurnReplay
@@ -156,6 +157,29 @@ class WorldScreen(
 
     @Transient
     private val simultaneousTurnOperations = ArrayList<SimultaneousTurnOperation>()
+    private val simultaneousTurnOperationsLock = Any()
+    @Transient
+    @Volatile
+    private var simultaneousTurnOperationsRestored = !gameInfo.isSimultaneousTurnsMode()
+    @Transient
+    private var simultaneousTurnOperationUploadJob: Job? = null
+    @Transient
+    private var simultaneousTurnRestoreJob: Job? = null
+    private val simultaneousTurnOperationUploader by lazy {
+        SimultaneousTurnOperationUploadQueue(
+            upload = { operations ->
+                game.onlineMultiplayer.multiplayerServer.uploadSimultaneousTurnOperations(gameInfo.gameId, operations)
+            },
+            onUploaded = { operations ->
+                val latest = operations.maxByOrNull { it.sequence }
+                if (latest?.type == "done")
+                    ChatWebSocket.sendOperationSignal(gameInfo.gameId, latest.turn, latest.playerId, latest.sequence)
+            },
+            onFailure = { ex ->
+                debug("Could not upload simultaneous-turn operations (game %s, turn %d): %s", gameInfo.gameId, gameInfo.turns, ex)
+            }
+        )
+    }
 
     /** The state this screen started the turn from, used to detect local changes that no recorded
      *  operation covers. Only kept for simultaneous-turn games, where settlement replays operations
@@ -176,7 +200,7 @@ class WorldScreen(
 
 
     /** Indicates it's the player's ([viewingCiv]) turn */
-    var isPlayersTurn = viewingCiv.isCurrentPlayer() || gameInfo.isSimultaneousTurnsMode()
+    var isPlayersTurn = if (gameInfo.isSimultaneousTurnsMode()) false else viewingCiv.isCurrentPlayer()
         internal set
 
     /** Records a completed local operation for the future simultaneous-turn settlement pass. */
@@ -191,8 +215,10 @@ class WorldScreen(
             type = type,
             payload = json().toJson(payload)
         )
-        simultaneousTurnOperations.add(operation)
-        ChatWebSocket.sendOperationSignal(gameInfo.gameId, operation.turn, playerId, operation.sequence)
+        synchronized(simultaneousTurnOperationsLock) {
+            simultaneousTurnOperations.add(operation)
+        }
+        simultaneousTurnOperationUploader.enqueue(operation)
     }
 
     /** Clones the game state before an operation that will be recorded as a full state diff.
@@ -272,7 +298,9 @@ class WorldScreen(
 
     /** Returns a stable snapshot for a future settlement worker. */
     fun getSimultaneousTurnOperations(): List<SimultaneousTurnOperation> =
-        SimultaneousTurnOperations.merge(emptyList(), simultaneousTurnOperations)
+        synchronized(simultaneousTurnOperationsLock) {
+            SimultaneousTurnOperations.merge(emptyList(), simultaneousTurnOperations)
+        }
      // only this class is allowed to make changes
 
     /** Indicates that a game failed to upload, and needs to be uploaded */
@@ -304,7 +332,7 @@ class WorldScreen(
 
     /** `true` when it's the player's turn unless he is a spectator */
     val canChangeState
-        get() = isPlayersTurn && !viewingCiv.isSpectator
+        get() = isPlayersTurn && !viewingCiv.isSpectator && simultaneousTurnOperationsRestored
 
     val mapHolder = WorldMapHolder(this, gameInfo.tileMap)
 
@@ -507,6 +535,9 @@ class WorldScreen(
             if (gameInfo.isPollingMode() && isPlayersTurn)
                 startPollingTimer()
             if (gameInfo.isSimultaneousTurnsMode()) {
+                simultaneousTurnOperationUploadJob = Concurrency.run("SimultaneousTurnOperationUpload") {
+                    simultaneousTurnOperationUploader.run()
+                }
                 startSimultaneousTurnWatcher()
                 startSimultaneousTurnClaimWatcher()
                 restoreSimultaneousTurnOperations()
@@ -525,6 +556,8 @@ class WorldScreen(
     override fun dispose() {
         resizeDeferTimer?.cancel()
         stopPollingTimer()
+        simultaneousTurnOperationUploadJob?.cancel()
+        simultaneousTurnRestoreJob?.cancel()
         simultaneousTurnWatcherJob?.cancel()
         simultaneousTurnWatcherJob = null
         simultaneousTurnClaimWatcherJob?.cancel()
@@ -1077,6 +1110,7 @@ class WorldScreen(
      * the sidecar operations from the turn-start save.
      */
     private fun finishSimultaneousTurn() {
+        if (!simultaneousTurnOperationsRestored) return
         // A player who already submitted is waiting for the last player. An operation signal
         // may call this again to perform the settlement check, but never while its upload job runs.
         if ((!isPlayersTurn && !gameInfo.isSimultaneousTurnsMode()) || isNextTurnUpdateRunning()) return
@@ -1100,12 +1134,9 @@ class WorldScreen(
                         sequence = gameInfo.nextSimultaneousOperationSequence++,
                         type = "done"
                     )
-                    game.onlineMultiplayer.multiplayerServer.uploadSimultaneousTurnOperations(
-                        gameInfo.gameId, getSimultaneousTurnOperations() + done
-                    )
+                    simultaneousTurnOperationUploader.uploadForSubmission(getSimultaneousTurnOperations() + done)
                     simultaneousTurnDoneUploadedForTurn = submittedTurn
                     submitted = true
-                    ChatWebSocket.sendOperationSignal(gameInfo.gameId, done.turn, playerId, done.sequence)
                 }
 
                 val allOperations = try {
@@ -1357,7 +1388,8 @@ class WorldScreen(
         simultaneousTurnWatcherJob = Concurrency.run("SimultaneousTurnWatcher") {
             while (isActive) {
                 delay(2000)
-                if (!gameInfo.isSimultaneousTurnsMode() || isPlayersTurn || isNextTurnUpdateRunning()) continue
+                if (!gameInfo.isSimultaneousTurnsMode() || !simultaneousTurnOperationsRestored
+                    || isPlayersTurn || isNextTurnUpdateRunning()) continue
                 try {
                     val operations = game.onlineMultiplayer.multiplayerServer
                         .downloadSimultaneousTurnOperations(gameInfo.gameId)
@@ -1417,43 +1449,50 @@ class WorldScreen(
      * already submitted, resume as submitted so the settlement can still be driven from this client.
      */
     private fun restoreSimultaneousTurnOperations() {
-        if (!gameInfo.isSimultaneousTurnsMode()) return
+        if (!gameInfo.isSimultaneousTurnsMode() || simultaneousTurnOperationsRestored) return
         val playerId = viewingCiv.playerId
         if (playerId.isEmpty()) return
         val turn = gameInfo.turns
-        Concurrency.run("RestoreSimultaneousTurn") {
-            val operations = try {
-                game.onlineMultiplayer.multiplayerServer
-                    .downloadSimultaneousTurnOperations(gameInfo.gameId)
-            } catch (_: Exception) {
-                return@run
-            }
-            val mine = operations.filter { it.turn == turn && it.playerId == playerId }
-            if (mine.isEmpty()) return@run
-            launchOnGLThread {
-                if (!gameInfo.isSimultaneousTurnsMode() || gameInfo.turns != turn) return@launchOnGLThread
-                val replayable = mine.filter { it.type != "done" }
-                val merged = SimultaneousTurnOperations.merge(simultaneousTurnOperations, replayable)
-                simultaneousTurnOperations.clear()
-                simultaneousTurnOperations.addAll(merged)
-                SimultaneousTurnReplay.replay(gameInfo, replayable)
-                gameInfo.nextSimultaneousOperationSequence = maxOf(
-                    gameInfo.nextSimultaneousOperationSequence,
-                    (mine.maxOfOrNull { it.sequence } ?: 0L) + 1
-                )
-                gameInfo.setTransients()
-                if (mine.any { it.type == "done" }) {
-                    simultaneousTurnDoneUploadedForTurn = turn
-                    isPlayersTurn = false
+        simultaneousTurnRestoreJob = Concurrency.run("RestoreSimultaneousTurn") {
+            while (isActive && !simultaneousTurnOperationsRestored) {
+                val operations = try {
+                    game.onlineMultiplayer.multiplayerServer
+                        .downloadSimultaneousTurnOperations(gameInfo.gameId)
+                } catch (ex: Exception) {
+                    debug("Could not restore simultaneous-turn operations (game %s, turn %d): %s", gameInfo.gameId, turn, ex)
+                    delay(2000)
+                    continue
                 }
-                shouldUpdate = true
+                val mine = operations.filter { it.turn == turn && it.playerId == playerId }
+                val replayable = mine.filter { it.type != "done" }
+                launchOnGLThread {
+                    if (!gameInfo.isSimultaneousTurnsMode() || gameInfo.turns != turn
+                        || simultaneousTurnOperationsRestored) return@launchOnGLThread
+                    synchronized(simultaneousTurnOperationsLock) {
+                        val merged = SimultaneousTurnOperations.merge(simultaneousTurnOperations, replayable)
+                        simultaneousTurnOperations.clear()
+                        simultaneousTurnOperations.addAll(merged)
+                    }
+                    SimultaneousTurnReplay.replay(gameInfo, replayable)
+                    gameInfo.nextSimultaneousOperationSequence = maxOf(
+                        gameInfo.nextSimultaneousOperationSequence,
+                        (mine.maxOfOrNull { it.sequence } ?: 0L) + 1
+                    )
+                    gameInfo.setTransients()
+                    if (mine.any { it.type == "done" })
+                        simultaneousTurnDoneUploadedForTurn = turn
+                    simultaneousTurnOperationsRestored = true
+                    isPlayersTurn = mine.none { it.type == "done" }
+                    shouldUpdate = true
+                }
+                return@run
             }
         }
     }
 
     /** Re-checks the done markers after another simultaneous-turn client submits. */
     private fun retrySimultaneousTurnAfterSignal() {
-        if (simultaneousTurnSettlementRetryPending) return
+        if (!simultaneousTurnOperationsRestored || simultaneousTurnSettlementRetryPending) return
         simultaneousTurnSettlementRetryPending = true
         Concurrency.run("SimultaneousPassSignal") {
             repeat(40) {

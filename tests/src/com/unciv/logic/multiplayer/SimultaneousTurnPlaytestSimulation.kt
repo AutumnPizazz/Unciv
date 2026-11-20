@@ -93,6 +93,19 @@ class SimultaneousTurnPlaytestSimulation {
         val server: MultiplayerServer
     ) {
         val operations = ArrayList<SimultaneousTurnOperation>()
+        private val uploader = SimultaneousTurnOperationUploadQueue(
+            upload = { batch -> server.uploadSimultaneousTurnOperations(GAME_ID, batch) }
+        )
+
+        fun record(operation: SimultaneousTurnOperation) {
+            operations.add(operation)
+            uploader.enqueue(operation)
+        }
+
+        suspend fun flushOperations() = uploader.flushPending()
+
+        suspend fun submitOperations(batch: List<SimultaneousTurnOperation>) =
+            uploader.uploadForSubmission(batch)
     }
 
     @Test
@@ -189,20 +202,34 @@ class SimultaneousTurnPlaytestSimulation {
             changeState(a, gameA1, UnitActionType.TriggerUnique) {
                 it.getCivilization(civAName).variables["playA"] = 2
             }
-            a.server.uploadSimultaneousTurnOperations(GAME_ID, ArrayList(a.operations))
+            a.flushOperations()
             val staleSequence = a.operations.maxOf { it.sequence }
+            val persistedBeforeReload = a.server.downloadSimultaneousTurnOperations(GAME_ID)
+                .filter { it.turn == turnStart.turns && it.playerId == a.playerId && it.type != "done" }
+            assertEquals(
+                "A's actions must be durable before submitting done",
+                a.operations.map { it.copy(createdAtMillis = 0) }.toSet(),
+                persistedBeforeReload.map { it.copy(createdAtMillis = 0) }.toSet()
+            )
             note("A uploaded ${a.operations.size} op(s) before reload (max sequence=$staleSequence)")
 
-            // ...then reloads: its in-memory op log is gone and the counter is re-seeded from the wall
-            // clock, exactly like WorldScreen does on load. This is the regression this turn guards.
+            // ...then reloads from the server's turn-start archive and replays its durable operation
+            // log, exactly like WorldScreen does on load.
             val gameA2 = cloneGame(turnStart)
+            val replayFailures = SimultaneousTurnReplay.replay(gameA2, persistedBeforeReload)
+            assertTrue("A's uploaded actions must replay after reload: $replayFailures", replayFailures.isEmpty())
             gameA2.nextSimultaneousOperationSequence =
-                maxOf(gameA2.nextSimultaneousOperationSequence, System.currentTimeMillis())
+                maxOf(
+                    gameA2.nextSimultaneousOperationSequence,
+                    System.currentTimeMillis(),
+                    (persistedBeforeReload.maxOfOrNull { it.sequence } ?: 0L) + 1
+                )
             a.operations.clear()
+            a.operations.addAll(persistedBeforeReload)
             moveUnit(a, gameA2, civAName, unitAId, -2, 2)
             assertTrue(
                 "reseeded sequence must not collide with the pre-reload operations",
-                a.operations.all { it.sequence > staleSequence }
+                a.operations.last().sequence > staleSequence
             )
             submit(a, gameA2)
 
@@ -293,7 +320,7 @@ class SimultaneousTurnPlaytestSimulation {
         val unit = civ.units.getUnitById(unitId)!!
         val from = unit.currentTile.position
         unit.movement.moveToTile(game.tileMap[toX, toY])
-        client.operations.add(
+        client.record(
             SimultaneousTurnOperation(
                 turn = game.turns,
                 playerId = client.playerId,
@@ -315,7 +342,7 @@ class SimultaneousTurnPlaytestSimulation {
         val unit = civ.units.getUnitById(unitId)!!
         unit.action = action
         unit.automated = automated
-        client.operations.add(
+        client.record(
             SimultaneousTurnOperation(
                 turn = game.turns,
                 playerId = client.playerId,
@@ -342,7 +369,7 @@ class SimultaneousTurnPlaytestSimulation {
         mutate(game)
         val result = SimultaneousTurnOperations.captureGameStateChange(action, before, game) ?: return
         for (part in SimultaneousTurnOperations.splitGameStateResult(result)) {
-            client.operations.add(
+            client.record(
                 SimultaneousTurnOperation(
                     turn = game.turns,
                     playerId = client.playerId,
@@ -364,7 +391,7 @@ class SimultaneousTurnPlaytestSimulation {
         )
         val ops = ArrayList(client.operations)
         ops.add(done)
-        client.server.uploadSimultaneousTurnOperations(GAME_ID, ops)
+        client.submitOperations(ops)
         writeClientOps(client, "turn-${game.turns}-submitted", ops)
         note("${client.label} submitted ${ops.size} op(s) for turn ${game.turns}")
     }
