@@ -7,6 +7,10 @@ outline: [2, 2]
 
 ## Unreleased
 
+### Player-facing
+
+- Fixed a crash when multiple game loads overlap.
+
 ### Mod author-facing
 
 - The [Unique reference](/Modders/uniques) shows the current version and marks UncivCN-only entries.

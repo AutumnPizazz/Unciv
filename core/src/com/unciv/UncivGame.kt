@@ -35,6 +35,8 @@ import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.ui.screens.worldscreen.unit.AutoPlay
 import com.unciv.utils.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import yairm210.purity.annotations.Readonly
 import java.io.PrintWriter
 import java.lang.management.ManagementFactory
@@ -83,6 +85,7 @@ open class UncivGame(val isConsoleMode: Boolean = false) : Game(), PlatformSpeci
     val translations = Translations()
 
     private val screenStack = ArrayDeque<BaseScreen>()
+    private val loadGameMutex = Mutex()
 
     override fun create() {
         isInitialized = false // this could be on reload, therefore we need to keep setting this to false
@@ -199,7 +202,11 @@ open class UncivGame(val isConsoleMode: Boolean = false) : Game(), PlatformSpeci
      * @param autoPlay pass in the old WorldScreen AutoPlay to retain the state throughout turns. Otherwise leave it is the default.
      * @param skipPlayerReadyScreen don't show the hotseat "Are you ready?" screen, e.g. when the same player continues after a reload
      */
-    suspend fun loadGame(newGameInfo: GameInfo, autoPlay: AutoPlay = AutoPlay(settings.autoPlay), callFromLoadScreen: Boolean = false, skipPlayerReadyScreen: Boolean = false): WorldScreen = withThreadPoolContext toplevel@{
+    suspend fun loadGame(newGameInfo: GameInfo, autoPlay: AutoPlay = AutoPlay(settings.autoPlay), callFromLoadScreen: Boolean = false, skipPlayerReadyScreen: Boolean = false): WorldScreen = loadGameMutex.withLock {
+        loadGameInternal(newGameInfo, autoPlay, callFromLoadScreen, skipPlayerReadyScreen)
+    }
+
+    private suspend fun loadGameInternal(newGameInfo: GameInfo, autoPlay: AutoPlay, callFromLoadScreen: Boolean, skipPlayerReadyScreen: Boolean): WorldScreen = withThreadPoolContext toplevel@{
         if (newGameInfo.gameParameters.isOnlineMultiplayer && !supportsOnlineMultiplayer)
             throw UncivShowableException("Online multiplayer is unavailable in this browser preview.")
 
