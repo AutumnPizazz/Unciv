@@ -166,11 +166,19 @@ internal class UncivServerFileStorage(
         ) { _, _, _ -> }
     }
 
-    fun saveSimultaneousTurn(gameId: String, content: String, preview: String, lease: String?): Boolean {
+    fun saveSimultaneousTurn(
+        gameId: String, content: String, preview: String, lease: String?, roomCode: String?,
+        restartFrom: String? = null, restartClaim: Long = 0,
+    ): Boolean {
         val request = JsonValue(JsonValue.ValueType.`object`).apply {
             addChild("content", JsonValue(content))
             addChild("preview", JsonValue(preview))
             addChild("lease", JsonValue(lease.orEmpty()))
+            if (roomCode != null) addChild("roomCode", JsonValue(roomCode))
+            if (restartFrom != null) {
+                addChild("restartFrom", JsonValue(restartFrom))
+                addChild("restartClaim", JsonValue(restartClaim))
+            }
         }
         var saved = false
         SimpleHttp.sendRequest(
@@ -182,6 +190,7 @@ internal class UncivServerFileStorage(
         ) { success, result, code ->
             if (success && code == 204) saved = true
             else if (code == 401) throw MultiplayerAuthException(Exception(result))
+            else if (code == 422 && lease == null) throw MultiplayerRoomCodeException()
             else if (code != 409) throw serverError(code, result)
         }
         return saved

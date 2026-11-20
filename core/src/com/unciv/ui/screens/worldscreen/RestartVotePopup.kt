@@ -1,17 +1,21 @@
 package com.unciv.ui.screens.worldscreen
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.unciv.Constants
 import com.unciv.UncivGame
 import com.unciv.logic.multiplayer.RestartVote
 import com.unciv.logic.multiplayer.RestartVoteStatus
+import com.unciv.logic.multiplayer.getAliveHumanPlayerIds
+import com.unciv.logic.multiplayer.storage.MultiplayerRoomCodeException
 import com.unciv.ui.components.extensions.toTextButton
 import com.unciv.ui.components.input.onClick
+import com.unciv.ui.popups.AskTextPopup
 import com.unciv.ui.popups.Popup
 import com.unciv.ui.popups.ToastPopup
 import com.unciv.ui.screens.basescreen.BaseScreen
-import com.unciv.ui.screens.worldscreen.WorldScreen
 import com.unciv.utils.Concurrency
 import com.unciv.utils.launchOnGLThread
 import com.unciv.models.translations.tr
@@ -35,6 +39,8 @@ class RestartVotePopup(
     private val myVoteLabel = Label("", BaseScreen.skin)
     private val yesButton = "Yes".toTextButton()
     private val noButton = "No".toTextButton()
+    private val restartButton = "Create replacement room".toTextButton()
+    private val restartButtonCell: Cell<TextButton>
 
     init {
         addGoodSizedLabel("Restart vote").row()
@@ -46,10 +52,21 @@ class RestartVotePopup(
         buttonTable.add(yesButton).pad(5f)
         buttonTable.add(noButton).pad(5f)
         add(buttonTable).row()
+        restartButtonCell = add(restartButton)
+        restartButtonCell.row()
         addCloseButton()
 
         yesButton.onClick { castVote(true) }
         noButton.onClick { castVote(false) }
+        restartButton.onClick {
+            AskTextPopup(
+                worldScreen,
+                label = "Simultaneous-turn room authorization code",
+                errorText = "Enter the authorization code.",
+                maxLength = 128,
+                validate = { it.isNotBlank() },
+            ) { restartWithCode(it.trim()) }.open(force = true)
+        }
         pack()
         refresh()
     }
@@ -65,6 +82,9 @@ class RestartVotePopup(
     }
 
     private fun updateLabels(vote: RestartVote) {
+        val needsRoomCode = vote.status == RestartVoteStatus.SETTLED && vote.result == true &&
+            gameInfo.isSimultaneousTurnsMode()
+        restartButtonCell.setActor(if (needsRoomCode && myPlayerId in gameInfo.getAliveHumanPlayerIds()) restartButton else null)
         val yesCount = vote.votes.count { it.value }
         val noCount = vote.votes.size - yesCount
         votesLabel.setText("Yes: [$yesCount]   No: [$noCount]".tr())
@@ -84,12 +104,34 @@ class RestartVotePopup(
             }
         } else {
             statusLabel.setText(
-                if (vote.result == true) "Restart approved - starting a new game...".tr()
+                if (needsRoomCode) "Restart approved. The new room requires an authorization code.".tr()
+                else if (vote.result == true) "Restart approved - starting a new game...".tr()
                 else "Restart rejected".tr()
             )
             myVoteLabel.setText("")
             yesButton.isVisible = false
             noButton.isVisible = false
+        }
+    }
+
+    private fun restartWithCode(roomCode: String) {
+        restartButton.isDisabled = true
+        Concurrency.run("RestartSimultaneousGame") {
+            val multiplayer = worldScreen.game.onlineMultiplayer
+            val error = try {
+                if (multiplayer.executeRestart(gameId, roomCode) != null) {
+                    multiplayer.checkRestartAndSwitch(gameId)
+                    null
+                } else "Could not complete the restart yet. Try again shortly."
+            } catch (ex: MultiplayerRoomCodeException) {
+                ex.message
+            } catch (_: Exception) {
+                "Could not upload game!"
+            }
+            launchOnGLThread {
+                restartButton.isDisabled = false
+                if (error != null) ToastPopup(error, worldScreen, 5000)
+            }
         }
     }
 

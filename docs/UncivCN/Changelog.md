@@ -14,6 +14,7 @@ outline: [2, 2]
 - Reopening a simultaneous turn retries pending actions saved on this device.
 - Simultaneous turns no longer wait for spectators to finish.
 - Simultaneous turns require updated clients and publish saves and previews together.
+- Creating or restarting a simultaneous-turn room requires a single-use authorization code valid for 24 hours.
 - Turn skipping and resignation are disabled in simultaneous turns.
 - Reloading a save no longer rejects actions merely because variable keys changed order.
 

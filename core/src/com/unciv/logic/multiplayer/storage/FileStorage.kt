@@ -6,6 +6,7 @@ import java.io.FileNotFoundException  // Kdoc only
 import java.io.InputStream
 
 class FileStorageConflictException : Exception()
+class MultiplayerRoomCodeException : UncivShowableException("The room authorization code is invalid, expired, or already used.")
 class MultiplayerTurnActionConflictException(val serverMessage: String) : Exception(serverMessage)
 class FileStorageRateLimitReached(val limitRemainingSeconds: Int) : UncivShowableException("Server limit reached! Please wait for [${limitRemainingSeconds}] seconds")
 class MultiplayerFileNotFoundException(cause: Throwable?) : UncivShowableException("File could not be found on the multiplayer server", cause)

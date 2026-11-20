@@ -167,8 +167,8 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
     /**
      * @throws FileStorageRateLimitReached if the file storage backend can't handle any additional actions for a time
      */
-    suspend fun createGame(newGame: GameInfo) {
-        multiplayerServer.uploadGame(newGame, withPreview = true)
+    suspend fun createGame(newGame: GameInfo, roomCode: String? = null) {
+        multiplayerServer.uploadGame(newGame, withPreview = true, roomCode = roomCode)
         multiplayerFiles.addGame(newGame)
     }
 
@@ -447,7 +447,7 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
      * [RESTART_TAKEOVER_TIMEOUT_MS].
      * @return the new gameId, or null if the restart is handled elsewhere / can't be done
      */
-    suspend fun executeRestart(gameId: String): String? {
+    suspend fun executeRestart(gameId: String, roomCode: String? = null): String? {
         val gameInfo = UncivGame.Current.gameInfo ?: return null
         if (gameInfo.gameId != gameId) return null
         val vote = fetchRestartVote(gameId) ?: return null
@@ -458,18 +458,25 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
         if (existingMarker != null && existingMarker.status == RestartMarkerStatus.DONE) {
             return existingMarker.newGameId.ifEmpty { null }
         }
+        val simultaneous = gameInfo.isSimultaneousTurnsMode()
+        if (simultaneous && roomCode.isNullOrBlank()) return null
+        val startedAt: Long
         if (existingMarker != null &&
             System.currentTimeMillis() - existingMarker.startedAtMillis < RESTART_TAKEOVER_TIMEOUT_MS
-        ) return null // Someone else is executing
-
-        val startedAt = System.currentTimeMillis()
-        try {
-            saveRestartMarker(gameId, RestartMarker().apply {
-                executorPlayerId = myPlayerId
-                startedAtMillis = startedAt
-            })
-        } catch (_: FileStorageConflictException) {
-            return null // The server granted the claim to another request.
+        ) {
+            if (!simultaneous || existingMarker.executorPlayerId != myPlayerId) return null
+            // Retry with a different authorization code under the same claim.
+            startedAt = existingMarker.startedAtMillis
+        } else {
+            startedAt = System.currentTimeMillis()
+            try {
+                saveRestartMarker(gameId, RestartMarker().apply {
+                    executorPlayerId = myPlayerId
+                    startedAtMillis = startedAt
+                })
+            } catch (_: FileStorageConflictException) {
+                return null // The server granted the claim to another request.
+            }
         }
 
         val newGame = try {
@@ -484,6 +491,11 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
         if (currentMarker.status == RestartMarkerStatus.DONE) return currentMarker.newGameId.ifEmpty { null }
         if (currentMarker.executorPlayerId != myPlayerId || currentMarker.startedAtMillis != startedAt) return null
 
+        if (simultaneous) {
+            if (!multiplayerServer.restartSimultaneousGame(newGame, checkNotNull(roomCode), gameId, startedAt)) return null
+            broadcastRestartVoteSignal(gameId, "restarted")
+            return newGame.gameId
+        }
         multiplayerServer.uploadGame(newGame, withPreview = true)
         try {
             saveRestartMarker(gameId, RestartMarker().apply {
@@ -551,7 +563,8 @@ class Multiplayer(val multiplayerServer: MultiplayerServer = MultiplayerServer()
         val onlineGame = multiplayerFiles.getGameByGameId(gameId)
         val onlinePreview = onlineGame?.preview
         if (onlineGame == null) {
-            createGame(gameInfo)
+            if (gameInfo.isSimultaneousTurnsMode()) multiplayerFiles.addGame(gameInfo)
+            else createGame(gameInfo)
         } else if (onlinePreview != null && hasNewerGameState(preview, onlinePreview)) {
             onlineGame.updatePreview(preview)
         }

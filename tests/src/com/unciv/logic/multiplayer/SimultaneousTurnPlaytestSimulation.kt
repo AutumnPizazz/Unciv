@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Base64Coder
 import com.badlogic.gdx.utils.JsonReader
+import com.badlogic.gdx.utils.JsonValue
+import com.badlogic.gdx.utils.JsonWriter
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.unciv.UncivGame
@@ -15,12 +17,14 @@ import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.multiplayer.storage.MultiplayerTurnActionConflictException
 import com.unciv.logic.multiplayer.storage.MultiplayerServer
+import com.unciv.logic.multiplayer.storage.MultiplayerRoomCodeException
 import com.unciv.models.UnitActionType
 import com.unciv.models.metadata.Player
 import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assume
 import org.junit.BeforeClass
@@ -28,7 +32,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import java.io.File
+import java.net.CookieManager
 import java.net.InetSocketAddress
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -63,6 +72,7 @@ class SimultaneousTurnPlaytestSimulation {
         private const val PLAYER_A = "aaaaaaaa-1111-4111-8111-111111111111"
         private const val PLAYER_B = "bbbbbbbb-2222-4222-8222-222222222222"
         private const val GAME_ID = "abcdef01-2345-4678-89ab-cdef01234567"
+        private const val EMBEDDED_ROOM_CODE = "LOCAL-PLAYTEST-ROOM"
 
         /** Same headless adjustment the multiplayer integration tests need. */
         @BeforeClass
@@ -137,7 +147,7 @@ class SimultaneousTurnPlaytestSimulation {
 
         try {
             note("using server $serverUrl")
-            runBlocking { play() }
+            runBlocking { play(if (localServer != null) EMBEDDED_ROOM_CODE else issueRoomCode()) }
         } finally {
             localServer?.dump()
             localServer?.stop()
@@ -149,7 +159,7 @@ class SimultaneousTurnPlaytestSimulation {
     // Simulation
     // ---------------------------------------------------------------------------------------------
 
-    private suspend fun play() {
+    private suspend fun play(roomCode: String) {
         val a = createClient("clientA", PLAYER_A)
         val b = createClient("clientB", PLAYER_B)
         register(a)
@@ -164,7 +174,18 @@ class SimultaneousTurnPlaytestSimulation {
         // NB: do NOT call setTransients() here. GameInfo.setTransients() rebuilds each civ's
         // UnitManager from the tile map by *appending*, so calling it on a game that already has
         // units registered duplicates every unit. TestGame's addUnit() already registered them.
-        a.server.uploadGame(initial, withPreview = true)
+        fun assertRoomCodeRejected(rejectedCode: String?) {
+            assertThrows(MultiplayerRoomCodeException::class.java) {
+                runBlocking { a.server.uploadGame(initial, withPreview = true, roomCode = rejectedCode) }
+            }
+        }
+        assertRoomCodeRejected(null)
+        assertRoomCodeRejected("INVALID")
+        a.server.uploadGame(initial, withPreview = true, roomCode = roomCode)
+        val otherGameId = UUID.randomUUID().toString()
+        initial.gameId = otherGameId
+        assertRoomCodeRejected(roomCode)
+        initial.gameId = GAME_ID
         note("clientA uploaded the initial save (turns=${initial.turns}, ${civAName} vs ${civBName})")
 
         var turnStart = a.server.downloadGame(GAME_ID)
@@ -626,6 +647,27 @@ class SimultaneousTurnPlaytestSimulation {
         check(authenticated) { "authentication/registration failed for ${client.label}" }
     }
 
+    private fun issueRoomCode(): String {
+        val server = URI(serverUrl)
+        check(server.host == "127.0.0.1") { "Room-code integration requires a loopback playtest server" }
+        val adminPassword = File(artifactsDir, "server/admin-password").readText().trim()
+        val client = HttpClient.newBuilder().cookieHandler(CookieManager()).build()
+        val loginBody = JsonValue(JsonValue.ValueType.`object`).apply {
+            addChild("username", JsonValue("admin"))
+            addChild("password", JsonValue(adminPassword))
+        }
+        val loginRequest = HttpRequest.newBuilder(server.resolve("/api/login"))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(loginBody.toJson(JsonWriter.OutputType.json)))
+            .build()
+        assertEquals(200, client.send(loginRequest, HttpResponse.BodyHandlers.discarding()).statusCode())
+        val issueRequest = HttpRequest.newBuilder(server.resolve("/api/simultaneous-turn-room-codes"))
+            .POST(HttpRequest.BodyPublishers.noBody()).build()
+        val response = client.send(issueRequest, HttpResponse.BodyHandlers.ofString())
+        assertEquals(201, response.statusCode())
+        return JsonReader().parse(response.body()).getString("code")
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Tiny in-process server used when no external server is configured
     // ---------------------------------------------------------------------------------------------
@@ -636,6 +678,7 @@ class SimultaneousTurnPlaytestSimulation {
         private val actions = ConcurrentHashMap<String, MutableList<RealtimeTurnActionEntry>>()
         private val locks = ConcurrentHashMap<String, String>()
         private val saves = mutableMapOf<String, Pair<String, String>>()
+        private var roomCodeUsed = false
         val url: String
 
         init {
@@ -892,12 +935,16 @@ class SimultaneousTurnPlaytestSimulation {
                 val request = JsonReader().parse(exchange.requestBody.reader(Charsets.UTF_8))
                 val lease = request.getString("lease")
                 val content = request.getString("content") to request.getString("preview")
-                val saved = synchronized(saves) {
-                    val accepted = if (lease.isEmpty()) id !in saves else locks.remove(id, lease)
-                    if (accepted) saves[id] = content
-                    accepted
+                val status = synchronized(saves) {
+                    if (lease.isEmpty()) {
+                        if (id in saves) return@synchronized 409
+                        if (roomCodeUsed || request.getString("roomCode", "") != EMBEDDED_ROOM_CODE) return@synchronized 422
+                        roomCodeUsed = true
+                    } else if (!locks.remove(id, lease)) return@synchronized 409
+                    saves[id] = content
+                    204
                 }
-                exchange.sendResponseHeaders(if (saved) 204 else 409, -1)
+                exchange.sendResponseHeaders(status, -1)
             } finally {
                 exchange.close()
             }

@@ -126,10 +126,11 @@ class MultiplayerServer private constructor(
      * @throws FileStorageRateLimitReached if the file storage backend can't handle any additional actions for a time
      * @throws MultiplayerAuthException if the authentication failed
      */
-    suspend fun uploadGame(gameInfo: GameInfo, withPreview: Boolean) {
+    suspend fun uploadGame(gameInfo: GameInfo, withPreview: Boolean, roomCode: String? = null) {
         if (gameInfo.isSimultaneousTurnsMode()) {
             check(withPreview)
-            if (!saveSimultaneousTurn(gameInfo, lease = null))
+            if (roomCode.isNullOrBlank()) throw MultiplayerRoomCodeException()
+            if (!saveSimultaneousTurn(gameInfo, lease = null, roomCode = roomCode))
                 throw FileStorageConflictException()
             return
         }
@@ -214,14 +215,23 @@ class MultiplayerServer private constructor(
         serverStorage().releaseSimultaneousTurnSettlementLock(gameId, lease)
     }
 
-    private fun saveSimultaneousTurn(gameInfo: GameInfo, lease: String?): Boolean = serverStorage().saveSimultaneousTurn(
+    private fun saveSimultaneousTurn(
+        gameInfo: GameInfo, lease: String?, roomCode: String? = null,
+        restartFrom: String? = null, restartClaim: Long = 0,
+    ): Boolean = serverStorage().saveSimultaneousTurn(
         gameInfo.gameId,
         UncivFiles.gameInfoToString(gameInfo, forceZip = true, updateChecksum = true),
         UncivFiles.gameInfoToString(gameInfo.asPreview()),
-        lease
+        lease,
+        roomCode,
+        restartFrom,
+        restartClaim,
     )
 
     suspend fun commitSimultaneousTurn(gameInfo: GameInfo, lease: String): Boolean = saveSimultaneousTurn(gameInfo, lease)
+
+    suspend fun restartSimultaneousGame(gameInfo: GameInfo, roomCode: String, oldGameId: String, claim: Long): Boolean =
+        saveSimultaneousTurn(gameInfo, lease = null, roomCode = roomCode, restartFrom = oldGameId, restartClaim = claim)
 
     suspend fun tryDownloadGame(gameId: String): GameInfo {
         val gameInfo = UncivFiles.gameInfoFromStream { fileStorage().loadFileData(gameId) }

@@ -30,8 +30,9 @@ case "$MODE" in
     ;;
 esac
 
-mkdir -p "$ROOT/.local"
-SIM="$(mktemp -d "$ROOT/.local/playtest-sim.XXXXXX")"
+OUTPUT_ROOT="${PLAYTEST_OUTPUT_ROOT:-$ROOT/.local}"
+mkdir -p "$OUTPUT_ROOT"
+SIM="$(mktemp -d "$OUTPUT_ROOT/playtest-sim.XXXXXX")"
 PORT="${PLAYTEST_PORT:-11451}"
 
 mkdir -p "$SIM/server" "$SIM/logs" "$SIM/clients"
@@ -42,6 +43,7 @@ cleanup() {
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
   fi
+  rm -f "$SIM/server/admin-password"
 }
 trap cleanup EXIT
 
@@ -51,12 +53,14 @@ if [[ "$MODE" == "embedded" ]]; then
 else
   echo "[playtest] building server-go"
   (cd "$SRV" && go build -o "$SIM/server/unciv-srv" .)
+  (umask 077 && openssl rand -hex 24 > "$SIM/server/admin-password")
   echo "[playtest] starting server-go on port $PORT"
   (
     cd "$SIM/server"
     PORT="$PORT" \
     DB_PATH="$SIM/server/unciv-srv.db" \
-    ADMIN_PASSWORD="$(openssl rand -hex 24)" \
+    ADMIN_USERNAME=admin \
+    ADMIN_PASSWORD="$(<"$SIM/server/admin-password")" \
     REGISTER_MODE=open \
     CHAT_ENABLED=false \
     exec "$SIM/server/unciv-srv"

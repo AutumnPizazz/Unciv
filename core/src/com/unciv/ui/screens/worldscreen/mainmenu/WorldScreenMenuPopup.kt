@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle
 import com.unciv.logic.multiplayer.getAliveHumanPlayerIds
+import com.unciv.logic.multiplayer.RestartVoteStatus
 import com.unciv.ui.components.input.KeyboardBinding
 import com.unciv.ui.components.input.onLongPress
 import com.unciv.ui.popups.ConfirmPopup
@@ -40,7 +41,9 @@ class WorldScreenMenuPopup(
         val showMusic = worldScreen.game.musicController.isMusicAvailable()
         val showConsole = showSave && expertMode
         val showRestartVote = canStartRestartVote()
-        val buttonCount = 8 + (if (showSave) 1 else 0) + (if (showMusic) 1 else 0) + (if (showConsole) 1 else 0) + (if (showRestartVote) 1 else 0)
+        val showRestartStatus = canCreateReplacementRoom()
+        val buttonCount = 8 + (if (showSave) 1 else 0) + (if (showMusic) 1 else 0) + (if (showConsole) 1 else 0) +
+            (if (showRestartVote || showRestartStatus) 1 else 0)
 
         val emptyPrefHeight = this.prefHeight
         val firstCell = addButton("Main menu") {
@@ -79,6 +82,11 @@ class WorldScreenMenuPopup(
                     startRestartVote()
                 }
                 askPopup.open()
+            }.nextColumn()
+        if (showRestartStatus)
+            addButton("Restart vote") {
+                close()
+                worldScreen.openRestartVotePopup()
             }.nextColumn()
         addButton("Victory status", KeyboardBinding.VictoryScreen) {
             close()
@@ -139,6 +147,14 @@ class WorldScreenMenuPopup(
         if (restartVoteTurn <= 0 || gameInfo.turns != restartVoteTurn) return false
         if (worldScreen.game.settings.multiplayer.getUserId() !in gameInfo.getAliveHumanPlayerIds()) return false
         return worldScreen.game.onlineMultiplayer.getCachedRestartVote(gameInfo.gameId) == null
+    }
+
+    private fun canCreateReplacementRoom(): Boolean {
+        val gameInfo = worldScreen.gameInfo
+        if (!gameInfo.isSimultaneousTurnsMode()) return false
+        val vote = worldScreen.game.onlineMultiplayer.getCachedRestartVote(gameInfo.gameId) ?: return false
+        return vote.status == RestartVoteStatus.SETTLED && vote.result == true &&
+            worldScreen.game.settings.multiplayer.getUserId() in gameInfo.getAliveHumanPlayerIds()
     }
 
     private fun startRestartVote() {

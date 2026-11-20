@@ -18,6 +18,7 @@ import com.unciv.logic.files.GameSetupSaver
 import com.unciv.logic.files.MapSaver
 import com.unciv.logic.map.MapGeneratedMainType
 import com.unciv.logic.multiplayer.storage.FileStorageRateLimitReached
+import com.unciv.logic.multiplayer.storage.MultiplayerRoomCodeException
 import com.unciv.models.metadata.BaseRuleset
 import com.unciv.models.metadata.GameSetupClipboard
 import com.unciv.models.metadata.GameSetupInfo
@@ -64,6 +65,7 @@ class NewGameScreen(
     internal val playerPickerTable: PlayerPickerTable
     private val mapOptionsTable: MapOptionsTable
     private var mapOptionsTableInitialized = false
+    private val startGameButton = "Start game!".toTextButton().apply { color = Color.GREEN }
 
     init {
         val isPortrait = isNarrowerThan4to3()
@@ -154,7 +156,6 @@ class NewGameScreen(
             if (resetToDefaultsButton != null) horizontalGroup.addActor(resetToDefaultsButton)
         }
 
-        val startGameButton = "Start game!".toTextButton().apply { color = Color.GREEN }        
         startGameButton.onClick(this::startGameAvoidANRs)
         horizontalGroup.addActor(startGameButton)
         pickerPane.rightSideButton.remove()
@@ -333,7 +334,19 @@ class NewGameScreen(
                 }
                 return@run
             }
-            startGame()
+            Concurrency.runOnGLThread {
+                val parameters = gameSetupInfo.gameParameters
+                if (parameters.isOnlineMultiplayer && parameters.simultaneousTurns) {
+                    Gdx.input.inputProcessor = stage
+                    AskTextPopup(
+                        this@NewGameScreen,
+                        label = "Simultaneous-turn room authorization code",
+                        errorText = "Enter the authorization code.",
+                        maxLength = 128,
+                        validate = { it.isNotBlank() },
+                    ) { startGame(it.trim()) }.open()
+                } else startGame()
+            }
         }
     }
     
@@ -392,16 +405,17 @@ class NewGameScreen(
         return null
     }
     
-    private fun startGame() {
+    private fun startGame(roomCode: String? = null) {
 
         Concurrency.runOnGLThread {
-            rightSideButton.disable()
-            rightSideButton.setText(Constants.working.tr())
+            Gdx.input.inputProcessor = null
+            startGameButton.disable()
+            startGameButton.setText(Constants.working.tr())
             setSkin()
             
             // Creating a new game can take a while and we don't want ANRs
             Concurrency.runOnNonDaemonThreadPool("NewGame") {
-                startNewGame()
+                startNewGame(roomCode)
             }
         }
     }
@@ -472,7 +486,7 @@ class NewGameScreen(
         }
     }
 
-    private suspend fun startNewGame() = coroutineScope {
+    private suspend fun startNewGame(roomCode: String?) = coroutineScope {
         val popup = Popup(this@NewGameScreen)
         launchOnGLThread {
             popup.addGoodSizedLabel(Constants.working).row()
@@ -535,8 +549,8 @@ class NewGameScreen(
                     addCloseButton()
                 }
                 Gdx.input.inputProcessor = stage
-                rightSideButton.enable()
-                rightSideButton.setText("Start game!".tr())
+                startGameButton.enable()
+                startGameButton.setText("Start game!".tr())
             }
             return@coroutineScope
         }
@@ -544,24 +558,28 @@ class NewGameScreen(
         if (gameSetupInfo.gameParameters.isOnlineMultiplayer) {
             newGame.isUpToDate = true // Avoid downloading the save again immediately after uploading it.
             try {
-                game.onlineMultiplayer.createGame(newGame)
+                game.onlineMultiplayer.createGame(newGame, roomCode)
                 game.files.autosaves.requestAutoSave(newGame)
             } catch (ex: FileStorageRateLimitReached) {
                 launchOnGLThread {
                     popup.reuseWith("Server limit reached! Please wait for [${ex.limitRemainingSeconds}] seconds", true)
-                    rightSideButton.enable()
-                    rightSideButton.setText("Start game!".tr())
+                    startGameButton.enable()
+                    startGameButton.setText("Start game!".tr())
+                    Gdx.input.inputProcessor = stage
                 }
-                Gdx.input.inputProcessor = stage
                 return@coroutineScope
             } catch (ex: Exception) {
-                Log.error("Error while creating game", ex)
-                launchOnGLThread {
-                    popup.reuseWith("Could not upload game!", true)
-                    rightSideButton.enable()
-                    rightSideButton.setText("Start game!".tr())
+                val message = if (ex is MultiplayerRoomCodeException) ex.message
+                else {
+                    Log.error("Error while creating game", ex)
+                    "Could not upload game!"
                 }
-                Gdx.input.inputProcessor = stage
+                launchOnGLThread {
+                    popup.reuseWith(message, true)
+                    startGameButton.enable()
+                    startGameButton.setText("Start game!".tr())
+                    Gdx.input.inputProcessor = stage
+                }
                 return@coroutineScope
             }
         }
