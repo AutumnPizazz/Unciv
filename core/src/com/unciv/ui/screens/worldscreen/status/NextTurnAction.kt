@@ -46,6 +46,9 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
         override fun isChoice(worldScreen: WorldScreen) =
             worldScreen.isNextTurnUpdateRunning()
     },
+    RestoringSimultaneousTurn("Restoring turn actions...", Color.GRAY) {
+        override fun isChoice(worldScreen: WorldScreen) = worldScreen.isRestoringSimultaneousTurn
+    },
     Waiting("Waiting for other players...",Color.GRAY) {
         override fun getText(worldScreen: WorldScreen) =
             if (worldScreen.gameInfo.gameParameters.isOnlineMultiplayer)

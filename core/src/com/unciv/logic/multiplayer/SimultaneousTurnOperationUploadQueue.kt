@@ -20,10 +20,12 @@ class SimultaneousTurnOperationUploadQueue(
     private val wakeups = Channel<Unit>(Channel.CONFLATED)
     private val uploadMutex = Mutex()
 
-    fun enqueue(operation: SimultaneousTurnOperation) {
+    fun enqueueBatch(operations: List<SimultaneousTurnOperation>) {
         synchronized(pendingLock) {
-            val key = keyOf(operation)
-            if (!pending.containsKey(key)) pending[key] = operation
+            for (operation in operations) {
+                val key = keyOf(operation)
+                if (!pending.containsKey(key)) pending[key] = operation
+            }
         }
         wakeups.trySend(Unit)
     }

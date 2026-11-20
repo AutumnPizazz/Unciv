@@ -2,6 +2,7 @@ package com.unciv.logic.multiplayer
 
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Base64Coder
 import com.badlogic.gdx.utils.JsonReader
 import com.sun.net.httpserver.HttpExchange
@@ -99,7 +100,7 @@ class SimultaneousTurnPlaytestSimulation {
 
         fun record(operation: SimultaneousTurnOperation) {
             operations.add(operation)
-            uploader.enqueue(operation)
+            uploader.enqueueBatch(listOf(operation))
         }
 
         suspend fun flushOperations() = uploader.flushPending()
@@ -213,19 +214,29 @@ class SimultaneousTurnPlaytestSimulation {
             )
             note("A uploaded ${a.operations.size} op(s) before reload (max sequence=$staleSequence)")
 
-            // ...then reloads from the server's turn-start archive and replays its durable operation
-            // log, exactly like WorldScreen does on load.
-            val gameA2 = cloneGame(turnStart)
-            val replayFailures = SimultaneousTurnReplay.replay(gameA2, persistedBeforeReload)
-            assertTrue("A's uploaded actions must replay after reload: $replayFailures", replayFailures.isEmpty())
+            changeState(a, gameA1, UnitActionType.TriggerUnique) {
+                it.getCivilization(civAName).variables["pendingAcrossReload"] = 1
+            }
+            val journalDirectory = FileHandle(File(a.dir, "outbox"))
+            val gameA2 = a.server.downloadGame(GAME_ID)
+            SimultaneousTurnOutbox(journalDirectory, gameA1.turns, gameA1.currentTurnStartTime, a.playerId)
+                .record(a.operations)
+            val recovered = SimultaneousTurnOutbox(journalDirectory, gameA2.turns, gameA2.currentTurnStartTime, a.playerId)
+                .recover(a.server.downloadSimultaneousTurnOperations(GAME_ID)) { missing ->
+                    assertEquals("Only the unacknowledged action needs upload", listOf(a.operations.last()), missing)
+                    a.server.uploadSimultaneousTurnOperations(GAME_ID, missing)
+                }
+            val replayFailures = SimultaneousTurnReplay.replay(gameA2, recovered.operations)
+            assertTrue("A's journaled actions must replay after reload: $replayFailures", replayFailures.isEmpty())
+            assertEquals(1, gameA2.getCivilization(civAName).variables["pendingAcrossReload"])
             gameA2.nextSimultaneousOperationSequence =
                 maxOf(
                     gameA2.nextSimultaneousOperationSequence,
                     System.currentTimeMillis(),
-                    (persistedBeforeReload.maxOfOrNull { it.sequence } ?: 0L) + 1
+                    recovered.operations.maxOf { it.sequence } + 1
                 )
             a.operations.clear()
-            a.operations.addAll(persistedBeforeReload)
+            a.operations.addAll(recovered.operations)
             moveUnit(a, gameA2, civAName, unitAId, -2, 2)
             assertTrue(
                 "reseeded sequence must not collide with the pre-reload operations",
@@ -242,6 +253,7 @@ class SimultaneousTurnPlaytestSimulation {
                 "A's pre-reload state change must survive the reload",
                 2, settled.getCivilization(civAName).variables["playA"]
             )
+            assertEquals(1, settled.getCivilization(civAName).variables["pendingAcrossReload"])
             assertUnitAt(settled, civAName, unitAId, -2, 2, "turn 2 A move (recorded after reload)")
             assertUnitAt(settled, civBName, unitBId, 2, -2, "turn 2 B move")
             val unitB = settled.getCivilization(civBName).units.getUnitById(unitBId)!!

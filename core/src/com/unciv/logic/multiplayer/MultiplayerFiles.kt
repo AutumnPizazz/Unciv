@@ -15,6 +15,12 @@ class MultiplayerFiles {
     internal val files = UncivGame.Current.files
     internal val savedGames: MutableMap<FileHandle, MultiplayerGamePreview> = Collections.synchronizedMap(mutableMapOf())
 
+    internal fun simultaneousTurnOutbox(gameId: String, turn: Int, turnStart: Long, playerId: String) =
+        SimultaneousTurnOutbox(operationDirectory(gameId), turn, turnStart, playerId)
+
+    private fun operationDirectory(gameId: String) = files.getLocalFile("SimultaneousTurnOutbox")
+        .child(UUID.nameUUIDFromBytes(gameId.toByteArray(Charsets.UTF_8)).toString())
+
     internal fun updateSavesFromFiles() {
         val saves = files.getMultiplayerSaves()
 
@@ -43,7 +49,10 @@ class MultiplayerFiles {
 
         debug("Deleting game %s with id %s", fileHandle.name(), game.preview?.gameId)
         val gameId = game.preview?.gameId
-        if (gameId != null) deleteLocalSnapshot(gameId)
+        if (gameId != null) {
+            deleteLocalSnapshot(gameId)
+            operationDirectory(gameId).deleteDirectory()
+        }
         savedGames.remove(game.fileHandle)
     }
 

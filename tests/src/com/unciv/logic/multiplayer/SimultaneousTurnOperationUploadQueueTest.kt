@@ -19,7 +19,7 @@ class SimultaneousTurnOperationUploadQueueTest {
                 accepted.addAll(batch)
             }
         )
-        queue.enqueue(operation)
+        queue.enqueueBatch(listOf(operation))
 
         var failed = false
         try {
@@ -44,7 +44,7 @@ class SimultaneousTurnOperationUploadQueueTest {
         val queue = SimultaneousTurnOperationUploadQueue(
             upload = { batch -> uploaded.add(ArrayList(batch)) }
         )
-        queue.enqueue(action)
+        queue.enqueueBatch(listOf(action))
         queue.flushPending()
 
         queue.uploadForSubmission(listOf(action, done))
