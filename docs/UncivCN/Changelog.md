@@ -7,6 +7,12 @@ outline: [2, 2]
 
 ## Unreleased
 
+### Player-facing
+
+- Fixed simultaneous turns freezing when first contact syncs after players dismiss different popups.
+- Revealing tiles in simultaneous turns no longer blocks other players from moving on them.
+- Fixed false conflicts when founding cities or moving after another player's action in simultaneous turns.
+
 ## 5.0.1.4 (build 1270)
 
 ### Player-facing

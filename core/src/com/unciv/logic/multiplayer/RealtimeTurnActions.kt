@@ -71,8 +71,19 @@ object RealtimeTurnActions {
     private fun stateConflictKeys(payload: JsonValue): Set<String> {
         val result = json().fromJson(SimultaneousTurnGameStateResult::class.java, payload.toJson(JsonWriter.OutputType.json))
         val keys = sortedSetOf<String>()
-        for (civ in result.civilizations) keys += "civ:${civ.key}"
+        for (civ in result.civilizations) {
+            // The explored bounds are independent of diplomacy and other civilization state.
+            if ("exploredRegion" in civ.changedFields) keys += "exploration:${civ.key}"
+            // Proximity is recalculated from city locations after replay. Founding a city
+            // must not claim the governments of all the other civilizations on the map.
+            if (civ.changedFields.isEmpty() || civ.changedFields.any {
+                it != "exploredRegion" && it != SimultaneousTurnOperations.proximityField
+            })
+                keys += "civ:${civ.key}"
+        }
         for (tile in result.tiles) {
+            // Learning about a tile does not reserve the tile or the units already on it.
+            if (SimultaneousTurnOperations.isExplorationOnly(tile)) continue
             keys += "tile:${tile.key}"
             addUnitKeys(tile.before, keys)
             addUnitKeys(tile.after, keys)

@@ -12,7 +12,9 @@ import com.sun.net.httpserver.HttpServer
 import com.unciv.UncivGame
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
+import com.unciv.logic.civilization.AlertType
 import com.unciv.logic.civilization.PlayerType
+import com.unciv.logic.civilization.PopupAlert
 import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.multiplayer.storage.MultiplayerTurnActionConflictException
@@ -176,9 +178,8 @@ class SimultaneousTurnPlaytestSimulation {
         note("registered players ${a.playerId} / ${b.playerId}")
 
         val testGame = buildGame()
-        // TestGame resets UncivGame.Current, so (re)bind the file API afterwards: the first time two
-        // civs meet, DiplomacyFunctions -> GameSettings.addCompletedTutorialTask -> save() needs it.
-        UncivGame.Current.files = UncivFiles(Gdx.files)
+        // First contact completes a tutorial task. Keep the simulation from writing UI settings.
+        UncivGame.Current.settings.tutorialTasksCompleted.add("Meet another civilization")
         val initial = testGame.gameInfo
         // NB: do NOT call setTransients() here. GameInfo.setTransients() rebuilds each civ's
         // UnitManager from the tile map by *appending*, so calling it on a game that already has
@@ -210,23 +211,42 @@ class SimultaneousTurnPlaytestSimulation {
             val gameB = cloneGame(turnStart)
             a.operations.clear()
             b.operations.clear()
+            val playerA = gameA.getCivilization(civAName)
+            val playerB = gameB.getCivilization(civBName)
+            assertFalse("A and B have not yet met", playerA.knows(gameA.getCivilization(civBName)))
+            playerA.popupAlerts.clear()
+            playerB.popupAlerts.clear()
 
             moveUnit(a, gameA, civAName, unitAId, -1, 1)
             changeState(a, gameA, UnitActionType.TriggerUnique) {
                 it.getCivilization(civAName).variables["playA"] = 1
             }
+            assertTrue(a.flushOperations())
+            val peerFeed = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
+            assertFalse("A's move is visible before either player submits", peerFeed.allPlayersReady)
+            assertTrue(peerFeed.readyPlayerIds.isEmpty())
+            val peerFailures = SimultaneousTurnReplay.replayOrExplain(gameB, peerFeed.actions.flatMap { it.operations })
+            assertTrue("B can replay A's first contact after dismissing its own intro: $peerFailures", peerFailures.isEmpty())
+            assertUnitAt(gameB, civAName, unitAId, -1, 1, "A's move reaches B before settlement")
+            assertTrue(playerB.knows(gameB.getCivilization(civAName)))
+            assertEquals(listOf(AlertType.FirstContact), playerB.popupAlerts.map { it.type })
+            note("B replayed A's move and first contact after closing its own opening popup")
+            submit(a, gameA)
+            playerB.popupAlerts.clear()
             moveUnit(b, gameB, civBName, unitBId, 1, -1)
+            val claimedByA = peerFeed.actions.flatMap { it.conflictKeys }.toSet()
+            val response = json().fromJson(SimultaneousTurnGameStateResult::class.java, b.operations.single().payload)
+            val responseFields = response.civilizations.map { it.key to (it.changedFields.ifEmpty {
+                listOf(fieldDiff(it.before, it.after))
+            }) }
+            assertEquals("B's move has no shared conflict keys with A's move ($responseFields)", emptySet<String>(),
+                RealtimeTurnActions.conflictKeys(b.operations).toSet().intersect(claimedByA))
             changeState(b, gameB, UnitActionType.ConstructImprovement) {
                 it.getCivilization(civAName).variables["contested"] = 1
             }
             changeState(b, gameB, UnitActionType.ConstructImprovement) {
                 it.tileMap[-3, 1].improvement = "Farm"
             }
-            submit(a, gameA)
-            val peerView = cloneGame(turnStart)
-            val peerFeed = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
-            assertTrue(SimultaneousTurnReplay.replay(peerView, peerFeed.actions.flatMap { it.operations }).isEmpty())
-            assertUnitAt(peerView, civAName, unitAId, -1, 1, "A's move reaches B before settlement")
             assertFalse("a rejected flush cannot submit ready", b.flushOperations())
             assertFalse("the old uploader remains blocked", b.flushOperations())
             assertEquals("first accepted civilization claim rejects the later state change", listOf(1L), b.rejectedOperations.map { it.sequence })
@@ -367,13 +387,16 @@ class SimultaneousTurnPlaytestSimulation {
     private fun buildGame(): TestGame {
         val testGame = TestGame()
         testGame.makeHexagonalMap(4)
-        val playableNations = testGame.ruleset.nations.values.filter { it.isMajorCiv }
-        val civA = testGame.addCiv(playableNations[0], isPlayer = true)
-        val civB = testGame.addCiv(playableNations[1], isPlayer = true)
-        testGame.addCity(civA, testGame.getTile(-2, 0))
-        testGame.addCity(civB, testGame.getTile(2, 0))
+        val civA = testGame.addCiv(testGame.ruleset.nations.getValue("China"), isPlayer = true)
+        val civB = testGame.addCiv(testGame.ruleset.nations.getValue("France"), isPlayer = true)
+        testGame.addCity(civA, testGame.getTile(-4, 0))
+        testGame.addCity(civB, testGame.getTile(4, 0))
         val unitA = testGame.addUnit("Warrior", civA, testGame.getTile(-2, 1))
-        val unitB = testGame.addUnit("Warrior", civB, testGame.getTile(2, -1))
+        val unitB = testGame.addUnit("Warrior", civB, testGame.getTile(1, 1))
+        for (civ in listOf(civA, civB)) {
+            civ.popupAlerts.clear()
+            civ.popupAlerts.add(PopupAlert(AlertType.StartIntro, ""))
+        }
 
         val game = testGame.gameInfo
         civA.playerId = PLAYER_A

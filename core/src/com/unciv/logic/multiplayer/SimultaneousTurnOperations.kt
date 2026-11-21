@@ -122,6 +122,18 @@ class SimultaneousTurnOperationUploadException :
     Exception("The server did not keep the actions of this turn")
 
 object SimultaneousTurnOperations {
+    internal const val exploredByField = "exploredBy"
+    internal const val proximityField = "proximity"
+
+    internal fun isExplorationOnly(tile: SimultaneousTurnComponentSnapshot): Boolean {
+        if (tile.changedFields.isNotEmpty()) return tile.changedFields == listOf(exploredByField)
+        val before = JsonReader().parse(tile.before ?: return false)
+        val after = JsonReader().parse(tile.after ?: return false)
+        val beforeExploration = before.remove(exploredByField)?.toJson(JsonWriter.OutputType.json)
+        val afterExploration = after.remove(exploredByField)?.toJson(JsonWriter.OutputType.json)
+        return beforeExploration != afterExploration &&
+            before.toJson(JsonWriter.OutputType.json) == after.toJson(JsonWriter.OutputType.json)
+    }
     private const val stateOperationPrefix = "state."
     private const val legacyStateOperationType = "game.state"
 

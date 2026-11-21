@@ -1210,6 +1210,15 @@ class Tile : IsPartOfGameInfoSerialization, TileInterface<Tile> {
         }
     }
 
+    /** Replay the recorded changes without replacing other civilizations' exploration. */
+    internal fun applyRecordedExploration(before: Set<String>, after: Set<String>) {
+        if (before == after) return
+        exploredBy = HashSet(exploredBy).apply {
+            removeAll(before - after)
+            addAll(after - before)
+        }
+    }
+
     /**
      * Assign a continent ID to this tile.
      *

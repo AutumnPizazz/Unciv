@@ -1,9 +1,13 @@
 package com.unciv.logic.multiplayer
 
 import com.unciv.Constants
+import com.unciv.UncivGame
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
+import com.unciv.logic.civilization.AlertType
 import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.civilization.PopupAlert
+import com.unciv.logic.files.UncivFiles
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.logic.map.tile.Tile
@@ -44,6 +48,161 @@ class SimultaneousTurnOperationsTest {
         assertEquals(listOf(operation), SimultaneousTurnOperations.decode(
             SimultaneousTurnOperations.encode(listOf(operation))
         ))
+    }
+
+    @Test
+    fun twoCapitalsReplayFromTheSameTurnStartWithoutClaimingEachOthersCivilization() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(10)
+        val game = testGame.gameInfo
+        game.gameParameters.isOnlineMultiplayer = true
+        game.gameParameters.simultaneousTurns = true
+        val rome = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+        val greece = testGame.addCiv(testGame.ruleset.nations.getValue("Greece"), isPlayer = true)
+        testGame.addUnit("Settler", rome, testGame.getTile(-5, 0))
+        testGame.addUnit("Settler", greece, testGame.getTile(5, 0))
+        val warrior = testGame.addUnit("Warrior", rome, testGame.getTile(-6, 0))
+        warrior.due = false
+        val start = json().toJson(game)
+        fun foundCapital(civName: String): SimultaneousTurnOperation {
+            val local = UncivFiles.gameInfoFromString(start)
+            val before = local.clone()
+            val civ = local.getCivilization(civName)
+            val settler = civ.units.getCivUnits().first { it.name == "Settler" }
+            civ.addCity(settler.currentTile.position, settler)
+            settler.destroy()
+            val result = SimultaneousTurnOperations.captureGameStateChange(UnitActionType.FoundCity, before, local)!!
+            return SimultaneousTurnOperation(type = "state.FoundCity", payload = json().toJson(result))
+        }
+
+        val romanCapital = foundCapital(rome.civName)
+        val greekCapital = foundCapital(greece.civName)
+        val romanKeys = RealtimeTurnActions.conflictKeys(listOf(romanCapital)).toSet()
+        val greekKeys = RealtimeTurnActions.conflictKeys(listOf(greekCapital)).toSet()
+        assertTrue(romanKeys.intersect(greekKeys).isEmpty())
+        assertFalse(SimultaneousTurnClaims.forUnit(warrior.id) in greekKeys)
+
+        for (operations in listOf(listOf(romanCapital, greekCapital), listOf(greekCapital, romanCapital))) {
+            val observer = UncivFiles.gameInfoFromString(start)
+            for (operation in operations) assertNull(SimultaneousTurnReplay.applyOrExplain(observer, operation))
+            val settledRome = observer.getCivilization(rome.civName)
+            val settledGreece = observer.getCivilization(greece.civName)
+            assertEquals(HexCoord(-5, 0), settledRome.cities.single().location)
+            assertEquals(HexCoord(5, 0), settledGreece.cities.single().location)
+            assertEquals(com.unciv.logic.civilization.Proximity.Close, settledRome.getProximity(greece.civName))
+            assertEquals(settledRome.getProximity(greece.civName), settledGreece.getProximity(rome.civName))
+            assertFalse(settledRome.units.getUnitById(warrior.id)!!.due)
+        }
+    }
+
+    @Test
+    fun foundingAfterCyclingAUnitReplaysWithoutChangingThePeersUnitQueue() {
+        val testGame = TestGame().apply { makeHexagonalMap(4) }
+        val game = testGame.gameInfo
+        game.gameParameters.isOnlineMultiplayer = true
+        game.gameParameters.simultaneousTurns = true
+        val civ = testGame.addCiv(testGame.ruleset.nations.getValue("Rome"), isPlayer = true)
+        val warrior = testGame.addUnit("Warrior", civ, testGame.getTile(-1, 1))
+        val settler = testGame.addUnit("Settler", civ, testGame.getTile(0, 0))
+        val observer = UncivFiles.gameInfoFromString(json().toJson(game))
+        val beforeMove = game.clone()
+        warrior.movement.moveToTile(testGame.getTile(0, 1))
+        val move = checkNotNull(SimultaneousTurnOperations.captureGameStateChange(SimultaneousTurnStateAction.Move, beforeMove, game))
+        warrior.due = false // Automatic unit cycling happens after recording the move.
+        val beforeCity = game.clone()
+        civ.addCity(settler.currentTile.position, settler)
+        settler.destroy()
+        val found = checkNotNull(SimultaneousTurnOperations.captureGameStateChange(UnitActionType.FoundCity, beforeCity, game))
+        val moveOperation = SimultaneousTurnOperation(type = "state.Move", payload = json().toJson(move))
+        val foundOperation = SimultaneousTurnOperation(type = "state.FoundCity", payload = json().toJson(found))
+        assertTrue(found.tiles.any { it.key == "0,1" })
+        assertNull(SimultaneousTurnReplay.applyOrExplain(observer, moveOperation))
+        assertNull(SimultaneousTurnReplay.applyOrExplain(observer, foundOperation))
+        val peer = observer.getCivilization(civ.civID)
+        assertEquals(HexCoord(0, 0), peer.cities.single().location)
+        assertEquals(HexCoord(0, 1), peer.units.getUnitById(warrior.id)!!.currentTile.position)
+        assertTrue(peer.units.getUnitById(warrior.id)!!.due)
+    }
+
+    @Test
+    fun firstContactMoveReplaysAcrossDifferentIntroDismissalStates() {
+        val testGame = TestGame()
+        testGame.makeHexagonalMap(5)
+        val game = testGame.gameInfo
+        val china = testGame.addCiv(testGame.ruleset.nations.getValue("China"), isPlayer = true)
+        val france = testGame.addCiv(testGame.ruleset.nations.getValue("France"), isPlayer = true)
+        game.gameParameters.isOnlineMultiplayer = true
+        game.gameParameters.simultaneousTurns = true
+        UncivGame.Current.settings.tutorialTasksCompleted.add("Meet another civilization")
+        val warrior = testGame.addUnit("Warrior", china, testGame.getTile(-2, 0))
+        val frenchWarrior = testGame.addUnit("Warrior", france, testGame.getTile(1, 0))
+        assertFalse(china.knows(france))
+        for (civ in listOf(china, france)) {
+            civ.popupAlerts.clear()
+            civ.popupAlerts.add(PopupAlert(AlertType.StartIntro, ""))
+        }
+
+        val turnStart = json().toJson(game)
+        val observer = UncivFiles.gameInfoFromString(turnStart)
+        val observerFrance = observer.getCivilization(france.civID)
+        // Each game window closes only its own opening popup.
+        china.popupAlerts.clear()
+        observerFrance.popupAlerts.clear()
+        val before = game.clone()
+        warrior.movement.moveToTile(testGame.getTile(-1, 0))
+        assertTrue(china.knows(france))
+        val result = SimultaneousTurnOperations.captureGameStateChange(SimultaneousTurnStateAction.Move, before, game)!!
+        val operation = SimultaneousTurnOperation(type = "state.Move", payload = json().toJson(result))
+
+        assertNull("The observer must replay the accepted move", SimultaneousTurnReplay.applyOrExplain(observer, operation))
+        assertEquals(HexCoord(-1, 0), observer.getCivilization(china.civID).units.getUnitById(warrior.id)!!.currentTile.position)
+        assertEquals(listOf(AlertType.FirstContact), observerFrance.popupAlerts.map { it.type })
+        assertNull(SimultaneousTurnReplay.applyOrExplain(observer, operation))
+        assertEquals(listOf(AlertType.FirstContact), observerFrance.popupAlerts.map { it.type })
+
+        val peerBefore = observer.clone()
+        observerFrance.popupAlerts.clear()
+        observerFrance.units.getUnitById(frenchWarrior.id)!!.movement.moveToTile(observer.tileMap[2, 0])
+        val response = SimultaneousTurnOperations.captureGameStateChange(SimultaneousTurnStateAction.Move, peerBefore, observer)!!
+        val peerOperation = SimultaneousTurnOperation(type = "state.Move", payload = json().toJson(response))
+
+        val settlement = UncivFiles.gameInfoFromString(turnStart)
+        assertEquals(emptyList<SimultaneousTurnOperation>(), SimultaneousTurnReplay.replay(settlement, listOf(operation, peerOperation)))
+        settlement.nextTurnPolling()
+        assertEquals(1, settlement.turns)
+        assertEquals(HexCoord(-1, 0), settlement.getCivilization(china.civID).units.getUnitById(warrior.id)!!.currentTile.position)
+        assertEquals(HexCoord(2, 0), settlement.getCivilization(france.civID).units.getUnitById(frenchWarrior.id)!!.currentTile.position)
+    }
+
+    @Test
+    fun revealingATileDoesNotClaimOrOverwriteItsOccupant() {
+        val testGame = TestGame().apply { makeHexagonalMap(4) }
+        val china = testGame.addCiv(testGame.ruleset.nations.getValue("China"), isPlayer = true)
+        val france = testGame.addCiv(testGame.ruleset.nations.getValue("France"), isPlayer = true)
+        val origin = testGame.getTile(1, 0)
+        val warrior = testGame.addUnit("Warrior", france, origin)
+        val game = testGame.gameInfo
+        val observer = UncivFiles.gameInfoFromString(json().toJson(game))
+        val before = game.clone()
+        origin.setExplored(china, true)
+        val result = checkNotNull(SimultaneousTurnOperations.captureGameStateChange(SimultaneousTurnStateAction.Move, before, game))
+        val operation = SimultaneousTurnOperation(type = "state.Move", payload = json().toJson(result))
+        val keys = RealtimeTurnActions.requestFor(operation).conflictKeys
+        assertFalse("Exploration must not reserve the tile", "tile:1,0" in keys)
+        assertFalse("Exploration must not reserve its occupant", "unit:${france.civID}:${warrior.id}" in keys)
+
+        val observerFrance = observer.getCivilization(france.civID)
+        val observerOrigin = observer.tileMap[origin.position]
+        val destination = observer.tileMap[2, 0]
+        observerFrance.units.getUnitById(warrior.id)!!.movement.moveToTile(destination)
+        observerOrigin.improvement = "Farm"
+
+        assertNull(SimultaneousTurnReplay.applyOrExplain(observer, operation))
+        assertEquals(warrior.id, destination.militaryUnit?.id)
+        assertNull(observerOrigin.militaryUnit)
+        assertEquals("Farm", observerOrigin.improvement)
+        assertTrue(observerOrigin.isExplored(observer.getCivilization(china.civID)))
+        assertTrue(observerOrigin.isExplored(observerFrance))
     }
 
     @Test

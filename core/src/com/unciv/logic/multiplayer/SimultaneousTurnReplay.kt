@@ -6,6 +6,10 @@ import com.badlogic.gdx.utils.JsonWriter
 import com.unciv.Constants
 import com.unciv.json.json
 import com.unciv.logic.GameInfo
+import com.unciv.logic.civilization.Civilization
+import com.unciv.logic.civilization.PopupAlert
+import com.unciv.logic.multiplayer.SimultaneousTurnOperations.exploredByField
+import com.unciv.logic.multiplayer.SimultaneousTurnOperations.proximityField
 import com.unciv.logic.map.mapunit.MapUnit
 import com.unciv.models.Religion
 import com.unciv.utils.Log
@@ -31,6 +35,9 @@ data class SimultaneousTurnFailedOperation(
 /** Applies recorded results to the turn-start game without re-running random combat. */
 object SimultaneousTurnReplay {
     private data class UnitIdKey(val owner: String, val id: Int)
+    private const val popupAlertsField = "popupAlerts"
+    private val civilizationFieldsMergedOnReplay = setOf(popupAlertsField, proximityField)
+    private val tileFieldsMergedOnReplay = setOf(exploredByField)
 
     fun replay(gameInfo: GameInfo, operations: List<SimultaneousTurnOperation>): List<SimultaneousTurnOperation> =
         replayOrExplain(gameInfo, operations).map { it.operation }
@@ -203,13 +210,14 @@ object SimultaneousTurnReplay {
             val current = gameInfo.getCivilizationOrNull(snapshot.key)
                 ?: return SimultaneousTurnFailureReason.WorldChanged
             val currentJson = componentJson(current, snapshot)
-            if (!componentCompatible(currentJson, snapshot))
+            if (!componentCompatible(currentJson, snapshot, civilizationFieldsMergedOnReplay))
                 return SimultaneousTurnFailureReason.WorldChanged
         }
         for (snapshot in result.tiles) {
+            if (SimultaneousTurnOperations.isExplorationOnly(snapshot)) continue
             val (x, y) = snapshot.key.split(',').map { it.toInt() }
             val currentJson = componentJson(gameInfo.tileMap[x, y], snapshot)
-            if (!componentCompatible(currentJson, snapshot))
+            if (!componentCompatible(currentJson, snapshot, tileFieldsMergedOnReplay, isTile = true))
                 return SimultaneousTurnFailureReason.WorldChanged
         }
         for (snapshot in result.religions) {
@@ -222,13 +230,19 @@ object SimultaneousTurnReplay {
             if (snapshot.after == null) return SimultaneousTurnFailureReason.WorldChanged
             val current = gameInfo.civilizations.firstOrNull { it.civName == snapshot.key }
                 ?: return SimultaneousTurnFailureReason.WorldChanged
-            readComponentFields(current, snapshot)
+            applyCivilizationSnapshot(current, snapshot)
         }
         for (snapshot in result.tiles) {
             if (snapshot.after == null) return SimultaneousTurnFailureReason.WorldChanged
             val (x, y) = snapshot.key.split(',').map { it.toInt() }
             val tile = gameInfo.tileMap[x, y]
             val after = JsonReader().parse(snapshot.after)
+            val afterExploration = after.remove(exploredByField)
+            if (snapshot.changedFields.isEmpty() || exploredByField in snapshot.changedFields) {
+                val beforeExploration = snapshot.before?.let { JsonReader().parse(it).get(exploredByField) }
+                tile.applyRecordedExploration(exploredCivilizations(beforeExploration), exploredCivilizations(afterExploration))
+            }
+            if (SimultaneousTurnOperations.isExplorationOnly(snapshot)) continue
             remapUnitIdsInTileSnapshot(gameInfo, after, unitIdRemappings)
             // readFields only assigns fields present in the JSON, and Gdx does not serialize null
             // fields. A unit that left this tile would therefore stay behind as a stale duplicate
@@ -245,7 +259,7 @@ object SimultaneousTurnReplay {
             if (shouldClear("improvementCreatedByCreatesOneImprovement"))
                 tile.improvementCreatedByCreatesOneImprovement = null
             if (shouldClear("resource")) tile.tileResource = null
-            readComponentFields(tile, snapshot.copy(after = after.toJson(JsonWriter.OutputType.json)))
+            json().readFields(tile, after)
         }
         for (snapshot in result.religions) {
             if (snapshot.after == null) gameInfo.religions.remove(snapshot.key)
@@ -290,8 +304,12 @@ object SimultaneousTurnReplay {
         // replayed unit change leaves a duplicate behind and later lookups hit the wrong instance.
         for (civ in gameInfo.civilizations) civ.units.clearUnits()
         gameInfo.setTransients()
+        for (snapshot in result.civilizations) updateRecordedProximities(gameInfo, snapshot)
         return null
     }
+
+    private fun exploredCivilizations(value: JsonValue?): Set<String> =
+        if (value == null || value.isNull) emptySet() else value.mapTo(HashSet()) { it.asString() }
 
     /**
      * A full component snapshot is compatible when the current JSON equals its recorded before or
@@ -302,17 +320,92 @@ object SimultaneousTurnReplay {
      */
     private fun componentCompatible(
         currentJson: String?,
-        snapshot: SimultaneousTurnComponentSnapshot
+        snapshot: SimultaneousTurnComponentSnapshot,
+        ignoredFields: Set<String> = emptySet(),
+        isTile: Boolean = false
     ): Boolean {
-        if (snapshot.changedFields.isEmpty())
+        if (snapshot.changedFields.isEmpty() && ignoredFields.isEmpty())
             return currentJson == snapshot.before || currentJson == snapshot.after
         if (currentJson == null) return false
         val current = JsonReader().parse(currentJson)
         val before = snapshot.before?.let { JsonReader().parse(it) }
         val after = snapshot.after?.let { JsonReader().parse(it) }
+        if (isTile) {
+            // Cycling units can update this flag locally after a move was recorded. A tile
+            // precondition must check the unit's game state, not whether it was cycled past.
+            for (tile in listOfNotNull(current, before, after))
+                for (unit in tileUnits(tile)) unit.remove("due")
+        }
+        if (snapshot.changedFields.isEmpty()) {
+            for (field in ignoredFields) {
+                current.remove(field)
+                before?.remove(field)
+                after?.remove(field)
+            }
+            return jsonValueEquals(current, before) || jsonValueEquals(current, after)
+        }
         return snapshot.changedFields.all { field ->
+            if (field in ignoredFields) return@all true
             val value = current.get(field)
             jsonValueEquals(value, before?.get(field)) || jsonValueEquals(value, after?.get(field))
+        }
+    }
+
+    private fun applyCivilizationSnapshot(civ: Civilization, snapshot: SimultaneousTurnComponentSnapshot) {
+        val after = JsonReader().parse(snapshot.after)
+        after.remove(proximityField)
+        val afterAlerts = after.remove(popupAlertsField)
+        if (snapshot.changedFields.isEmpty() || popupAlertsField in snapshot.changedFields) {
+            val beforeAlerts = snapshot.before?.let { JsonReader().parse(it).get(popupAlertsField) }
+            mergePopupAlerts(civ.popupAlerts, beforeAlerts, afterAlerts)
+        }
+        json().readFields(civ, after)
+    }
+
+    private fun updateRecordedProximities(gameInfo: GameInfo, snapshot: SimultaneousTurnComponentSnapshot) {
+        if (snapshot.changedFields.isNotEmpty() && proximityField !in snapshot.changedFields) return
+        val before = snapshot.before?.let { JsonReader().parse(it).get(proximityField) }
+        val after = snapshot.after?.let { JsonReader().parse(it).get(proximityField) }
+        if (jsonValueEquals(before, after)) return
+        val civ = gameInfo.getCivilization(snapshot.key)
+        val peers = before?.map { it.name }.orEmpty().toSet() + after?.map { it.name }.orEmpty()
+        // Another player may have founded a city since this result was recorded. Use the
+        // city locations on the combined board instead of copying stale proximity rankings.
+        for (peerId in peers) {
+            if (jsonValueEquals(before?.get(peerId), after?.get(peerId))) continue
+            val peer = gameInfo.getCivilizationOrNull(peerId) ?: continue
+            civ.updateProximity(peer)
+        }
+    }
+
+    /** Each player dismisses popups locally. Transfer the operation's edits without restoring old popups. */
+    private fun mergePopupAlerts(current: ArrayList<PopupAlert>, before: JsonValue?, after: JsonValue?) {
+        val serializer = json()
+        val beforeAlerts = before?.map { serializer.readValue(PopupAlert::class.java, it) }.orEmpty()
+        val afterAlerts = after?.map { serializer.readValue(PopupAlert::class.java, it) }.orEmpty()
+        fun PopupAlert.key() = type to value
+        val beforeCounts = beforeAlerts.groupingBy { it.key() }.eachCount()
+        val afterCounts = afterAlerts.groupingBy { it.key() }.eachCount()
+        val currentCounts = current.groupingBy { it.key() }.eachCount().toMutableMap()
+        val iterator = current.iterator()
+        while (iterator.hasNext()) {
+            val key = iterator.next().key()
+            val count = currentCounts.getValue(key)
+            val afterCount = afterCounts[key] ?: 0
+            if ((beforeCounts[key] ?: 0) > afterCount && count > afterCount) {
+                iterator.remove()
+                currentCounts[key] = count - 1
+            }
+        }
+        // Keep the recorded order of new alerts, skipping both pre-existing entries and additions
+        // that are already present. If a player dismissed duplicates, add only the new copies.
+        val toSkip = beforeCounts.toMutableMap()
+        for ((key, count) in currentCounts) toSkip[key] = maxOf(count, toSkip[key] ?: 0)
+        for (alert in afterAlerts) {
+            val key = alert.key()
+            val skip = toSkip[key] ?: 0
+            if (skip > 0) toSkip[key] = skip - 1
+            else current.add(alert)
         }
     }
 
@@ -323,8 +416,8 @@ object SimultaneousTurnReplay {
      * empty", not a distinguishable value.
      */
     private fun jsonValueEquals(first: JsonValue?, second: JsonValue?): Boolean {
-        val firstValue = if (first == null || first.isNull) null else first
-        val secondValue = if (second == null || second.isNull) null else second
+        val firstValue = comparableJsonValue(first)
+        val secondValue = comparableJsonValue(second)
         if (firstValue == null || secondValue == null) return firstValue == null && secondValue == null
         if (firstValue.type() != secondValue.type()) return false
         if (firstValue.isObject) {
@@ -337,6 +430,17 @@ object SimultaneousTurnReplay {
             return firstValue.zip(secondValue).all { (a, b) -> jsonValueEquals(a, b) }
         }
         return firstValue.toJson(JsonWriter.OutputType.json) == secondValue.toJson(JsonWriter.OutputType.json)
+    }
+
+    private fun comparableJsonValue(value: JsonValue?): JsonValue? {
+        if (value == null || value.isNull) return null
+        // The last city's removal or a save reload can leave an immutable empty List, while
+        // Civilization.clone() uses an ArrayList. LibGDX writes type metadata only for the former.
+        if (value.isObject && value.size == 2 && value.getString("class", "") == "kotlin.collections.EmptyList") {
+            val items = value.get("items")
+            if (items != null && items.isArray && items.size == 0) return items
+        }
+        return value
     }
 
     /**
@@ -414,6 +518,16 @@ object SimultaneousTurnReplay {
         json().readFields(target, JsonReader().parse(after))
     }
 
+    private fun tileUnits(tile: JsonValue): Sequence<JsonValue> = sequence {
+        for (field in listOf("militaryUnit", "civilianUnit")) {
+            val unit = tile.get(field)
+            if (unit != null && unit.isObject) yield(unit)
+        }
+        val airUnits = tile.get("airUnits")
+        if (airUnits != null && airUnits.isArray)
+            for (unit in airUnits) yield(unit)
+    }
+
     private fun remapUnitIdsInTileSnapshot(
         gameInfo: GameInfo,
         tile: JsonValue,
@@ -426,6 +540,13 @@ object SimultaneousTurnReplay {
             if (originalId == Constants.NO_ID) return
             val key = UnitIdKey(owner, originalId)
             val mapped = remappings[key]
+            val existingUnit = findUnit(gameInfo, owner, mapped ?: originalId)
+            if (existingUnit != null) {
+                // The unit list still describes the board before this snapshot, even when the
+                // snapshot moves a unit. Keep the local flag; explicit unit.action can change it.
+                unit.remove("due")
+                if (!existingUnit.due) unit.addChild("due", JsonValue(false))
+            }
             if (mapped != null) {
                 unit.remove("id")
                 unit.addChild("id", JsonValue(mapped.toLong()))
@@ -441,12 +562,6 @@ object SimultaneousTurnReplay {
             unit.addChild("id", JsonValue(remappedId.toLong()))
         }
 
-        for (field in listOf("militaryUnit", "civilianUnit")) {
-            val unit = tile.get(field) ?: continue
-            if (!unit.isNull) remap(unit)
-        }
-        val airUnits = tile.get("airUnits")
-        if (airUnits != null && airUnits.isArray)
-            for (unit in airUnits) remap(unit)
+        for (unit in tileUnits(tile)) remap(unit)
     }
 }
