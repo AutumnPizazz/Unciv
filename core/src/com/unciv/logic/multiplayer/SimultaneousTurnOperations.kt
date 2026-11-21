@@ -19,8 +19,13 @@ data class SimultaneousTurnOperation(
     val sequence: Long = 0,
     val type: String = "",
     val payload: String = "",
-    val createdAtMillis: Long = System.currentTimeMillis()
-)
+    // A stable default keeps old records without a timestamp identical when reserialized for retry.
+    val createdAtMillis: Long = 0
+) {
+    /** Upload retries and restored journals may differ in their local creation time. */
+    internal fun sameAction(other: SimultaneousTurnOperation) = turn == other.turn && playerId == other.playerId &&
+        sequence == other.sequence && type == other.type && payload == other.payload
+}
 
 // Note: every parameter needs a default value so Kotlin emits a no-arg constructor -
 // libgdx Json cannot instantiate these classes otherwise, which made settlement silently

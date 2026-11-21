@@ -172,6 +172,8 @@ class WorldScreen(
     private var lastRealtimeTurnServerSequence = reusedSimultaneousTurn?.serverSequence ?: 0L
     @Volatile
     private var realtimeTurnReplayBlocked = false
+    @Volatile
+    private var realtimeTurnRecoveryRequired = false
     @Transient
     @Volatile
     private var simultaneousTurnOperationsRestored = !gameInfo.isSimultaneousTurnsMode()
@@ -191,14 +193,8 @@ class WorldScreen(
     private val simultaneousTurnOperationUploader by lazy {
         SimultaneousTurnOperationUploadQueue(
             upload = { operations ->
-                val server = game.onlineMultiplayer.multiplayerServer
                 for (operation in operations) {
-                    try {
-                        if (server.appendRealtimeTurnAction(gameInfo.gameId, RealtimeTurnActions.requestFor(operation)) == null)
-                            throw Exception("The multiplayer server does not support real-time simultaneous turns")
-                    } catch (ex: MultiplayerTurnActionConflictException) {
-                        throw SimultaneousTurnOperationRejectedException(operation, ex)
-                    }
+                    uploadRealtimeTurnOperation(operation)
                 }
             },
             onUploaded = { syncRealtimeTurnActions() },
@@ -206,28 +202,24 @@ class WorldScreen(
                 debug("Could not upload simultaneous-turn operations (game %s, turn %d): %s", gameInfo.gameId, gameInfo.turns, ex)
             },
             onRejected = { operation, ex ->
-                try {
-                    val rejectedAndFollowing = getSimultaneousTurnOperations()
-                        .filter { it.playerId == operation.playerId && it.turn == operation.turn && it.sequence >= operation.sequence }
-                        .mapTo(HashSet()) { it.sequence }
-                        .apply { add(operation.sequence) }
-                    simultaneousTurnOutbox.discardRejectedOperations(rejectedAndFollowing)
-                    synchronized(simultaneousTurnOperationsLock) {
-                        simultaneousTurnOperations.removeAll { it.playerId == operation.playerId &&
-                            it.turn == operation.turn && it.sequence >= operation.sequence }
-                    }
-                    simultaneousTurnLocalOperationSequences.removeAll(rejectedAndFollowing)
-                } catch (discardError: Exception) {
-                    debug("Could not discard rejected simultaneous-turn operation: %s", discardError)
-                }
-                Gdx.app.postRunnable {
-                    isPlayersTurn = false
-                    shouldUpdate = true
-                    ToastPopup("An action conflicted with another player and the game is resynchronizing.".tr(), this@WorldScreen, 5000)
-                }
-                rebuildRealtimeTurnFromServer(ex)
+                recoverRejectedRealtimeTurnOperation(operation, ex)
             }
         )
+    }
+
+    private suspend fun uploadRealtimeTurnOperation(operation: SimultaneousTurnOperation) {
+        val server = game.onlineMultiplayer.multiplayerServer
+        try {
+            val entry = checkNotNull(server.appendRealtimeTurnAction(gameInfo.gameId, RealtimeTurnActions.requestFor(operation))) {
+                "The multiplayer server does not support real-time simultaneous turns"
+            }
+            if (entry.kind != "action" || entry.operations.singleOrNull()?.sameAction(operation) != true) {
+                val cause = IllegalStateException("The server acknowledged a different action for this client sequence")
+                throw SimultaneousTurnOperationRejectedException(operation, cause)
+            }
+        } catch (ex: MultiplayerTurnActionConflictException) {
+            throw SimultaneousTurnOperationRejectedException(operation, ex)
+        }
     }
 
     /** The state this screen started the turn from, used to detect local changes that no recorded
@@ -253,13 +245,15 @@ class WorldScreen(
         val playerId = viewingCiv.playerId
         if (playerId.isEmpty() || payloads.isEmpty()) return
         synchronized(simultaneousTurnOperationsLock) {
+            if (realtimeTurnRecoveryRequired) return
             val operations = payloads.map { payload ->
                 SimultaneousTurnOperation(
                     turn = gameInfo.turns,
                     playerId = playerId,
                     sequence = gameInfo.nextSimultaneousOperationSequence++,
                     type = type,
-                    payload = json().toJson(payload)
+                    payload = json().toJson(payload),
+                    createdAtMillis = System.currentTimeMillis()
                 )
             }
             try {
@@ -388,7 +382,8 @@ class WorldScreen(
 
     /** `true` when it's the player's turn unless he is a spectator */
     val canChangeState
-        get() = isPlayersTurn && !viewingCiv.isSpectator && simultaneousTurnOperationsRestored
+        get() = isPlayersTurn && !viewingCiv.isSpectator && simultaneousTurnOperationsRestored &&
+            !realtimeTurnRecoveryRequired && !realtimeTurnReplayBlocked
 
     val mapHolder = WorldMapHolder(this, gameInfo.tileMap)
 
@@ -1167,7 +1162,7 @@ class WorldScreen(
 
     /** The last ready player settles the turn by replaying the authoritative real-time action log. */
     private fun finishSimultaneousTurn() {
-        if (!simultaneousTurnOperationsRestored || realtimeTurnReplayBlocked || isNextTurnUpdateRunning()) return
+        if (!simultaneousTurnOperationsRestored || realtimeTurnReplayBlocked || realtimeTurnRecoveryRequired || isNextTurnUpdateRunning()) return
         isPlayersTurn = false
         shouldUpdate = true
         val progressBar = NextTurnProgress(nextTurnButton)
@@ -1179,7 +1174,8 @@ class WorldScreen(
             try {
                 if (!submitted) {
                     checkForUnrecordedSimultaneousTurnChanges()
-                    simultaneousTurnOperationUploader.flushPending()
+                    if (!simultaneousTurnOperationUploader.flushPending() || realtimeTurnRecoveryRequired || realtimeTurnReplayBlocked ||
+                        game.worldScreen !== this@WorldScreen || game.gameInfo !== gameInfo) return@runOnNonDaemonThreadPool
                     if (simultaneousTurnReadyClientSequence < 0)
                         simultaneousTurnReadyClientSequence = gameInfo.nextSimultaneousOperationSequence++
                     game.onlineMultiplayer.multiplayerServer.markRealtimeTurnReady(
@@ -1267,7 +1263,10 @@ class WorldScreen(
                     lockRenewalJob.cancel()
                     server.releaseSimultaneousTurnSettlementLock(gameInfo.gameId, lease)
                 }
+            } catch (ex: CancellationException) {
+                throw ex
             } catch (ex: Exception) {
+                if (realtimeTurnRecoveryRequired || game.worldScreen !== this@WorldScreen) return@runOnNonDaemonThreadPool
                 if (!submitted) {
                     val serverReady = try {
                         val feed = game.onlineMultiplayer.multiplayerServer
@@ -1285,6 +1284,7 @@ class WorldScreen(
                 val retryLocally = !submitted
                 debug("Simultaneous turn pass failed (game %s, turn %d): %s", gameInfo.gameId, submittedTurn, ex)
                 launchOnGLThread {
+                    if (realtimeTurnRecoveryRequired || game.worldScreen !== this@WorldScreen) return@launchOnGLThread
                     if (retryLocally) isPlayersTurn = true
                     shouldUpdate = true
                     nextTurnButton.update()
@@ -1418,6 +1418,8 @@ class WorldScreen(
         if (playerId.isEmpty() || viewingCiv.isSpectator) return
         val turn = gameInfo.turns
         simultaneousTurnRestoreJob = Concurrency.run("RestoreSimultaneousTurn") {
+            var legacyRejectedSequence: Long? = null
+            var recoveryHadConflicts = false
             while (isActive && !simultaneousTurnOperationsRestored) {
                 val restored = try {
                     val server = game.onlineMultiplayer.multiplayerServer
@@ -1425,53 +1427,54 @@ class WorldScreen(
                         ?: throw Exception("The multiplayer server does not support real-time simultaneous turns")
                     val storedActions = initialFeed.actions.filter { it.kind == "action" }
                     val storedOperations = storedActions.flatMap { it.operations }
-                    val rejectedSequences = HashSet<Long>()
                     val legacyOperations = try {
                         server.downloadSimultaneousTurnOperations(gameInfo.gameId)
                     } catch (_: Exception) {
                         emptyList()
                     }
-                    val v2Keys = storedOperations.mapTo(HashSet()) { it.playerId to it.sequence }
+                    val storedBySequence = storedOperations.filter { it.playerId == playerId }.associateBy { it.sequence }
                     val legacyMine = legacyOperations.filter { it.playerId == playerId && it.turn == turn && it.type != "done" }
+                        .sortedBy { it.sequence }
                     for (operation in legacyMine) {
-                        if ((operation.playerId to operation.sequence) in v2Keys) continue
+                        if (legacyRejectedSequence != null) break
+                        if (playerId in initialFeed.readyPlayerIds || playerId in initialFeed.timedOutPlayerIds) break
+                        val accepted = storedBySequence[operation.sequence]
+                        if (accepted != null) {
+                            if (accepted.sameAction(operation)) continue
+                            legacyRejectedSequence = operation.sequence
+                            recoveryHadConflicts = true
+                            break
+                        }
                         try {
-                            server.appendRealtimeTurnAction(gameInfo.gameId, RealtimeTurnActions.requestFor(operation))
-                        } catch (ex: MultiplayerTurnActionConflictException) {
-                            rejectedSequences += operation.sequence
+                            uploadRealtimeTurnOperation(operation)
+                        } catch (_: SimultaneousTurnOperationRejectedException) {
+                            legacyRejectedSequence = operation.sequence
+                            recoveryHadConflicts = true
+                            break
                         }
                     }
+                    if (legacyRejectedSequence != null) simultaneousTurnOutbox.discardFrom(legacyRejectedSequence)
                     val currentFeed = server.downloadRealtimeTurnActions(gameInfo.gameId, turn, 0)
                         ?: throw Exception("The multiplayer server does not support real-time simultaneous turns")
-                    if (legacyOperations.any { it.playerId == playerId && it.turn == turn && it.type == "done" }
-                        && playerId !in currentFeed.readyPlayerIds) {
-                        val clientSequence = maxOf(
-                            gameInfo.nextSimultaneousOperationSequence,
-                            (legacyMine.maxOfOrNull { it.sequence } ?: 0L) + 1
-                        )
-                        server.markRealtimeTurnReady(gameInfo.gameId, turn, clientSequence)
-                        gameInfo.nextSimultaneousOperationSequence = clientSequence + 1
-                    }
                     val acceptedOperations = currentFeed.actions.filter { it.kind == "action" }.flatMap { it.operations }
                     val currentPlayerReady = playerId in currentFeed.readyPlayerIds || playerId in currentFeed.timedOutPlayerIds
-                    val recovered = simultaneousTurnOutbox.recover(acceptedOperations, currentPlayerReady) { missing ->
-                        for (operation in missing) {
-                            try {
-                                server.appendRealtimeTurnAction(gameInfo.gameId, RealtimeTurnActions.requestFor(operation))
-                            } catch (ex: MultiplayerTurnActionConflictException) {
-                                rejectedSequences += operation.sequence
-                            }
-                        }
-                    }
-                    if (recovered.rejectedOperations.isNotEmpty())
-                        simultaneousTurnOutbox.discardRejectedOperations(
-                            recovered.rejectedOperations.mapTo(HashSet()) { it.sequence }
+                    val recovered = simultaneousTurnOutbox.recover(acceptedOperations, currentPlayerReady, ::uploadRealtimeTurnOperation)
+                    recoveryHadConflicts = recoveryHadConflicts || recovered.hasConflicts
+                    if (legacyOperations.any { it.playerId == playerId && it.turn == turn && it.type == "done" }
+                        && !currentPlayerReady && !recoveryHadConflicts) {
+                        val clientSequence = maxOf(
+                            gameInfo.nextSimultaneousOperationSequence,
+                            (legacyMine.maxOfOrNull { it.sequence } ?: 0L) + 1,
+                            (recovered.operations.maxOfOrNull { it.sequence } ?: 0L) + 1
                         )
-                    if (rejectedSequences.isNotEmpty())
-                        simultaneousTurnOutbox.discardRejectedOperations(rejectedSequences)
+                        checkNotNull(server.markRealtimeTurnReady(gameInfo.gameId, turn, clientSequence)) {
+                            "The multiplayer server does not support real-time simultaneous turns"
+                        }
+                        gameInfo.nextSimultaneousOperationSequence = clientSequence + 1
+                    }
                     val finalFeed = server.downloadRealtimeTurnActions(gameInfo.gameId, turn, 0)
                         ?: throw Exception("The multiplayer server does not support real-time simultaneous turns")
-                    Triple(finalFeed, recovered.hasConflicts, rejectedSequences.isNotEmpty())
+                    finalFeed
                 } catch (ex: CancellationException) {
                     throw ex
                 } catch (ex: Exception) {
@@ -1483,16 +1486,16 @@ class WorldScreen(
                 launchOnGLThread {
                     if (!gameInfo.isSimultaneousTurnsMode() || gameInfo.turns != turn
                         || simultaneousTurnOperationsRestored || game.worldScreen != this@WorldScreen) return@launchOnGLThread
-                    applyRealtimeTurnFeed(restored.first, initialRestore = true)
+                    applyRealtimeTurnFeed(restored, initialRestore = true)
                     gameInfo.nextSimultaneousOperationSequence = maxOf(
                         gameInfo.nextSimultaneousOperationSequence,
                         (getSimultaneousTurnOperations().maxOfOrNull { it.sequence } ?: 0L) + 1
                     )
                     simultaneousTurnOperationsRestored = true
                     shouldUpdate = true
-                    if (restored.second || restored.third || realtimeTurnReplayBlocked)
+                    if (recoveryHadConflicts && !realtimeTurnReplayBlocked)
                         ToastPopup("Some actions could not be restored.".tr(), this@WorldScreen, 5000)
-                    if (restored.first.allPlayersReady && !realtimeTurnReplayBlocked)
+                    if (restored.allPlayersReady && !realtimeTurnReplayBlocked)
                         finishSimultaneousTurn()
                 }
                 return@run
@@ -1501,7 +1504,8 @@ class WorldScreen(
     }
 
     private fun syncRealtimeTurnActions() {
-        if (!gameInfo.isSimultaneousTurnsMode() || !simultaneousTurnOperationsRestored || viewingCiv.isSpectator)
+        if (!gameInfo.isSimultaneousTurnsMode() || !simultaneousTurnOperationsRestored || viewingCiv.isSpectator ||
+            realtimeTurnRecoveryRequired || realtimeTurnReplayBlocked)
             return
         if (!realtimeTurnSyncMutex.tryLock()) return
         realtimeTurnSyncJob = Concurrency.run("SyncRealtimeTurnActions") {
@@ -1514,7 +1518,7 @@ class WorldScreen(
                     val applied = CompletableDeferred<Unit>()
                     launchOnGLThread {
                         try {
-                            if (game.worldScreen == this@WorldScreen && gameInfo.turns == turn) {
+                            if (game.worldScreen === this@WorldScreen && gameInfo.turns == turn && !realtimeTurnRecoveryRequired) {
                                 applyRealtimeTurnFeed(feed, initialRestore = false)
                                 shouldUpdate = true
                                 if (feed.allPlayersReady && !isPlayersTurn && !realtimeTurnReplayBlocked)
@@ -1525,7 +1529,8 @@ class WorldScreen(
                         }
                     }
                     applied.await()
-                    if (feed.latestSequence <= lastRealtimeTurnServerSequence) break
+                    if (realtimeTurnReplayBlocked || realtimeTurnRecoveryRequired || game.worldScreen !== this@WorldScreen ||
+                        feed.latestSequence <= lastRealtimeTurnServerSequence) break
                 }
             } catch (ex: CancellationException) {
                 throw ex
@@ -1538,32 +1543,28 @@ class WorldScreen(
     }
 
     private fun applyRealtimeTurnFeed(feed: com.unciv.logic.multiplayer.RealtimeTurnActionFeed, initialRestore: Boolean) {
-        if (feed.turn != gameInfo.turns) return
+        if (feed.turn != gameInfo.turns || realtimeTurnReplayBlocked) return
         val playerId = viewingCiv.playerId
         val ownOperations = ArrayList<SimultaneousTurnOperation>()
         val failures = ArrayList<SimultaneousTurnFailedOperation>()
-        var actionReplayBlocked = false
-        for (action in feed.actions.sortedBy { it.sequence }) {
+        actionLoop@ for (action in feed.actions.sortedBy { it.sequence }) {
             if (action.sequence <= lastRealtimeTurnServerSequence) continue
             if (action.kind == "action") {
                 for (operation in action.operations) {
-                    if (operation.playerId == playerId) ownOperations += operation
-                    if (actionReplayBlocked) continue
                     if (operation.turn != feed.turn) {
                         failures += SimultaneousTurnFailedOperation(
                             operation, SimultaneousTurnFailureReason.Unreadable
                         )
-                        actionReplayBlocked = true
-                        continue
+                        break@actionLoop
                     }
+                    if (operation.playerId == playerId) ownOperations += operation
                     val alreadyAppliedLocally = operation.playerId == playerId &&
                         operation.sequence in simultaneousTurnLocalOperationSequences
                     if (alreadyAppliedLocally) continue
                     val reason = SimultaneousTurnReplay.applyOrExplain(gameInfo, operation)
                     if (reason != null) {
                         failures += SimultaneousTurnFailedOperation(operation, reason)
-                        actionReplayBlocked = true
-                        continue
+                        break@actionLoop
                     }
                     if (operation.playerId == playerId)
                         simultaneousTurnLocalOperationSequences += operation.sequence
@@ -1584,7 +1585,7 @@ class WorldScreen(
                 (ownOperations.maxOf { it.sequence }) + 1
             )
         }
-                    if (playerId in feed.readyPlayerIds || playerId in feed.timedOutPlayerIds) {
+        if (playerId in feed.readyPlayerIds || playerId in feed.timedOutPlayerIds) {
             simultaneousTurnDoneUploadedForTurn = feed.turn
             isPlayersTurn = false
         } else if (initialRestore) {
@@ -1592,6 +1593,7 @@ class WorldScreen(
         }
         if (failures.isNotEmpty()) {
             realtimeTurnReplayBlocked = true
+            isPlayersTurn = false
             Log.error(
                 "Could not apply %d accepted real-time turn actions (game %s, turn %d): %s",
                 failures.size, gameInfo.gameId, feed.turn,
@@ -1601,27 +1603,34 @@ class WorldScreen(
         }
     }
 
-    private suspend fun rebuildRealtimeTurnFromServer(cause: Exception) {
+    private suspend fun recoverRejectedRealtimeTurnOperation(operation: SimultaneousTurnOperation, cause: Exception) {
+        // Freeze this screen before pruning the journal or replacing the game. A concurrent submit
+        // must see a rejected flush even if it was waiting while the uploader rebuilt the state.
+        realtimeTurnRecoveryRequired = true
         try {
+            synchronized(simultaneousTurnOperationsLock) {
+                simultaneousTurnOutbox.discardFrom(operation.sequence)
+            }
+            withGLContext {
+                if (game.worldScreen === this@WorldScreen) {
+                    isPlayersTurn = false
+                    shouldUpdate = true
+                    ToastPopup("An action conflicted with another player and the game is resynchronizing.".tr(), this@WorldScreen, 5000)
+                }
+            }
+            debug("Discarded simultaneous-turn operations from sequence %d after rejection: %s", operation.sequence, cause)
             val server = game.onlineMultiplayer.multiplayerServer
             val authoritative = server.downloadGame(gameInfo.gameId)
-            if (authoritative.turns != gameInfo.turns) {
-                UncivGame.Current.loadGame(authoritative, autoPlay)
-                return
-            }
-            val feed = server.downloadRealtimeTurnActions(gameInfo.gameId, authoritative.turns, 0)
-                ?: throw Exception("The multiplayer server does not support real-time simultaneous turns")
-            val operations = feed.actions.filter { it.kind == "action" }.flatMap { it.operations }
-            val failures = SimultaneousTurnReplay.replayOrExplain(authoritative, operations)
-            if (failures.isNotEmpty())
-                throw Exception("${failures.size} accepted actions could not be replayed", cause)
+            if (game.worldScreen !== this || game.gameInfo !== gameInfo) return
+            // The new screen restores the accepted feed from the turn-start save exactly once.
             authoritative.isUpToDate = true
-            UncivGame.Current.loadGame(authoritative, autoPlay)
+            game.loadGame(authoritative, autoPlay)
         } catch (ex: CancellationException) {
             throw ex
         } catch (ex: Exception) {
             debug("Could not rebuild real-time turn state after a conflict: %s", ex)
             Gdx.app.postRunnable {
+                if (game.worldScreen !== this@WorldScreen) return@postRunnable
                 realtimeTurnReplayBlocked = true
                 shouldUpdate = true
                 ToastPopup("The turn could not be resynchronized. Do not continue playing.".tr(), this@WorldScreen, 6000)
@@ -1781,6 +1790,7 @@ class WorldScreen(
         resizeDeferTimer = timer("Resize", daemon = true, 500L, Long.MAX_VALUE) {
             resizeDeferTimer?.cancel()
             resizeDeferTimer = null
+            if (game.worldScreen !== this@WorldScreen || realtimeTurnRecoveryRequired || realtimeTurnReplayBlocked) return@timer
             startNewScreenJob(gameInfo, autoPlay, true) // start over
         }
     }

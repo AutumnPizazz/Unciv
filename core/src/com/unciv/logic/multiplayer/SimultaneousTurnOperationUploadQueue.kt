@@ -25,9 +25,11 @@ class SimultaneousTurnOperationUploadQueue(
     private val pending = LinkedHashMap<OperationKey, SimultaneousTurnOperation>()
     private val wakeups = Channel<Unit>(Channel.CONFLATED)
     private val uploadMutex = Mutex()
+    private var rejected = false
 
     fun enqueueBatch(operations: List<SimultaneousTurnOperation>) {
         synchronized(pendingLock) {
+            if (rejected) return
             for (operation in operations) {
                 val key = keyOf(operation)
                 if (!pending.containsKey(key)) pending[key] = operation
@@ -42,7 +44,7 @@ class SimultaneousTurnOperationUploadQueue(
             delay(debounceMillis)
             while (true) {
                 try {
-                    flushPending()
+                    if (!flushPending()) return
                     break
                 } catch (ex: CancellationException) {
                     throw ex
@@ -54,19 +56,25 @@ class SimultaneousTurnOperationUploadQueue(
         }
     }
 
-    suspend fun flushPending() {
+    /** Returns false when this turn state was rejected and must be rebuilt before submission. */
+    suspend fun flushPending(): Boolean {
         uploadMutex.lock()
         try {
+            if (rejected) return false
             while (true) {
                 val batch = synchronized(pendingLock) { pending.values.toList() }
-                if (batch.isEmpty()) return
+                if (batch.isEmpty()) return true
                 try {
                     upload(batch)
                     removeUploaded(batch)
                     onUploaded(batch)
                 } catch (ex: SimultaneousTurnOperationRejectedException) {
-                    discardRejectedAndFollowing(ex.operation)
+                    synchronized(pendingLock) {
+                        rejected = true
+                        pending.clear()
+                    }
                     onRejected(ex.operation, ex)
+                    return false
                 }
             }
         } finally {
@@ -79,18 +87,6 @@ class SimultaneousTurnOperationUploadQueue(
             for (operation in operations) {
                 val key = keyOf(operation)
                 if (pending[key] == operation) pending.remove(key)
-            }
-        }
-    }
-
-    private fun discardRejectedAndFollowing(rejected: SimultaneousTurnOperation) {
-        synchronized(pendingLock) {
-            val iterator = pending.entries.iterator()
-            while (iterator.hasNext()) {
-                val operation = iterator.next().value
-                if (operation.turn == rejected.turn && operation.playerId == rejected.playerId &&
-                    operation.sequence >= rejected.sequence)
-                    iterator.remove()
             }
         }
     }

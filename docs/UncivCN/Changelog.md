@@ -11,6 +11,7 @@ outline: [2, 2]
 
 - Fixed single-tap moves disappearing in simultaneous turns.
 - Fixed lost spy assignments, road orders, and movement before interrupted attacks in simultaneous turns.
+- In simultaneous turns, rejected actions stop submission and discard dependent actions, including after reconnecting.
 
 ## 5.0.1.3 (build 1269)
 

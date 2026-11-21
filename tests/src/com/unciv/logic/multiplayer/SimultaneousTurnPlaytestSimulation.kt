@@ -24,6 +24,7 @@ import com.unciv.testing.BaseTestRunner
 import com.unciv.testing.TestGame
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assume
@@ -106,7 +107,9 @@ class SimultaneousTurnPlaytestSimulation {
     ) {
         val operations = ArrayList<SimultaneousTurnOperation>()
         val rejectedOperations = ArrayList<SimultaneousTurnOperation>()
-        private val uploader = SimultaneousTurnOperationUploadQueue(
+        private var uploader = newUploader()
+
+        private fun newUploader() = SimultaneousTurnOperationUploadQueue(
             upload = { batch ->
                 for (operation in batch) {
                     try {
@@ -126,6 +129,12 @@ class SimultaneousTurnPlaytestSimulation {
         }
 
         suspend fun flushOperations() = uploader.flushPending()
+
+        fun resumeAfterRebuild() {
+            operations.clear()
+            rejectedOperations.clear()
+            uploader = newUploader()
+        }
     }
 
     @Test
@@ -218,24 +227,25 @@ class SimultaneousTurnPlaytestSimulation {
             val peerFeed = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
             assertTrue(SimultaneousTurnReplay.replay(peerView, peerFeed.actions.flatMap { it.operations }).isEmpty())
             assertUnitAt(peerView, civAName, unitAId, -1, 1, "A's move reaches B before settlement")
-            b.flushOperations()
+            assertFalse("a rejected flush cannot submit ready", b.flushOperations())
+            assertFalse("the old uploader remains blocked", b.flushOperations())
             assertEquals("first accepted civilization claim rejects the later state change", listOf(1L), b.rejectedOperations.map { it.sequence })
             note("clientB rejected a conflicting state action and rebuilt from the accepted feed")
             val restoredB = cloneGame(turnStart)
-            val acceptedByA = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
-                .actions.filter { it.kind == "action" }.flatMap { it.operations }
-            val restoreFailures = SimultaneousTurnReplay.replay(restoredB, acceptedByA)
+            val recoveryFeed = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
+            assertFalse("B must stay unsubmitted while recovering", b.playerId in recoveryFeed.readyPlayerIds)
+            val acceptedOperations = recoveryFeed.actions.filter { it.kind == "action" }.flatMap { it.operations }
+            val restoreFailures = SimultaneousTurnReplay.replay(restoredB, acceptedOperations)
             assertTrue("conflict recovery must restore from the server feed: $restoreFailures", restoreFailures.isEmpty())
             assertUnitAt(restoredB, civBName, unitBId, 1, -1, "accepted move survives conflict recovery")
             restoredB.nextSimultaneousOperationSequence = maxOf(
                 restoredB.nextSimultaneousOperationSequence,
-                (acceptedByA.filter { it.playerId == b.playerId }.maxOfOrNull { it.sequence } ?: -1L) + 1
+                (acceptedOperations.filter { it.playerId == b.playerId }.maxOfOrNull { it.sequence } ?: -1L) + 1
             )
-            b.operations.clear()
+            b.resumeAfterRebuild()
             changeState(b, restoredB, UnitActionType.ConstructImprovement) {
                 it.tileMap[-3, 1].improvement = "Farm"
             }
-            b.rejectedOperations.clear()
             submit(b, restoredB)
 
             val settled = settle(a, turnStart, previousSettler = b)
@@ -281,10 +291,9 @@ class SimultaneousTurnPlaytestSimulation {
                 .recover(
                     a.server.downloadRealtimeTurnActions(GAME_ID, gameA2.turns, 0)!!
                         .actions.filter { it.kind == "action" }.flatMap { it.operations }
-                ) { missing ->
-                    assertEquals("Only the unacknowledged action needs upload", listOf(a.operations.last()), missing)
-                    for (operation in missing)
-                        a.server.appendRealtimeTurnAction(GAME_ID, RealtimeTurnActions.requestFor(operation))
+                ) { operation ->
+                    assertEquals("Only the unacknowledged action needs upload", a.operations.last(), operation)
+                    a.server.appendRealtimeTurnAction(GAME_ID, RealtimeTurnActions.requestFor(operation))
                 }
             val replayFailures = SimultaneousTurnReplay.replay(gameA2, recovered.operations)
             assertTrue("A's journaled actions must replay after reload: $replayFailures", replayFailures.isEmpty())
@@ -449,7 +458,7 @@ class SimultaneousTurnPlaytestSimulation {
     }
 
     private suspend fun submit(client: PlaytestClient, game: GameInfo) {
-        client.flushOperations()
+        check(client.flushOperations()) { "Cannot submit actions from a rejected turn state" }
         val ready = client.server.markRealtimeTurnReady(GAME_ID, game.turns, game.nextSimultaneousOperationSequence++)
         check(ready != null) { "The server does not support real-time turn ready markers" }
         writeClientOps(client, "turn-${game.turns}-submitted", client.operations)

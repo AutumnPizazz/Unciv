@@ -3,6 +3,7 @@ package com.unciv.logic.multiplayer
 import com.unciv.json.json
 import com.unciv.testing.BaseTestRunner
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -83,13 +84,26 @@ class RealtimeTurnActionsTest {
     }
 
     @Test
+    fun retryPreservesTheWirePayloadOfAnOperationWithoutTimestamp() {
+        val saved = """[{"turn":2,"playerId":"player-a","sequence":12,"type":"unit.action","payload":"{}"}]"""
+        val operation = SimultaneousTurnOperations.decode(saved).single()
+        val wire = json().toJson(RealtimeTurnActions.requestFor(operation))
+        val reloaded = SimultaneousTurnOperations.decode(SimultaneousTurnOperations.encode(listOf(operation))).single()
+
+        assertEquals(0L, operation.createdAtMillis)
+        assertFalse(wire.contains("\"createdAtMillis\""))
+        assertEquals(wire, json().toJson(RealtimeTurnActions.requestFor(reloaded)))
+    }
+
+    @Test
     fun requestAndFeedJsonRoundTripPreservesOperationData() {
         val operation = SimultaneousTurnOperation(
             turn = 2,
             playerId = "player-a",
             sequence = 12,
             type = "unit.action",
-            payload = "{}"
+            payload = "{}",
+            createdAtMillis = 12345L
         )
         val request = RealtimeTurnActions.requestFor(operation)
         val parsedRequest = json().fromJson(RealtimeTurnActionRequest::class.java, json().toJson(request))
