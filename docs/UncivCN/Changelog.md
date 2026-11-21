@@ -10,6 +10,7 @@ outline: [2, 2]
 ### Player-facing
 
 - Fixed single-tap moves disappearing in simultaneous turns.
+- Fixed lost spy assignments, road orders, and movement before interrupted attacks in simultaneous turns.
 
 ## 5.0.1.3 (build 1269)
 

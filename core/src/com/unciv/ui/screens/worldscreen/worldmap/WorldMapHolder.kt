@@ -163,9 +163,9 @@ class WorldMapHolder(
                     val child = tileGroupMap.hit(x, y, true) ?: return false
                     if (child !is WorldTileGroup) return false
 
-                    Concurrency.run("WorldScreenClick") {
-                        onTileRightClicked(unit, child.tileView)
-                    }
+                    // In simultaneous turns, capture and record the mutation before another GL event submits.
+                    if (worldScreen.gameInfo.isSimultaneousTurnsMode()) onTileRightClicked(unit, child.tileView)
+                    else Concurrency.run("WorldScreenClick") { onTileRightClicked(unit, child.tileView) }
                     return true
                 }
 
@@ -332,10 +332,13 @@ class WorldMapHolder(
                     if (!unitView.canAttack()) return@runIfSimultaneousTurnTargetsAreFree
                     val attackerCombatant = unitView.asCombatant()
                     // CN: full-state snapshot so attacks on non-unit targets (cities, improvements) also replay
-                    val gameInfoBefore = if (worldScreen.gameInfo.isSimultaneousTurnsMode())
-                        worldScreen.gameInfo.clone()
-                    else null
-                    if (!unitView.tryMovePreparingAttack(attackableTile)) return@runIfSimultaneousTurnTargetsAreFree
+                    val gameInfoBefore = worldScreen.beginSimultaneousGameStateSnapshot(SimultaneousTurnStateAction.Combat)
+                    if (!unitView.tryMovePreparingAttack(attackableTile)) {
+                        // Preparation can spend movement or set up a siege unit before returning false.
+                        worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat, gameInfoBefore)
+                        localShouldUpdate = true
+                        return@runIfSimultaneousTurnTargetsAreFree
+                    }
                     if (!SoundPlayer.play(UncivSound(attackerCombatant.getCombatantName())))
                         SoundPlayer.play(attackerCombatant.getAttackSound())
                     val (damageToDefender, damageToAttacker) = unitView.attackOrNuke(attackableTile)
@@ -416,6 +419,9 @@ class WorldMapHolder(
             worldScreen.recordUndoCheckpoint()
 
             launchOnGLThread {
+                if (!worldScreen.canChangeState) return@launchOnGLThread
+                if (worldScreen.gameInfo.isSimultaneousTurnsMode() && worldScreen.game.worldScreen !== worldScreen)
+                    return@launchOnGLThread
                 try {
                     // Because this is darned concurrent (as it MUST be to avoid ANRs),
                     // there are edge cases where the canReach is true,

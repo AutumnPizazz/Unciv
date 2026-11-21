@@ -12,6 +12,7 @@ import com.unciv.Constants
 import com.unciv.logic.automation.unit.UnitAutomation
 import com.unciv.logic.map.HexCoord
 import com.unciv.logic.map.mapunit.MapUnit
+import com.unciv.logic.multiplayer.SimultaneousTurnStateAction
 import com.unciv.models.UncivSound
 import com.unciv.models.translations.tr
 import com.unciv.ui.audio.SoundPlayer
@@ -148,11 +149,12 @@ class ConnectRoadOverlayButtonData(val unitView: MapUnitView, val tileView: Tile
     }
 
     private fun connectRoadToTargetTile(worldMapHolder: WorldMapHolder, selectedUnit: MapUnit, targetTilePosition: HexCoord) {
-        selectedUnit.automatedRoadConnectionDestination = targetTilePosition
-        selectedUnit.action = Constants.connectRoadAction
-        selectedUnit.automated = true
-        // Moving now would be lost at settlement unless it is recorded as a state diff.
-        worldMapHolder.worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.Automate) {
+        val worldScreen = worldMapHolder.worldScreen
+        if (!worldScreen.canChangeState) return
+        worldScreen.runAndRecordSimultaneousGameStateChange(UnitActionType.Automate) {
+            selectedUnit.automatedRoadConnectionDestination = targetTilePosition
+            selectedUnit.action = Constants.connectRoadAction
+            selectedUnit.automated = true
             UnitAutomation.automateUnitMoves(GameView(selectedUnit.civ.gameInfo, selectedUnit.civ).getMapUnitView(selectedUnit))
         }
 
@@ -202,23 +204,27 @@ class MoveSpyOverlayButtonData(val spyView: SpyView, val cityView: ForeignCityVi
             )
         }
 
-        val worldScreen = worldMapHolder.worldScreen
         spyActionButton.onActivation(UncivSound.Silent) {
-            if (cityView != null) {
-                spyView.tryMoveTo(cityView)
-                worldScreen.game.pushScreen { EspionageScreen(worldScreen.selectedCiv, worldScreen) }
-            } else {
-                worldScreen.game.pushScreen { EspionageScreen(worldScreen.selectedCiv, worldScreen) }
-                worldScreen.bottomUnitTable.selectSpy(null)
-            }
-            worldMapHolder.removeUnitActionOverlay()
-            worldMapHolder.selectedTile = null
-            worldScreen.shouldUpdate = true
-            worldScreen.bottomUnitTable.selectSpy(null)
+            moveSpyAndReturnToEspionage(worldMapHolder)
         }
         spyActionButton.keyShortcuts.add(KeyCharAndCode.TAB)
         spyActionButton.keyShortcuts.add(KeyCharAndCode.RETURN)
 
         return spyActionButton
+    }
+
+    private fun moveSpyAndReturnToEspionage(worldMapHolder: WorldMapHolder) {
+        val worldScreen = worldMapHolder.worldScreen
+        if (cityView != null) {
+            if (worldScreen.gameInfo.isSimultaneousTurnsMode() && !worldScreen.canChangeState) return
+            worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Espionage) {
+                spyView.tryMoveTo(cityView)
+            }
+        }
+        worldScreen.game.pushScreen { EspionageScreen(worldScreen.selectedCiv, worldScreen) }
+        worldMapHolder.removeUnitActionOverlay()
+        worldMapHolder.selectedTile = null
+        worldScreen.shouldUpdate = true
+        worldScreen.bottomUnitTable.selectSpy(null)
     }
 }

@@ -332,7 +332,8 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         defender: CombatantView,
         attackableTileView: AttackableTileView
     ) {
-        val gameInfoBefore = worldScreen.gameInfo.clone()
+        if (!worldScreen.canChangeState) return
+        val gameInfoBefore = worldScreen.beginSimultaneousGameStateSnapshot(SimultaneousTurnStateAction.Combat)
         val canStillAttack = if (attacker is MapUnitCombatantView) attacker.getUnitView().tryGetMapUnitView()!!.tryMovePreparingAttack(attackableTileView) else true
         worldScreen.mapHolder.removeUnitActionOverlay() // the overlay was one of attacking
         // There was a direct worldScreen.update() call here, removing its 'private' but not the comment justifying the modifier.
@@ -341,7 +342,11 @@ class BattleTable(val worldScreen: WorldScreen) : Table() {
         worldScreen.clearUndoCheckpoints()
         //Gdx.graphics.requestRendering()  // Use this if immediate rendering is required
 
-        if (!canStillAttack) return
+        if (!canStillAttack) {
+            // Movement and siege setup are still effective if the unit can no longer attack.
+            worldScreen.recordSimultaneousGameStateChange(SimultaneousTurnStateAction.Combat, gameInfoBefore)
+            return
+        }
 
         if (!SoundPlayer.play(UncivSound(attacker.getCombatantName())))
             SoundPlayer.play(attacker.getAttackSound())
