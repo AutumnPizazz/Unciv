@@ -570,12 +570,21 @@ class WorldMapHolder(
                 val turnsToGetThere = unitsWhoCanMoveThere.values.maxOrNull()!!
 
                 if (UncivGame.Current.settings.singleTapMove && turnsToGetThere == 1) {
-                    // single turn instant move
-                    val selectedUnitView = unitsWhoCanMoveThere.keys.first()
+                    // Pathfinding ran in the background. The player may have submitted the turn since then.
+                    if (!worldScreen.canChangeState) return@launchOnGLThread
+                    val targetPosition = tileView.position()
                     for (unitView in unitsWhoCanMoveThere.keys) {
-                        unitView.tryHeadTowards(tileView)
+                        val claimKeys = listOf(
+                            SimultaneousTurnClaims.forUnit(unitView.id),
+                            SimultaneousTurnClaims.forTile(targetPosition.x, targetPosition.y)
+                        )
+                        worldScreen.runIfSimultaneousTurnTargetsAreFree(claimKeys) {
+                            worldScreen.runAndRecordSimultaneousGameStateChange(SimultaneousTurnStateAction.Move) {
+                                unitView.tryHeadTowards(tileView)
+                            }
+                        }
                     }
-                    worldScreen.bottomUnitTable.selectUnit(selectedUnitView) // keep moved unit selected
+                    worldScreen.bottomUnitTable.selectUnit(unitsWhoCanMoveThere.keys.first())
                 } else {
                     // add "move to" button if there is a path to tileInfo
                     val moveHereButtonDto = MoveHereOverlayButtonData(unitsWhoCanMoveThere, tileView)

@@ -7,6 +7,10 @@ outline: [2, 2]
 
 ## Unreleased
 
+### Player-facing
+
+- Fixed single-tap moves disappearing in simultaneous turns.
+
 ## 5.0.1.3 (build 1269)
 
 ### Player-facing

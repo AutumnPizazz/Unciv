@@ -214,6 +214,10 @@ class SimultaneousTurnPlaytestSimulation {
                 it.tileMap[-3, 1].improvement = "Farm"
             }
             submit(a, gameA)
+            val peerView = cloneGame(turnStart)
+            val peerFeed = checkNotNull(b.server.downloadRealtimeTurnActions(GAME_ID, turnStart.turns, 0))
+            assertTrue(SimultaneousTurnReplay.replay(peerView, peerFeed.actions.flatMap { it.operations }).isEmpty())
+            assertUnitAt(peerView, civAName, unitAId, -1, 1, "A's move reaches B before settlement")
             b.flushOperations()
             assertEquals("first accepted civilization claim rejects the later state change", listOf(1L), b.rejectedOperations.map { it.sequence })
             note("clientB rejected a conflicting state action and rebuilt from the accepted feed")
@@ -384,19 +388,18 @@ class SimultaneousTurnPlaytestSimulation {
     private fun moveUnit(client: PlaytestClient, game: GameInfo, civName: String, unitId: Int, toX: Int, toY: Int) {
         val civ = game.getCivilization(civName)
         val unit = civ.units.getUnitById(unitId)!!
-        val from = unit.currentTile.position
-        unit.movement.moveToTile(game.tileMap[toX, toY])
+        val before = game.clone()
+        unit.movement.headTowards(game.tileMap[toX, toY])
+        val result = checkNotNull(
+            SimultaneousTurnOperations.captureGameStateChange(SimultaneousTurnStateAction.Move, before, game)
+        )
         client.record(
             SimultaneousTurnOperation(
                 turn = game.turns,
                 playerId = client.playerId,
                 sequence = game.nextSimultaneousOperationSequence++,
-                type = "unit.move",
-                payload = json().toJson(
-                    SimultaneousTurnMoveResult(
-                        unit.id, civName, from.x, from.y, toX, toY, unit.health, unit.currentMovement
-                    )
-                )
+                type = SimultaneousTurnOperations.stateOperationType(SimultaneousTurnStateAction.Move.name),
+                payload = json().toJson(result)
             )
         )
     }
