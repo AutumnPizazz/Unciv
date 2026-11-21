@@ -11,6 +11,7 @@ outline: [2, 2]
 
 - Fixed simultaneous turns freezing when first contact syncs after players dismiss different popups.
 - Revealing tiles in simultaneous turns no longer blocks other players from moving on them.
+- The turn button now shows when action replay blocks synchronization.
 - Fixed false conflicts when founding cities or moving after another player's action in simultaneous turns.
 
 ## 5.0.1.4 (build 1270)

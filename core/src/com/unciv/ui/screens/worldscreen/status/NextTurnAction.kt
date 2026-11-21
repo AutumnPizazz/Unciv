@@ -30,6 +30,10 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
         override val icon get() = null
         override fun isChoice(worldScreen: WorldScreen) = false
     },
+    SimultaneousTurnBlocked("Turn sync blocked", Color.RED) {
+        override val icon get() = null
+        override fun isChoice(worldScreen: WorldScreen) = worldScreen.isSimultaneousTurnReplayBlocked
+    },
     RetryUpload("Retry Upload", Color.RED) {
         override fun isChoice(worldScreen: WorldScreen) =
             worldScreen.failedUpload
@@ -51,7 +55,7 @@ enum class NextTurnAction(protected val text: String, val color: Color) {
     },
     Waiting("Waiting for other players...",Color.GRAY) {
         override fun getText(worldScreen: WorldScreen) =
-            if (worldScreen.gameInfo.gameParameters.isOnlineMultiplayer)
+            if (worldScreen.gameInfo.gameParameters.isOnlineMultiplayer && !worldScreen.gameInfo.isSimultaneousTurnsMode())
                 "Waiting for [${worldScreen.gameInfo.currentPlayerCiv}]..."
             else text
         override fun isChoice(worldScreen: WorldScreen) =

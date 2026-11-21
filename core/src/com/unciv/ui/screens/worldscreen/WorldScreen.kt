@@ -172,6 +172,7 @@ class WorldScreen(
     private var lastRealtimeTurnServerSequence = reusedSimultaneousTurn?.serverSequence ?: 0L
     @Volatile
     private var realtimeTurnReplayBlocked = false
+    internal val isSimultaneousTurnReplayBlocked get() = realtimeTurnReplayBlocked
     @Volatile
     private var realtimeTurnRecoveryRequired = false
     @Transient
@@ -983,6 +984,12 @@ class WorldScreen(
     //endregion
 
     fun nextTurn() {
+        // The context menu and automation can call this directly, bypassing the button's
+        // choice of action. A simultaneous turn always uses ready and atomic settlement.
+        if (gameInfo.isSimultaneousTurnsMode()) {
+            finishTurnFromPlayer()
+            return
+        }
         if (restartVoteBlocksNextTurn()) return
         isPlayersTurn = false
         shouldUpdate = true
@@ -1228,7 +1235,7 @@ class WorldScreen(
                             "Simultaneous turn settlement blocked by %d un-replayable operations (game %s, turn %d): %s",
                             failedOperations.size, gameInfo.gameId, turnStart.turns,
                             failedOperations.joinToString {
-                                "${it.operation.playerId}/${it.operation.sequence}:${it.operation.type}"
+                                "${it.operation.playerId}/${it.operation.sequence}:${it.operation.type} (${it.reason})"
                             }
                         )
                         launchOnGLThread {
@@ -1597,7 +1604,7 @@ class WorldScreen(
             Log.error(
                 "Could not apply %d accepted real-time turn actions (game %s, turn %d): %s",
                 failures.size, gameInfo.gameId, feed.turn,
-                failures.joinToString { "${it.operation.playerId}/${it.operation.sequence}:${it.operation.type}" }
+                failures.joinToString { "${it.operation.playerId}/${it.operation.sequence}:${it.operation.type} (${it.reason})" }
             )
             ToastPopup("Some accepted actions could not be applied. Turn settlement is blocked.".tr(), this, 6000)
         }
